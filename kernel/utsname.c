@@ -87,7 +87,8 @@ fail:
  * versa.
  */
 struct uts_namespace *copy_utsname(unsigned long flags,
-	struct user_namespace *user_ns, struct uts_namespace *old_ns)
+				   struct user_namespace *user_ns,
+				   struct uts_namespace *old_ns)
 {
 	struct uts_namespace *new_ns;
 
@@ -158,20 +159,18 @@ static struct user_namespace *utsns_owner(struct ns_common *ns)
 }
 
 const struct proc_ns_operations utsns_operations = {
-	.name		= "uts",
-	.type		= CLONE_NEWUTS,
-	.get		= utsns_get,
-	.put		= utsns_put,
-	.install	= utsns_install,
-	.owner		= utsns_owner,
+	.name = "uts",
+	.type = CLONE_NEWUTS,
+	.get = utsns_get,
+	.put = utsns_put,
+	.install = utsns_install,
+	.owner = utsns_owner,
 };
 
 void __init uts_ns_init(void)
 {
 	uts_ns_cache = kmem_cache_create_usercopy(
-			"uts_namespace", sizeof(struct uts_namespace), 0,
-			SLAB_PANIC|SLAB_ACCOUNT,
-			offsetof(struct uts_namespace, name),
-			sizeof_field(struct uts_namespace, name),
-			NULL);
+		"uts_namespace", sizeof(struct uts_namespace), 0,
+		SLAB_PANIC | SLAB_ACCOUNT, offsetof(struct uts_namespace, name),
+		sizeof_field(struct uts_namespace, name), NULL);
 }

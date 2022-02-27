@@ -5,7 +5,7 @@
  *  Copyright (C) 2013  Linus Torvalds
  */
 
-#define pr_fmt(fmt)	"reboot: " fmt
+#define pr_fmt(fmt) "reboot: " fmt
 
 #include <linux/atomic.h>
 #include <linux/ctype.h>
@@ -28,7 +28,7 @@ struct pid *cad_pid;
 EXPORT_SYMBOL(cad_pid);
 
 #if defined(CONFIG_ARM)
-#define DEFAULT_REBOOT_MODE		= REBOOT_HARD
+#define DEFAULT_REBOOT_MODE = REBOOT_HARD
 #else
 #define DEFAULT_REBOOT_MODE
 #endif
@@ -119,8 +119,8 @@ int devm_register_reboot_notifier(struct device *dev, struct notifier_block *nb)
 	struct notifier_block **rcnb;
 	int ret;
 
-	rcnb = devres_alloc(devm_unregister_reboot_notifier,
-			    sizeof(*rcnb), GFP_KERNEL);
+	rcnb = devres_alloc(devm_unregister_reboot_notifier, sizeof(*rcnb),
+			    GFP_KERNEL);
 	if (!rcnb)
 		return -ENOMEM;
 
@@ -259,7 +259,8 @@ EXPORT_SYMBOL_GPL(kernel_restart);
 
 static void kernel_shutdown_prepare(enum system_states state)
 {
-	blocking_notifier_call_chain(&reboot_notifier_list,
+	blocking_notifier_call_chain(
+		&reboot_notifier_list,
 		(state == SYSTEM_HALT) ? SYS_HALT : SYS_POWER_OFF, NULL);
 	system_state = state;
 	usermodehelper_disable();
@@ -322,10 +323,8 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
 
 	/* For safety, we require "magic" arguments. */
 	if (magic1 != LINUX_REBOOT_MAGIC1 ||
-			(magic2 != LINUX_REBOOT_MAGIC2 &&
-			magic2 != LINUX_REBOOT_MAGIC2A &&
-			magic2 != LINUX_REBOOT_MAGIC2B &&
-			magic2 != LINUX_REBOOT_MAGIC2C))
+	    (magic2 != LINUX_REBOOT_MAGIC2 && magic2 != LINUX_REBOOT_MAGIC2A &&
+	     magic2 != LINUX_REBOOT_MAGIC2B && magic2 != LINUX_REBOOT_MAGIC2C))
 		return -EINVAL;
 
 	/*
@@ -423,11 +422,8 @@ static const char reboot_cmd[] = "/sbin/reboot";
 static int run_cmd(const char *cmd)
 {
 	char **argv;
-	static char *envp[] = {
-		"HOME=/",
-		"PATH=/sbin:/bin:/usr/sbin:/usr/bin",
-		NULL
-	};
+	static char *envp[] = { "HOME=/", "PATH=/sbin:/bin:/usr/sbin:/usr/bin",
+				NULL };
 	int ret;
 	argv = argv_split(GFP_KERNEL, cmd, NULL);
 	if (argv) {
@@ -542,7 +538,8 @@ static void hw_failure_emergency_poweroff_func(struct work_struct *work)
 	/*
 	 * Worst of the worst case trigger emergency restart
 	 */
-	pr_emerg("Hardware protection shutdown failed. Trying emergency restart\n");
+	pr_emerg(
+		"Hardware protection shutdown failed. Trying emergency restart\n");
 	emergency_restart();
 }
 
@@ -641,8 +638,8 @@ static int __init reboot_setup(char *str)
 
 				if (cpu >= num_possible_cpus()) {
 					pr_err("Ignoring the CPU number in reboot= option. "
-					"CPU %d exceeds possible cpu number %d\n",
-					cpu, num_possible_cpus());
+					       "CPU %d exceeds possible cpu number %d\n",
+					       cpu, num_possible_cpus());
 					break;
 				}
 				reboot_cpu = cpu;
@@ -680,21 +677,22 @@ __setup("reboot=", reboot_setup);
 
 #ifdef CONFIG_SYSFS
 
-#define REBOOT_COLD_STR		"cold"
-#define REBOOT_WARM_STR		"warm"
-#define REBOOT_HARD_STR		"hard"
-#define REBOOT_SOFT_STR		"soft"
-#define REBOOT_GPIO_STR		"gpio"
-#define REBOOT_UNDEFINED_STR	"undefined"
+#define REBOOT_COLD_STR "cold"
+#define REBOOT_WARM_STR "warm"
+#define REBOOT_HARD_STR "hard"
+#define REBOOT_SOFT_STR "soft"
+#define REBOOT_GPIO_STR "gpio"
+#define REBOOT_UNDEFINED_STR "undefined"
 
-#define BOOT_TRIPLE_STR		"triple"
-#define BOOT_KBD_STR		"kbd"
-#define BOOT_BIOS_STR		"bios"
-#define BOOT_ACPI_STR		"acpi"
-#define BOOT_EFI_STR		"efi"
-#define BOOT_PCI_STR		"pci"
+#define BOOT_TRIPLE_STR "triple"
+#define BOOT_KBD_STR "kbd"
+#define BOOT_BIOS_STR "bios"
+#define BOOT_ACPI_STR "acpi"
+#define BOOT_EFI_STR "efi"
+#define BOOT_PCI_STR "pci"
 
-static ssize_t mode_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
+static ssize_t mode_show(struct kobject *kobj, struct kobj_attribute *attr,
+			 char *buf)
 {
 	const char *val;
 
@@ -746,12 +744,13 @@ static ssize_t mode_store(struct kobject *kobj, struct kobj_attribute *attr,
 static struct kobj_attribute reboot_mode_attr = __ATTR_RW(mode);
 
 #ifdef CONFIG_X86
-static ssize_t force_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
+static ssize_t force_show(struct kobject *kobj, struct kobj_attribute *attr,
+			  char *buf)
 {
 	return sprintf(buf, "%d\n", reboot_force);
 }
 static ssize_t force_store(struct kobject *kobj, struct kobj_attribute *attr,
-			  const char *buf, size_t count)
+			   const char *buf, size_t count)
 {
 	bool res;
 
@@ -768,7 +767,8 @@ static ssize_t force_store(struct kobject *kobj, struct kobj_attribute *attr,
 }
 static struct kobj_attribute reboot_force_attr = __ATTR_RW(force);
 
-static ssize_t type_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
+static ssize_t type_show(struct kobject *kobj, struct kobj_attribute *attr,
+			 char *buf)
 {
 	const char *val;
 
@@ -826,12 +826,13 @@ static struct kobj_attribute reboot_type_attr = __ATTR_RW(type);
 #endif
 
 #ifdef CONFIG_SMP
-static ssize_t cpu_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
+static ssize_t cpu_show(struct kobject *kobj, struct kobj_attribute *attr,
+			char *buf)
 {
 	return sprintf(buf, "%d\n", reboot_cpu);
 }
 static ssize_t cpu_store(struct kobject *kobj, struct kobj_attribute *attr,
-			  const char *buf, size_t count)
+			 const char *buf, size_t count)
 {
 	unsigned int cpunum;
 	int rc;

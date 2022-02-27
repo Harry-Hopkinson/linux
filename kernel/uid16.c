@@ -20,12 +20,14 @@
 
 #include "uid16.h"
 
-SYSCALL_DEFINE3(chown16, const char __user *, filename, old_uid_t, user, old_gid_t, group)
+SYSCALL_DEFINE3(chown16, const char __user *, filename, old_uid_t, user,
+		old_gid_t, group)
 {
 	return ksys_chown(filename, low2highuid(user), low2highgid(group));
 }
 
-SYSCALL_DEFINE3(lchown16, const char __user *, filename, old_uid_t, user, old_gid_t, group)
+SYSCALL_DEFINE3(lchown16, const char __user *, filename, old_uid_t, user,
+		old_gid_t, group)
 {
 	return ksys_lchown(filename, low2highuid(user), low2highgid(group));
 }
@@ -58,10 +60,11 @@ SYSCALL_DEFINE1(setuid16, old_uid_t, uid)
 SYSCALL_DEFINE3(setresuid16, old_uid_t, ruid, old_uid_t, euid, old_uid_t, suid)
 {
 	return __sys_setresuid(low2highuid(ruid), low2highuid(euid),
-				 low2highuid(suid));
+			       low2highuid(suid));
 }
 
-SYSCALL_DEFINE3(getresuid16, old_uid_t __user *, ruidp, old_uid_t __user *, euidp, old_uid_t __user *, suidp)
+SYSCALL_DEFINE3(getresuid16, old_uid_t __user *, ruidp, old_uid_t __user *,
+		euidp, old_uid_t __user *, suidp)
 {
 	const struct cred *cred = current_cred();
 	int retval;
@@ -71,8 +74,8 @@ SYSCALL_DEFINE3(getresuid16, old_uid_t __user *, ruidp, old_uid_t __user *, euid
 	euid = high2lowuid(from_kuid_munged(cred->user_ns, cred->euid));
 	suid = high2lowuid(from_kuid_munged(cred->user_ns, cred->suid));
 
-	if (!(retval   = put_user(ruid, ruidp)) &&
-	    !(retval   = put_user(euid, euidp)))
+	if (!(retval = put_user(ruid, ruidp)) &&
+	    !(retval = put_user(euid, euidp)))
 		retval = put_user(suid, suidp);
 
 	return retval;
@@ -81,10 +84,11 @@ SYSCALL_DEFINE3(getresuid16, old_uid_t __user *, ruidp, old_uid_t __user *, euid
 SYSCALL_DEFINE3(setresgid16, old_gid_t, rgid, old_gid_t, egid, old_gid_t, sgid)
 {
 	return __sys_setresgid(low2highgid(rgid), low2highgid(egid),
-				 low2highgid(sgid));
+			       low2highgid(sgid));
 }
 
-SYSCALL_DEFINE3(getresgid16, old_gid_t __user *, rgidp, old_gid_t __user *, egidp, old_gid_t __user *, sgidp)
+SYSCALL_DEFINE3(getresgid16, old_gid_t __user *, rgidp, old_gid_t __user *,
+		egidp, old_gid_t __user *, sgidp)
 {
 	const struct cred *cred = current_cred();
 	int retval;
@@ -94,8 +98,8 @@ SYSCALL_DEFINE3(getresgid16, old_gid_t __user *, rgidp, old_gid_t __user *, egid
 	egid = high2lowgid(from_kgid_munged(cred->user_ns, cred->egid));
 	sgid = high2lowgid(from_kgid_munged(cred->user_ns, cred->sgid));
 
-	if (!(retval   = put_user(rgid, rgidp)) &&
-	    !(retval   = put_user(egid, egidp)))
+	if (!(retval = put_user(rgid, rgidp)) &&
+	    !(retval = put_user(egid, egidp)))
 		retval = put_user(sgid, sgidp);
 
 	return retval;
@@ -112,7 +116,7 @@ SYSCALL_DEFINE1(setfsgid16, old_gid_t, gid)
 }
 
 static int groups16_to_user(old_gid_t __user *grouplist,
-    struct group_info *group_info)
+			    struct group_info *group_info)
 {
 	struct user_namespace *user_ns = current_user_ns();
 	int i;
@@ -122,7 +126,7 @@ static int groups16_to_user(old_gid_t __user *grouplist,
 	for (i = 0; i < group_info->ngroups; i++) {
 		kgid = group_info->gid[i];
 		group = high2lowgid(from_kgid_munged(user_ns, kgid));
-		if (put_user(group, grouplist+i))
+		if (put_user(group, grouplist + i))
 			return -EFAULT;
 	}
 
@@ -130,7 +134,7 @@ static int groups16_to_user(old_gid_t __user *grouplist,
 }
 
 static int groups16_from_user(struct group_info *group_info,
-    old_gid_t __user *grouplist)
+			      old_gid_t __user *grouplist)
 {
 	struct user_namespace *user_ns = current_user_ns();
 	int i;
@@ -138,8 +142,8 @@ static int groups16_from_user(struct group_info *group_info,
 	kgid_t kgid;
 
 	for (i = 0; i < group_info->ngroups; i++) {
-		if (get_user(group, grouplist+i))
-			return  -EFAULT;
+		if (get_user(group, grouplist + i))
+			return -EFAULT;
 
 		kgid = make_kgid(user_ns, low2highgid(group));
 		if (!gid_valid(kgid))

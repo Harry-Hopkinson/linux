@@ -29,8 +29,8 @@
 #include "internal.h"
 
 struct hmm_vma_walk {
-	struct hmm_range	*range;
-	unsigned long		last;
+	struct hmm_range *range;
+	unsigned long last;
 };
 
 enum {
@@ -107,8 +107,7 @@ static unsigned int hmm_pte_need_fault(const struct hmm_vma_walk *hmm_vma_walk,
 		return 0;
 
 	/* Need to write fault ? */
-	if ((pfn_req_flags & HMM_PFN_REQ_WRITE) &&
-	    !(cpu_flags & HMM_PFN_WRITE))
+	if ((pfn_req_flags & HMM_PFN_REQ_WRITE) && !(cpu_flags & HMM_PFN_WRITE))
 		return HMM_NEED_FAULT | HMM_NEED_WRITE_FAULT;
 
 	/* If CPU page table is not valid then we need to fault */
@@ -209,15 +208,15 @@ static int hmm_vma_handle_pmd(struct mm_walk *walk, unsigned long addr,
 #else /* CONFIG_TRANSPARENT_HUGEPAGE */
 /* stub to allow the code below to compile */
 int hmm_vma_handle_pmd(struct mm_walk *walk, unsigned long addr,
-		unsigned long end, unsigned long hmm_pfns[], pmd_t pmd);
+		       unsigned long end, unsigned long hmm_pfns[], pmd_t pmd);
 #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 
 static inline bool hmm_is_device_private_entry(struct hmm_range *range,
-		swp_entry_t entry)
+					       swp_entry_t entry)
 {
 	return is_device_private_entry(entry) &&
-		pfn_swap_entry_to_page(entry)->pgmap->owner ==
-		range->dev_private_owner;
+	       pfn_swap_entry_to_page(entry)->pgmap->owner ==
+		       range->dev_private_owner;
 }
 
 static inline unsigned long pte_to_hmm_pfn_flags(struct hmm_range *range,
@@ -300,8 +299,7 @@ static int hmm_vma_handle_pte(struct mm_walk *walk, unsigned long addr,
 	 * Since each architecture defines a struct page for the zero page, just
 	 * fall through and treat it like a normal page.
 	 */
-	if (!vm_normal_page(walk->vma, addr, pte) &&
-	    !pte_devmap(pte) &&
+	if (!vm_normal_page(walk->vma, addr, pte) && !pte_devmap(pte) &&
 	    !is_zero_pfn(pte_pfn(pte))) {
 		if (hmm_pte_need_fault(hmm_vma_walk, pfn_req_flags, 0)) {
 			pte_unmap(ptep);
@@ -320,9 +318,7 @@ fault:
 	return hmm_vma_fault(addr, end, required_fault, walk);
 }
 
-static int hmm_vma_walk_pmd(pmd_t *pmdp,
-			    unsigned long start,
-			    unsigned long end,
+static int hmm_vma_walk_pmd(pmd_t *pmdp, unsigned long start, unsigned long end,
 			    struct mm_walk *walk)
 {
 	struct hmm_vma_walk *hmm_vma_walk = walk->private;
@@ -398,8 +394,8 @@ again:
 	return 0;
 }
 
-#if defined(CONFIG_ARCH_HAS_PTE_DEVMAP) && \
-    defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
+#if defined(CONFIG_ARCH_HAS_PTE_DEVMAP) &&                                     \
+	defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
 static inline unsigned long pud_to_hmm_pfn_flags(struct hmm_range *range,
 						 pud_t pud)
 {
@@ -411,7 +407,7 @@ static inline unsigned long pud_to_hmm_pfn_flags(struct hmm_range *range,
 }
 
 static int hmm_vma_walk_pud(pud_t *pudp, unsigned long start, unsigned long end,
-		struct mm_walk *walk)
+			    struct mm_walk *walk)
 {
 	struct hmm_vma_walk *hmm_vma_walk = walk->private;
 	struct hmm_range *range = hmm_vma_walk->range;
@@ -469,7 +465,7 @@ out_unlock:
 	return ret;
 }
 #else
-#define hmm_vma_walk_pud	NULL
+#define hmm_vma_walk_pud NULL
 #endif
 
 #ifdef CONFIG_HUGETLB_PAGE
@@ -519,8 +515,7 @@ static int hmm_vma_walk_test(unsigned long start, unsigned long end,
 	struct hmm_range *range = hmm_vma_walk->range;
 	struct vm_area_struct *vma = walk->vma;
 
-	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)) &&
-	    vma->vm_flags & VM_READ)
+	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)) && vma->vm_flags & VM_READ)
 		return 0;
 
 	/*
@@ -547,11 +542,11 @@ static int hmm_vma_walk_test(unsigned long start, unsigned long end,
 }
 
 static const struct mm_walk_ops hmm_walk_ops = {
-	.pud_entry	= hmm_vma_walk_pud,
-	.pmd_entry	= hmm_vma_walk_pmd,
-	.pte_hole	= hmm_vma_walk_hole,
-	.hugetlb_entry	= hmm_vma_walk_hugetlb_entry,
-	.test_walk	= hmm_vma_walk_test,
+	.pud_entry = hmm_vma_walk_pud,
+	.pmd_entry = hmm_vma_walk_pmd,
+	.pte_hole = hmm_vma_walk_hole,
+	.hugetlb_entry = hmm_vma_walk_hugetlb_entry,
+	.test_walk = hmm_vma_walk_test,
 };
 
 /**

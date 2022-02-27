@@ -44,8 +44,8 @@ static int wp_pte(pte_t *pte, unsigned long addr, unsigned long end,
 		ptep_modify_prot_commit(walk->vma, addr, pte, old_pte, ptent);
 		wpwalk->total++;
 		wpwalk->tlbflush_start = min(wpwalk->tlbflush_start, addr);
-		wpwalk->tlbflush_end = max(wpwalk->tlbflush_end,
-					   addr + PAGE_SIZE);
+		wpwalk->tlbflush_end =
+			max(wpwalk->tlbflush_end, addr + PAGE_SIZE);
 	}
 
 	return 0;
@@ -86,8 +86,8 @@ struct clean_walk {
  * in the address_space, as well as the first and last of the bits
  * touched.
  */
-static int clean_record_pte(pte_t *pte, unsigned long addr,
-			    unsigned long end, struct mm_walk *walk)
+static int clean_record_pte(pte_t *pte, unsigned long addr, unsigned long end,
+			    struct mm_walk *walk)
 {
 	struct wp_walk *wpwalk = walk->private;
 	struct clean_walk *cwalk = to_clean_walk(wpwalk);
@@ -95,7 +95,7 @@ static int clean_record_pte(pte_t *pte, unsigned long addr,
 
 	if (pte_dirty(ptent)) {
 		pgoff_t pgoff = ((addr - walk->vma->vm_start) >> PAGE_SHIFT) +
-			walk->vma->vm_pgoff - cwalk->bitmap_pgoff;
+				walk->vma->vm_pgoff - cwalk->bitmap_pgoff;
 		pte_t old_pte = ptep_modify_prot_start(walk->vma, addr, pte);
 
 		ptent = pte_mkclean(old_pte);
@@ -103,8 +103,8 @@ static int clean_record_pte(pte_t *pte, unsigned long addr,
 
 		wpwalk->total++;
 		wpwalk->tlbflush_start = min(wpwalk->tlbflush_start, addr);
-		wpwalk->tlbflush_end = max(wpwalk->tlbflush_end,
-					   addr + PAGE_SIZE);
+		wpwalk->tlbflush_end =
+			max(wpwalk->tlbflush_end, addr + PAGE_SIZE);
 
 		__set_bit(pgoff, cwalk->bitmap);
 		cwalk->start = min(cwalk->start, pgoff);
@@ -253,14 +253,12 @@ static const struct mm_walk_ops clean_walk_ops = {
 	.post_vma = wp_clean_post_vma
 };
 
-static const struct mm_walk_ops wp_walk_ops = {
-	.pte_entry = wp_pte,
-	.pmd_entry = wp_clean_pmd_entry,
-	.pud_entry = wp_clean_pud_entry,
-	.test_walk = wp_clean_test_walk,
-	.pre_vma = wp_clean_pre_vma,
-	.post_vma = wp_clean_post_vma
-};
+static const struct mm_walk_ops wp_walk_ops = { .pte_entry = wp_pte,
+						.pmd_entry = wp_clean_pmd_entry,
+						.pud_entry = wp_clean_pud_entry,
+						.test_walk = wp_clean_test_walk,
+						.pre_vma = wp_clean_pre_vma,
+						.post_vma = wp_clean_post_vma };
 
 /**
  * wp_shared_mapping_range - Write-protect all ptes in an address space range
@@ -329,8 +327,7 @@ unsigned long clean_record_shared_mapping_range(struct address_space *mapping,
 						pgoff_t first_index, pgoff_t nr,
 						pgoff_t bitmap_pgoff,
 						unsigned long *bitmap,
-						pgoff_t *start,
-						pgoff_t *end)
+						pgoff_t *start, pgoff_t *end)
 {
 	bool none_set = (*start >= *end);
 	struct clean_walk cwalk = {

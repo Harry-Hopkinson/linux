@@ -58,15 +58,21 @@ static int null_digest(struct shash_desc *desc, const u8 *data,
 
 static int null_hash_setkey(struct crypto_shash *tfm, const u8 *key,
 			    unsigned int keylen)
-{ return 0; }
+{
+	return 0;
+}
 
 static int null_skcipher_setkey(struct crypto_skcipher *tfm, const u8 *key,
 				unsigned int keylen)
-{ return 0; }
+{
+	return 0;
+}
 
 static int null_setkey(struct crypto_tfm *tfm, const u8 *key,
 		       unsigned int keylen)
-{ return 0; }
+{
+	return 0;
+}
 
 static void null_crypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 {
@@ -90,61 +96,58 @@ static int null_skcipher_crypt(struct skcipher_request *req)
 	return err;
 }
 
-static struct shash_alg digest_null = {
-	.digestsize		=	NULL_DIGEST_SIZE,
-	.setkey   		=	null_hash_setkey,
-	.init   		=	null_init,
-	.update 		=	null_update,
-	.finup 			=	null_digest,
-	.digest 		=	null_digest,
-	.final  		=	null_final,
-	.base			=	{
-		.cra_name		=	"digest_null",
-		.cra_driver_name	=	"digest_null-generic",
-		.cra_blocksize		=	NULL_BLOCK_SIZE,
-		.cra_module		=	THIS_MODULE,
-	}
-};
+static struct shash_alg digest_null = { .digestsize = NULL_DIGEST_SIZE,
+					.setkey = null_hash_setkey,
+					.init = null_init,
+					.update = null_update,
+					.finup = null_digest,
+					.digest = null_digest,
+					.final = null_final,
+					.base = {
+						.cra_name = "digest_null",
+						.cra_driver_name =
+							"digest_null-generic",
+						.cra_blocksize =
+							NULL_BLOCK_SIZE,
+						.cra_module = THIS_MODULE,
+					} };
 
 static struct skcipher_alg skcipher_null = {
-	.base.cra_name		=	"ecb(cipher_null)",
-	.base.cra_driver_name	=	"ecb-cipher_null",
-	.base.cra_priority	=	100,
-	.base.cra_blocksize	=	NULL_BLOCK_SIZE,
-	.base.cra_ctxsize	=	0,
-	.base.cra_module	=	THIS_MODULE,
-	.min_keysize		=	NULL_KEY_SIZE,
-	.max_keysize		=	NULL_KEY_SIZE,
-	.ivsize			=	NULL_IV_SIZE,
-	.setkey			=	null_skcipher_setkey,
-	.encrypt		=	null_skcipher_crypt,
-	.decrypt		=	null_skcipher_crypt,
+	.base.cra_name = "ecb(cipher_null)",
+	.base.cra_driver_name = "ecb-cipher_null",
+	.base.cra_priority = 100,
+	.base.cra_blocksize = NULL_BLOCK_SIZE,
+	.base.cra_ctxsize = 0,
+	.base.cra_module = THIS_MODULE,
+	.min_keysize = NULL_KEY_SIZE,
+	.max_keysize = NULL_KEY_SIZE,
+	.ivsize = NULL_IV_SIZE,
+	.setkey = null_skcipher_setkey,
+	.encrypt = null_skcipher_crypt,
+	.decrypt = null_skcipher_crypt,
 };
 
-static struct crypto_alg null_algs[] = { {
-	.cra_name		=	"cipher_null",
-	.cra_driver_name	=	"cipher_null-generic",
-	.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
-	.cra_blocksize		=	NULL_BLOCK_SIZE,
-	.cra_ctxsize		=	0,
-	.cra_module		=	THIS_MODULE,
-	.cra_u			=	{ .cipher = {
-	.cia_min_keysize	=	NULL_KEY_SIZE,
-	.cia_max_keysize	=	NULL_KEY_SIZE,
-	.cia_setkey		= 	null_setkey,
-	.cia_encrypt		=	null_crypt,
-	.cia_decrypt		=	null_crypt } }
-}, {
-	.cra_name		=	"compress_null",
-	.cra_driver_name	=	"compress_null-generic",
-	.cra_flags		=	CRYPTO_ALG_TYPE_COMPRESS,
-	.cra_blocksize		=	NULL_BLOCK_SIZE,
-	.cra_ctxsize		=	0,
-	.cra_module		=	THIS_MODULE,
-	.cra_u			=	{ .compress = {
-	.coa_compress		=	null_compress,
-	.coa_decompress		=	null_compress } }
-} };
+static struct crypto_alg null_algs[] = {
+	{ .cra_name = "cipher_null",
+	  .cra_driver_name = "cipher_null-generic",
+	  .cra_flags = CRYPTO_ALG_TYPE_CIPHER,
+	  .cra_blocksize = NULL_BLOCK_SIZE,
+	  .cra_ctxsize = 0,
+	  .cra_module = THIS_MODULE,
+	  .cra_u = { .cipher = { .cia_min_keysize = NULL_KEY_SIZE,
+				 .cia_max_keysize = NULL_KEY_SIZE,
+				 .cia_setkey = null_setkey,
+				 .cia_encrypt = null_crypt,
+				 .cia_decrypt = null_crypt } } },
+	{ .cra_name = "compress_null",
+	  .cra_driver_name = "compress_null-generic",
+	  .cra_flags = CRYPTO_ALG_TYPE_COMPRESS,
+	  .cra_blocksize = NULL_BLOCK_SIZE,
+	  .cra_ctxsize = 0,
+	  .cra_module = THIS_MODULE,
+	  .cra_u = { .compress = { .coa_compress = null_compress,
+				   .coa_decompress = null_compress } } }
+};
 
 MODULE_ALIAS_CRYPTO("compress_null");
 MODULE_ALIAS_CRYPTO("digest_null");

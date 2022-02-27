@@ -6,7 +6,7 @@
  * Author: John Garry <john.garry@huawei.com>
  */
 
-#define pr_fmt(fmt)	"LOGIC PIO: " fmt
+#define pr_fmt(fmt) "LOGIC PIO: " fmt
 
 #include <linux/of.h>
 #include <linux/io.h>
@@ -21,7 +21,7 @@ static LIST_HEAD(io_range_list);
 static DEFINE_MUTEX(io_range_mutex);
 
 /* Consider a kernel general helper for this */
-#define in_range(b, first, len)        ((b) >= (first) && (b) < (first) + (len))
+#define in_range(b, first, len) ((b) >= (first) && (b) < (first) + (len))
 
 /**
  * logic_pio_register_range - register logical PIO range for a host
@@ -50,7 +50,7 @@ int logic_pio_register_range(struct logic_pio_hwaddr *new_range)
 	end = new_range->hw_start + new_range->size;
 
 	mutex_lock(&io_range_mutex);
-	list_for_each_entry(range, &io_range_list, list) {
+	list_for_each_entry (range, &io_range_list, list) {
 		if (range->fwnode == new_range->fwnode) {
 			/* range already there */
 			ret = -EEXIST;
@@ -130,7 +130,7 @@ struct logic_pio_hwaddr *find_io_range_by_fwnode(struct fwnode_handle *fwnode)
 	struct logic_pio_hwaddr *range, *found_range = NULL;
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(range, &io_range_list, list) {
+	list_for_each_entry_rcu (range, &io_range_list, list) {
 		if (range->fwnode == fwnode) {
 			found_range = range;
 			break;
@@ -147,7 +147,7 @@ static struct logic_pio_hwaddr *find_io_range(unsigned long pio)
 	struct logic_pio_hwaddr *range, *found_range = NULL;
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(range, &io_range_list, list) {
+	list_for_each_entry_rcu (range, &io_range_list, list) {
 		if (in_range(pio, range->io_start, range->size)) {
 			found_range = range;
 			break;
@@ -212,7 +212,7 @@ unsigned long logic_pio_trans_cpuaddr(resource_size_t addr)
 	struct logic_pio_hwaddr *range;
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(range, &io_range_list, list) {
+	list_for_each_entry_rcu (range, &io_range_list, list) {
 		if (range->flags != LOGIC_PIO_CPU_MMIO)
 			continue;
 		if (in_range(addr, range->hw_start, range->size)) {
@@ -232,72 +232,75 @@ unsigned long logic_pio_trans_cpuaddr(resource_size_t addr)
 }
 
 #if defined(CONFIG_INDIRECT_PIO) && defined(PCI_IOBASE)
-#define BUILD_LOGIC_IO(bwl, type)					\
-type logic_in##bwl(unsigned long addr)					\
-{									\
-	type ret = (type)~0;						\
-									\
-	if (addr < MMIO_UPPER_LIMIT) {					\
-		ret = _in##bwl(addr);					\
-	} else if (addr >= MMIO_UPPER_LIMIT && addr < IO_SPACE_LIMIT) { \
-		struct logic_pio_hwaddr *entry = find_io_range(addr);	\
-									\
-		if (entry)						\
-			ret = entry->ops->in(entry->hostdata,		\
-					addr, sizeof(type));		\
-		else							\
-			WARN_ON_ONCE(1);				\
-	}								\
-	return ret;							\
-}									\
-									\
-void logic_out##bwl(type value, unsigned long addr)			\
-{									\
-	if (addr < MMIO_UPPER_LIMIT) {					\
-		_out##bwl(value, addr);				\
-	} else if (addr >= MMIO_UPPER_LIMIT && addr < IO_SPACE_LIMIT) {	\
-		struct logic_pio_hwaddr *entry = find_io_range(addr);	\
-									\
-		if (entry)						\
-			entry->ops->out(entry->hostdata,		\
-					addr, value, sizeof(type));	\
-		else							\
-			WARN_ON_ONCE(1);				\
-	}								\
-}									\
-									\
-void logic_ins##bwl(unsigned long addr, void *buffer,			\
-		    unsigned int count)					\
-{									\
-	if (addr < MMIO_UPPER_LIMIT) {					\
-		reads##bwl(PCI_IOBASE + addr, buffer, count);		\
-	} else if (addr >= MMIO_UPPER_LIMIT && addr < IO_SPACE_LIMIT) {	\
-		struct logic_pio_hwaddr *entry = find_io_range(addr);	\
-									\
-		if (entry)						\
-			entry->ops->ins(entry->hostdata,		\
-				addr, buffer, sizeof(type), count);	\
-		else							\
-			WARN_ON_ONCE(1);				\
-	}								\
-									\
-}									\
-									\
-void logic_outs##bwl(unsigned long addr, const void *buffer,		\
-		     unsigned int count)				\
-{									\
-	if (addr < MMIO_UPPER_LIMIT) {					\
-		writes##bwl(PCI_IOBASE + addr, buffer, count);		\
-	} else if (addr >= MMIO_UPPER_LIMIT && addr < IO_SPACE_LIMIT) {	\
-		struct logic_pio_hwaddr *entry = find_io_range(addr);	\
-									\
-		if (entry)						\
-			entry->ops->outs(entry->hostdata,		\
-				addr, buffer, sizeof(type), count);	\
-		else							\
-			WARN_ON_ONCE(1);				\
-	}								\
-}
+#define BUILD_LOGIC_IO(bwl, type)                                              \
+	type logic_in##bwl(unsigned long addr)                                 \
+	{                                                                      \
+		type ret = (type)~0;                                           \
+                                                                               \
+		if (addr < MMIO_UPPER_LIMIT) {                                 \
+			ret = _in##bwl(addr);                                  \
+		} else if (addr >= MMIO_UPPER_LIMIT &&                         \
+			   addr < IO_SPACE_LIMIT) {                            \
+			struct logic_pio_hwaddr *entry = find_io_range(addr);  \
+                                                                               \
+			if (entry)                                             \
+				ret = entry->ops->in(entry->hostdata, addr,    \
+						     sizeof(type));            \
+			else                                                   \
+				WARN_ON_ONCE(1);                               \
+		}                                                              \
+		return ret;                                                    \
+	}                                                                      \
+                                                                               \
+	void logic_out##bwl(type value, unsigned long addr)                    \
+	{                                                                      \
+		if (addr < MMIO_UPPER_LIMIT) {                                 \
+			_out##bwl(value, addr);                                \
+		} else if (addr >= MMIO_UPPER_LIMIT &&                         \
+			   addr < IO_SPACE_LIMIT) {                            \
+			struct logic_pio_hwaddr *entry = find_io_range(addr);  \
+                                                                               \
+			if (entry)                                             \
+				entry->ops->out(entry->hostdata, addr, value,  \
+						sizeof(type));                 \
+			else                                                   \
+				WARN_ON_ONCE(1);                               \
+		}                                                              \
+	}                                                                      \
+                                                                               \
+	void logic_ins##bwl(unsigned long addr, void *buffer,                  \
+			    unsigned int count)                                \
+	{                                                                      \
+		if (addr < MMIO_UPPER_LIMIT) {                                 \
+			reads##bwl(PCI_IOBASE + addr, buffer, count);          \
+		} else if (addr >= MMIO_UPPER_LIMIT &&                         \
+			   addr < IO_SPACE_LIMIT) {                            \
+			struct logic_pio_hwaddr *entry = find_io_range(addr);  \
+                                                                               \
+			if (entry)                                             \
+				entry->ops->ins(entry->hostdata, addr, buffer, \
+						sizeof(type), count);          \
+			else                                                   \
+				WARN_ON_ONCE(1);                               \
+		}                                                              \
+	}                                                                      \
+                                                                               \
+	void logic_outs##bwl(unsigned long addr, const void *buffer,           \
+			     unsigned int count)                               \
+	{                                                                      \
+		if (addr < MMIO_UPPER_LIMIT) {                                 \
+			writes##bwl(PCI_IOBASE + addr, buffer, count);         \
+		} else if (addr >= MMIO_UPPER_LIMIT &&                         \
+			   addr < IO_SPACE_LIMIT) {                            \
+			struct logic_pio_hwaddr *entry = find_io_range(addr);  \
+                                                                               \
+			if (entry)                                             \
+				entry->ops->outs(entry->hostdata, addr,        \
+						 buffer, sizeof(type), count); \
+			else                                                   \
+				WARN_ON_ONCE(1);                               \
+		}                                                              \
+	}
 
 BUILD_LOGIC_IO(b, u8)
 EXPORT_SYMBOL(logic_inb);

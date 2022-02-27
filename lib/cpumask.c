@@ -38,7 +38,7 @@ int cpumask_next_and(int n, const struct cpumask *src1p,
 	if (n != -1)
 		cpumask_check(n);
 	return find_next_and_bit(cpumask_bits(src1p), cpumask_bits(src2p),
-		nr_cpumask_bits, n + 1);
+				 nr_cpumask_bits, n + 1);
 }
 EXPORT_SYMBOL(cpumask_next_and);
 
@@ -55,7 +55,7 @@ int cpumask_any_but(const struct cpumask *mask, unsigned int cpu)
 	unsigned int i;
 
 	cpumask_check(cpu);
-	for_each_cpu(i, mask)
+	for_each_cpu (i, mask)
 		if (i != cpu)
 			break;
 	return i;
@@ -211,16 +211,16 @@ unsigned int cpumask_local_spread(unsigned int i, int node)
 	i %= num_online_cpus();
 
 	if (node == NUMA_NO_NODE) {
-		for_each_cpu(cpu, cpu_online_mask)
+		for_each_cpu (cpu, cpu_online_mask)
 			if (i-- == 0)
 				return cpu;
 	} else {
 		/* NUMA first. */
-		for_each_cpu_and(cpu, cpumask_of_node(node), cpu_online_mask)
+		for_each_cpu_and (cpu, cpumask_of_node(node), cpu_online_mask)
 			if (i-- == 0)
 				return cpu;
 
-		for_each_cpu(cpu, cpu_online_mask) {
+		for_each_cpu (cpu, cpu_online_mask) {
 			/* Skip NUMA nodes, done above. */
 			if (cpumask_test_cpu(cpu, cpumask_of_node(node)))
 				continue;

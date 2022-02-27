@@ -83,7 +83,7 @@ static int compat_blkpg_ioctl(struct block_device *bdev,
 #endif
 
 static int blk_ioctl_discard(struct block_device *bdev, fmode_t mode,
-		unsigned long arg, unsigned long flags)
+			     unsigned long arg, unsigned long flags)
 {
 	uint64_t range[2];
 	uint64_t start, len;
@@ -116,8 +116,8 @@ static int blk_ioctl_discard(struct block_device *bdev, fmode_t mode,
 	if (err)
 		goto fail;
 
-	err = blkdev_issue_discard(bdev, start >> 9, len >> 9,
-				   GFP_KERNEL, flags);
+	err = blkdev_issue_discard(bdev, start >> 9, len >> 9, GFP_KERNEL,
+				   flags);
 
 fail:
 	filemap_invalidate_unlock(inode->i_mapping);
@@ -125,7 +125,7 @@ fail:
 }
 
 static int blk_ioctl_zeroout(struct block_device *bdev, fmode_t mode,
-		unsigned long arg)
+			     unsigned long arg)
 {
 	uint64_t range[2];
 	uint64_t start, end, len;
@@ -214,7 +214,7 @@ static int compat_put_ulong(compat_ulong_t __user *argp, compat_ulong_t val)
  * between 32-bit and 64-bit user space
  */
 int blkdev_compat_ptr_ioctl(struct block_device *bdev, fmode_t mode,
-			unsigned cmd, unsigned long arg)
+			    unsigned cmd, unsigned long arg)
 {
 	struct gendisk *disk = bdev->bd_disk;
 
@@ -228,7 +228,7 @@ EXPORT_SYMBOL(blkdev_compat_ptr_ioctl);
 #endif
 
 static int blkdev_pr_register(struct block_device *bdev,
-		struct pr_registration __user *arg)
+			      struct pr_registration __user *arg)
 {
 	const struct pr_ops *ops = bdev->bd_disk->fops->pr_ops;
 	struct pr_registration reg;
@@ -246,7 +246,7 @@ static int blkdev_pr_register(struct block_device *bdev,
 }
 
 static int blkdev_pr_reserve(struct block_device *bdev,
-		struct pr_reservation __user *arg)
+			     struct pr_reservation __user *arg)
 {
 	const struct pr_ops *ops = bdev->bd_disk->fops->pr_ops;
 	struct pr_reservation rsv;
@@ -264,7 +264,7 @@ static int blkdev_pr_reserve(struct block_device *bdev,
 }
 
 static int blkdev_pr_release(struct block_device *bdev,
-		struct pr_reservation __user *arg)
+			     struct pr_reservation __user *arg)
 {
 	const struct pr_ops *ops = bdev->bd_disk->fops->pr_ops;
 	struct pr_reservation rsv;
@@ -282,7 +282,7 @@ static int blkdev_pr_release(struct block_device *bdev,
 }
 
 static int blkdev_pr_preempt(struct block_device *bdev,
-		struct pr_preempt __user *arg, bool abort)
+			     struct pr_preempt __user *arg, bool abort)
 {
 	const struct pr_ops *ops = bdev->bd_disk->fops->pr_ops;
 	struct pr_preempt p;
@@ -300,7 +300,7 @@ static int blkdev_pr_preempt(struct block_device *bdev,
 }
 
 static int blkdev_pr_clear(struct block_device *bdev,
-		struct pr_clear __user *arg)
+			   struct pr_clear __user *arg)
 {
 	const struct pr_ops *ops = bdev->bd_disk->fops->pr_ops;
 	struct pr_clear c;
@@ -318,7 +318,7 @@ static int blkdev_pr_clear(struct block_device *bdev,
 }
 
 static int blkdev_flushbuf(struct block_device *bdev, fmode_t mode,
-		unsigned cmd, unsigned long arg)
+			   unsigned cmd, unsigned long arg)
 {
 	if (!capable(CAP_SYS_ADMIN))
 		return -EACCES;
@@ -327,8 +327,8 @@ static int blkdev_flushbuf(struct block_device *bdev, fmode_t mode,
 	return 0;
 }
 
-static int blkdev_roset(struct block_device *bdev, fmode_t mode,
-		unsigned cmd, unsigned long arg)
+static int blkdev_roset(struct block_device *bdev, fmode_t mode, unsigned cmd,
+			unsigned long arg)
 {
 	int ret, n;
 
@@ -347,7 +347,7 @@ static int blkdev_roset(struct block_device *bdev, fmode_t mode,
 }
 
 static int blkdev_getgeo(struct block_device *bdev,
-		struct hd_geometry __user *argp)
+			 struct hd_geometry __user *argp)
 {
 	struct gendisk *disk = bdev->bd_disk;
 	struct hd_geometry geo;
@@ -413,7 +413,7 @@ static int compat_hdio_getgeo(struct block_device *bdev,
 
 /* set the logical block size */
 static int blkdev_bszset(struct block_device *bdev, fmode_t mode,
-		int __user *argp)
+			 int __user *argp)
 {
 	int ret, n;
 
@@ -441,7 +441,8 @@ static int blkdev_bszset(struct block_device *bdev, fmode_t mode,
  * to deal with the compat_ptr() conversion.
  */
 static int blkdev_common_ioctl(struct block_device *bdev, fmode_t mode,
-				unsigned cmd, unsigned long arg, void __user *argp)
+			       unsigned cmd, unsigned long arg,
+			       void __user *argp)
 {
 	unsigned int max_sectors;
 
@@ -454,7 +455,7 @@ static int blkdev_common_ioctl(struct block_device *bdev, fmode_t mode,
 		return blk_ioctl_discard(bdev, mode, arg, 0);
 	case BLKSECDISCARD:
 		return blk_ioctl_discard(bdev, mode, arg,
-				BLKDEV_DISCARD_SECURE);
+					 BLKDEV_DISCARD_SECURE);
 	case BLKZEROOUT:
 		return blk_ioctl_zeroout(bdev, mode, arg);
 	case BLKGETDISKSEQ:
@@ -489,10 +490,11 @@ static int blkdev_common_ioctl(struct block_device *bdev, fmode_t mode,
 				    queue_max_sectors(bdev_get_queue(bdev)));
 		return put_ushort(argp, max_sectors);
 	case BLKROTATIONAL:
-		return put_ushort(argp, !blk_queue_nonrot(bdev_get_queue(bdev)));
+		return put_ushort(argp,
+				  !blk_queue_nonrot(bdev_get_queue(bdev)));
 	case BLKRASET:
 	case BLKFRASET:
-		if(!capable(CAP_SYS_ADMIN))
+		if (!capable(CAP_SYS_ADMIN))
 			return -EACCES;
 		bdev->bd_disk->bdi->ra_pages = (arg * 512) / PAGE_SIZE;
 		return 0;
@@ -557,8 +559,8 @@ long blkdev_ioctl(struct file *file, unsigned cmd, unsigned long arg)
 	case BLKFRAGET:
 		if (!argp)
 			return -EINVAL;
-		return put_long(argp,
-			(bdev->bd_disk->bdi->ra_pages * PAGE_SIZE) / 512);
+		return put_long(
+			argp, (bdev->bd_disk->bdi->ra_pages * PAGE_SIZE) / 512);
 	case BLKGETSIZE:
 		if (bdev_nr_sectors(bdev) > ~0UL)
 			return -EFBIG;
@@ -590,9 +592,9 @@ long blkdev_ioctl(struct file *file, unsigned cmd, unsigned long arg)
 
 #ifdef CONFIG_COMPAT
 
-#define BLKBSZGET_32		_IOR(0x12, 112, int)
-#define BLKBSZSET_32		_IOW(0x12, 113, int)
-#define BLKGETSIZE64_32		_IOR(0x12, 114, int)
+#define BLKBSZGET_32 _IOR(0x12, 112, int)
+#define BLKBSZSET_32 _IOW(0x12, 113, int)
+#define BLKGETSIZE64_32 _IOR(0x12, 114, int)
 
 /* Most of the generic ioctls are handled in the normal fallback path.
    This assumes the blkdev's low level compat_ioctl always returns
@@ -626,8 +628,8 @@ long compat_blkdev_ioctl(struct file *file, unsigned cmd, unsigned long arg)
 	case BLKFRAGET:
 		if (!argp)
 			return -EINVAL;
-		return compat_put_long(argp,
-			(bdev->bd_disk->bdi->ra_pages * PAGE_SIZE) / 512);
+		return compat_put_long(
+			argp, (bdev->bd_disk->bdi->ra_pages * PAGE_SIZE) / 512);
 	case BLKGETSIZE:
 		if (bdev_nr_sectors(bdev) > ~0UL)
 			return -EFBIG;

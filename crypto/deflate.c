@@ -30,9 +30,9 @@
 #include <linux/net.h>
 #include <crypto/internal/scompress.h>
 
-#define DEFLATE_DEF_LEVEL		Z_DEFAULT_COMPRESSION
-#define DEFLATE_DEF_WINBITS		11
-#define DEFLATE_DEF_MEMLEVEL		MAX_MEM_LEVEL
+#define DEFLATE_DEF_LEVEL Z_DEFAULT_COMPRESSION
+#define DEFLATE_DEF_WINBITS 11
+#define DEFLATE_DEF_MEMLEVEL MAX_MEM_LEVEL
 
 struct deflate_ctx {
 	struct z_stream_s comp_stream;
@@ -44,8 +44,8 @@ static int deflate_comp_init(struct deflate_ctx *ctx, int format)
 	int ret = 0;
 	struct z_stream_s *stream = &ctx->comp_stream;
 
-	stream->workspace = vzalloc(zlib_deflate_workspacesize(
-				    MAX_WBITS, MAX_MEM_LEVEL));
+	stream->workspace =
+		vzalloc(zlib_deflate_workspacesize(MAX_WBITS, MAX_MEM_LEVEL));
 	if (!stream->workspace) {
 		ret = -ENOMEM;
 		goto out;
@@ -173,8 +173,8 @@ static void deflate_exit(struct crypto_tfm *tfm)
 	__deflate_exit(ctx);
 }
 
-static int __deflate_compress(const u8 *src, unsigned int slen,
-			      u8 *dst, unsigned int *dlen, void *ctx)
+static int __deflate_compress(const u8 *src, unsigned int slen, u8 *dst,
+			      unsigned int *dlen, void *ctx)
 {
 	int ret = 0;
 	struct deflate_ctx *dctx = ctx;
@@ -217,10 +217,9 @@ static int deflate_scompress(struct crypto_scomp *tfm, const u8 *src,
 	return __deflate_compress(src, slen, dst, dlen, ctx);
 }
 
-static int __deflate_decompress(const u8 *src, unsigned int slen,
-				u8 *dst, unsigned int *dlen, void *ctx)
+static int __deflate_decompress(const u8 *src, unsigned int slen, u8 *dst,
+				unsigned int *dlen, void *ctx)
 {
-
 	int ret = 0;
 	struct deflate_ctx *dctx = ctx;
 	struct z_stream_s *stream = &dctx->decomp_stream;
@@ -274,16 +273,15 @@ static int deflate_sdecompress(struct crypto_scomp *tfm, const u8 *src,
 }
 
 static struct crypto_alg alg = {
-	.cra_name		= "deflate",
-	.cra_driver_name	= "deflate-generic",
-	.cra_flags		= CRYPTO_ALG_TYPE_COMPRESS,
-	.cra_ctxsize		= sizeof(struct deflate_ctx),
-	.cra_module		= THIS_MODULE,
-	.cra_init		= deflate_init,
-	.cra_exit		= deflate_exit,
-	.cra_u			= { .compress = {
-	.coa_compress 		= deflate_compress,
-	.coa_decompress  	= deflate_decompress } }
+	.cra_name = "deflate",
+	.cra_driver_name = "deflate-generic",
+	.cra_flags = CRYPTO_ALG_TYPE_COMPRESS,
+	.cra_ctxsize = sizeof(struct deflate_ctx),
+	.cra_module = THIS_MODULE,
+	.cra_init = deflate_init,
+	.cra_exit = deflate_exit,
+	.cra_u = { .compress = { .coa_compress = deflate_compress,
+				 .coa_decompress = deflate_decompress } }
 };
 
 static struct scomp_alg scomp[] = { {

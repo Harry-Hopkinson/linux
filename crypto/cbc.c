@@ -192,7 +192,7 @@ static int crypto_cbc_create(struct crypto_template *tmpl, struct rtattr **tb)
 
 	err = skcipher_register_instance(tmpl, inst);
 	if (err) {
-out_free_inst:
+	out_free_inst:
 		inst->free(inst);
 	}
 

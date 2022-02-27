@@ -14,8 +14,8 @@ int main(int argc, char *argv[])
 	int ch, total = 0;
 
 	if (argc > 1)
-		printf("const char %s[] %s=\n",
-			argv[1], argc > 2 ? argv[2] : "");
+		printf("const char %s[] %s=\n", argv[1],
+		       argc > 2 ? argv[2] : "");
 
 	do {
 		printf("\t\"");

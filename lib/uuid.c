@@ -18,8 +18,12 @@ EXPORT_SYMBOL(guid_null);
 const uuid_t uuid_null;
 EXPORT_SYMBOL(uuid_null);
 
-const u8 guid_index[16] = {3,2,1,0,5,4,7,6,8,9,10,11,12,13,14,15};
-const u8 uuid_index[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+const u8 guid_index[16] = {
+	3, 2, 1, 0, 5, 4, 7, 6, 8, 9, 10, 11, 12, 13, 14, 15
+};
+const u8 uuid_index[16] = {
+	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+};
 
 /**
  * generate_random_uuid - generate a random UUID
@@ -104,7 +108,8 @@ EXPORT_SYMBOL(uuid_is_valid);
 
 static int __uuid_parse(const char *uuid, __u8 b[16], const u8 ei[16])
 {
-	static const u8 si[16] = {0,2,4,6,9,11,14,16,19,21,24,26,28,30,32,34};
+	static const u8 si[16] = { 0,  2,  4,  6,  9,  11, 14, 16,
+				   19, 21, 24, 26, 28, 30, 32, 34 };
 	unsigned int i;
 
 	if (!uuid_is_valid(uuid))

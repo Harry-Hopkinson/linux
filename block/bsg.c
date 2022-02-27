@@ -17,8 +17,8 @@
 #include <scsi/scsi_ioctl.h>
 #include <scsi/sg.h>
 
-#define BSG_DESCRIPTION	"Block layer SCSI generic (bsg) driver"
-#define BSG_VERSION	"0.4"
+#define BSG_DESCRIPTION "Block layer SCSI generic (bsg) driver"
+#define BSG_VERSION "0.4"
 
 struct bsg_device {
 	struct request_queue *queue;
@@ -35,8 +35,8 @@ static inline struct bsg_device *to_bsg_device(struct inode *inode)
 	return container_of(inode->i_cdev, struct bsg_device, cdev);
 }
 
-#define BSG_DEFAULT_CMDS	64
-#define BSG_MAX_DEVS		32768
+#define BSG_DEFAULT_CMDS 64
+#define BSG_MAX_DEVS 32768
 
 static DEFINE_IDA(bsg_minor_ida);
 static struct class *bsg_class;
@@ -103,7 +103,7 @@ static long bsg_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	struct bsg_device *bd = to_bsg_device(file_inode(file));
 	struct request_queue *q = bd->queue;
-	void __user *uarg = (void __user *) arg;
+	void __user *uarg = (void __user *)arg;
 	int __user *intp = uarg;
 	int val;
 
@@ -148,8 +148,9 @@ static long bsg_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	case SG_IO:
 		return bsg_sg_io(bd, file->f_mode, uarg);
 	case SCSI_IOCTL_SEND_COMMAND:
-		pr_warn_ratelimited("%s: calling unsupported SCSI_IOCTL_SEND_COMMAND\n",
-				current->comm);
+		pr_warn_ratelimited(
+			"%s: calling unsupported SCSI_IOCTL_SEND_COMMAND\n",
+			current->comm);
 		return -EINVAL;
 	default:
 		return -ENOTTY;
@@ -157,12 +158,12 @@ static long bsg_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 }
 
 static const struct file_operations bsg_fops = {
-	.open		=	bsg_open,
-	.release	=	bsg_release,
-	.unlocked_ioctl	=	bsg_ioctl,
-	.compat_ioctl	=	compat_ptr_ioctl,
-	.owner		=	THIS_MODULE,
-	.llseek		=	default_llseek,
+	.open = bsg_open,
+	.release = bsg_release,
+	.unlocked_ioctl = bsg_ioctl,
+	.compat_ioctl = compat_ptr_ioctl,
+	.owner = THIS_MODULE,
+	.llseek = default_llseek,
 };
 
 static void bsg_device_release(struct device *dev)
@@ -183,7 +184,8 @@ void bsg_unregister_queue(struct bsg_device *bd)
 EXPORT_SYMBOL_GPL(bsg_unregister_queue);
 
 struct bsg_device *bsg_register_queue(struct request_queue *q,
-		struct device *parent, const char *name, bsg_sg_io_fn *sg_io_fn)
+				      struct device *parent, const char *name,
+				      bsg_sg_io_fn *sg_io_fn)
 {
 	struct bsg_device *bd;
 	int ret;
@@ -253,7 +255,8 @@ static int __init bsg_init(void)
 	bsg_major = MAJOR(devid);
 
 	printk(KERN_INFO BSG_DESCRIPTION " version " BSG_VERSION
-	       " loaded (major %d)\n", bsg_major);
+					 " loaded (major %d)\n",
+	       bsg_major);
 	return 0;
 
 destroy_bsg_class:

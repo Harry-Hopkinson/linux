@@ -115,11 +115,9 @@ int skcipher_walk_done(struct skcipher_walk *walk, int err)
 		nbytes = walk->total - n;
 	}
 
-	if (likely(!(walk->flags & (SKCIPHER_WALK_PHYS |
-				    SKCIPHER_WALK_SLOW |
-				    SKCIPHER_WALK_COPY |
-				    SKCIPHER_WALK_DIFF)))) {
-unmap_src:
+	if (likely(!(walk->flags & (SKCIPHER_WALK_PHYS | SKCIPHER_WALK_SLOW |
+				    SKCIPHER_WALK_COPY | SKCIPHER_WALK_DIFF)))) {
+	unmap_src:
 		skcipher_unmap_src(walk);
 	} else if (walk->flags & SKCIPHER_WALK_DIFF) {
 		skcipher_unmap_dst(walk);
@@ -155,7 +153,8 @@ unmap_src:
 
 	if (nbytes) {
 		crypto_yield(walk->flags & SKCIPHER_WALK_SLEEP ?
-			     CRYPTO_TFM_REQ_MAY_SLEEP : 0);
+				     CRYPTO_TFM_REQ_MAY_SLEEP :
+				     0);
 		return skcipher_walk_next(walk);
 	}
 
@@ -183,7 +182,7 @@ void skcipher_walk_complete(struct skcipher_walk *walk, int err)
 {
 	struct skcipher_walk_buffer *p, *tmp;
 
-	list_for_each_entry_safe(p, tmp, &walk->buffers, entry) {
+	list_for_each_entry_safe (p, tmp, &walk->buffers, entry) {
 		u8 *data;
 
 		if (err)
@@ -197,11 +196,10 @@ void skcipher_walk_complete(struct skcipher_walk *walk, int err)
 
 		scatterwalk_copychunks(data, &p->dst, p->len, 1);
 
-		if (offset_in_page(p->data) + p->len + walk->stride >
-		    PAGE_SIZE)
+		if (offset_in_page(p->data) + p->len + walk->stride > PAGE_SIZE)
 			free_page((unsigned long)p->data);
 
-done:
+	done:
 		list_del(&p->entry);
 		kfree(p);
 	}
@@ -347,8 +345,8 @@ static int skcipher_walk_next(struct skcipher_walk *walk)
 	unsigned int n;
 	int err;
 
-	walk->flags &= ~(SKCIPHER_WALK_SLOW | SKCIPHER_WALK_COPY |
-			 SKCIPHER_WALK_DIFF);
+	walk->flags &=
+		~(SKCIPHER_WALK_SLOW | SKCIPHER_WALK_COPY | SKCIPHER_WALK_DIFF);
 
 	n = walk->total;
 	bsize = min(walk->stride, max(n, walk->blocksize));
@@ -359,7 +357,7 @@ static int skcipher_walk_next(struct skcipher_walk *walk)
 		if (unlikely(walk->total < walk->blocksize))
 			return skcipher_walk_done(walk, -EINVAL);
 
-slow_path:
+	slow_path:
 		err = skcipher_next_slow(walk, bsize);
 		goto set_phys_lowmem;
 	}
@@ -464,7 +462,8 @@ static int skcipher_walk_skcipher(struct skcipher_walk *walk,
 
 	walk->flags &= ~SKCIPHER_WALK_SLEEP;
 	walk->flags |= req->base.flags & CRYPTO_TFM_REQ_MAY_SLEEP ?
-		       SKCIPHER_WALK_SLEEP : 0;
+			       SKCIPHER_WALK_SLEEP :
+			       0;
 
 	walk->blocksize = crypto_skcipher_blocksize(tfm);
 	walk->stride = crypto_skcipher_walksize(tfm);
@@ -474,8 +473,8 @@ static int skcipher_walk_skcipher(struct skcipher_walk *walk,
 	return skcipher_walk_first(walk);
 }
 
-int skcipher_walk_virt(struct skcipher_walk *walk,
-		       struct skcipher_request *req, bool atomic)
+int skcipher_walk_virt(struct skcipher_walk *walk, struct skcipher_request *req,
+		       bool atomic)
 {
 	int err;
 
@@ -570,8 +569,8 @@ static void skcipher_set_needkey(struct crypto_skcipher *tfm)
 		crypto_skcipher_set_flags(tfm, CRYPTO_TFM_NEED_KEY);
 }
 
-static int skcipher_setkey_unaligned(struct crypto_skcipher *tfm,
-				     const u8 *key, unsigned int keylen)
+static int skcipher_setkey_unaligned(struct crypto_skcipher *tfm, const u8 *key,
+				     unsigned int keylen)
 {
 	unsigned long alignmask = crypto_skcipher_alignmask(tfm);
 	struct skcipher_alg *cipher = crypto_skcipher_alg(tfm);
@@ -682,16 +681,16 @@ static void crypto_skcipher_free_instance(struct crypto_instance *inst)
 	skcipher->free(skcipher);
 }
 
-static void crypto_skcipher_show(struct seq_file *m, struct crypto_alg *alg)
-	__maybe_unused;
+static void crypto_skcipher_show(struct seq_file *m,
+				 struct crypto_alg *alg) __maybe_unused;
 static void crypto_skcipher_show(struct seq_file *m, struct crypto_alg *alg)
 {
-	struct skcipher_alg *skcipher = container_of(alg, struct skcipher_alg,
-						     base);
+	struct skcipher_alg *skcipher =
+		container_of(alg, struct skcipher_alg, base);
 
 	seq_printf(m, "type         : skcipher\n");
 	seq_printf(m, "async        : %s\n",
-		   alg->cra_flags & CRYPTO_ALG_ASYNC ?  "yes" : "no");
+		   alg->cra_flags & CRYPTO_ALG_ASYNC ? "yes" : "no");
 	seq_printf(m, "blocksize    : %u\n", alg->cra_blocksize);
 	seq_printf(m, "min keysize  : %u\n", skcipher->min_keysize);
 	seq_printf(m, "max keysize  : %u\n", skcipher->max_keysize);
@@ -704,8 +703,8 @@ static void crypto_skcipher_show(struct seq_file *m, struct crypto_alg *alg)
 static int crypto_skcipher_report(struct sk_buff *skb, struct crypto_alg *alg)
 {
 	struct crypto_report_blkcipher rblkcipher;
-	struct skcipher_alg *skcipher = container_of(alg, struct skcipher_alg,
-						     base);
+	struct skcipher_alg *skcipher =
+		container_of(alg, struct skcipher_alg, base);
 
 	memset(&rblkcipher, 0, sizeof(rblkcipher));
 
@@ -717,8 +716,8 @@ static int crypto_skcipher_report(struct sk_buff *skb, struct crypto_alg *alg)
 	rblkcipher.max_keysize = skcipher->max_keysize;
 	rblkcipher.ivsize = skcipher->ivsize;
 
-	return nla_put(skb, CRYPTOCFGA_REPORT_BLKCIPHER,
-		       sizeof(rblkcipher), &rblkcipher);
+	return nla_put(skb, CRYPTOCFGA_REPORT_BLKCIPHER, sizeof(rblkcipher),
+		       &rblkcipher);
 }
 #else
 static int crypto_skcipher_report(struct sk_buff *skb, struct crypto_alg *alg)
@@ -742,23 +741,23 @@ static const struct crypto_type crypto_skcipher_type = {
 };
 
 int crypto_grab_skcipher(struct crypto_skcipher_spawn *spawn,
-			 struct crypto_instance *inst,
-			 const char *name, u32 type, u32 mask)
+			 struct crypto_instance *inst, const char *name,
+			 u32 type, u32 mask)
 {
 	spawn->base.frontend = &crypto_skcipher_type;
 	return crypto_grab_spawn(&spawn->base, inst, name, type, mask);
 }
 EXPORT_SYMBOL_GPL(crypto_grab_skcipher);
 
-struct crypto_skcipher *crypto_alloc_skcipher(const char *alg_name,
-					      u32 type, u32 mask)
+struct crypto_skcipher *crypto_alloc_skcipher(const char *alg_name, u32 type,
+					      u32 mask)
 {
 	return crypto_alloc_tfm(alg_name, &crypto_skcipher_type, type, mask);
 }
 EXPORT_SYMBOL_GPL(crypto_alloc_skcipher);
 
-struct crypto_sync_skcipher *crypto_alloc_sync_skcipher(
-				const char *alg_name, u32 type, u32 mask)
+struct crypto_sync_skcipher *crypto_alloc_sync_skcipher(const char *alg_name,
+							u32 type, u32 mask)
 {
 	struct crypto_skcipher *tfm;
 
@@ -771,8 +770,8 @@ struct crypto_sync_skcipher *crypto_alloc_sync_skcipher(
 	 * Make sure we do not allocate something that might get used with
 	 * an on-stack request: check the request size.
 	 */
-	if (!IS_ERR(tfm) && WARN_ON(crypto_skcipher_reqsize(tfm) >
-				    MAX_SYNC_SKCIPHER_REQSIZE)) {
+	if (!IS_ERR(tfm) &&
+	    WARN_ON(crypto_skcipher_reqsize(tfm) > MAX_SYNC_SKCIPHER_REQSIZE)) {
 		crypto_free_skcipher(tfm);
 		return ERR_PTR(-EINVAL);
 	}
@@ -856,7 +855,7 @@ void crypto_unregister_skciphers(struct skcipher_alg *algs, int count)
 EXPORT_SYMBOL_GPL(crypto_unregister_skciphers);
 
 int skcipher_register_instance(struct crypto_template *tmpl,
-			   struct skcipher_instance *inst)
+			       struct skcipher_instance *inst)
 {
 	int err;
 
@@ -878,7 +877,7 @@ static int skcipher_setkey_simple(struct crypto_skcipher *tfm, const u8 *key,
 
 	crypto_cipher_clear_flags(cipher, CRYPTO_TFM_REQ_MASK);
 	crypto_cipher_set_flags(cipher, crypto_skcipher_get_flags(tfm) &
-				CRYPTO_TFM_REQ_MASK);
+						CRYPTO_TFM_REQ_MASK);
 	return crypto_cipher_setkey(cipher, key, keylen);
 }
 
@@ -926,8 +925,8 @@ static void skcipher_free_instance_simple(struct skcipher_instance *inst)
  * Return: a pointer to the new instance, or an ERR_PTR().  The caller still
  *	   needs to register the instance.
  */
-struct skcipher_instance *skcipher_alloc_instance_simple(
-	struct crypto_template *tmpl, struct rtattr **tb)
+struct skcipher_instance *
+skcipher_alloc_instance_simple(struct crypto_template *tmpl, struct rtattr **tb)
 {
 	u32 mask;
 	struct skcipher_instance *inst;

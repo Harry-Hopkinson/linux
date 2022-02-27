@@ -26,8 +26,8 @@ KSTM_MODULE_GLOBALS();
  * Calls strscpy_pad() and verifies the return value and state of the
  * destination buffer after the call returns.
  */
-static int __init tc(char *src, int count, int expected,
-		     int chars, int terminator, int pad)
+static int __init tc(char *src, int count, int expected, int chars,
+		     int terminator, int pad)
 {
 	int nr_bytes_poison;
 	int max_expected;
@@ -47,9 +47,10 @@ static int __init tc(char *src, int count, int expected,
 	memset(buf, POISON, sizeof(buf));
 	/* Future proofing test suite, validate args */
 	max_count = sizeof(buf) - 2; /* Space for null and to verify overflow */
-	max_expected = count - 1;    /* Space for the null */
+	max_expected = count - 1; /* Space for the null */
 	if (count > max_count) {
-		pr_err("count (%d) is too big (%d) ... aborting", count, max_count);
+		pr_err("count (%d) is too big (%d) ... aborting", count,
+		       max_count);
 		return -1;
 	}
 	if (expected > max_expected) {

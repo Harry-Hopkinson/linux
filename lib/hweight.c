@@ -14,8 +14,8 @@ unsigned int __sw_hweight32(unsigned int w)
 {
 #ifdef CONFIG_ARCH_HAS_FAST_MULTIPLIER
 	w -= (w >> 1) & 0x55555555;
-	w =  (w & 0x33333333) + ((w >> 2) & 0x33333333);
-	w =  (w + (w >> 4)) & 0x0f0f0f0f;
+	w = (w & 0x33333333) + ((w >> 2) & 0x33333333);
+	w = (w + (w >> 4)) & 0x0f0f0f0f;
 	return (w * 0x01010101) >> 24;
 #else
 	unsigned int res = w - ((w >> 1) & 0x55555555);
@@ -52,12 +52,13 @@ unsigned long __sw_hweight64(__u64 w)
 #elif BITS_PER_LONG == 64
 #ifdef CONFIG_ARCH_HAS_FAST_MULTIPLIER
 	w -= (w >> 1) & 0x5555555555555555ul;
-	w =  (w & 0x3333333333333333ul) + ((w >> 2) & 0x3333333333333333ul);
-	w =  (w + (w >> 4)) & 0x0f0f0f0f0f0f0f0ful;
+	w = (w & 0x3333333333333333ul) + ((w >> 2) & 0x3333333333333333ul);
+	w = (w + (w >> 4)) & 0x0f0f0f0f0f0f0f0ful;
 	return (w * 0x0101010101010101ul) >> 56;
 #else
 	__u64 res = w - ((w >> 1) & 0x5555555555555555ul);
-	res = (res & 0x3333333333333333ul) + ((res >> 2) & 0x3333333333333333ul);
+	res = (res & 0x3333333333333333ul) +
+	      ((res >> 2) & 0x3333333333333333ul);
 	res = (res + (res >> 4)) & 0x0F0F0F0F0F0F0F0Ful;
 	res = res + (res >> 8);
 	res = res + (res >> 16);

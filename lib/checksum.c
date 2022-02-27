@@ -50,7 +50,7 @@ static unsigned int do_csum(const unsigned char *buff, int len)
 
 	if (len <= 0)
 		goto out;
-	odd = 1 & (unsigned long) buff;
+	odd = 1 & (unsigned long)buff;
 	if (odd) {
 #ifdef __LITTLE_ENDIAN
 		result += (*buff << 8);
@@ -61,8 +61,8 @@ static unsigned int do_csum(const unsigned char *buff, int len)
 		buff++;
 	}
 	if (len >= 2) {
-		if (2 & (unsigned long) buff) {
-			result += *(unsigned short *) buff;
+		if (2 & (unsigned long)buff) {
+			result += *(unsigned short *)buff;
 			len -= 2;
 			buff += 2;
 		}
@@ -70,7 +70,7 @@ static unsigned int do_csum(const unsigned char *buff, int len)
 			const unsigned char *end = buff + ((unsigned)len & ~3);
 			unsigned int carry = 0;
 			do {
-				unsigned int w = *(unsigned int *) buff;
+				unsigned int w = *(unsigned int *)buff;
 				buff += 4;
 				result += carry;
 				result += w;
@@ -80,7 +80,7 @@ static unsigned int do_csum(const unsigned char *buff, int len)
 			result = (result & 0xffff) + (result >> 16);
 		}
 		if (len & 2) {
-			result += *(unsigned short *) buff;
+			result += *(unsigned short *)buff;
 			buff += 2;
 		}
 	}
@@ -105,7 +105,7 @@ out:
  */
 __sum16 ip_fast_csum(const void *iph, unsigned int ihl)
 {
-	return (__force __sum16)~do_csum(iph, ihl*4);
+	return (__force __sum16)~do_csum(iph, ihl * 4);
 }
 EXPORT_SYMBOL(ip_fast_csum);
 #endif
@@ -155,8 +155,8 @@ static inline u32 from64to32(u64 x)
 	return (u32)x;
 }
 
-__wsum csum_tcpudp_nofold(__be32 saddr, __be32 daddr,
-			  __u32 len, __u8 proto, __wsum sum)
+__wsum csum_tcpudp_nofold(__be32 saddr, __be32 daddr, __u32 len, __u8 proto,
+			  __wsum sum)
 {
 	unsigned long long s = (__force u32)sum;
 

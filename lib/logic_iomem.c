@@ -19,17 +19,17 @@ struct logic_iomem_area {
 	void *priv;
 };
 
-#define AREA_SHIFT	24
-#define MAX_AREA_SIZE	(1 << AREA_SHIFT)
-#define MAX_AREAS	((1U << 31) / MAX_AREA_SIZE)
-#define AREA_BITS	((MAX_AREAS - 1) << AREA_SHIFT)
-#define AREA_MASK	(MAX_AREA_SIZE - 1)
+#define AREA_SHIFT 24
+#define MAX_AREA_SIZE (1 << AREA_SHIFT)
+#define MAX_AREAS ((1U << 31) / MAX_AREA_SIZE)
+#define AREA_BITS ((MAX_AREAS - 1) << AREA_SHIFT)
+#define AREA_MASK (MAX_AREA_SIZE - 1)
 #ifdef CONFIG_64BIT
-#define IOREMAP_BIAS	0xDEAD000000000000UL
-#define IOREMAP_MASK	0xFFFFFFFF00000000UL
+#define IOREMAP_BIAS 0xDEAD000000000000UL
+#define IOREMAP_MASK 0xFFFFFFFF00000000UL
 #else
-#define IOREMAP_BIAS	0x80000000UL
-#define IOREMAP_MASK	0x80000000UL
+#define IOREMAP_BIAS 0x80000000UL
+#define IOREMAP_MASK 0x80000000UL
 #endif
 
 static DEFINE_MUTEX(regions_mtx);
@@ -71,8 +71,8 @@ EXPORT_SYMBOL(logic_iomem_add_region);
 #ifndef CONFIG_LOGIC_IOMEM_FALLBACK
 static void __iomem *real_ioremap(phys_addr_t offset, size_t size)
 {
-	WARN(1, "invalid ioremap(0x%llx, 0x%zx)\n",
-	     (unsigned long long)offset, size);
+	WARN(1, "invalid ioremap(0x%llx, 0x%zx)\n", (unsigned long long)offset,
+	     size);
 	return NULL;
 }
 
@@ -90,7 +90,7 @@ void __iomem *ioremap(phys_addr_t offset, size_t size)
 	int i;
 
 	mutex_lock(&regions_mtx);
-	list_for_each_entry(rreg, &regions_list, list) {
+	list_for_each_entry (rreg, &regions_list, list) {
 		if (rreg->res->start > offset)
 			continue;
 		if (rreg->res->end < offset + size - 1)
@@ -108,8 +108,8 @@ void __iomem *ioremap(phys_addr_t offset, size_t size)
 		if (mapped_areas[i].ops)
 			continue;
 
-		offs = rreg->ops->map(offset - found->res->start,
-				      size, &mapped_areas[i].ops,
+		offs = rreg->ops->map(offset - found->res->start, size,
+				      &mapped_areas[i].ops,
 				      &mapped_areas[i].priv);
 		if (offs < 0) {
 			mapped_areas[i].ops = NULL;
@@ -169,21 +169,20 @@ void iounmap(volatile void __iomem *addr)
 EXPORT_SYMBOL(iounmap);
 
 #ifndef CONFIG_LOGIC_IOMEM_FALLBACK
-#define MAKE_FALLBACK(op, sz) 						\
-static u##sz real_raw_read ## op(const volatile void __iomem *addr)	\
-{									\
-	WARN(1, "Invalid read" #op " at address %llx\n",		\
-	     (unsigned long long)(uintptr_t __force)addr);		\
-	return (u ## sz)~0ULL;						\
-}									\
-									\
-static void real_raw_write ## op(u ## sz val,				\
-				 volatile void __iomem *addr)		\
-{									\
-	WARN(1, "Invalid writeq" #op " of 0x%llx at address %llx\n",	\
-	     (unsigned long long)val,					\
-	     (unsigned long long)(uintptr_t __force)addr);\
-}									\
+#define MAKE_FALLBACK(op, sz)                                                  \
+	static u##sz real_raw_read##op(const volatile void __iomem *addr)      \
+	{                                                                      \
+		WARN(1, "Invalid read" #op " at address %llx\n",               \
+		     (unsigned long long)(uintptr_t __force)addr);             \
+		return (u##sz) ~0ULL;                                          \
+	}                                                                      \
+                                                                               \
+	static void real_raw_write##op(u##sz val, volatile void __iomem *addr) \
+	{                                                                      \
+		WARN(1, "Invalid writeq" #op " of 0x%llx at address %llx\n",   \
+		     (unsigned long long)val,                                  \
+		     (unsigned long long)(uintptr_t __force)addr);             \
+	}
 
 MAKE_FALLBACK(b, 8);
 MAKE_FALLBACK(w, 16);
@@ -215,34 +214,32 @@ static void real_memcpy_toio(volatile void __iomem *addr, const void *buffer,
 }
 #endif /* CONFIG_LOGIC_IOMEM_FALLBACK */
 
-#define MAKE_OP(op, sz) 						\
-u##sz __raw_read ## op(const volatile void __iomem *addr)		\
-{									\
-	struct logic_iomem_area *area = get_area(addr);			\
-									\
-	if (!area)							\
-		return real_raw_read ## op(addr);			\
-									\
-	return (u ## sz) area->ops->read(area->priv,			\
-					 (unsigned long)addr & AREA_MASK,\
-					 sz / 8);			\
-}									\
-EXPORT_SYMBOL(__raw_read ## op);					\
-									\
-void __raw_write ## op(u ## sz val, volatile void __iomem *addr)	\
-{									\
-	struct logic_iomem_area *area = get_area(addr);			\
-									\
-	if (!area) {							\
-		real_raw_write ## op(val, addr);			\
-		return;							\
-	}								\
-									\
-	area->ops->write(area->priv,					\
-			 (unsigned long)addr & AREA_MASK,		\
-			 sz / 8, val);					\
-}									\
-EXPORT_SYMBOL(__raw_write ## op)
+#define MAKE_OP(op, sz)                                                        \
+	u##sz __raw_read##op(const volatile void __iomem *addr)                \
+	{                                                                      \
+		struct logic_iomem_area *area = get_area(addr);                \
+                                                                               \
+		if (!area)                                                     \
+			return real_raw_read##op(addr);                        \
+                                                                               \
+		return (u##sz)area->ops->read(                                 \
+			area->priv, (unsigned long)addr & AREA_MASK, sz / 8);  \
+	}                                                                      \
+	EXPORT_SYMBOL(__raw_read##op);                                         \
+                                                                               \
+	void __raw_write##op(u##sz val, volatile void __iomem *addr)           \
+	{                                                                      \
+		struct logic_iomem_area *area = get_area(addr);                \
+                                                                               \
+		if (!area) {                                                   \
+			real_raw_write##op(val, addr);                         \
+			return;                                                \
+		}                                                              \
+                                                                               \
+		area->ops->write(area->priv, (unsigned long)addr &AREA_MASK,   \
+				 sz / 8, val);                                 \
+	}                                                                      \
+	EXPORT_SYMBOL(__raw_write##op)
 
 MAKE_OP(b, 8);
 MAKE_OP(w, 16);
@@ -273,8 +270,7 @@ void memset_io(volatile void __iomem *addr, int value, size_t size)
 }
 EXPORT_SYMBOL(memset_io);
 
-void memcpy_fromio(void *buffer, const volatile void __iomem *addr,
-                   size_t size)
+void memcpy_fromio(void *buffer, const volatile void __iomem *addr, size_t size)
 {
 	struct logic_iomem_area *area = get_area(addr);
 	u8 *buf = buffer;

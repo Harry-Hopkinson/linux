@@ -50,7 +50,7 @@ static int seqiv_aead_encrypt(struct aead_request *req)
 	struct crypto_aead *geniv = crypto_aead_reqtfm(req);
 	struct aead_geniv_ctx *ctx = crypto_aead_ctx(geniv);
 	struct aead_request *subreq = aead_request_ctx(req);
-	crypto_completion_t compl;
+	crypto_completion_t compl ;
 	void *data;
 	u8 *info;
 	unsigned int ivsize = 8;
@@ -69,11 +69,10 @@ static int seqiv_aead_encrypt(struct aead_request *req)
 		SYNC_SKCIPHER_REQUEST_ON_STACK(nreq, ctx->sknull);
 
 		skcipher_request_set_sync_tfm(nreq, ctx->sknull);
-		skcipher_request_set_callback(nreq, req->base.flags,
-					      NULL, NULL);
+		skcipher_request_set_callback(nreq, req->base.flags, NULL,
+					      NULL);
 		skcipher_request_set_crypt(nreq, req->src, req->dst,
-					   req->assoclen + req->cryptlen,
-					   NULL);
+					   req->assoclen + req->cryptlen, NULL);
 
 		err = crypto_skcipher_encrypt(nreq);
 		if (err)
@@ -82,9 +81,10 @@ static int seqiv_aead_encrypt(struct aead_request *req)
 
 	if (unlikely(!IS_ALIGNED((unsigned long)info,
 				 crypto_aead_alignmask(geniv) + 1))) {
-		info = kmemdup(req->iv, ivsize, req->base.flags &
-			       CRYPTO_TFM_REQ_MAY_SLEEP ? GFP_KERNEL :
-			       GFP_ATOMIC);
+		info = kmemdup(req->iv, ivsize,
+			       req->base.flags & CRYPTO_TFM_REQ_MAY_SLEEP ?
+				       GFP_KERNEL :
+				       GFP_ATOMIC);
 		if (!info)
 			return -ENOMEM;
 
@@ -111,7 +111,7 @@ static int seqiv_aead_decrypt(struct aead_request *req)
 	struct crypto_aead *geniv = crypto_aead_reqtfm(req);
 	struct aead_geniv_ctx *ctx = crypto_aead_ctx(geniv);
 	struct aead_request *subreq = aead_request_ctx(req);
-	crypto_completion_t compl;
+	crypto_completion_t compl ;
 	void *data;
 	unsigned int ivsize = 8;
 
@@ -158,7 +158,7 @@ static int seqiv_aead_create(struct crypto_template *tmpl, struct rtattr **tb)
 
 	err = aead_register_instance(tmpl, inst);
 	if (err) {
-free_inst:
+	free_inst:
 		inst->free(inst);
 	}
 	return err;

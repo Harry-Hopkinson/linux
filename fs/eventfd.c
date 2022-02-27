@@ -202,8 +202,8 @@ EXPORT_SYMBOL_GPL(eventfd_ctx_do_read);
  * This is used to atomically remove a wait queue entry from the eventfd wait
  * queue head, and read/reset the counter value.
  */
-int eventfd_ctx_remove_wait_queue(struct eventfd_ctx *ctx, wait_queue_entry_t *wait,
-				  __u64 *cnt)
+int eventfd_ctx_remove_wait_queue(struct eventfd_ctx *ctx,
+				  wait_queue_entry_t *wait, __u64 *cnt)
 {
 	unsigned long flags;
 
@@ -262,8 +262,8 @@ static ssize_t eventfd_read(struct kiocb *iocb, struct iov_iter *to)
 	return sizeof(ucnt);
 }
 
-static ssize_t eventfd_write(struct file *file, const char __user *buf, size_t count,
-			     loff_t *ppos)
+static ssize_t eventfd_write(struct file *file, const char __user *buf,
+			     size_t count, loff_t *ppos)
 {
 	struct eventfd_ctx *ctx = file->private_data;
 	ssize_t res;
@@ -324,13 +324,13 @@ static void eventfd_show_fdinfo(struct seq_file *m, struct file *f)
 
 static const struct file_operations eventfd_fops = {
 #ifdef CONFIG_PROC_FS
-	.show_fdinfo	= eventfd_show_fdinfo,
+	.show_fdinfo = eventfd_show_fdinfo,
 #endif
-	.release	= eventfd_release,
-	.poll		= eventfd_poll,
-	.read_iter	= eventfd_read,
-	.write		= eventfd_write,
-	.llseek		= noop_llseek,
+	.release = eventfd_release,
+	.poll = eventfd_poll,
+	.read_iter = eventfd_read,
+	.write = eventfd_write,
+	.llseek = noop_llseek,
 };
 
 /**
@@ -455,4 +455,3 @@ SYSCALL_DEFINE1(eventfd, unsigned int, count)
 {
 	return do_eventfd(count, 0);
 }
-

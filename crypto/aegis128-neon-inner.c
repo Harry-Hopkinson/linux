@@ -6,14 +6,14 @@
 #ifdef CONFIG_ARM64
 #include <asm/neon-intrinsics.h>
 
-#define AES_ROUND	"aese %0.16b, %1.16b \n\t aesmc %0.16b, %0.16b"
+#define AES_ROUND "aese %0.16b, %1.16b \n\t aesmc %0.16b, %0.16b"
 #else
 #include <arm_neon.h>
 
-#define AES_ROUND	"aese.8 %q0, %q1 \n\t aesmc.8 %q0, %q0"
+#define AES_ROUND "aese.8 %q0, %q1 \n\t aesmc.8 %q0, %q0"
 #endif
 
-#define AEGIS_BLOCK_SIZE	16
+#define AEGIS_BLOCK_SIZE 16
 
 #include <stddef.h>
 
@@ -29,13 +29,10 @@ extern const uint8_t crypto_aes_sbox[];
 
 static struct aegis128_state aegis128_load_state_neon(const void *state)
 {
-	return (struct aegis128_state){ {
-		vld1q_u8(state),
-		vld1q_u8(state + 16),
-		vld1q_u8(state + 32),
-		vld1q_u8(state + 48),
-		vld1q_u8(state + 64)
-	} };
+	return (struct aegis128_state){
+		{ vld1q_u8(state), vld1q_u8(state + 16), vld1q_u8(state + 32),
+		  vld1q_u8(state + 48), vld1q_u8(state + 64) }
+	};
 }
 
 static void aegis128_save_state_neon(struct aegis128_state st, void *state)
@@ -47,8 +44,8 @@ static void aegis128_save_state_neon(struct aegis128_state st, void *state)
 	vst1q_u8(state + 64, st.v[4]);
 }
 
-static inline __attribute__((always_inline))
-uint8x16_t aegis_aes_round(uint8x16_t w)
+static inline __attribute__((always_inline)) uint8x16_t
+aegis_aes_round(uint8x16_t w)
 {
 	uint8x16_t z = {};
 
@@ -70,9 +67,12 @@ uint8x16_t aegis_aes_round(uint8x16_t w)
 		// sub bytes
 #ifndef CONFIG_CC_IS_GCC
 		v = vqtbl4q_u8(vld1q_u8_x4(crypto_aes_sbox), w);
-		v = vqtbx4q_u8(v, vld1q_u8_x4(crypto_aes_sbox + 0x40), w - 0x40);
-		v = vqtbx4q_u8(v, vld1q_u8_x4(crypto_aes_sbox + 0x80), w - 0x80);
-		v = vqtbx4q_u8(v, vld1q_u8_x4(crypto_aes_sbox + 0xc0), w - 0xc0);
+		v = vqtbx4q_u8(v, vld1q_u8_x4(crypto_aes_sbox + 0x40),
+			       w - 0x40);
+		v = vqtbx4q_u8(v, vld1q_u8_x4(crypto_aes_sbox + 0x80),
+			       w - 0x80);
+		v = vqtbx4q_u8(v, vld1q_u8_x4(crypto_aes_sbox + 0xc0),
+			       w - 0xc0);
 #else
 		asm("tbl %0.16b, {v16.16b-v19.16b}, %1.16b" : "=w"(v) : "w"(w));
 		w -= 0x40;
@@ -102,11 +102,10 @@ uint8x16_t aegis_aes_round(uint8x16_t w)
 	return w;
 }
 
-static inline __attribute__((always_inline))
-struct aegis128_state aegis128_update_neon(struct aegis128_state st,
-					   uint8x16_t m)
+static inline __attribute__((always_inline)) struct aegis128_state
+aegis128_update_neon(struct aegis128_state st, uint8x16_t m)
 {
-	m       ^= aegis_aes_round(st.v[4]);
+	m ^= aegis_aes_round(st.v[4]);
 	st.v[4] ^= aegis_aes_round(st.v[3]);
 	st.v[3] ^= aegis_aes_round(st.v[2]);
 	st.v[2] ^= aegis_aes_round(st.v[1]);
@@ -116,19 +115,17 @@ struct aegis128_state aegis128_update_neon(struct aegis128_state st,
 	return st;
 }
 
-static inline __attribute__((always_inline))
-void preload_sbox(void)
+static inline __attribute__((always_inline)) void preload_sbox(void)
 {
-	if (!IS_ENABLED(CONFIG_ARM64) ||
-	    !IS_ENABLED(CONFIG_CC_IS_GCC) ||
+	if (!IS_ENABLED(CONFIG_ARM64) || !IS_ENABLED(CONFIG_CC_IS_GCC) ||
 	    __builtin_expect(aegis128_have_aes_insn, 1))
 		return;
 
 	asm("ld1	{v16.16b-v19.16b}, [%0], #64	\n\t"
 	    "ld1	{v20.16b-v23.16b}, [%0], #64	\n\t"
 	    "ld1	{v24.16b-v27.16b}, [%0], #64	\n\t"
-	    "ld1	{v28.16b-v31.16b}, [%0]		\n\t"
-	    :: "r"(crypto_aes_sbox));
+	    "ld1	{v28.16b-v31.16b}, [%0]		\n\t" ::"r"(
+		    crypto_aes_sbox));
 }
 
 void crypto_aegis128_init_neon(void *state, const void *key, const void *iv)
@@ -143,13 +140,13 @@ void crypto_aegis128_init_neon(void *state, const void *key, const void *iv)
 	};
 	uint8x16_t k = vld1q_u8(key);
 	uint8x16_t kiv = k ^ vld1q_u8(iv);
-	struct aegis128_state st = {{
+	struct aegis128_state st = { {
 		kiv,
 		vld1q_u8(const1),
 		vld1q_u8(const0),
 		k ^ vld1q_u8(const0),
 		k ^ vld1q_u8(const1),
-	}};
+	} };
 	int i;
 
 	preload_sbox();
@@ -181,8 +178,8 @@ void crypto_aegis128_update_neon(void *state, const void *msg)
 static uint8x16_t vqtbl1q_u8(uint8x16_t a, uint8x16_t b)
 {
 	union {
-		uint8x16_t	val;
-		uint8x8x2_t	pair;
+		uint8x16_t val;
+		uint8x8x2_t pair;
 	} __a = { a };
 
 	return vcombine_u8(vtbl2_u8(__a.pair, vget_low_u8(b)),
@@ -192,12 +189,13 @@ static uint8x16_t vqtbl1q_u8(uint8x16_t a, uint8x16_t b)
 static uint8x16_t vqtbx1q_u8(uint8x16_t v, uint8x16_t a, uint8x16_t b)
 {
 	union {
-		uint8x16_t	val;
-		uint8x8x2_t	pair;
+		uint8x16_t val;
+		uint8x8x2_t pair;
 	} __a = { a };
 
 	return vcombine_u8(vtbx2_u8(vget_low_u8(v), __a.pair, vget_low_u8(b)),
-			   vtbx2_u8(vget_high_u8(v), __a.pair, vget_high_u8(b)));
+			   vtbx2_u8(vget_high_u8(v), __a.pair,
+				    vget_high_u8(b)));
 }
 
 static int8_t vminvq_s8(int8x16_t v)
@@ -214,7 +212,7 @@ static int8_t vminvq_s8(int8x16_t v)
 
 static const uint8_t permute[] __aligned(64) = {
 	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
+	0,  1,	2,  3,	4,  5,	6,  7,	8,  9,	10, 11, 12, 13, 14, 15,
 	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 };
 
@@ -248,7 +246,8 @@ void crypto_aegis128_encrypt_chunk_neon(void *state, void *dst, const void *src,
 		uint8x16_t m;
 
 		if (__builtin_expect(short_input, 0))
-			in = out = memcpy(buf + AEGIS_BLOCK_SIZE - size, src, size);
+			in = out = memcpy(buf + AEGIS_BLOCK_SIZE - size, src,
+					  size);
 
 		m = vqtbl1q_u8(vld1q_u8(in + size - AEGIS_BLOCK_SIZE),
 			       vld1q_u8(permute + 32 - size));
@@ -294,7 +293,8 @@ void crypto_aegis128_decrypt_chunk_neon(void *state, void *dst, const void *src,
 		uint8x16_t m;
 
 		if (__builtin_expect(short_input, 0))
-			in = out = memcpy(buf + AEGIS_BLOCK_SIZE - size, src, size);
+			in = out = memcpy(buf + AEGIS_BLOCK_SIZE - size, src,
+					  size);
 
 		m = s ^ vqtbx1q_u8(s, vld1q_u8(in + size - AEGIS_BLOCK_SIZE),
 				   vld1q_u8(permute + 32 - size));
@@ -314,8 +314,7 @@ void crypto_aegis128_decrypt_chunk_neon(void *state, void *dst, const void *src,
 }
 
 int crypto_aegis128_final_neon(void *state, void *tag_xor,
-			       unsigned int assoclen,
-			       unsigned int cryptlen,
+			       unsigned int assoclen, unsigned int cryptlen,
 			       unsigned int authsize)
 {
 	struct aegis128_state st = aegis128_load_state_neon(state);

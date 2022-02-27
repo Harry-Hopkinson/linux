@@ -87,8 +87,7 @@ int kernel_read_file(struct file *file, loff_t offset, void **buf,
 	copied = 0;
 	while (copied < buf_size) {
 		ssize_t bytes;
-		size_t wanted = min_t(size_t, buf_size - copied,
-					      i_size - pos);
+		size_t wanted = min_t(size_t, buf_size - copied, i_size - pos);
 
 		bytes = kernel_read(file, *buf + copied, wanted, &pos);
 		if (bytes < 0) {
@@ -171,9 +170,8 @@ int kernel_read_file_from_path_initns(const char *path, loff_t offset,
 }
 EXPORT_SYMBOL_GPL(kernel_read_file_from_path_initns);
 
-int kernel_read_file_from_fd(int fd, loff_t offset, void **buf,
-			     size_t buf_size, size_t *file_size,
-			     enum kernel_read_file_id id)
+int kernel_read_file_from_fd(int fd, loff_t offset, void **buf, size_t buf_size,
+			     size_t *file_size, enum kernel_read_file_id id)
 {
 	struct fd f = fdget(fd);
 	int ret = -EBADF;

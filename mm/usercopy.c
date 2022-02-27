@@ -34,8 +34,8 @@
  */
 static noinline int check_stack_object(const void *obj, unsigned long len)
 {
-	const void * const stack = task_stack_page(current);
-	const void * const stackend = stack + THREAD_SIZE;
+	const void *const stack = task_stack_page(current);
+	const void *const stackend = stack + THREAD_SIZE;
 	int ret;
 
 	/* Object is not on the stack at all. */
@@ -73,24 +73,23 @@ static noinline int check_stack_object(const void *obj, unsigned long len)
 void usercopy_warn(const char *name, const char *detail, bool to_user,
 		   unsigned long offset, unsigned long len)
 {
-	WARN_ONCE(1, "Bad or missing usercopy whitelist? Kernel memory %s attempt detected %s %s%s%s%s (offset %lu, size %lu)!\n",
-		 to_user ? "exposure" : "overwrite",
-		 to_user ? "from" : "to",
-		 name ? : "unknown?!",
-		 detail ? " '" : "", detail ? : "", detail ? "'" : "",
-		 offset, len);
+	WARN_ONCE(
+		1,
+		"Bad or missing usercopy whitelist? Kernel memory %s attempt detected %s %s%s%s%s (offset %lu, size %lu)!\n",
+		to_user ? "exposure" : "overwrite", to_user ? "from" : "to",
+		name ?: "unknown?!", detail ? " '" : "", detail ?: "",
+		detail ? "'" : "", offset, len);
 }
 
 void __noreturn usercopy_abort(const char *name, const char *detail,
 			       bool to_user, unsigned long offset,
 			       unsigned long len)
 {
-	pr_emerg("Kernel memory %s attempt detected %s %s%s%s%s (offset %lu, size %lu)!\n",
-		 to_user ? "exposure" : "overwrite",
-		 to_user ? "from" : "to",
-		 name ? : "unknown?!",
-		 detail ? " '" : "", detail ? : "", detail ? "'" : "",
-		 offset, len);
+	pr_emerg(
+		"Kernel memory %s attempt detected %s %s%s%s%s (offset %lu, size %lu)!\n",
+		to_user ? "exposure" : "overwrite", to_user ? "from" : "to",
+		name ?: "unknown?!", detail ? " '" : "", detail ?: "",
+		detail ? "'" : "", offset, len);
 
 	/*
 	 * For greater effect, it would be nice to do do_group_exit(),
@@ -185,8 +184,7 @@ static inline void check_page_span(const void *ptr, unsigned long n,
 		return;
 
 	/* Allow kernel bss region (if not marked as Reserved). */
-	if (ptr >= (const void *)__bss_start &&
-	    end <= (const void *)__bss_stop)
+	if (ptr >= (const void *)__bss_start && end <= (const void *)__bss_stop)
 		return;
 
 	/* Is the object wholly within one base page? */

@@ -51,7 +51,7 @@
  * plus the start/length of the first bad section we overlap.
  */
 int badblocks_check(struct badblocks *bb, sector_t s, int sectors,
-			sector_t *first_bad, int *bad_sectors)
+		    sector_t *first_bad, int *bad_sectors)
 {
 	int hi;
 	int lo;
@@ -63,7 +63,7 @@ int badblocks_check(struct badblocks *bb, sector_t s, int sectors,
 	if (bb->shift > 0) {
 		/* round the start down, and the end up */
 		s >>= bb->shift;
-		target += (1<<bb->shift) - 1;
+		target += (1 << bb->shift) - 1;
 		target >>= bb->shift;
 		sectors = target - s;
 	}
@@ -101,8 +101,7 @@ retry:
 		/* need to check all range that end after 's' to see if
 		 * any are unacknowledged.
 		 */
-		while (lo >= 0 &&
-		       BB_OFFSET(p[lo]) + BB_LEN(p[lo]) > s) {
+		while (lo >= 0 && BB_OFFSET(p[lo]) + BB_LEN(p[lo]) > s) {
 			if (BB_OFFSET(p[lo]) < target) {
 				/* starts before the end, and finishes after
 				 * the start, so they must overlap
@@ -134,7 +133,7 @@ static void badblocks_update_acked(struct badblocks *bb)
 	if (!bb->unacked_exist)
 		return;
 
-	for (i = 0; i < bb->count ; i++) {
+	for (i = 0; i < bb->count; i++) {
 		if (!BB_ACK(p[i])) {
 			unacked = true;
 			break;
@@ -161,7 +160,7 @@ static void badblocks_update_acked(struct badblocks *bb)
  *  1: failed to set badblocks (out of space)
  */
 int badblocks_set(struct badblocks *bb, sector_t s, int sectors,
-			int acknowledged)
+		  int acknowledged)
 {
 	u64 *p;
 	int lo, hi;
@@ -177,7 +176,7 @@ int badblocks_set(struct badblocks *bb, sector_t s, int sectors,
 		sector_t next = s + sectors;
 
 		s >>= bb->shift;
-		next += (1<<bb->shift) - 1;
+		next += (1 << bb->shift) - 1;
 		next >>= bb->shift;
 		sectors = next - s;
 	}
@@ -219,7 +218,7 @@ int badblocks_set(struct badblocks *bb, sector_t s, int sectors,
 			if (e < s + sectors)
 				e = s + sectors;
 			if (e - a <= BB_MAX_LEN) {
-				p[lo] = BB_MAKE(a, e-a, ack);
+				p[lo] = BB_MAKE(a, e - a, ack);
 				s = e;
 			} else {
 				/* does not all fit in one range,
@@ -251,7 +250,7 @@ int badblocks_set(struct badblocks *bb, sector_t s, int sectors,
 
 			a = s;
 			if (e - a <= BB_MAX_LEN) {
-				p[hi] = BB_MAKE(a, e-a, ack);
+				p[hi] = BB_MAKE(a, e - a, ack);
 				s = e;
 			} else {
 				p[hi] = BB_MAKE(a, BB_MAX_LEN, ack);
@@ -275,8 +274,7 @@ int badblocks_set(struct badblocks *bb, sector_t s, int sectors,
 			int ack = BB_ACK(p[lo]) && BB_ACK(p[hi]);
 
 			p[lo] = BB_MAKE(BB_OFFSET(p[lo]), newlen, ack);
-			memmove(p + hi, p + hi + 1,
-				(bb->count - hi - 1) * 8);
+			memmove(p + hi, p + hi + 1, (bb->count - hi - 1) * 8);
 			bb->count--;
 		}
 	}
@@ -291,8 +289,7 @@ int badblocks_set(struct badblocks *bb, sector_t s, int sectors,
 		} else {
 			int this_sectors = sectors;
 
-			memmove(p + hi + 1, p + hi,
-				(bb->count - hi) * 8);
+			memmove(p + hi + 1, p + hi, (bb->count - hi) * 8);
 			bb->count++;
 
 			if (this_sectors > BB_MAX_LEN)
@@ -342,7 +339,7 @@ int badblocks_clear(struct badblocks *bb, sector_t s, int sectors)
 		 * However it is better the think a block is bad when it
 		 * isn't than to think a block is not bad when it is.
 		 */
-		s += (1<<bb->shift) - 1;
+		s += (1 << bb->shift) - 1;
 		s >>= bb->shift;
 		target >>= bb->shift;
 		sectors = target - s;
@@ -381,9 +378,10 @@ int badblocks_clear(struct badblocks *bb, sector_t s, int sectors)
 					rv = -ENOSPC;
 					goto out;
 				}
-				memmove(p+lo+1, p+lo, (bb->count - lo) * 8);
+				memmove(p + lo + 1, p + lo,
+					(bb->count - lo) * 8);
 				bb->count++;
-				p[lo] = BB_MAKE(a, s-a, ack);
+				p[lo] = BB_MAKE(a, s - a, ack);
 				lo++;
 			}
 			p[lo] = BB_MAKE(target, end - target, ack);
@@ -391,8 +389,7 @@ int badblocks_clear(struct badblocks *bb, sector_t s, int sectors)
 			hi = lo;
 			lo--;
 		}
-		while (lo >= 0 &&
-		       (BB_OFFSET(p[lo]) + BB_LEN(p[lo]) > s) &&
+		while (lo >= 0 && (BB_OFFSET(p[lo]) + BB_LEN(p[lo]) > s) &&
 		       (BB_OFFSET(p[lo]) < target)) {
 			/* This range does overlap */
 			if (BB_OFFSET(p[lo]) < s) {
@@ -410,7 +407,7 @@ int badblocks_clear(struct badblocks *bb, sector_t s, int sectors)
 		 * anything between needs to be discarded
 		 */
 		if (hi - lo > 1) {
-			memmove(p+lo+1, p+hi, (bb->count - hi) * 8);
+			memmove(p + lo + 1, p + hi, (bb->count - hi) * 8);
 			bb->count -= (hi - lo - 1);
 		}
 	}
@@ -441,7 +438,7 @@ void ack_all_badblocks(struct badblocks *bb)
 		u64 *p = bb->page;
 		int i;
 
-		for (i = 0; i < bb->count ; i++) {
+		for (i = 0; i < bb->count; i++) {
 			if (!BB_ACK(p[i])) {
 				sector_t start = BB_OFFSET(p[i]);
 				int len = BB_LEN(p[i]);
@@ -490,7 +487,7 @@ retry:
 		if (unack && ack)
 			continue;
 
-		len += snprintf(page+len, PAGE_SIZE-len, "%llu %u\n",
+		len += snprintf(page + len, PAGE_SIZE - len, "%llu %u\n",
 				(unsigned long long)s << bb->shift,
 				length << bb->shift);
 	}
@@ -542,7 +539,7 @@ ssize_t badblocks_store(struct badblocks *bb, const char *page, size_t len,
 EXPORT_SYMBOL_GPL(badblocks_store);
 
 static int __badblocks_init(struct device *dev, struct badblocks *bb,
-		int enable)
+			    int enable)
 {
 	bb->dev = dev;
 	bb->count = 0;

@@ -51,13 +51,13 @@
  */
 
 #ifdef __OPTIMIZE__
- #error "The CPU Jitter random number generator must not be compiled with optimizations. See documentation. Use the compiler switch -O0 for compiling jitterentropy.c."
+#error "The CPU Jitter random number generator must not be compiled with optimizations. See documentation. Use the compiler switch -O0 for compiling jitterentropy.c."
 #endif
 
-typedef	unsigned long long	__u64;
-typedef	long long		__s64;
-typedef	unsigned int		__u32;
-#define NULL    ((void *) 0)
+typedef unsigned long long __u64;
+typedef long long __s64;
+typedef unsigned int __u32;
+#define NULL ((void *)0)
 
 /* The entropy pool */
 struct rand_data {
@@ -65,57 +65,59 @@ struct rand_data {
 	 * of the RNG are marked as SENSITIVE. A user must not
 	 * access that information while the RNG executes its loops to
 	 * calculate the next random value. */
-	__u64 data;		/* SENSITIVE Actual random number */
-	__u64 old_data;		/* SENSITIVE Previous random number */
-	__u64 prev_time;	/* SENSITIVE Previous time stamp */
+	__u64 data; /* SENSITIVE Actual random number */
+	__u64 old_data; /* SENSITIVE Previous random number */
+	__u64 prev_time; /* SENSITIVE Previous time stamp */
 #define DATA_SIZE_BITS ((sizeof(__u64)) * 8)
-	__u64 last_delta;	/* SENSITIVE stuck test */
-	__s64 last_delta2;	/* SENSITIVE stuck test */
-	unsigned int osr;	/* Oversample rate */
+	__u64 last_delta; /* SENSITIVE stuck test */
+	__s64 last_delta2; /* SENSITIVE stuck test */
+	unsigned int osr; /* Oversample rate */
 #define JENT_MEMORY_BLOCKS 64
 #define JENT_MEMORY_BLOCKSIZE 32
 #define JENT_MEMORY_ACCESSLOOPS 128
-#define JENT_MEMORY_SIZE (JENT_MEMORY_BLOCKS*JENT_MEMORY_BLOCKSIZE)
-	unsigned char *mem;	/* Memory access location with size of
+#define JENT_MEMORY_SIZE (JENT_MEMORY_BLOCKS * JENT_MEMORY_BLOCKSIZE)
+	unsigned char *mem; /* Memory access location with size of
 				 * memblocks * memblocksize */
 	unsigned int memlocation; /* Pointer to byte in *mem */
-	unsigned int memblocks;	/* Number of memory blocks in *mem */
+	unsigned int memblocks; /* Number of memory blocks in *mem */
 	unsigned int memblocksize; /* Size of one memory block in bytes */
 	unsigned int memaccessloops; /* Number of memory accesses per random
 				      * bit generation */
 
 	/* Repetition Count Test */
-	int rct_count;			/* Number of stuck values */
+	int rct_count; /* Number of stuck values */
 
 	/* Adaptive Proportion Test for a significance level of 2^-30 */
-#define JENT_APT_CUTOFF		325	/* Taken from SP800-90B sec 4.4.2 */
-#define JENT_APT_WINDOW_SIZE	512	/* Data window size */
+#define JENT_APT_CUTOFF 325 /* Taken from SP800-90B sec 4.4.2 */
+#define JENT_APT_WINDOW_SIZE 512 /* Data window size */
 	/* LSB of time stamp to process */
-#define JENT_APT_LSB		16
-#define JENT_APT_WORD_MASK	(JENT_APT_LSB - 1)
-	unsigned int apt_observations;	/* Number of collected observations */
-	unsigned int apt_count;		/* APT counter */
-	unsigned int apt_base;		/* APT base reference */
-	unsigned int apt_base_set:1;	/* APT base reference set? */
+#define JENT_APT_LSB 16
+#define JENT_APT_WORD_MASK (JENT_APT_LSB - 1)
+	unsigned int apt_observations; /* Number of collected observations */
+	unsigned int apt_count; /* APT counter */
+	unsigned int apt_base; /* APT base reference */
+	unsigned int apt_base_set : 1; /* APT base reference set? */
 
-	unsigned int health_failure:1;	/* Permanent health failure */
+	unsigned int health_failure : 1; /* Permanent health failure */
 };
 
 /* Flags that can be used to initialize the RNG */
-#define JENT_DISABLE_MEMORY_ACCESS (1<<2) /* Disable memory access for more
+#define JENT_DISABLE_MEMORY_ACCESS                                             \
+	(1 << 2) /* Disable memory access for more
 					   * entropy, saves MEMORY_SIZE RAM for
 					   * entropy collector */
 
 /* -- error codes for init function -- */
-#define JENT_ENOTIME		1 /* Timer service not available */
-#define JENT_ECOARSETIME	2 /* Timer too coarse for RNG */
-#define JENT_ENOMONOTONIC	3 /* Timer is not monotonic increasing */
-#define JENT_EVARVAR		5 /* Timer does not produce variations of
+#define JENT_ENOTIME 1 /* Timer service not available */
+#define JENT_ECOARSETIME 2 /* Timer too coarse for RNG */
+#define JENT_ENOMONOTONIC 3 /* Timer is not monotonic increasing */
+#define JENT_EVARVAR                                                           \
+	5 /* Timer does not produce variations of
 				   * variations (2nd derivation of time is
 				   * zero). */
-#define JENT_ESTUCK		8 /* Too many stuck results during init. */
-#define JENT_EHEALTH		9 /* Health test failed during initialization */
-#define JENT_ERCT		10 /* RCT failed during initialization */
+#define JENT_ESTUCK 8 /* Too many stuck results during init. */
+#define JENT_EHEALTH 9 /* Health test failed during initialization */
+#define JENT_ERCT 10 /* RCT failed during initialization */
 
 /*
  * The output n bits can receive more than n bits of min entropy, of course,
@@ -130,7 +132,7 @@ struct rand_data {
  * entropy in each bit of output to at least 1-epsilon, where epsilon is
  * required to be <= 2^(-32).
  */
-#define JENT_ENTROPY_SAFETY_FACTOR	64
+#define JENT_ENTROPY_SAFETY_FACTOR 64
 
 #include <linux/fips.h>
 #include "jitterentropy.h"
@@ -257,7 +259,7 @@ static int jent_rct_failure(struct rand_data *ec)
 
 static inline __u64 jent_delta(__u64 prev, __u64 next)
 {
-#define JENT_UINT64_MAX		(__u64)(~((__u64) 0))
+#define JENT_UINT64_MAX (__u64)(~((__u64)0))
 	return (prev < next) ? (next - prev) :
 			       (JENT_UINT64_MAX - prev + 1 + next);
 }
@@ -333,13 +335,13 @@ static int jent_health_failure(struct rand_data *ec)
  *
  * @return Newly calculated loop counter
  */
-static __u64 jent_loop_shuffle(struct rand_data *ec,
-			       unsigned int bits, unsigned int min)
+static __u64 jent_loop_shuffle(struct rand_data *ec, unsigned int bits,
+			       unsigned int min)
 {
 	__u64 time = 0;
 	__u64 shuffle = 0;
 	unsigned int i = 0;
-	unsigned int mask = (1<<bits) - 1;
+	unsigned int mask = (1 << bits) - 1;
 
 	jent_get_nstime(&time);
 	/*
@@ -361,7 +363,7 @@ static __u64 jent_loop_shuffle(struct rand_data *ec,
 	 * We add a lower boundary value to ensure we have a minimum
 	 * RNG loop count.
 	 */
-	return (shuffle + (1<<min));
+	return (shuffle + (1 << min));
 }
 
 /*
@@ -800,8 +802,7 @@ int jent_entropy_init(void)
 			 * floor((TESTLOOPCOUNT * 0.9) / 64) == 14 times.
 			 */
 			if ((nonstuck % JENT_APT_WINDOW_SIZE) == 0) {
-				jent_apt_reset(&ec,
-					       delta & JENT_APT_WORD_MASK);
+				jent_apt_reset(&ec, delta & JENT_APT_WORD_MASK);
 				if (jent_health_failure(&ec))
 					return JENT_EHEALTH;
 			}
@@ -856,14 +857,14 @@ int jent_entropy_init(void)
 	 * least 10% of all checks -- on some platforms, the counter increments
 	 * in multiples of 100, but not always
 	 */
-	if ((TESTLOOPCOUNT/10 * 9) < count_mod)
+	if ((TESTLOOPCOUNT / 10 * 9) < count_mod)
 		return JENT_ECOARSETIME;
 
 	/*
 	 * If we have more than 90% stuck results, then this Jitter RNG is
 	 * likely to not work well.
 	 */
-	if ((TESTLOOPCOUNT/10 * 9) < count_stuck)
+	if ((TESTLOOPCOUNT / 10 * 9) < count_stuck)
 		return JENT_ESTUCK;
 
 	return 0;

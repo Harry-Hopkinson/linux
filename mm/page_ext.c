@@ -127,7 +127,6 @@ static inline struct page_ext *get_entry(void *base, unsigned long index)
 
 #ifndef CONFIG_SPARSEMEM
 
-
 void __meminit pgdat_page_ext_init(struct pglist_data *pgdat)
 {
 	pgdat->node_page_ext = NULL;
@@ -149,7 +148,7 @@ struct page_ext *lookup_page_ext(const struct page *page)
 	if (unlikely(!base))
 		return NULL;
 	index = pfn - round_down(node_start_pfn(page_to_nid(page)),
-					MAX_ORDER_NR_PAGES);
+				 MAX_ORDER_NR_PAGES);
 	return get_entry(base, index);
 }
 
@@ -169,14 +168,14 @@ static int __init alloc_node_page_ext(int nid)
 	 * checks buddy's status, range could be out of exact node range.
 	 */
 	if (!IS_ALIGNED(node_start_pfn(nid), MAX_ORDER_NR_PAGES) ||
-		!IS_ALIGNED(node_end_pfn(nid), MAX_ORDER_NR_PAGES))
+	    !IS_ALIGNED(node_end_pfn(nid), MAX_ORDER_NR_PAGES))
 		nr_pages += MAX_ORDER_NR_PAGES;
 
 	table_size = page_ext_size * nr_pages;
 
-	base = memblock_alloc_try_nid(
-			table_size, PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
-			MEMBLOCK_ALLOC_ACCESSIBLE, nid);
+	base = memblock_alloc_try_nid(table_size, PAGE_SIZE,
+				      __pa(MAX_DMA_ADDRESS),
+				      MEMBLOCK_ALLOC_ACCESSIBLE, nid);
 	if (!base)
 		return -ENOMEM;
 	NODE_DATA(nid)->node_page_ext = base;
@@ -186,13 +185,12 @@ static int __init alloc_node_page_ext(int nid)
 
 void __init page_ext_init_flatmem(void)
 {
-
 	int nid, fail;
 
 	if (!invoke_need_callbacks())
 		return;
 
-	for_each_online_node(nid)  {
+	for_each_online_node (nid) {
 		fail = alloc_node_page_ext(nid);
 		if (fail)
 			goto fail;
@@ -304,8 +302,7 @@ static void __free_page_ext(unsigned long pfn)
 }
 
 static int __meminit online_page_ext(unsigned long start_pfn,
-				unsigned long nr_pages,
-				int nid)
+				     unsigned long nr_pages, int nid)
 {
 	unsigned long start, end, pfn;
 	int fail = 0;
@@ -336,7 +333,7 @@ static int __meminit online_page_ext(unsigned long start_pfn,
 }
 
 static int __meminit offline_page_ext(unsigned long start_pfn,
-				unsigned long nr_pages, int nid)
+				      unsigned long nr_pages, int nid)
 {
 	unsigned long start, end, pfn;
 
@@ -346,27 +343,26 @@ static int __meminit offline_page_ext(unsigned long start_pfn,
 	for (pfn = start; pfn < end; pfn += PAGES_PER_SECTION)
 		__free_page_ext(pfn);
 	return 0;
-
 }
 
 static int __meminit page_ext_callback(struct notifier_block *self,
-			       unsigned long action, void *arg)
+				       unsigned long action, void *arg)
 {
 	struct memory_notify *mn = arg;
 	int ret = 0;
 
 	switch (action) {
 	case MEM_GOING_ONLINE:
-		ret = online_page_ext(mn->start_pfn,
-				   mn->nr_pages, mn->status_change_nid);
+		ret = online_page_ext(mn->start_pfn, mn->nr_pages,
+				      mn->status_change_nid);
 		break;
 	case MEM_OFFLINE:
-		offline_page_ext(mn->start_pfn,
-				mn->nr_pages, mn->status_change_nid);
+		offline_page_ext(mn->start_pfn, mn->nr_pages,
+				 mn->status_change_nid);
 		break;
 	case MEM_CANCEL_ONLINE:
-		offline_page_ext(mn->start_pfn,
-				mn->nr_pages, mn->status_change_nid);
+		offline_page_ext(mn->start_pfn, mn->nr_pages,
+				 mn->status_change_nid);
 		break;
 	case MEM_GOING_OFFLINE:
 		break;
@@ -386,7 +382,7 @@ void __init page_ext_init(void)
 	if (!invoke_need_callbacks())
 		return;
 
-	for_each_node_state(nid, N_MEMORY) {
+	for_each_node_state (nid, N_MEMORY) {
 		unsigned long start_pfn, end_pfn;
 
 		start_pfn = node_start_pfn(nid);
@@ -397,8 +393,7 @@ void __init page_ext_init(void)
 		 * scan [start_pfn, the biggest section's pfn < end_pfn) here.
 		 */
 		for (pfn = start_pfn; pfn < end_pfn;
-			pfn = ALIGN(pfn + 1, PAGES_PER_SECTION)) {
-
+		     pfn = ALIGN(pfn + 1, PAGES_PER_SECTION)) {
 			if (!pfn_valid(pfn))
 				continue;
 			/*

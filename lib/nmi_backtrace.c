@@ -33,8 +33,7 @@ static unsigned long backtrace_flag;
  * directly from their raise() functions may rely on the mask
  * they are passed being updated as a side effect of this call.
  */
-void nmi_trigger_cpumask_backtrace(const cpumask_t *mask,
-				   bool exclude_self,
+void nmi_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self,
 				   void (*raise)(cpumask_t *mask))
 {
 	int i, this_cpu = get_cpu();
@@ -62,8 +61,8 @@ void nmi_trigger_cpumask_backtrace(const cpumask_t *mask,
 		nmi_cpu_backtrace(NULL);
 
 	if (!cpumask_empty(to_cpumask(backtrace_mask))) {
-		pr_info("Sending NMI from CPU %d to CPUs %*pbl:\n",
-			this_cpu, nr_cpumask_bits, to_cpumask(backtrace_mask));
+		pr_info("Sending NMI from CPU %d to CPUs %*pbl:\n", this_cpu,
+			nr_cpumask_bits, to_cpumask(backtrace_mask));
 		raise(to_cpumask(backtrace_mask));
 	}
 
@@ -100,7 +99,8 @@ bool nmi_cpu_backtrace(struct pt_regs *regs)
 		 * against other CPUs.
 		 */
 		printk_cpu_lock_irqsave(flags);
-		if (!READ_ONCE(backtrace_idle) && regs && cpu_in_idle(instruction_pointer(regs))) {
+		if (!READ_ONCE(backtrace_idle) && regs &&
+		    cpu_in_idle(instruction_pointer(regs))) {
 			pr_warn("NMI backtrace for cpu %d skipped: idling at %pS\n",
 				cpu, (void *)instruction_pointer(regs));
 		} else {

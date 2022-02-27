@@ -32,20 +32,20 @@
 
 #include <linux/log2.h>
 
-static void pcpu_post_unmap_tlb_flush(struct pcpu_chunk *chunk,
-				      int page_start, int page_end)
+static void pcpu_post_unmap_tlb_flush(struct pcpu_chunk *chunk, int page_start,
+				      int page_end)
 {
 	/* nothing */
 }
 
-static int pcpu_populate_chunk(struct pcpu_chunk *chunk,
-			       int page_start, int page_end, gfp_t gfp)
+static int pcpu_populate_chunk(struct pcpu_chunk *chunk, int page_start,
+			       int page_end, gfp_t gfp)
 {
 	return 0;
 }
 
-static void pcpu_depopulate_chunk(struct pcpu_chunk *chunk,
-				  int page_start, int page_end)
+static void pcpu_depopulate_chunk(struct pcpu_chunk *chunk, int page_start,
+				  int page_end)
 {
 	/* nada */
 }

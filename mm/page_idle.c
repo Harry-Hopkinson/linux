@@ -13,8 +13,8 @@
 #include <linux/page_ext.h>
 #include <linux/page_idle.h>
 
-#define BITMAP_CHUNK_SIZE	sizeof(u64)
-#define BITMAP_CHUNK_BITS	(BITMAP_CHUNK_SIZE * BITS_PER_BYTE)
+#define BITMAP_CHUNK_SIZE sizeof(u64)
+#define BITMAP_CHUNK_BITS (BITMAP_CHUNK_SIZE * BITS_PER_BYTE)
 
 /*
  * Idle page tracking only considers user memory pages, for other types of
@@ -33,8 +33,7 @@ static struct page *page_idle_get_page(unsigned long pfn)
 {
 	struct page *page = pfn_to_online_page(pfn);
 
-	if (!page || !PageLRU(page) ||
-	    !get_page_unless_zero(page))
+	if (!page || !PageLRU(page) || !get_page_unless_zero(page))
 		return NULL;
 
 	if (unlikely(!PageLRU(page))) {
@@ -45,8 +44,8 @@ static struct page *page_idle_get_page(unsigned long pfn)
 }
 
 static bool page_idle_clear_pte_refs_one(struct page *page,
-					struct vm_area_struct *vma,
-					unsigned long addr, void *arg)
+					 struct vm_area_struct *vma,
+					 unsigned long addr, void *arg)
 {
 	struct page_vma_mapped_walk pvmw = {
 		.page = page,
@@ -97,8 +96,7 @@ static void page_idle_clear_pte_refs(struct page *page)
 	};
 	bool need_lock;
 
-	if (!page_mapped(page) ||
-	    !page_rmapping(page))
+	if (!page_mapped(page) || !page_rmapping(page))
 		return;
 
 	need_lock = !PageAnon(page) || PageKsm(page);
@@ -193,9 +191,8 @@ static ssize_t page_idle_bitmap_write(struct file *file, struct kobject *kobj,
 	return (char *)in - buf;
 }
 
-static struct bin_attribute page_idle_bitmap_attr =
-		__BIN_ATTR(bitmap, 0600,
-			   page_idle_bitmap_read, page_idle_bitmap_write, 0);
+static struct bin_attribute page_idle_bitmap_attr = __BIN_ATTR(
+	bitmap, 0600, page_idle_bitmap_read, page_idle_bitmap_write, 0);
 
 static struct bin_attribute *page_idle_bin_attrs[] = {
 	&page_idle_bitmap_attr,

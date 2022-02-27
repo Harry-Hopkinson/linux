@@ -16,8 +16,8 @@
 #include <linux/rtnetlink.h>
 #include <linux/slab.h>
 
-static int aead_geniv_setkey(struct crypto_aead *tfm,
-			     const u8 *key, unsigned int keylen)
+static int aead_geniv_setkey(struct crypto_aead *tfm, const u8 *key,
+			     unsigned int keylen)
 {
 	struct aead_geniv_ctx *ctx = crypto_aead_ctx(tfm);
 
@@ -74,13 +74,12 @@ struct aead_instance *aead_geniv_alloc(struct crypto_template *tmpl,
 		goto err_free_inst;
 
 	err = -ENAMETOOLONG;
-	if (snprintf(inst->alg.base.cra_name, CRYPTO_MAX_ALG_NAME,
-		     "%s(%s)", tmpl->name, alg->base.cra_name) >=
-	    CRYPTO_MAX_ALG_NAME)
+	if (snprintf(inst->alg.base.cra_name, CRYPTO_MAX_ALG_NAME, "%s(%s)",
+		     tmpl->name, alg->base.cra_name) >= CRYPTO_MAX_ALG_NAME)
 		goto err_free_inst;
 	if (snprintf(inst->alg.base.cra_driver_name, CRYPTO_MAX_ALG_NAME,
-		     "%s(%s)", tmpl->name, alg->base.cra_driver_name) >=
-	    CRYPTO_MAX_ALG_NAME)
+		     "%s(%s)", tmpl->name,
+		     alg->base.cra_driver_name) >= CRYPTO_MAX_ALG_NAME)
 		goto err_free_inst;
 
 	inst->alg.base.cra_priority = alg->base.cra_priority;
@@ -137,7 +136,7 @@ int aead_init_geniv(struct crypto_aead *aead)
 
 	ctx->child = child;
 	crypto_aead_set_reqsize(aead, crypto_aead_reqsize(child) +
-				      sizeof(struct aead_request));
+					      sizeof(struct aead_request));
 
 	err = 0;
 

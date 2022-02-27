@@ -82,9 +82,8 @@ static void clear_global_latency_tracing(void)
 	raw_spin_unlock_irqrestore(&latency_lock, flags);
 }
 
-static void __sched
-account_global_scheduler_latency(struct task_struct *tsk,
-				 struct latency_record *lat)
+static void __sched account_global_scheduler_latency(struct task_struct *tsk,
+						     struct latency_record *lat)
 {
 	int firstnonnull = MAXLR + 1;
 	int i;
@@ -147,8 +146,8 @@ account_global_scheduler_latency(struct task_struct *tsk,
  * Negative latencies (caused by time going backwards) are also explicitly
  * skipped.
  */
-void __sched
-__account_scheduler_latency(struct task_struct *tsk, int usecs, int inter)
+void __sched __account_scheduler_latency(struct task_struct *tsk, int usecs,
+					 int inter)
 {
 	unsigned long flags;
 	int i, q;
@@ -225,8 +224,8 @@ static int lstats_show(struct seq_file *m, void *v)
 
 		if (lr->backtrace[0]) {
 			int q;
-			seq_printf(m, "%i %lu %lu",
-				   lr->count, lr->time, lr->max);
+			seq_printf(m, "%i %lu %lu", lr->count, lr->time,
+				   lr->max);
 			for (q = 0; q < LT_BACKTRACEDEPTH; q++) {
 				unsigned long bt = lr->backtrace[q];
 
@@ -241,9 +240,8 @@ static int lstats_show(struct seq_file *m, void *v)
 	return 0;
 }
 
-static ssize_t
-lstats_write(struct file *file, const char __user *buf, size_t count,
-	     loff_t *offs)
+static ssize_t lstats_write(struct file *file, const char __user *buf,
+			    size_t count, loff_t *offs)
 {
 	clear_global_latency_tracing();
 
@@ -256,11 +254,11 @@ static int lstats_open(struct inode *inode, struct file *filp)
 }
 
 static const struct proc_ops lstats_proc_ops = {
-	.proc_open	= lstats_open,
-	.proc_read	= seq_read,
-	.proc_write	= lstats_write,
-	.proc_lseek	= seq_lseek,
-	.proc_release	= single_release,
+	.proc_open = lstats_open,
+	.proc_read = seq_read,
+	.proc_write = lstats_write,
+	.proc_lseek = seq_lseek,
+	.proc_release = single_release,
 };
 
 static int __init init_lstats_procfs(void)
@@ -270,7 +268,7 @@ static int __init init_lstats_procfs(void)
 }
 
 int sysctl_latencytop(struct ctl_table *table, int write, void *buffer,
-		size_t *lenp, loff_t *ppos)
+		      size_t *lenp, loff_t *ppos)
 {
 	int err;
 

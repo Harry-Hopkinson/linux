@@ -193,21 +193,22 @@ ssize_t strscpy(char *dest, const char *src, size_t count)
 	}
 #else
 	/* If src or dest is unaligned, don't do word-at-a-time. */
-	if (((long) dest | (long) src) & (sizeof(long) - 1))
+	if (((long)dest | (long)src) & (sizeof(long) - 1))
 		max = 0;
 #endif
 
 	while (max >= sizeof(unsigned long)) {
 		unsigned long c, data;
 
-		c = read_word_at_a_time(src+res);
+		c = read_word_at_a_time(src + res);
 		if (has_zero(c, &data, &constants)) {
 			data = prep_zero_mask(c, data, &constants);
 			data = create_zero_mask(data);
-			*(unsigned long *)(dest+res) = c & zero_bytemask(data);
+			*(unsigned long *)(dest + res) =
+				c & zero_bytemask(data);
 			return res + find_zero(data);
 		}
-		*(unsigned long *)(dest+res) = c;
+		*(unsigned long *)(dest + res) = c;
 		res += sizeof(unsigned long);
 		count -= sizeof(unsigned long);
 		max -= sizeof(unsigned long);
@@ -226,7 +227,7 @@ ssize_t strscpy(char *dest, const char *src, size_t count)
 
 	/* Hit buffer length without finding a NUL; force NUL-termination. */
 	if (res)
-		dest[res-1] = '\0';
+		dest[res - 1] = '\0';
 
 	return -E2BIG;
 }
@@ -324,7 +325,7 @@ size_t strlcat(char *dest, const char *src, size_t count)
 	dest += dsize;
 	count -= dsize;
 	if (len >= count)
-		len = count-1;
+		len = count - 1;
 	memcpy(dest, src, len);
 	dest[len] = 0;
 	return res;
@@ -824,7 +825,7 @@ void *memscan(void *addr, int c, size_t size)
 		p++;
 		size--;
 	}
-  	return (void *)p;
+	return (void *)p;
 }
 EXPORT_SYMBOL(memscan);
 #endif
@@ -893,7 +894,7 @@ void *memchr(const void *s, int c, size_t n)
 {
 	const unsigned char *p = s;
 	while (n-- != 0) {
-        	if ((unsigned char)c == *p++) {
+		if ((unsigned char)c == *p++) {
 			return (void *)(p - 1);
 		}
 	}

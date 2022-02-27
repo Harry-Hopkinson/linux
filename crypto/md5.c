@@ -29,13 +29,13 @@ const u8 md5_zero_message_hash[MD5_DIGEST_SIZE] = {
 };
 EXPORT_SYMBOL_GPL(md5_zero_message_hash);
 
-#define F1(x, y, z)	(z ^ (x & (y ^ z)))
-#define F2(x, y, z)	F1(z, x, y)
-#define F3(x, y, z)	(x ^ y ^ z)
-#define F4(x, y, z)	(y ^ (x | ~z))
+#define F1(x, y, z) (z ^ (x & (y ^ z)))
+#define F2(x, y, z) F1(z, x, y)
+#define F3(x, y, z) (x ^ y ^ z)
+#define F4(x, y, z) (y ^ (x | ~z))
 
-#define MD5STEP(f, w, x, y, z, in, s) \
-	(w += f(x, y, z) + in, w = (w<<s | w>>(32-s)) + x)
+#define MD5STEP(f, w, x, y, z, in, s)                                          \
+	(w += f(x, y, z) + in, w = (w << s | w >> (32 - s)) + x)
 
 static void md5_transform(__u32 *hash, __u32 const *in)
 {
@@ -152,8 +152,8 @@ static int md5_update(struct shash_desc *desc, const u8 *data, unsigned int len)
 		return 0;
 	}
 
-	memcpy((char *)mctx->block + (sizeof(mctx->block) - avail),
-	       data, avail);
+	memcpy((char *)mctx->block + (sizeof(mctx->block) - avail), data,
+	       avail);
 
 	md5_transform_helper(mctx);
 	data += avail;
@@ -180,7 +180,7 @@ static int md5_final(struct shash_desc *desc, u8 *out)
 
 	*p++ = 0x80;
 	if (padding < 0) {
-		memset(p, 0x00, padding + sizeof (u64));
+		memset(p, 0x00, padding + sizeof(u64));
 		md5_transform_helper(mctx);
 		p = (char *)mctx->block;
 		padding = 56;
@@ -189,8 +189,8 @@ static int md5_final(struct shash_desc *desc, u8 *out)
 	memset(p, 0, padding);
 	mctx->block[14] = mctx->byte_count << 3;
 	mctx->block[15] = mctx->byte_count >> 29;
-	le32_to_cpu_array(mctx->block, (sizeof(mctx->block) -
-	                  sizeof(u64)) / sizeof(u32));
+	le32_to_cpu_array(mctx->block,
+			  (sizeof(mctx->block) - sizeof(u64)) / sizeof(u32));
 	md5_transform(mctx->hash, mctx->block);
 	cpu_to_le32_array(mctx->hash, sizeof(mctx->hash) / sizeof(u32));
 	memcpy(out, mctx->hash, sizeof(mctx->hash));
@@ -215,22 +215,20 @@ static int md5_import(struct shash_desc *desc, const void *in)
 	return 0;
 }
 
-static struct shash_alg alg = {
-	.digestsize	=	MD5_DIGEST_SIZE,
-	.init		=	md5_init,
-	.update		=	md5_update,
-	.final		=	md5_final,
-	.export		=	md5_export,
-	.import		=	md5_import,
-	.descsize	=	sizeof(struct md5_state),
-	.statesize	=	sizeof(struct md5_state),
-	.base		=	{
-		.cra_name	 =	"md5",
-		.cra_driver_name =	"md5-generic",
-		.cra_blocksize	 =	MD5_HMAC_BLOCK_SIZE,
-		.cra_module	 =	THIS_MODULE,
-	}
-};
+static struct shash_alg alg = { .digestsize = MD5_DIGEST_SIZE,
+				.init = md5_init,
+				.update = md5_update,
+				.final = md5_final,
+				.export = md5_export,
+				.import = md5_import,
+				.descsize = sizeof(struct md5_state),
+				.statesize = sizeof(struct md5_state),
+				.base = {
+					.cra_name = "md5",
+					.cra_driver_name = "md5-generic",
+					.cra_blocksize = MD5_HMAC_BLOCK_SIZE,
+					.cra_module = THIS_MODULE,
+				} };
 
 static int __init md5_mod_init(void)
 {

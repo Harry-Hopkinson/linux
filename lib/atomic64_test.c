@@ -14,92 +14,91 @@
 #include <linux/module.h>
 
 #ifdef CONFIG_X86
-#include <asm/cpufeature.h>	/* for boot_cpu_has below */
+#include <asm/cpufeature.h> /* for boot_cpu_has below */
 #endif
 
-#define TEST(bit, op, c_op, val)				\
-do {								\
-	atomic##bit##_set(&v, v0);				\
-	r = v0;							\
-	atomic##bit##_##op(val, &v);				\
-	r c_op val;						\
-	WARN(atomic##bit##_read(&v) != r, "%Lx != %Lx\n",	\
-		(unsigned long long)atomic##bit##_read(&v),	\
-		(unsigned long long)r);				\
-} while (0)
+#define TEST(bit, op, c_op, val)                                               \
+	do {                                                                   \
+		atomic##bit##_set(&v, v0);                                     \
+		r = v0;                                                        \
+		atomic##bit##_##op(val, &v);                                   \
+		r c_op val;                                                    \
+		WARN(atomic##bit##_read(&v) != r, "%Lx != %Lx\n",              \
+		     (unsigned long long)atomic##bit##_read(&v),               \
+		     (unsigned long long)r);                                   \
+	} while (0)
 
 /*
  * Test for a atomic operation family,
  * @test should be a macro accepting parameters (bit, op, ...)
  */
 
-#define FAMILY_TEST(test, bit, op, args...)	\
-do {						\
-	test(bit, op, ##args);		\
-	test(bit, op##_acquire, ##args);	\
-	test(bit, op##_release, ##args);	\
-	test(bit, op##_relaxed, ##args);	\
-} while (0)
+#define FAMILY_TEST(test, bit, op, args...)                                    \
+	do {                                                                   \
+		test(bit, op, ##args);                                         \
+		test(bit, op##_acquire, ##args);                               \
+		test(bit, op##_release, ##args);                               \
+		test(bit, op##_relaxed, ##args);                               \
+	} while (0)
 
-#define TEST_RETURN(bit, op, c_op, val)				\
-do {								\
-	atomic##bit##_set(&v, v0);				\
-	r = v0;							\
-	r c_op val;						\
-	BUG_ON(atomic##bit##_##op(val, &v) != r);		\
-	BUG_ON(atomic##bit##_read(&v) != r);			\
-} while (0)
+#define TEST_RETURN(bit, op, c_op, val)                                        \
+	do {                                                                   \
+		atomic##bit##_set(&v, v0);                                     \
+		r = v0;                                                        \
+		r c_op val;                                                    \
+		BUG_ON(atomic##bit##_##op(val, &v) != r);                      \
+		BUG_ON(atomic##bit##_read(&v) != r);                           \
+	} while (0)
 
-#define TEST_FETCH(bit, op, c_op, val)				\
-do {								\
-	atomic##bit##_set(&v, v0);				\
-	r = v0;							\
-	r c_op val;						\
-	BUG_ON(atomic##bit##_##op(val, &v) != v0);		\
-	BUG_ON(atomic##bit##_read(&v) != r);			\
-} while (0)
+#define TEST_FETCH(bit, op, c_op, val)                                         \
+	do {                                                                   \
+		atomic##bit##_set(&v, v0);                                     \
+		r = v0;                                                        \
+		r c_op val;                                                    \
+		BUG_ON(atomic##bit##_##op(val, &v) != v0);                     \
+		BUG_ON(atomic##bit##_read(&v) != r);                           \
+	} while (0)
 
-#define RETURN_FAMILY_TEST(bit, op, c_op, val)			\
-do {								\
-	FAMILY_TEST(TEST_RETURN, bit, op, c_op, val);		\
-} while (0)
+#define RETURN_FAMILY_TEST(bit, op, c_op, val)                                 \
+	do {                                                                   \
+		FAMILY_TEST(TEST_RETURN, bit, op, c_op, val);                  \
+	} while (0)
 
-#define FETCH_FAMILY_TEST(bit, op, c_op, val)			\
-do {								\
-	FAMILY_TEST(TEST_FETCH, bit, op, c_op, val);		\
-} while (0)
+#define FETCH_FAMILY_TEST(bit, op, c_op, val)                                  \
+	do {                                                                   \
+		FAMILY_TEST(TEST_FETCH, bit, op, c_op, val);                   \
+	} while (0)
 
-#define TEST_ARGS(bit, op, init, ret, expect, args...)		\
-do {								\
-	atomic##bit##_set(&v, init);				\
-	BUG_ON(atomic##bit##_##op(&v, ##args) != ret);		\
-	BUG_ON(atomic##bit##_read(&v) != expect);		\
-} while (0)
+#define TEST_ARGS(bit, op, init, ret, expect, args...)                         \
+	do {                                                                   \
+		atomic##bit##_set(&v, init);                                   \
+		BUG_ON(atomic##bit##_##op(&v, ##args) != ret);                 \
+		BUG_ON(atomic##bit##_read(&v) != expect);                      \
+	} while (0)
 
-#define XCHG_FAMILY_TEST(bit, init, new)				\
-do {									\
-	FAMILY_TEST(TEST_ARGS, bit, xchg, init, init, new, new);	\
-} while (0)
+#define XCHG_FAMILY_TEST(bit, init, new)                                       \
+	do {                                                                   \
+		FAMILY_TEST(TEST_ARGS, bit, xchg, init, init, new, new);       \
+	} while (0)
 
-#define CMPXCHG_FAMILY_TEST(bit, init, new, wrong)			\
-do {									\
-	FAMILY_TEST(TEST_ARGS, bit, cmpxchg, 				\
-			init, init, new, init, new);			\
-	FAMILY_TEST(TEST_ARGS, bit, cmpxchg,				\
-			init, init, init, wrong, new);			\
-} while (0)
+#define CMPXCHG_FAMILY_TEST(bit, init, new, wrong)                             \
+	do {                                                                   \
+		FAMILY_TEST(TEST_ARGS, bit, cmpxchg, init, init, new, init,    \
+			    new);                                              \
+		FAMILY_TEST(TEST_ARGS, bit, cmpxchg, init, init, init, wrong,  \
+			    new);                                              \
+	} while (0)
 
-#define INC_RETURN_FAMILY_TEST(bit, i)			\
-do {							\
-	FAMILY_TEST(TEST_ARGS, bit, inc_return,		\
-			i, (i) + one, (i) + one);	\
-} while (0)
+#define INC_RETURN_FAMILY_TEST(bit, i)                                         \
+	do {                                                                   \
+		FAMILY_TEST(TEST_ARGS, bit, inc_return, i, (i) + one,          \
+			    (i) + one);                                        \
+	} while (0)
 
-#define DEC_RETURN_FAMILY_TEST(bit, i)			\
-do {							\
-	FAMILY_TEST(TEST_ARGS, bit, dec_return,		\
-			i, (i) - one, (i) - one);	\
-} while (0)
+#define DEC_RETURN_FAMILY_TEST(bit, i)                                         \
+	do {                                                                   \
+		FAMILY_TEST(TEST_ARGS, bit, dec_return, i, (i)-one, (i)-one);  \
+	} while (0)
 
 static __init void test_atomic(void)
 {
@@ -130,7 +129,7 @@ static __init void test_atomic(void)
 	FETCH_FAMILY_TEST(, fetch_sub, -=, onestwos);
 	FETCH_FAMILY_TEST(, fetch_sub, -=, -one);
 
-	FETCH_FAMILY_TEST(, fetch_or,  |=, v1);
+	FETCH_FAMILY_TEST(, fetch_or, |=, v1);
 	FETCH_FAMILY_TEST(, fetch_and, &=, v1);
 	FETCH_FAMILY_TEST(, fetch_andnot, &= ~, v1);
 	FETCH_FAMILY_TEST(, fetch_xor, ^=, v1);
@@ -140,10 +139,13 @@ static __init void test_atomic(void)
 
 	XCHG_FAMILY_TEST(, v0, v1);
 	CMPXCHG_FAMILY_TEST(, v0, v1, onestwos);
-
 }
 
-#define INIT(c) do { atomic64_set(&v, c); r = c; } while (0)
+#define INIT(c)                                                                \
+	do {                                                                   \
+		atomic64_set(&v, c);                                           \
+		r = c;                                                         \
+	} while (0)
 static __init void test_atomic64(void)
 {
 	long long v0 = 0xaaa31337c001d00dLL;
@@ -182,7 +184,7 @@ static __init void test_atomic64(void)
 	FETCH_FAMILY_TEST(64, fetch_sub, -=, onestwos);
 	FETCH_FAMILY_TEST(64, fetch_sub, -=, -one);
 
-	FETCH_FAMILY_TEST(64, fetch_or,  |=, v1);
+	FETCH_FAMILY_TEST(64, fetch_or, |=, v1);
 	FETCH_FAMILY_TEST(64, fetch_and, &=, v1);
 	FETCH_FAMILY_TEST(64, fetch_andnot, &= ~, v1);
 	FETCH_FAMILY_TEST(64, fetch_xor, ^=, v1);
@@ -259,8 +261,8 @@ static __init int test_atomics_init(void)
 #else
 		"i386+",
 #endif
-	       boot_cpu_has(X86_FEATURE_CX8) ? "with" : "without",
-	       boot_cpu_has(X86_FEATURE_XMM) ? "with" : "without");
+		boot_cpu_has(X86_FEATURE_CX8) ? "with" : "without",
+		boot_cpu_has(X86_FEATURE_XMM) ? "with" : "without");
 #else
 	pr_info("passed\n");
 #endif
@@ -268,7 +270,9 @@ static __init int test_atomics_init(void)
 	return 0;
 }
 
-static __exit void test_atomics_exit(void) {}
+static __exit void test_atomics_exit(void)
+{
+}
 
 module_init(test_atomics_init);
 module_exit(test_atomics_exit);

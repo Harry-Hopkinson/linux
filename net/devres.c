@@ -73,8 +73,8 @@ int devm_register_netdev(struct device *dev, struct net_device *ndev)
 	 * can only be allocated by devm_alloc_etherdev_mqs() so the check is
 	 * straightforward.
 	 */
-	if (WARN_ON(!devres_find(dev, devm_free_netdev,
-				 netdev_devres_match, ndev)))
+	if (WARN_ON(!devres_find(dev, devm_free_netdev, netdev_devres_match,
+				 ndev)))
 		return -EINVAL;
 
 	dr = devres_alloc(devm_unregister_netdev, sizeof(*dr), GFP_KERNEL);

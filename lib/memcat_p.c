@@ -31,4 +31,3 @@ void **__memcat_p(void **a, void **b)
 	return new;
 }
 EXPORT_SYMBOL_GPL(__memcat_p);
-

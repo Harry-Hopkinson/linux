@@ -8,19 +8,19 @@
 #define ENTRIES_PER_LINE 4
 
 #if CRC_LE_BITS > 8
-# define LE_TABLE_ROWS (CRC_LE_BITS/8)
-# define LE_TABLE_SIZE 256
+#define LE_TABLE_ROWS (CRC_LE_BITS / 8)
+#define LE_TABLE_SIZE 256
 #else
-# define LE_TABLE_ROWS 1
-# define LE_TABLE_SIZE (1 << CRC_LE_BITS)
+#define LE_TABLE_ROWS 1
+#define LE_TABLE_SIZE (1 << CRC_LE_BITS)
 #endif
 
 #if CRC_BE_BITS > 8
-# define BE_TABLE_ROWS (CRC_BE_BITS/8)
-# define BE_TABLE_SIZE 256
+#define BE_TABLE_ROWS (CRC_BE_BITS / 8)
+#define BE_TABLE_SIZE 256
 #else
-# define BE_TABLE_ROWS 1
-# define BE_TABLE_SIZE (1 << CRC_BE_BITS)
+#define BE_TABLE_ROWS 1
+#define BE_TABLE_SIZE (1 << CRC_BE_BITS)
 #endif
 
 static uint32_t crc32table_le[LE_TABLE_ROWS][256];
@@ -94,7 +94,7 @@ static void output_table(uint32_t (*table)[256], int rows, int len, char *trans)
 {
 	int i, j;
 
-	for (j = 0 ; j < rows; j++) {
+	for (j = 0; j < rows; j++) {
 		printf("{");
 		for (i = 0; i < len - 1; i++) {
 			if (i % ENTRIES_PER_LINE == 0)
@@ -105,7 +105,7 @@ static void output_table(uint32_t (*table)[256], int rows, int len, char *trans)
 	}
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
 	printf("/* this file is generated - do not edit */\n\n");
 
@@ -114,8 +114,8 @@ int main(int argc, char** argv)
 		printf("static const u32 ____cacheline_aligned "
 		       "crc32table_le[%d][%d] = {",
 		       LE_TABLE_ROWS, LE_TABLE_SIZE);
-		output_table(crc32table_le, LE_TABLE_ROWS,
-			     LE_TABLE_SIZE, "tole");
+		output_table(crc32table_le, LE_TABLE_ROWS, LE_TABLE_SIZE,
+			     "tole");
 		printf("};\n");
 	}
 
@@ -124,8 +124,8 @@ int main(int argc, char** argv)
 		printf("static const u32 ____cacheline_aligned "
 		       "crc32table_be[%d][%d] = {",
 		       BE_TABLE_ROWS, BE_TABLE_SIZE);
-		output_table(crc32table_be, LE_TABLE_ROWS,
-			     BE_TABLE_SIZE, "tobe");
+		output_table(crc32table_be, LE_TABLE_ROWS, BE_TABLE_SIZE,
+			     "tobe");
 		printf("};\n");
 	}
 	if (CRC_LE_BITS > 1) {
@@ -133,8 +133,8 @@ int main(int argc, char** argv)
 		printf("static const u32 ____cacheline_aligned "
 		       "crc32ctable_le[%d][%d] = {",
 		       LE_TABLE_ROWS, LE_TABLE_SIZE);
-		output_table(crc32ctable_le, LE_TABLE_ROWS,
-			     LE_TABLE_SIZE, "tole");
+		output_table(crc32ctable_le, LE_TABLE_ROWS, LE_TABLE_SIZE,
+			     "tole");
 		printf("};\n");
 	}
 

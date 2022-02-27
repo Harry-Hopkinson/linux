@@ -16,7 +16,7 @@
 
 #ifdef CONFIG_CMA_DEBUG
 #ifndef DEBUG
-#  define DEBUG
+#define DEBUG
 #endif
 #endif
 #define CREATE_TRACE_POINTS
@@ -68,8 +68,8 @@ static unsigned long cma_bitmap_aligned_mask(const struct cma *cma,
 static unsigned long cma_bitmap_aligned_offset(const struct cma *cma,
 					       unsigned int align_order)
 {
-	return (cma->base_pfn & ((1UL << align_order) - 1))
-		>> cma->order_per_bit;
+	return (cma->base_pfn & ((1UL << align_order) - 1)) >>
+	       cma->order_per_bit;
 }
 
 static unsigned long cma_bitmap_pages_to_bits(const struct cma *cma,
@@ -163,8 +163,7 @@ core_initcall(cma_init_reserved_areas);
  * This function creates custom contiguous area from already reserved memory.
  */
 int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
-				 unsigned int order_per_bit,
-				 const char *name,
+				 unsigned int order_per_bit, const char *name,
 				 struct cma **res_cma)
 {
 	struct cma *cma;
@@ -180,8 +179,8 @@ int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
 		return -EINVAL;
 
 	/* ensure minimal alignment required by mm core */
-	alignment = PAGE_SIZE <<
-			max_t(unsigned long, MAX_ORDER - 1, pageblock_order);
+	alignment = PAGE_SIZE
+		    << max_t(unsigned long, MAX_ORDER - 1, pageblock_order);
 
 	/* alignment should be aligned with order_per_bit */
 	if (!IS_ALIGNED(alignment >> PAGE_SHIFT, 1 << order_per_bit))
@@ -199,7 +198,7 @@ int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
 	if (name)
 		snprintf(cma->name, CMA_MAX_NAME, name);
 	else
-		snprintf(cma->name, CMA_MAX_NAME,  "cma%d\n", cma_area_count);
+		snprintf(cma->name, CMA_MAX_NAME, "cma%d\n", cma_area_count);
 
 	cma->base_pfn = PFN_DOWN(base);
 	cma->count = size >> PAGE_SHIFT;
@@ -231,11 +230,11 @@ int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
  * If @fixed is true, reserve contiguous area at exactly @base.  If false,
  * reserve in range from @base to @limit.
  */
-int __init cma_declare_contiguous_nid(phys_addr_t base,
-			phys_addr_t size, phys_addr_t limit,
-			phys_addr_t alignment, unsigned int order_per_bit,
-			bool fixed, const char *name, struct cma **res_cma,
-			int nid)
+int __init cma_declare_contiguous_nid(phys_addr_t base, phys_addr_t size,
+				      phys_addr_t limit, phys_addr_t alignment,
+				      unsigned int order_per_bit, bool fixed,
+				      const char *name, struct cma **res_cma,
+				      int nid)
 {
 	phys_addr_t memblock_end = memblock_end_of_DRAM();
 	phys_addr_t highmem_start;
@@ -248,8 +247,8 @@ int __init cma_declare_contiguous_nid(phys_addr_t base,
 	 * address.
 	 */
 	highmem_start = __pa(high_memory - 1) + 1;
-	pr_debug("%s(size %pa, base %pa, limit %pa alignment %pa)\n",
-		__func__, &size, &base, &limit, &alignment);
+	pr_debug("%s(size %pa, base %pa, limit %pa alignment %pa)\n", __func__,
+		 &size, &base, &limit, &alignment);
 
 	if (cma_area_count == ARRAY_SIZE(cma_areas)) {
 		pr_err("Not enough slots for CMA reserved regions!\n");
@@ -268,12 +267,13 @@ int __init cma_declare_contiguous_nid(phys_addr_t base,
 	 * migratetype page by page allocator's buddy algorithm. In the case,
 	 * you couldn't get a contiguous memory, which is not what we want.
 	 */
-	alignment = max(alignment,  (phys_addr_t)PAGE_SIZE <<
-			  max_t(unsigned long, MAX_ORDER - 1, pageblock_order));
+	alignment = max(alignment,
+			(phys_addr_t)PAGE_SIZE << max_t(
+				unsigned long, MAX_ORDER - 1, pageblock_order));
 	if (fixed && base & (alignment - 1)) {
 		ret = -EINVAL;
-		pr_err("Region at %pa must be aligned to %pa bytes\n",
-			&base, &alignment);
+		pr_err("Region at %pa must be aligned to %pa bytes\n", &base,
+		       &alignment);
 		goto err;
 	}
 	base = ALIGN(base, alignment);
@@ -294,7 +294,7 @@ int __init cma_declare_contiguous_nid(phys_addr_t base,
 	if (fixed && base < highmem_start && base + size > highmem_start) {
 		ret = -EINVAL;
 		pr_err("Region at %pa defined on low/high memory boundary (%pa)\n",
-			&base, &highmem_start);
+		       &base, &highmem_start);
 		goto err;
 	}
 
@@ -309,7 +309,7 @@ int __init cma_declare_contiguous_nid(phys_addr_t base,
 	if (base + size > limit) {
 		ret = -EINVAL;
 		pr_err("Size (%pa) of region at %pa exceeds limit (%pa)\n",
-			&size, &base, &limit);
+		       &size, &base, &limit);
 		goto err;
 	}
 
@@ -331,7 +331,8 @@ int __init cma_declare_contiguous_nid(phys_addr_t base,
 		 */
 		if (base < highmem_start && limit > highmem_start) {
 			addr = memblock_alloc_range_nid(size, alignment,
-					highmem_start, limit, nid, true);
+							highmem_start, limit,
+							nid, true);
 			limit = highmem_start;
 		}
 
@@ -354,7 +355,7 @@ int __init cma_declare_contiguous_nid(phys_addr_t base,
 
 		if (!addr) {
 			addr = memblock_alloc_range_nid(size, alignment, base,
-					limit, nid, true);
+							limit, nid, true);
 			if (!addr) {
 				ret = -ENOMEM;
 				goto err;
@@ -410,7 +411,9 @@ static void cma_debug_show_areas(struct cma *cma)
 	spin_unlock_irq(&cma->lock);
 }
 #else
-static inline void cma_debug_show_areas(struct cma *cma) { }
+static inline void cma_debug_show_areas(struct cma *cma)
+{
+}
 #endif
 
 /**
@@ -423,8 +426,8 @@ static inline void cma_debug_show_areas(struct cma *cma) { }
  * This function allocates part of contiguous memory on specific
  * contiguous memory area.
  */
-struct page *cma_alloc(struct cma *cma, unsigned long count,
-		       unsigned int align, bool no_warn)
+struct page *cma_alloc(struct cma *cma, unsigned long count, unsigned int align,
+		       bool no_warn)
 {
 	unsigned long mask, offset;
 	unsigned long pfn = -1;
@@ -456,8 +459,9 @@ struct page *cma_alloc(struct cma *cma, unsigned long count,
 	for (;;) {
 		spin_lock_irq(&cma->lock);
 		bitmap_no = bitmap_find_next_zero_area_off(cma->bitmap,
-				bitmap_maxno, start, bitmap_count, mask,
-				offset);
+							   bitmap_maxno, start,
+							   bitmap_count, mask,
+							   offset);
 		if (bitmap_no >= bitmap_maxno) {
 			spin_unlock_irq(&cma->lock);
 			break;
@@ -472,7 +476,8 @@ struct page *cma_alloc(struct cma *cma, unsigned long count,
 
 		pfn = cma->base_pfn + (bitmap_no << cma->order_per_bit);
 		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA,
-				     GFP_KERNEL | (no_warn ? __GFP_NOWARN : 0));
+					 GFP_KERNEL |
+						 (no_warn ? __GFP_NOWARN : 0));
 
 		if (ret == 0) {
 			page = pfn_to_page(pfn);
@@ -505,8 +510,9 @@ struct page *cma_alloc(struct cma *cma, unsigned long count,
 	}
 
 	if (ret && !no_warn) {
-		pr_err_ratelimited("%s: %s: alloc failed, req-size: %lu pages, ret: %d\n",
-				   __func__, cma->name, count, ret);
+		pr_err_ratelimited(
+			"%s: %s: alloc failed, req-size: %lu pages, ret: %d\n",
+			__func__, cma->name, count, ret);
 		cma_debug_show_areas(cma);
 	}
 
@@ -535,8 +541,8 @@ bool cma_pages_valid(struct cma *cma, const struct page *pages,
 	pfn = page_to_pfn(pages);
 
 	if (pfn < cma->base_pfn || pfn >= cma->base_pfn + cma->count) {
-		pr_debug("%s(page %p, count %lu)\n", __func__,
-						(void *)pages, count);
+		pr_debug("%s(page %p, count %lu)\n", __func__, (void *)pages,
+			 count);
 		return false;
 	}
 
@@ -553,8 +559,7 @@ bool cma_pages_valid(struct cma *cma, const struct page *pages,
  * It returns false when provided pages do not belong to contiguous area and
  * true otherwise.
  */
-bool cma_release(struct cma *cma, const struct page *pages,
-		 unsigned long count)
+bool cma_release(struct cma *cma, const struct page *pages, unsigned long count)
 {
 	unsigned long pfn;
 

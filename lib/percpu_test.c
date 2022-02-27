@@ -2,16 +2,15 @@
 #include <linux/module.h>
 
 /* validate @native and @pcp counter values match @expected */
-#define CHECK(native, pcp, expected)                                    \
-	do {                                                            \
-		WARN((native) != (expected),                            \
-		     "raw %ld (0x%lx) != expected %lld (0x%llx)",	\
-		     (native), (native),				\
-		     (long long)(expected), (long long)(expected));	\
-		WARN(__this_cpu_read(pcp) != (expected),                \
-		     "pcp %ld (0x%lx) != expected %lld (0x%llx)",	\
-		     __this_cpu_read(pcp), __this_cpu_read(pcp),	\
-		     (long long)(expected), (long long)(expected));	\
+#define CHECK(native, pcp, expected)                                           \
+	do {                                                                   \
+		WARN((native) != (expected),                                   \
+		     "raw %ld (0x%lx) != expected %lld (0x%llx)", (native),    \
+		     (native), (long long)(expected), (long long)(expected));  \
+		WARN(__this_cpu_read(pcp) != (expected),                       \
+		     "pcp %ld (0x%lx) != expected %lld (0x%llx)",              \
+		     __this_cpu_read(pcp), __this_cpu_read(pcp),               \
+		     (long long)(expected), (long long)(expected));            \
 	} while (0)
 
 static DEFINE_PER_CPU(long, long_counter);
@@ -70,7 +69,6 @@ static int __init percpu_test_init(void)
 	__this_cpu_add(long_counter, ui_one);
 	CHECK(l, long_counter, (long)0x100000000LL);
 
-
 	l = 0;
 	__this_cpu_write(long_counter, 0);
 
@@ -124,16 +122,15 @@ static int __init percpu_test_init(void)
 	preempt_enable();
 
 	pr_info("percpu test done\n");
-	return -EAGAIN;  /* Fail will directly unload the module */
+	return -EAGAIN; /* Fail will directly unload the module */
 }
 
 static void __exit percpu_test_exit(void)
 {
 }
 
-module_init(percpu_test_init)
-module_exit(percpu_test_exit)
+module_init(percpu_test_init) module_exit(percpu_test_exit)
 
-MODULE_LICENSE("GPL");
+	MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Greg Thelen");
 MODULE_DESCRIPTION("percpu operations test");

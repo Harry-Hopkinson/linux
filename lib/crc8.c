@@ -14,7 +14,7 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#define pr_fmt(fmt)		KBUILD_MODNAME ": " fmt
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 #include <linux/module.h>
 #include <linux/crc8.h>
@@ -37,7 +37,7 @@ void crc8_populate_msb(u8 table[CRC8_TABLE_SIZE], u8 polynomial)
 	for (i = 1; i < CRC8_TABLE_SIZE; i *= 2) {
 		t = (t << 1) ^ (t & msbit ? polynomial : 0);
 		for (j = 0; j < i; j++)
-			table[i+j] = table[j] ^ t;
+			table[i + j] = table[j] ^ t;
 	}
 }
 EXPORT_SYMBOL(crc8_populate_msb);
@@ -57,8 +57,8 @@ void crc8_populate_lsb(u8 table[CRC8_TABLE_SIZE], u8 polynomial)
 
 	for (i = (CRC8_TABLE_SIZE >> 1); i; i >>= 1) {
 		t = (t >> 1) ^ (t & 1 ? polynomial : 0);
-		for (j = 0; j < CRC8_TABLE_SIZE; j += 2*i)
-			table[i+j] = table[j] ^ t;
+		for (j = 0; j < CRC8_TABLE_SIZE; j += 2 * i)
+			table[i + j] = table[j] ^ t;
 	}
 }
 EXPORT_SYMBOL(crc8_populate_lsb);

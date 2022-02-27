@@ -165,8 +165,8 @@ struct iolatency_grp {
  * periods extend the most recent window.
  */
 #define BLKIOLATENCY_NR_EXP_FACTORS 5
-#define BLKIOLATENCY_EXP_BUCKET_SIZE (BLKIOLATENCY_MAX_WIN_SIZE / \
-				      (BLKIOLATENCY_NR_EXP_FACTORS - 1))
+#define BLKIOLATENCY_EXP_BUCKET_SIZE                                           \
+	(BLKIOLATENCY_MAX_WIN_SIZE / (BLKIOLATENCY_NR_EXP_FACTORS - 1))
 static const u64 iolatency_exp_factors[BLKIOLATENCY_NR_EXP_FACTORS] = {
 	2045, // exp(1/600) - 600 samples
 	2039, // exp(1/240) - 240 samples
@@ -261,9 +261,8 @@ static inline void iolat_update_total_lat_avg(struct iolatency_grp *iolat,
 	exp_idx = min_t(int, BLKIOLATENCY_NR_EXP_FACTORS - 1,
 			div64_u64(iolat->cur_win_nsec,
 				  BLKIOLATENCY_EXP_BUCKET_SIZE));
-	iolat->lat_avg = calc_load(iolat->lat_avg,
-				   iolatency_exp_factors[exp_idx],
-				   stat->rqs.mean);
+	iolat->lat_avg = calc_load(
+		iolat->lat_avg, iolatency_exp_factors[exp_idx], stat->rqs.mean);
 }
 
 static void iolat_cleanup_cb(struct rq_wait *rqw, void *private_data)
@@ -280,8 +279,7 @@ static bool iolat_acquire_inflight(struct rq_wait *rqw, void *private_data)
 
 static void __blkcg_iolatency_throttle(struct rq_qos *rqos,
 				       struct iolatency_grp *iolat,
-				       bool issue_as_root,
-				       bool use_memdelay)
+				       bool issue_as_root, bool use_memdelay)
 {
 	struct rq_wait *rqw = &iolat->rq_wait;
 	unsigned use_delay = atomic_read(&lat_to_blkg(iolat)->use_delay);
@@ -322,8 +320,7 @@ static inline unsigned long scale_amount(unsigned long qd, bool up)
  * based on their last knowledge of it.
  */
 static void scale_cookie_change(struct blk_iolatency *blkiolat,
-				struct child_latency_info *lat_info,
-				bool up)
+				struct child_latency_info *lat_info, bool up)
 {
 	unsigned long qd = blkiolat->rqos.q->nr_requests;
 	unsigned long scale = scale_amount(qd, up);
@@ -476,7 +473,8 @@ static void blkcg_iolatency_throttle(struct rq_qos *rqos, struct bio *bio)
 
 		check_scale_change(iolat);
 		__blkcg_iolatency_throttle(rqos, iolat, issue_as_root,
-				     (bio->bi_opf & REQ_SWAP) == REQ_SWAP);
+					   (bio->bi_opf & REQ_SWAP) ==
+						   REQ_SWAP);
 		blkg = blkg->parent;
 	}
 	if (!timer_pending(&blkiolat->timer))
@@ -508,7 +506,8 @@ static void iolatency_record_time(struct iolatency_grp *iolat,
 	if (unlikely(issue_as_root && iolat->rq_depth.max_depth != UINT_MAX)) {
 		u64 sub = iolat->min_lat_nsec;
 		if (req_time < sub)
-			blkcg_add_delay(lat_to_blkg(iolat), now, sub - req_time);
+			blkcg_add_delay(lat_to_blkg(iolat), now,
+					sub - req_time);
 		return;
 	}
 
@@ -529,7 +528,7 @@ static void iolatency_check_latencies(struct iolatency_grp *iolat, u64 now)
 
 	latency_stat_init(iolat, &stat);
 	preempt_disable();
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu (cpu) {
 		struct latency_stat *s;
 		s = per_cpu_ptr(iolat->stats, cpu);
 		latency_stat_sum(iolat, &stat, s);
@@ -559,7 +558,7 @@ static void iolatency_check_latencies(struct iolatency_grp *iolat, u64 now)
 	iolat->nr_samples = latency_stat_samples(iolat, &iolat->cur_stat);
 
 	if ((lat_info->last_scale_event >= now ||
-	    now - lat_info->last_scale_event < BLKIOLATENCY_MIN_ADJUST_TIME))
+	     now - lat_info->last_scale_event < BLKIOLATENCY_MIN_ADJUST_TIME))
 		goto out;
 
 	if (latency_sum_ok(iolat, &iolat->cur_stat) &&
@@ -631,7 +630,8 @@ static void blkcg_iolatency_done_bio(struct rq_qos *rqos, struct bio *bio)
 			if (now > window_start &&
 			    (now - window_start) >= iolat->cur_win_nsec) {
 				if (atomic64_cmpxchg(&iolat->window_start,
-					     window_start, now) == window_start)
+						     window_start,
+						     now) == window_start)
 					iolatency_check_latencies(iolat, now);
 			}
 		}
@@ -663,8 +663,8 @@ static void blkiolatency_timer_fn(struct timer_list *t)
 	u64 now = ktime_to_ns(ktime_get());
 
 	rcu_read_lock();
-	blkg_for_each_descendant_pre(blkg, pos_css,
-				     blkiolat->rqos.q->root_blkg) {
+	blkg_for_each_descendant_pre (blkg, pos_css,
+				      blkiolat->rqos.q->root_blkg) {
 		struct iolatency_grp *iolat;
 		struct child_latency_info *lat_info;
 		unsigned long flags;
@@ -705,12 +705,11 @@ static void blkiolatency_timer_fn(struct timer_list *t)
 		 * scale grp in case the group that needed the scale down isn't
 		 * doing any IO currently.
 		 */
-		if (now - lat_info->last_scale_event >=
-		    ((u64)NSEC_PER_SEC * 5))
+		if (now - lat_info->last_scale_event >= ((u64)NSEC_PER_SEC * 5))
 			lat_info->scale_grp = NULL;
-next_lock:
+	next_lock:
 		spin_unlock_irqrestore(&lat_info->lock, flags);
-next:
+	next:
 		blkg_put(blkg);
 	}
 	rcu_read_unlock();
@@ -756,8 +755,8 @@ static int iolatency_set_min_lat_nsec(struct blkcg_gq *blkg, u64 val)
 
 	iolat->min_lat_nsec = val;
 	iolat->cur_win_nsec = max_t(u64, val << 4, BLKIOLATENCY_MIN_WIN_SIZE);
-	iolat->cur_win_nsec = min_t(u64, iolat->cur_win_nsec,
-				    BLKIOLATENCY_MAX_WIN_SIZE);
+	iolat->cur_win_nsec =
+		min_t(u64, iolat->cur_win_nsec, BLKIOLATENCY_MAX_WIN_SIZE);
 
 	if (!oldval && val)
 		return 1;
@@ -787,7 +786,7 @@ static void iolatency_clear_scaling(struct blkcg_gq *blkg)
 }
 
 static ssize_t iolatency_set_limit(struct kernfs_open_file *of, char *buf,
-			     size_t nbytes, loff_t off)
+				   size_t nbytes, loff_t off)
 {
 	struct blkcg *blkcg = css_to_blkcg(of_css(of));
 	struct blkcg_gq *blkg;
@@ -809,7 +808,7 @@ static ssize_t iolatency_set_limit(struct kernfs_open_file *of, char *buf,
 	ret = -EINVAL;
 	while ((tok = strsep(&p, " "))) {
 		char key[16];
-		char val[21];	/* 18446744073709551616 */
+		char val[21]; /* 18446744073709551616 */
 
 		if (sscanf(tok, "%15[^=]=%20s", key, val) != 2)
 			goto out;
@@ -878,15 +877,14 @@ static u64 iolatency_prfill_limit(struct seq_file *sf,
 
 	if (!dname || !iolat->min_lat_nsec)
 		return 0;
-	seq_printf(sf, "%s target=%llu\n",
-		   dname, div_u64(iolat->min_lat_nsec, NSEC_PER_USEC));
+	seq_printf(sf, "%s target=%llu\n", dname,
+		   div_u64(iolat->min_lat_nsec, NSEC_PER_USEC));
 	return 0;
 }
 
 static int iolatency_print_limit(struct seq_file *sf, void *v)
 {
-	blkcg_print_blkgs(sf, css_to_blkcg(seq_css(sf)),
-			  iolatency_prfill_limit,
+	blkcg_print_blkgs(sf, css_to_blkcg(seq_css(sf)), iolatency_prfill_limit,
 			  &blkcg_policy_iolatency, seq_cft(sf)->private, false);
 	return 0;
 }
@@ -898,7 +896,7 @@ static bool iolatency_ssd_stat(struct iolatency_grp *iolat, struct seq_file *s)
 
 	latency_stat_init(iolat, &stat);
 	preempt_disable();
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu (cpu) {
 		struct latency_stat *s;
 		s = per_cpu_ptr(iolat->stats, cpu);
 		latency_stat_sum(iolat, &stat, s);
@@ -907,13 +905,13 @@ static bool iolatency_ssd_stat(struct iolatency_grp *iolat, struct seq_file *s)
 
 	if (iolat->rq_depth.max_depth == UINT_MAX)
 		seq_printf(s, " missed=%llu total=%llu depth=max",
-			(unsigned long long)stat.ps.missed,
-			(unsigned long long)stat.ps.total);
+			   (unsigned long long)stat.ps.missed,
+			   (unsigned long long)stat.ps.total);
 	else
 		seq_printf(s, " missed=%llu total=%llu depth=%u",
-			(unsigned long long)stat.ps.missed,
-			(unsigned long long)stat.ps.total,
-			iolat->rq_depth.max_depth);
+			   (unsigned long long)stat.ps.missed,
+			   (unsigned long long)stat.ps.total,
+			   iolat->rq_depth.max_depth);
 	return true;
 }
 
@@ -932,25 +930,25 @@ static bool iolatency_pd_stat(struct blkg_policy_data *pd, struct seq_file *s)
 	avg_lat = div64_u64(iolat->lat_avg, NSEC_PER_USEC);
 	cur_win = div64_u64(iolat->cur_win_nsec, NSEC_PER_MSEC);
 	if (iolat->rq_depth.max_depth == UINT_MAX)
-		seq_printf(s, " depth=max avg_lat=%llu win=%llu",
-			avg_lat, cur_win);
+		seq_printf(s, " depth=max avg_lat=%llu win=%llu", avg_lat,
+			   cur_win);
 	else
 		seq_printf(s, " depth=%u avg_lat=%llu win=%llu",
-			iolat->rq_depth.max_depth, avg_lat, cur_win);
+			   iolat->rq_depth.max_depth, avg_lat, cur_win);
 	return true;
 }
 
-static struct blkg_policy_data *iolatency_pd_alloc(gfp_t gfp,
-						   struct request_queue *q,
-						   struct blkcg *blkcg)
+static struct blkg_policy_data *
+iolatency_pd_alloc(gfp_t gfp, struct request_queue *q, struct blkcg *blkcg)
 {
 	struct iolatency_grp *iolat;
 
 	iolat = kzalloc_node(sizeof(*iolat), gfp, q->node);
 	if (!iolat)
 		return NULL;
-	iolat->stats = __alloc_percpu_gfp(sizeof(struct latency_stat),
-				       __alignof__(struct latency_stat), gfp);
+	iolat->stats =
+		__alloc_percpu_gfp(sizeof(struct latency_stat),
+				   __alignof__(struct latency_stat), gfp);
 	if (!iolat->stats) {
 		kfree(iolat);
 		return NULL;
@@ -972,7 +970,7 @@ static void iolatency_pd_init(struct blkg_policy_data *pd)
 	else
 		iolat->ssd = false;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu (cpu) {
 		struct latency_stat *stat;
 		stat = per_cpu_ptr(iolat->stats, cpu);
 		latency_stat_init(iolat, stat);
@@ -1036,12 +1034,12 @@ static struct cftype iolatency_files[] = {
 };
 
 static struct blkcg_policy blkcg_policy_iolatency = {
-	.dfl_cftypes	= iolatency_files,
-	.pd_alloc_fn	= iolatency_pd_alloc,
-	.pd_init_fn	= iolatency_pd_init,
-	.pd_offline_fn	= iolatency_pd_offline,
-	.pd_free_fn	= iolatency_pd_free,
-	.pd_stat_fn	= iolatency_pd_stat,
+	.dfl_cftypes = iolatency_files,
+	.pd_alloc_fn = iolatency_pd_alloc,
+	.pd_init_fn = iolatency_pd_init,
+	.pd_offline_fn = iolatency_pd_offline,
+	.pd_free_fn = iolatency_pd_free,
+	.pd_stat_fn = iolatency_pd_stat,
 };
 
 static int __init iolatency_init(void)

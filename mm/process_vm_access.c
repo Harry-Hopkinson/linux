@@ -24,11 +24,8 @@
  * @vm_write: 0 means copy from, 1 means copy to
  * Returns 0 on success, error code otherwise
  */
-static int process_vm_rw_pages(struct page **pages,
-			       unsigned offset,
-			       size_t len,
-			       struct iov_iter *iter,
-			       int vm_write)
+static int process_vm_rw_pages(struct page **pages, unsigned offset, size_t len,
+			       struct iov_iter *iter, int vm_write)
 {
 	/* Do the copy for each page */
 	while (len && iov_iter_count(iter)) {
@@ -67,20 +64,18 @@ static int process_vm_rw_pages(struct page **pages,
  * @vm_write: 0 means copy from, 1 means copy to
  * Returns 0 on success or on failure error code
  */
-static int process_vm_rw_single_vec(unsigned long addr,
-				    unsigned long len,
+static int process_vm_rw_single_vec(unsigned long addr, unsigned long len,
 				    struct iov_iter *iter,
 				    struct page **process_pages,
 				    struct mm_struct *mm,
-				    struct task_struct *task,
-				    int vm_write)
+				    struct task_struct *task, int vm_write)
 {
 	unsigned long pa = addr & PAGE_MASK;
 	unsigned long start_offset = addr - pa;
 	unsigned long nr_pages;
 	ssize_t rc = 0;
-	unsigned long max_pages_per_loop = PVM_MAX_KMALLOC_PAGES
-		/ sizeof(struct pages *);
+	unsigned long max_pages_per_loop =
+		PVM_MAX_KMALLOC_PAGES / sizeof(struct pages *);
 	unsigned int flags = 0;
 
 	/* Work out address and page range required */
@@ -102,9 +97,9 @@ static int process_vm_rw_single_vec(unsigned long addr,
 		 * current/current->mm
 		 */
 		mmap_read_lock(mm);
-		pinned_pages = pin_user_pages_remote(mm, pa, pinned_pages,
-						     flags, process_pages,
-						     NULL, &locked);
+		pinned_pages =
+			pin_user_pages_remote(mm, pa, pinned_pages, flags,
+					      process_pages, NULL, &locked);
 		if (locked)
 			mmap_read_unlock(mm);
 		if (pinned_pages <= 0)
@@ -114,9 +109,8 @@ static int process_vm_rw_single_vec(unsigned long addr,
 		if (bytes > len)
 			bytes = len;
 
-		rc = process_vm_rw_pages(process_pages,
-					 start_offset, bytes, iter,
-					 vm_write);
+		rc = process_vm_rw_pages(process_pages, start_offset, bytes,
+					 iter, vm_write);
 		len -= bytes;
 		start_offset = 0;
 		nr_pages -= pinned_pages;
@@ -149,8 +143,8 @@ static int process_vm_rw_single_vec(unsigned long addr,
  */
 static ssize_t process_vm_rw_core(pid_t pid, struct iov_iter *iter,
 				  const struct iovec *rvec,
-				  unsigned long riovcnt,
-				  unsigned long flags, int vm_write)
+				  unsigned long riovcnt, unsigned long flags,
+				  int vm_write)
 {
 	struct task_struct *task;
 	struct page *pp_stack[PVM_MAX_PP_ARRAY_COUNT];
@@ -170,10 +164,10 @@ static ssize_t process_vm_rw_core(pid_t pid, struct iov_iter *iter,
 	for (i = 0; i < riovcnt; i++) {
 		iov_len = rvec[i].iov_len;
 		if (iov_len > 0) {
-			nr_pages_iov = ((unsigned long)rvec[i].iov_base
-					+ iov_len)
-				/ PAGE_SIZE - (unsigned long)rvec[i].iov_base
-				/ PAGE_SIZE + 1;
+			nr_pages_iov =
+				((unsigned long)rvec[i].iov_base + iov_len) /
+					PAGE_SIZE -
+				(unsigned long)rvec[i].iov_base / PAGE_SIZE + 1;
 			nr_pages = max(nr_pages, nr_pages_iov);
 		}
 	}
@@ -184,9 +178,10 @@ static ssize_t process_vm_rw_core(pid_t pid, struct iov_iter *iter,
 	if (nr_pages > PVM_MAX_PP_ARRAY_COUNT) {
 		/* For reliability don't try to kmalloc more than
 		   2 pages worth */
-		process_pages = kmalloc(min_t(size_t, PVM_MAX_KMALLOC_PAGES,
-					      sizeof(struct pages *)*nr_pages),
-					GFP_KERNEL);
+		process_pages =
+			kmalloc(min_t(size_t, PVM_MAX_KMALLOC_PAGES,
+				      sizeof(struct pages *) * nr_pages),
+				GFP_KERNEL);
 
 		if (!process_pages)
 			return -ENOMEM;
@@ -212,9 +207,10 @@ static ssize_t process_vm_rw_core(pid_t pid, struct iov_iter *iter,
 	}
 
 	for (i = 0; i < riovcnt && iov_iter_count(iter) && !rc; i++)
-		rc = process_vm_rw_single_vec(
-			(unsigned long)rvec[i].iov_base, rvec[i].iov_len,
-			iter, process_pages, mm, task, vm_write);
+		rc = process_vm_rw_single_vec((unsigned long)rvec[i].iov_base,
+					      rvec[i].iov_len, iter,
+					      process_pages, mm, task,
+					      vm_write);
 
 	/* copied = space before - space after */
 	total_len -= iov_iter_count(iter);
@@ -250,12 +246,11 @@ free_proc_pages:
  *  return less bytes than expected if an error occurs during the copying
  *  process.
  */
-static ssize_t process_vm_rw(pid_t pid,
-			     const struct iovec __user *lvec,
+static ssize_t process_vm_rw(pid_t pid, const struct iovec __user *lvec,
 			     unsigned long liovcnt,
 			     const struct iovec __user *rvec,
-			     unsigned long riovcnt,
-			     unsigned long flags, int vm_write)
+			     unsigned long riovcnt, unsigned long flags,
+			     int vm_write)
 {
 	struct iovec iovstack_l[UIO_FASTIOV];
 	struct iovec iovstack_r[UIO_FASTIOV];
@@ -290,15 +285,14 @@ free_iov_l:
 
 SYSCALL_DEFINE6(process_vm_readv, pid_t, pid, const struct iovec __user *, lvec,
 		unsigned long, liovcnt, const struct iovec __user *, rvec,
-		unsigned long, riovcnt,	unsigned long, flags)
+		unsigned long, riovcnt, unsigned long, flags)
 {
 	return process_vm_rw(pid, lvec, liovcnt, rvec, riovcnt, flags, 0);
 }
 
-SYSCALL_DEFINE6(process_vm_writev, pid_t, pid,
-		const struct iovec __user *, lvec,
-		unsigned long, liovcnt, const struct iovec __user *, rvec,
-		unsigned long, riovcnt,	unsigned long, flags)
+SYSCALL_DEFINE6(process_vm_writev, pid_t, pid, const struct iovec __user *,
+		lvec, unsigned long, liovcnt, const struct iovec __user *, rvec,
+		unsigned long, riovcnt, unsigned long, flags)
 {
 	return process_vm_rw(pid, lvec, liovcnt, rvec, riovcnt, flags, 1);
 }

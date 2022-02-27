@@ -33,7 +33,8 @@ struct ecdsa_signature_ctx {
  * Get the r and s components of a signature from the X509 certificate.
  */
 static int ecdsa_get_signature_rs(u64 *dest, size_t hdrlen, unsigned char tag,
-				  const void *value, size_t vlen, unsigned int ndigits)
+				  const void *value, size_t vlen,
+				  unsigned int ndigits)
 {
 	size_t keylen = ndigits * sizeof(u64);
 	ssize_t diff = vlen - keylen;
@@ -91,7 +92,8 @@ int ecdsa_get_signature_s(void *context, size_t hdrlen, unsigned char tag,
 				      sig->curve->g.ndigits);
 }
 
-static int _ecdsa_verify(struct ecc_ctx *ctx, const u64 *hash, const u64 *r, const u64 *s)
+static int _ecdsa_verify(struct ecc_ctx *ctx, const u64 *hash, const u64 *r,
+			 const u64 *s)
 {
 	const struct ecc_curve *curve = ctx->curve;
 	unsigned int ndigits = curve->g.ndigits;
@@ -108,8 +110,8 @@ static int _ecdsa_verify(struct ecc_ctx *ctx, const u64 *hash, const u64 *r, con
 		return -EBADMSG;
 
 	/* hash is given */
-	pr_devel("hash : %016llx %016llx ... %016llx\n",
-		 hash[ndigits - 1], hash[ndigits - 2], hash[0]);
+	pr_devel("hash : %016llx %016llx ... %016llx\n", hash[ndigits - 1],
+		 hash[ndigits - 2], hash[0]);
 
 	/* s1 = (s^-1) mod n */
 	vli_mod_inv(s1, s, curve->n, ndigits);
@@ -156,11 +158,12 @@ static int ecdsa_verify(struct akcipher_request *req)
 		return -ENOMEM;
 
 	sg_pcopy_to_buffer(req->src,
-		sg_nents_for_len(req->src, req->src_len + req->dst_len),
-		buffer, req->src_len + req->dst_len, 0);
+			   sg_nents_for_len(req->src,
+					    req->src_len + req->dst_len),
+			   buffer, req->src_len + req->dst_len, 0);
 
-	ret = asn1_ber_decoder(&ecdsasignature_decoder, &sig_ctx,
-			       buffer, req->src_len);
+	ret = asn1_ber_decoder(&ecdsasignature_decoder, &sig_ctx, buffer,
+			       req->src_len);
 	if (ret < 0)
 		goto error;
 
@@ -195,7 +198,6 @@ static int ecdsa_ecc_ctx_init(struct ecc_ctx *ctx, unsigned int curve_id)
 	return 0;
 }
 
-
 static void ecdsa_ecc_ctx_deinit(struct ecc_ctx *ctx)
 {
 	ctx->pub_key_set = false;
@@ -209,8 +211,8 @@ static int ecdsa_ecc_ctx_reset(struct ecc_ctx *ctx)
 	ecdsa_ecc_ctx_deinit(ctx);
 	ret = ecdsa_ecc_ctx_init(ctx, curve_id);
 	if (ret == 0)
-		ctx->pub_key = ECC_POINT_INIT(ctx->x, ctx->y,
-					      ctx->curve->g.ndigits);
+		ctx->pub_key =
+			ECC_POINT_INIT(ctx->x, ctx->y, ctx->curve->g.ndigits);
 	return ret;
 }
 
@@ -219,7 +221,8 @@ static int ecdsa_ecc_ctx_reset(struct ecc_ctx *ctx)
  * certificate. The key data contain the concatenated X and Y coordinates of
  * the public key.
  */
-static int ecdsa_set_pub_key(struct crypto_akcipher *tfm, const void *key, unsigned int keylen)
+static int ecdsa_set_pub_key(struct crypto_akcipher *tfm, const void *key,
+			     unsigned int keylen)
 {
 	struct ecc_ctx *ctx = akcipher_tfm_ctx(tfm);
 	const unsigned char *d = key;

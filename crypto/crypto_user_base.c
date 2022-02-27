@@ -22,7 +22,7 @@
 
 #include "internal.h"
 
-#define null_terminated(x)	(strnlen(x, sizeof(x)) < sizeof(x))
+#define null_terminated(x) (strnlen(x, sizeof(x)) < sizeof(x))
 
 static DEFINE_MUTEX(crypto_cfg_mutex);
 
@@ -39,7 +39,7 @@ struct crypto_alg *crypto_alg_match(struct crypto_user_alg *p, int exact)
 
 	down_read(&crypto_alg_sem);
 
-	list_for_each_entry(q, &crypto_alg_list, cra_list) {
+	list_for_each_entry (q, &crypto_alg_list, cra_list) {
 		int match = 0;
 
 		if (crypto_is_larval(q))
@@ -49,8 +49,7 @@ struct crypto_alg *crypto_alg_match(struct crypto_user_alg *p, int exact)
 			continue;
 
 		if (strlen(p->cru_driver_name))
-			match = !strcmp(q->cra_driver_name,
-					p->cru_driver_name);
+			match = !strcmp(q->cra_driver_name, p->cru_driver_name);
 		else if (!exact)
 			match = !strcmp(q->cra_name, p->cru_name);
 
@@ -81,8 +80,8 @@ static int crypto_report_cipher(struct sk_buff *skb, struct crypto_alg *alg)
 	rcipher.min_keysize = alg->cra_cipher.cia_min_keysize;
 	rcipher.max_keysize = alg->cra_cipher.cia_max_keysize;
 
-	return nla_put(skb, CRYPTOCFGA_REPORT_CIPHER,
-		       sizeof(rcipher), &rcipher);
+	return nla_put(skb, CRYPTOCFGA_REPORT_CIPHER, sizeof(rcipher),
+		       &rcipher);
 }
 
 static int crypto_report_comp(struct sk_buff *skb, struct crypto_alg *alg)
@@ -191,7 +190,8 @@ static int crypto_report(struct sk_buff *in_skb, struct nlmsghdr *in_nlh,
 	struct crypto_dump_info info;
 	int err;
 
-	if (!null_terminated(p->cru_name) || !null_terminated(p->cru_driver_name))
+	if (!null_terminated(p->cru_name) ||
+	    !null_terminated(p->cru_driver_name))
 		return -EINVAL;
 
 	alg = crypto_alg_match(p, 0);
@@ -235,7 +235,7 @@ static int crypto_dump_report(struct sk_buff *skb, struct netlink_callback *cb)
 	info.nlmsg_flags = NLM_F_MULTI;
 
 	down_read(&crypto_alg_sem);
-	list_for_each_entry(alg, &crypto_alg_list, cra_list) {
+	list_for_each_entry (alg, &crypto_alg_list, cra_list) {
 		if (pos >= start_pos) {
 			res = crypto_report_alg(alg, &info);
 			if (res == -EMSGSIZE)
@@ -268,7 +268,8 @@ static int crypto_update_alg(struct sk_buff *skb, struct nlmsghdr *nlh,
 	if (!netlink_capable(skb, CAP_NET_ADMIN))
 		return -EPERM;
 
-	if (!null_terminated(p->cru_name) || !null_terminated(p->cru_driver_name))
+	if (!null_terminated(p->cru_name) ||
+	    !null_terminated(p->cru_driver_name))
 		return -EINVAL;
 
 	if (priority && !strlen(p->cru_driver_name))
@@ -303,7 +304,8 @@ static int crypto_del_alg(struct sk_buff *skb, struct nlmsghdr *nlh,
 	if (!netlink_capable(skb, CAP_NET_ADMIN))
 		return -EPERM;
 
-	if (!null_terminated(p->cru_name) || !null_terminated(p->cru_driver_name))
+	if (!null_terminated(p->cru_name) ||
+	    !null_terminated(p->cru_driver_name))
 		return -EINVAL;
 
 	alg = crypto_alg_match(p, 1);
@@ -343,7 +345,8 @@ static int crypto_add_alg(struct sk_buff *skb, struct nlmsghdr *nlh,
 	if (!netlink_capable(skb, CAP_NET_ADMIN))
 		return -EPERM;
 
-	if (!null_terminated(p->cru_name) || !null_terminated(p->cru_driver_name))
+	if (!null_terminated(p->cru_name) ||
+	    !null_terminated(p->cru_driver_name))
 		return -EINVAL;
 
 	if (strlen(p->cru_driver_name))
@@ -390,16 +393,16 @@ static int crypto_del_rng(struct sk_buff *skb, struct nlmsghdr *nlh,
 #define MSGSIZE(type) sizeof(struct type)
 
 static const int crypto_msg_min[CRYPTO_NR_MSGTYPES] = {
-	[CRYPTO_MSG_NEWALG	- CRYPTO_MSG_BASE] = MSGSIZE(crypto_user_alg),
-	[CRYPTO_MSG_DELALG	- CRYPTO_MSG_BASE] = MSGSIZE(crypto_user_alg),
-	[CRYPTO_MSG_UPDATEALG	- CRYPTO_MSG_BASE] = MSGSIZE(crypto_user_alg),
-	[CRYPTO_MSG_GETALG	- CRYPTO_MSG_BASE] = MSGSIZE(crypto_user_alg),
-	[CRYPTO_MSG_DELRNG	- CRYPTO_MSG_BASE] = 0,
-	[CRYPTO_MSG_GETSTAT	- CRYPTO_MSG_BASE] = MSGSIZE(crypto_user_alg),
+	[CRYPTO_MSG_NEWALG - CRYPTO_MSG_BASE] = MSGSIZE(crypto_user_alg),
+	[CRYPTO_MSG_DELALG - CRYPTO_MSG_BASE] = MSGSIZE(crypto_user_alg),
+	[CRYPTO_MSG_UPDATEALG - CRYPTO_MSG_BASE] = MSGSIZE(crypto_user_alg),
+	[CRYPTO_MSG_GETALG - CRYPTO_MSG_BASE] = MSGSIZE(crypto_user_alg),
+	[CRYPTO_MSG_DELRNG - CRYPTO_MSG_BASE] = 0,
+	[CRYPTO_MSG_GETSTAT - CRYPTO_MSG_BASE] = MSGSIZE(crypto_user_alg),
 };
 
-static const struct nla_policy crypto_policy[CRYPTOCFGA_MAX+1] = {
-	[CRYPTOCFGA_PRIORITY_VAL]   = { .type = NLA_U32},
+static const struct nla_policy crypto_policy[CRYPTOCFGA_MAX + 1] = {
+	[CRYPTOCFGA_PRIORITY_VAL] = { .type = NLA_U32 },
 };
 
 #undef MSGSIZE
@@ -409,21 +412,23 @@ static const struct crypto_link {
 	int (*dump)(struct sk_buff *, struct netlink_callback *);
 	int (*done)(struct netlink_callback *);
 } crypto_dispatch[CRYPTO_NR_MSGTYPES] = {
-	[CRYPTO_MSG_NEWALG	- CRYPTO_MSG_BASE] = { .doit = crypto_add_alg},
-	[CRYPTO_MSG_DELALG	- CRYPTO_MSG_BASE] = { .doit = crypto_del_alg},
-	[CRYPTO_MSG_UPDATEALG	- CRYPTO_MSG_BASE] = { .doit = crypto_update_alg},
-	[CRYPTO_MSG_GETALG	- CRYPTO_MSG_BASE] = { .doit = crypto_report,
-						       .dump = crypto_dump_report,
-						       .done = crypto_dump_report_done},
-	[CRYPTO_MSG_DELRNG	- CRYPTO_MSG_BASE] = { .doit = crypto_del_rng },
-	[CRYPTO_MSG_GETSTAT	- CRYPTO_MSG_BASE] = { .doit = crypto_reportstat},
+	[CRYPTO_MSG_NEWALG - CRYPTO_MSG_BASE] = { .doit = crypto_add_alg },
+	[CRYPTO_MSG_DELALG - CRYPTO_MSG_BASE] = { .doit = crypto_del_alg },
+	[CRYPTO_MSG_UPDATEALG -
+		CRYPTO_MSG_BASE] = { .doit = crypto_update_alg },
+	[CRYPTO_MSG_GETALG -
+		CRYPTO_MSG_BASE] = { .doit = crypto_report,
+				     .dump = crypto_dump_report,
+				     .done = crypto_dump_report_done },
+	[CRYPTO_MSG_DELRNG - CRYPTO_MSG_BASE] = { .doit = crypto_del_rng },
+	[CRYPTO_MSG_GETSTAT - CRYPTO_MSG_BASE] = { .doit = crypto_reportstat },
 };
 
 static int crypto_user_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
 			       struct netlink_ext_ack *extack)
 {
 	struct net *net = sock_net(skb->sk);
-	struct nlattr *attrs[CRYPTOCFGA_MAX+1];
+	struct nlattr *attrs[CRYPTOCFGA_MAX + 1];
 	const struct crypto_link *link;
 	int type, err;
 
@@ -435,7 +440,7 @@ static int crypto_user_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
 	link = &crypto_dispatch[type];
 
 	if ((type == (CRYPTO_MSG_GETALG - CRYPTO_MSG_BASE) &&
-	    (nlh->nlmsg_flags & NLM_F_DUMP))) {
+	     (nlh->nlmsg_flags & NLM_F_DUMP))) {
 		struct crypto_alg *alg;
 		unsigned long dump_alloc = 0;
 
@@ -443,7 +448,7 @@ static int crypto_user_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
 			return -EINVAL;
 
 		down_read(&crypto_alg_sem);
-		list_for_each_entry(alg, &crypto_alg_list, cra_list)
+		list_for_each_entry (alg, &crypto_alg_list, cra_list)
 			dump_alloc += CRYPTO_REPORT_MAXSIZE;
 		up_read(&crypto_alg_sem);
 
@@ -453,7 +458,8 @@ static int crypto_user_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
 				.done = link->done,
 				.min_dump_alloc = min(dump_alloc, 65535UL),
 			};
-			err = netlink_dump_start(net->crypto_nlsk, skb, nlh, &c);
+			err = netlink_dump_start(net->crypto_nlsk, skb, nlh,
+						 &c);
 		}
 
 		return err;
@@ -480,7 +486,7 @@ static void crypto_netlink_rcv(struct sk_buff *skb)
 static int __net_init crypto_netlink_init(struct net *net)
 {
 	struct netlink_kernel_cfg cfg = {
-		.input	= crypto_netlink_rcv,
+		.input = crypto_netlink_rcv,
 	};
 
 	net->crypto_nlsk = netlink_kernel_create(net, NETLINK_CRYPTO, &cfg);

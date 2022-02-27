@@ -39,7 +39,7 @@ struct timerfd_ctx {
 	u64 ticks;
 	int clockid;
 	short unsigned expired;
-	short unsigned settime_flags;	/* to show in fdinfo */
+	short unsigned settime_flags; /* to show in fdinfo */
 	struct rcu_head rcu;
 	struct list_head clist;
 	spinlock_t cancel_lock;
@@ -52,7 +52,7 @@ static DEFINE_SPINLOCK(cancel_lock);
 static inline bool isalarm(struct timerfd_ctx *ctx)
 {
 	return ctx->clockid == CLOCK_REALTIME_ALARM ||
-		ctx->clockid == CLOCK_BOOTTIME_ALARM;
+	       ctx->clockid == CLOCK_BOOTTIME_ALARM;
 }
 
 /*
@@ -73,17 +73,16 @@ static void timerfd_triggered(struct timerfd_ctx *ctx)
 
 static enum hrtimer_restart timerfd_tmrproc(struct hrtimer *htmr)
 {
-	struct timerfd_ctx *ctx = container_of(htmr, struct timerfd_ctx,
-					       t.tmr);
+	struct timerfd_ctx *ctx = container_of(htmr, struct timerfd_ctx, t.tmr);
 	timerfd_triggered(ctx);
 	return HRTIMER_NORESTART;
 }
 
 static enum alarmtimer_restart timerfd_alarmproc(struct alarm *alarm,
-	ktime_t now)
+						 ktime_t now)
 {
-	struct timerfd_ctx *ctx = container_of(alarm, struct timerfd_ctx,
-					       t.alarm);
+	struct timerfd_ctx *ctx =
+		container_of(alarm, struct timerfd_ctx, t.alarm);
 	timerfd_triggered(ctx);
 	return ALARMTIMER_NORESTART;
 }
@@ -101,7 +100,7 @@ void timerfd_clock_was_set(void)
 	unsigned long flags;
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(ctx, &cancel_list, clist) {
+	list_for_each_entry_rcu (ctx, &cancel_list, clist) {
 		if (!ctx->might_cancel)
 			continue;
 		spin_lock_irqsave(&ctx->wqh.lock, flags);
@@ -183,7 +182,7 @@ static ktime_t timerfd_get_remaining(struct timerfd_ctx *ctx)
 	else
 		remaining = hrtimer_expires_remaining_adjusted(&ctx->t.tmr);
 
-	return remaining < 0 ? 0: remaining;
+	return remaining < 0 ? 0 : remaining;
 }
 
 static int timerfd_setup(struct timerfd_ctx *ctx, int flags,
@@ -193,8 +192,8 @@ static int timerfd_setup(struct timerfd_ctx *ctx, int flags,
 	ktime_t texp;
 	int clockid = ctx->clockid;
 
-	htmode = (flags & TFD_TIMER_ABSTIME) ?
-		HRTIMER_MODE_ABS: HRTIMER_MODE_REL;
+	htmode = (flags & TFD_TIMER_ABSTIME) ? HRTIMER_MODE_ABS :
+					       HRTIMER_MODE_REL;
 
 	texp = timespec64_to_ktime(ktmr->it_value);
 	ctx->expired = 0;
@@ -204,7 +203,8 @@ static int timerfd_setup(struct timerfd_ctx *ctx, int flags,
 	if (isalarm(ctx)) {
 		alarm_init(&ctx->t.alarm,
 			   ctx->clockid == CLOCK_REALTIME_ALARM ?
-			   ALARM_REALTIME : ALARM_BOOTTIME,
+				   ALARM_REALTIME :
+				   ALARM_BOOTTIME,
 			   timerfd_alarmproc);
 	} else {
 		hrtimer_init(&ctx->t.tmr, clockid, htmode);
@@ -299,12 +299,14 @@ static ssize_t timerfd_read(struct file *file, char __user *buf, size_t count,
 			 * short timer period.
 			 */
 			if (isalarm(ctx)) {
-				ticks += alarm_forward_now(
-					&ctx->t.alarm, ctx->tintv) - 1;
+				ticks += alarm_forward_now(&ctx->t.alarm,
+							   ctx->tintv) -
+					 1;
 				alarm_restart(&ctx->t.alarm);
 			} else {
 				ticks += hrtimer_forward_now(&ctx->t.tmr,
-							     ctx->tintv) - 1;
+							     ctx->tintv) -
+					 1;
 				hrtimer_restart(&ctx->t.tmr);
 			}
 		}
@@ -313,7 +315,8 @@ static ssize_t timerfd_read(struct file *file, char __user *buf, size_t count,
 	}
 	spin_unlock_irq(&ctx->wqh.lock);
 	if (ticks)
-		res = put_user(ticks, (u64 __user *) buf) ? -EFAULT: sizeof(ticks);
+		res = put_user(ticks, (u64 __user *)buf) ? -EFAULT :
+							   sizeof(ticks);
 	return res;
 }
 
@@ -334,10 +337,8 @@ static void timerfd_show(struct seq_file *m, struct file *file)
 		   "settime flags: 0%o\n"
 		   "it_value: (%llu, %llu)\n"
 		   "it_interval: (%llu, %llu)\n",
-		   ctx->clockid,
-		   (unsigned long long)ctx->ticks,
-		   ctx->settime_flags,
-		   (unsigned long long)value.tv_sec,
+		   ctx->clockid, (unsigned long long)ctx->ticks,
+		   ctx->settime_flags, (unsigned long long)value.tv_sec,
 		   (unsigned long long)value.tv_nsec,
 		   (unsigned long long)interval.tv_sec,
 		   (unsigned long long)interval.tv_nsec);
@@ -347,7 +348,8 @@ static void timerfd_show(struct seq_file *m, struct file *file)
 #endif
 
 #ifdef CONFIG_CHECKPOINT_RESTORE
-static long timerfd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+static long timerfd_ioctl(struct file *file, unsigned int cmd,
+			  unsigned long arg)
 {
 	struct timerfd_ctx *ctx = file->private_data;
 	int ret = 0;
@@ -382,12 +384,12 @@ static long timerfd_ioctl(struct file *file, unsigned int cmd, unsigned long arg
 #endif
 
 static const struct file_operations timerfd_fops = {
-	.release	= timerfd_release,
-	.poll		= timerfd_poll,
-	.read		= timerfd_read,
-	.llseek		= noop_llseek,
-	.show_fdinfo	= timerfd_show,
-	.unlocked_ioctl	= timerfd_ioctl,
+	.release = timerfd_release,
+	.poll = timerfd_poll,
+	.read = timerfd_read,
+	.llseek = noop_llseek,
+	.show_fdinfo = timerfd_show,
+	.unlocked_ioctl = timerfd_ioctl,
 };
 
 static int timerfd_fget(int fd, struct fd *p)
@@ -413,10 +415,8 @@ SYSCALL_DEFINE2(timerfd_create, int, clockid, int, flags)
 	BUILD_BUG_ON(TFD_NONBLOCK != O_NONBLOCK);
 
 	if ((flags & ~TFD_CREATE_FLAGS) ||
-	    (clockid != CLOCK_MONOTONIC &&
-	     clockid != CLOCK_REALTIME &&
-	     clockid != CLOCK_REALTIME_ALARM &&
-	     clockid != CLOCK_BOOTTIME &&
+	    (clockid != CLOCK_MONOTONIC && clockid != CLOCK_REALTIME &&
+	     clockid != CLOCK_REALTIME_ALARM && clockid != CLOCK_BOOTTIME &&
 	     clockid != CLOCK_BOOTTIME_ALARM))
 		return -EINVAL;
 
@@ -436,7 +436,8 @@ SYSCALL_DEFINE2(timerfd_create, int, clockid, int, flags)
 	if (isalarm(ctx))
 		alarm_init(&ctx->t.alarm,
 			   ctx->clockid == CLOCK_REALTIME_ALARM ?
-			   ALARM_REALTIME : ALARM_BOOTTIME,
+				   ALARM_REALTIME :
+				   ALARM_BOOTTIME,
 			   timerfd_alarmproc);
 	else
 		hrtimer_init(&ctx->t.tmr, clockid, HRTIMER_MODE_ABS);
@@ -451,16 +452,15 @@ SYSCALL_DEFINE2(timerfd_create, int, clockid, int, flags)
 	return ufd;
 }
 
-static int do_timerfd_settime(int ufd, int flags, 
-		const struct itimerspec64 *new,
-		struct itimerspec64 *old)
+static int do_timerfd_settime(int ufd, int flags,
+			      const struct itimerspec64 *new,
+			      struct itimerspec64 *old)
 {
 	struct fd f;
 	struct timerfd_ctx *ctx;
 	int ret;
 
-	if ((flags & ~TFD_SETTIME_FLAGS) ||
-		 !itimerspec64_valid(new))
+	if ((flags & ~TFD_SETTIME_FLAGS) || !itimerspec64_valid(new))
 		return -EINVAL;
 
 	ret = timerfd_fget(ufd, &f);
@@ -538,13 +538,13 @@ static int do_timerfd_gettime(int ufd, struct itimerspec64 *t)
 
 		if (isalarm(ctx)) {
 			ctx->ticks +=
-				alarm_forward_now(
-					&ctx->t.alarm, ctx->tintv) - 1;
+				alarm_forward_now(&ctx->t.alarm, ctx->tintv) -
+				1;
 			alarm_restart(&ctx->t.alarm);
 		} else {
 			ctx->ticks +=
-				hrtimer_forward_now(&ctx->t.tmr, ctx->tintv)
-				- 1;
+				hrtimer_forward_now(&ctx->t.tmr, ctx->tintv) -
+				1;
 			hrtimer_restart(&ctx->t.tmr);
 		}
 	}
@@ -573,7 +573,8 @@ SYSCALL_DEFINE4(timerfd_settime, int, ufd, int, flags,
 	return ret;
 }
 
-SYSCALL_DEFINE2(timerfd_gettime, int, ufd, struct __kernel_itimerspec __user *, otmr)
+SYSCALL_DEFINE2(timerfd_gettime, int, ufd, struct __kernel_itimerspec __user *,
+		otmr)
 {
 	struct itimerspec64 kotmr;
 	int ret = do_timerfd_gettime(ufd, &kotmr);
@@ -600,8 +601,8 @@ SYSCALL_DEFINE4(timerfd_settime32, int, ufd, int, flags,
 	return ret;
 }
 
-SYSCALL_DEFINE2(timerfd_gettime32, int, ufd,
-		struct old_itimerspec32 __user *, otmr)
+SYSCALL_DEFINE2(timerfd_gettime32, int, ufd, struct old_itimerspec32 __user *,
+		otmr)
 {
 	struct itimerspec64 kotmr;
 	int ret = do_timerfd_gettime(ufd, &kotmr);

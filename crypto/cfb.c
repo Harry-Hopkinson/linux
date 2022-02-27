@@ -33,8 +33,8 @@ static unsigned int crypto_cfb_bsize(struct crypto_skcipher *tfm)
 	return crypto_cipher_blocksize(skcipher_cipher_simple(tfm));
 }
 
-static void crypto_cfb_encrypt_one(struct crypto_skcipher *tfm,
-					  const u8 *src, u8 *dst)
+static void crypto_cfb_encrypt_one(struct crypto_skcipher *tfm, const u8 *src,
+				   u8 *dst)
 {
 	crypto_cipher_encrypt_one(skcipher_cipher_simple(tfm), dst, src);
 }
@@ -154,7 +154,7 @@ static int crypto_cfb_decrypt_inplace(struct skcipher_walk *walk,
 	const unsigned int bsize = crypto_cfb_bsize(tfm);
 	unsigned int nbytes = walk->nbytes;
 	u8 *src = walk->src.virt.addr;
-	u8 * const iv = walk->iv;
+	u8 *const iv = walk->iv;
 	u8 tmp[MAX_CIPHER_BLOCKSIZE];
 
 	do {

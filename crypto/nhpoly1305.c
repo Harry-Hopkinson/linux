@@ -53,13 +53,13 @@ static void nh_generic(const u32 *key, const u8 *message, size_t message_len,
 		u32 m2 = get_unaligned_le32(message + 8);
 		u32 m3 = get_unaligned_le32(message + 12);
 
-		sums[0] += (u64)(u32)(m0 + key[ 0]) * (u32)(m2 + key[ 2]);
-		sums[1] += (u64)(u32)(m0 + key[ 4]) * (u32)(m2 + key[ 6]);
-		sums[2] += (u64)(u32)(m0 + key[ 8]) * (u32)(m2 + key[10]);
+		sums[0] += (u64)(u32)(m0 + key[0]) * (u32)(m2 + key[2]);
+		sums[1] += (u64)(u32)(m0 + key[4]) * (u32)(m2 + key[6]);
+		sums[2] += (u64)(u32)(m0 + key[8]) * (u32)(m2 + key[10]);
 		sums[3] += (u64)(u32)(m0 + key[12]) * (u32)(m2 + key[14]);
-		sums[0] += (u64)(u32)(m1 + key[ 1]) * (u32)(m3 + key[ 3]);
-		sums[1] += (u64)(u32)(m1 + key[ 5]) * (u32)(m3 + key[ 7]);
-		sums[2] += (u64)(u32)(m1 + key[ 9]) * (u32)(m3 + key[11]);
+		sums[0] += (u64)(u32)(m1 + key[1]) * (u32)(m3 + key[3]);
+		sums[1] += (u64)(u32)(m1 + key[5]) * (u32)(m3 + key[7]);
+		sums[2] += (u64)(u32)(m1 + key[9]) * (u32)(m3 + key[11]);
 		sums[3] += (u64)(u32)(m1 + key[13]) * (u32)(m3 + key[15]);
 		key += NH_MESSAGE_UNIT / sizeof(key[0]);
 		message += NH_MESSAGE_UNIT;
@@ -90,8 +90,8 @@ static void process_nh_hash_value(struct nhpoly1305_state *state,
  * chunks, we combine partial hashes; the end result is the same either way.
  */
 static void nhpoly1305_units(struct nhpoly1305_state *state,
-			     const struct nhpoly1305_key *key,
-			     const u8 *src, unsigned int srclen, nh_t nh_fn)
+			     const struct nhpoly1305_key *key, const u8 *src,
+			     unsigned int srclen, nh_t nh_fn)
 {
 	do {
 		unsigned int bytes;
@@ -122,8 +122,8 @@ static void nhpoly1305_units(struct nhpoly1305_state *state,
 	} while (srclen);
 }
 
-int crypto_nhpoly1305_setkey(struct crypto_shash *tfm,
-			     const u8 *key, unsigned int keylen)
+int crypto_nhpoly1305_setkey(struct crypto_shash *tfm, const u8 *key,
+			     unsigned int keylen)
 {
 	struct nhpoly1305_key *ctx = crypto_shash_ctx(tfm);
 	int i;
@@ -152,9 +152,8 @@ int crypto_nhpoly1305_init(struct shash_desc *desc)
 }
 EXPORT_SYMBOL(crypto_nhpoly1305_init);
 
-int crypto_nhpoly1305_update_helper(struct shash_desc *desc,
-				    const u8 *src, unsigned int srclen,
-				    nh_t nh_fn)
+int crypto_nhpoly1305_update_helper(struct shash_desc *desc, const u8 *src,
+				    unsigned int srclen, nh_t nh_fn)
 {
 	struct nhpoly1305_state *state = shash_desc_ctx(desc);
 	const struct nhpoly1305_key *key = crypto_shash_ctx(desc->tfm);
@@ -188,8 +187,8 @@ int crypto_nhpoly1305_update_helper(struct shash_desc *desc,
 }
 EXPORT_SYMBOL(crypto_nhpoly1305_update_helper);
 
-int crypto_nhpoly1305_update(struct shash_desc *desc,
-			     const u8 *src, unsigned int srclen)
+int crypto_nhpoly1305_update(struct shash_desc *desc, const u8 *src,
+			     unsigned int srclen)
 {
 	return crypto_nhpoly1305_update_helper(desc, src, srclen, nh_generic);
 }
@@ -222,17 +221,17 @@ int crypto_nhpoly1305_final(struct shash_desc *desc, u8 *dst)
 EXPORT_SYMBOL(crypto_nhpoly1305_final);
 
 static struct shash_alg nhpoly1305_alg = {
-	.base.cra_name		= "nhpoly1305",
-	.base.cra_driver_name	= "nhpoly1305-generic",
-	.base.cra_priority	= 100,
-	.base.cra_ctxsize	= sizeof(struct nhpoly1305_key),
-	.base.cra_module	= THIS_MODULE,
-	.digestsize		= POLY1305_DIGEST_SIZE,
-	.init			= crypto_nhpoly1305_init,
-	.update			= crypto_nhpoly1305_update,
-	.final			= crypto_nhpoly1305_final,
-	.setkey			= crypto_nhpoly1305_setkey,
-	.descsize		= sizeof(struct nhpoly1305_state),
+	.base.cra_name = "nhpoly1305",
+	.base.cra_driver_name = "nhpoly1305-generic",
+	.base.cra_priority = 100,
+	.base.cra_ctxsize = sizeof(struct nhpoly1305_key),
+	.base.cra_module = THIS_MODULE,
+	.digestsize = POLY1305_DIGEST_SIZE,
+	.init = crypto_nhpoly1305_init,
+	.update = crypto_nhpoly1305_update,
+	.final = crypto_nhpoly1305_final,
+	.setkey = crypto_nhpoly1305_setkey,
+	.descsize = sizeof(struct nhpoly1305_state),
 };
 
 static int __init nhpoly1305_mod_init(void)

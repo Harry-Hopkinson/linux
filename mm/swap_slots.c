@@ -36,9 +36,9 @@
 #include <linux/mm.h>
 
 static DEFINE_PER_CPU(struct swap_slots_cache, swp_slots);
-static bool	swap_slot_cache_active;
-bool	swap_slot_cache_enabled;
-static bool	swap_slot_cache_initialized;
+static bool swap_slot_cache_active;
+bool swap_slot_cache_enabled;
+static bool swap_slot_cache_initialized;
 static DEFINE_MUTEX(swap_slots_cache_mutex);
 /* Serialize swap slots cache enable/disable operations */
 static DEFINE_MUTEX(swap_slots_cache_enable_mutex);
@@ -53,7 +53,7 @@ static void deactivate_swap_slots_cache(void)
 {
 	mutex_lock(&swap_slots_cache_mutex);
 	swap_slot_cache_active = false;
-	__drain_swap_slots_cache(SLOTS_CACHE|SLOTS_CACHE_RET);
+	__drain_swap_slots_cache(SLOTS_CACHE | SLOTS_CACHE_RET);
 	mutex_unlock(&swap_slots_cache_mutex);
 }
 
@@ -72,7 +72,7 @@ void disable_swap_slots_cache_lock(void)
 	if (swap_slot_cache_initialized) {
 		/* serialize with cpu hotplug operations */
 		cpus_read_lock();
-		__drain_swap_slots_cache(SLOTS_CACHE|SLOTS_CACHE_RET);
+		__drain_swap_slots_cache(SLOTS_CACHE | SLOTS_CACHE_RET);
 		cpus_read_unlock();
 	}
 }
@@ -97,8 +97,8 @@ static bool check_cache_active(void)
 
 	pages = get_nr_swap_pages();
 	if (!swap_slot_cache_active) {
-		if (pages > num_online_cpus() *
-		    THRESHOLD_ACTIVATE_SWAP_SLOTS_CACHE)
+		if (pages >
+		    num_online_cpus() * THRESHOLD_ACTIVATE_SWAP_SLOTS_CACHE)
 			reactivate_swap_slots_cache();
 		goto out;
 	}
@@ -223,7 +223,7 @@ static void __drain_swap_slots_cache(unsigned int type)
 	 * fill any swap slots in slots cache of such cpu.
 	 * There are no slots on such cpu that need to be drained.
 	 */
-	for_each_online_cpu(cpu)
+	for_each_online_cpu (cpu)
 		drain_slots_cache_cpu(cpu, type, false);
 }
 
@@ -243,8 +243,10 @@ void enable_swap_slots_cache(void)
 
 		ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "swap_slots_cache",
 					alloc_swap_slot_cache, free_slot_cache);
-		if (WARN_ONCE(ret < 0, "Cache allocation failed (%s), operating "
-				       "without swap slots cache.\n", __func__))
+		if (WARN_ONCE(ret < 0,
+			      "Cache allocation failed (%s), operating "
+			      "without swap slots cache.\n",
+			      __func__))
 			goto out_unlock;
 
 		swap_slot_cache_initialized = true;
@@ -263,8 +265,8 @@ static int refill_swap_slots_cache(struct swap_slots_cache *cache)
 
 	cache->cur = 0;
 	if (swap_slot_cache_active)
-		cache->nr = get_swap_pages(SWAP_SLOTS_CACHE_SIZE,
-					   cache->slots, 1);
+		cache->nr =
+			get_swap_pages(SWAP_SLOTS_CACHE_SIZE, cache->slots, 1);
 
 	return cache->nr;
 }
@@ -294,7 +296,7 @@ int free_swap_slot(swp_entry_t entry)
 		cache->slots_ret[cache->n_ret++] = entry;
 		spin_unlock_irq(&cache->free_lock);
 	} else {
-direct_free:
+	direct_free:
 		swapcache_free_entries(&entry, 1);
 	}
 
@@ -328,7 +330,7 @@ swp_entry_t get_swap_page(struct page *page)
 	if (likely(check_cache_active() && cache->slots)) {
 		mutex_lock(&cache->alloc_lock);
 		if (cache->slots) {
-repeat:
+		repeat:
 			if (cache->nr) {
 				entry = cache->slots[cache->cur];
 				cache->slots[cache->cur++].val = 0;

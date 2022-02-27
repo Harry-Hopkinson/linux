@@ -129,9 +129,8 @@ static void jent_kcapi_cleanup(struct crypto_tfm *tfm)
 	spin_unlock(&rng->jent_lock);
 }
 
-static int jent_kcapi_random(struct crypto_rng *tfm,
-			     const u8 *src, unsigned int slen,
-			     u8 *rdata, unsigned int dlen)
+static int jent_kcapi_random(struct crypto_rng *tfm, const u8 *src,
+			     unsigned int slen, u8 *rdata, unsigned int dlen)
 {
 	struct jitterentropy *rng = crypto_rng_ctx(tfm);
 	int ret = 0;
@@ -139,7 +138,7 @@ static int jent_kcapi_random(struct crypto_rng *tfm,
 	spin_lock(&rng->jent_lock);
 
 	/* Return a permanent error in case we had too many resets in a row. */
-	if (rng->reset_cnt > (1<<10)) {
+	if (rng->reset_cnt > (1 << 10)) {
 		ret = -EFAULT;
 		goto out;
 	}
@@ -148,9 +147,10 @@ static int jent_kcapi_random(struct crypto_rng *tfm,
 
 	/* Reset RNG in case of health failures */
 	if (ret < -1) {
-		pr_warn_ratelimited("Reset Jitter RNG due to health test failure: %s failure\n",
-				    (ret == -2) ? "Repetition Count Test" :
-						  "Adaptive Proportion Test");
+		pr_warn_ratelimited(
+			"Reset Jitter RNG due to health test failure: %s failure\n",
+			(ret == -2) ? "Repetition Count Test" :
+				      "Adaptive Proportion Test");
 
 		rng->reset_cnt++;
 
@@ -169,27 +169,27 @@ out:
 	return ret;
 }
 
-static int jent_kcapi_reset(struct crypto_rng *tfm,
-			    const u8 *seed, unsigned int slen)
+static int jent_kcapi_reset(struct crypto_rng *tfm, const u8 *seed,
+			    unsigned int slen)
 {
 	return 0;
 }
 
-static struct rng_alg jent_alg = {
-	.generate		= jent_kcapi_random,
-	.seed			= jent_kcapi_reset,
-	.seedsize		= 0,
-	.base			= {
-		.cra_name               = "jitterentropy_rng",
-		.cra_driver_name        = "jitterentropy_rng",
-		.cra_priority           = 100,
-		.cra_ctxsize            = sizeof(struct jitterentropy),
-		.cra_module             = THIS_MODULE,
-		.cra_init               = jent_kcapi_init,
-		.cra_exit               = jent_kcapi_cleanup,
+static struct rng_alg jent_alg = { .generate = jent_kcapi_random,
+				   .seed = jent_kcapi_reset,
+				   .seedsize = 0,
+				   .base = {
+					   .cra_name = "jitterentropy_rng",
+					   .cra_driver_name =
+						   "jitterentropy_rng",
+					   .cra_priority = 100,
+					   .cra_ctxsize =
+						   sizeof(struct jitterentropy),
+					   .cra_module = THIS_MODULE,
+					   .cra_init = jent_kcapi_init,
+					   .cra_exit = jent_kcapi_cleanup,
 
-	}
-};
+				   } };
 
 static int __init jent_mod_init(void)
 {
@@ -197,7 +197,8 @@ static int __init jent_mod_init(void)
 
 	ret = jent_entropy_init();
 	if (ret) {
-		pr_info("jitterentropy: Initialization failed with host not compliant with requirements: %d\n", ret);
+		pr_info("jitterentropy: Initialization failed with host not compliant with requirements: %d\n",
+			ret);
 		return -EFAULT;
 	}
 	return crypto_register_rng(&jent_alg);
@@ -213,5 +214,6 @@ module_exit(jent_mod_exit);
 
 MODULE_LICENSE("Dual BSD/GPL");
 MODULE_AUTHOR("Stephan Mueller <smueller@chronox.de>");
-MODULE_DESCRIPTION("Non-physical True Random Number Generator based on CPU Jitter");
+MODULE_DESCRIPTION(
+	"Non-physical True Random Number Generator based on CPU Jitter");
 MODULE_ALIAS_CRYPTO("jitterentropy_rng");

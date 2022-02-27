@@ -54,18 +54,18 @@ static struct skcipher_alg arc4_alg = {
 	 * For legacy reasons, this is named "ecb(arc4)", not "arc4".
 	 * Nevertheless it's actually a stream cipher, not a block cipher.
 	 */
-	.base.cra_name		=	"ecb(arc4)",
-	.base.cra_driver_name	=	"ecb(arc4)-generic",
-	.base.cra_priority	=	100,
-	.base.cra_blocksize	=	ARC4_BLOCK_SIZE,
-	.base.cra_ctxsize	=	sizeof(struct arc4_ctx),
-	.base.cra_module	=	THIS_MODULE,
-	.min_keysize		=	ARC4_MIN_KEY_SIZE,
-	.max_keysize		=	ARC4_MAX_KEY_SIZE,
-	.setkey			=	crypto_arc4_setkey,
-	.encrypt		=	crypto_arc4_crypt,
-	.decrypt		=	crypto_arc4_crypt,
-	.init			=	crypto_arc4_init,
+	.base.cra_name = "ecb(arc4)",
+	.base.cra_driver_name = "ecb(arc4)-generic",
+	.base.cra_priority = 100,
+	.base.cra_blocksize = ARC4_BLOCK_SIZE,
+	.base.cra_ctxsize = sizeof(struct arc4_ctx),
+	.base.cra_module = THIS_MODULE,
+	.min_keysize = ARC4_MIN_KEY_SIZE,
+	.max_keysize = ARC4_MAX_KEY_SIZE,
+	.setkey = crypto_arc4_setkey,
+	.encrypt = crypto_arc4_crypt,
+	.decrypt = crypto_arc4_crypt,
+	.init = crypto_arc4_init,
 };
 
 static int __init arc4_init(void)

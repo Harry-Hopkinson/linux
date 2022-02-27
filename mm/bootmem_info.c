@@ -70,7 +70,6 @@ static void __init register_page_bootmem_info_section(unsigned long start_pfn)
 
 	for (i = 0; i < mapsize; i++, page++)
 		get_page_bootmem(section_nr, page, MIX_SECTION_INFO);
-
 }
 #else /* CONFIG_SPARSEMEM_VMEMMAP */
 static void __init register_page_bootmem_info_section(unsigned long start_pfn)

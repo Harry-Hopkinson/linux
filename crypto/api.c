@@ -57,7 +57,7 @@ static struct crypto_alg *__crypto_alg_lookup(const char *name, u32 type,
 	struct crypto_alg *q, *alg = NULL;
 	int best = -2;
 
-	list_for_each_entry(q, &crypto_alg_list, cra_list) {
+	list_for_each_entry (q, &crypto_alg_list, cra_list) {
 		int exact, fuzzy;
 
 		if (crypto_is_moribund(q))
@@ -208,8 +208,8 @@ static struct crypto_alg *crypto_larval_wait(struct crypto_alg *alg)
 	if (!static_branch_likely(&crypto_boot_test_finished))
 		crypto_start_test(larval);
 
-	timeout = wait_for_completion_killable_timeout(
-		&larval->completion, 60 * HZ);
+	timeout = wait_for_completion_killable_timeout(&larval->completion,
+						       60 * HZ);
 
 	alg = larval->adult;
 	if (timeout < 0)
@@ -460,7 +460,7 @@ struct crypto_tfm *crypto_alloc_base(const char *alg_name, u32 type, u32 mask)
 		crypto_mod_put(alg);
 		err = PTR_ERR(tfm);
 
-err:
+	err:
 		if (err != -EAGAIN)
 			break;
 		if (fatal_signal_pending(current)) {
@@ -474,8 +474,7 @@ err:
 EXPORT_SYMBOL_GPL(crypto_alloc_base);
 
 void *crypto_create_tfm_node(struct crypto_alg *alg,
-			const struct crypto_type *frontend,
-			int node)
+			     const struct crypto_type *frontend, int node)
 {
 	char *mem;
 	struct crypto_tfm *tfm = NULL;
@@ -517,8 +516,8 @@ out:
 EXPORT_SYMBOL_GPL(crypto_create_tfm_node);
 
 struct crypto_alg *crypto_find_alg(const char *alg_name,
-				   const struct crypto_type *frontend,
-				   u32 type, u32 mask)
+				   const struct crypto_type *frontend, u32 type,
+				   u32 mask)
 {
 	if (frontend) {
 		type &= frontend->maskclear;
@@ -555,8 +554,8 @@ EXPORT_SYMBOL_GPL(crypto_find_alg);
  */
 
 void *crypto_alloc_tfm_node(const char *alg_name,
-		       const struct crypto_type *frontend, u32 type, u32 mask,
-		       int node)
+			    const struct crypto_type *frontend, u32 type,
+			    u32 mask, int node)
 {
 	void *tfm;
 	int err;
@@ -577,7 +576,7 @@ void *crypto_alloc_tfm_node(const char *alg_name,
 		crypto_mod_put(alg);
 		err = PTR_ERR(tfm);
 
-err:
+	err:
 		if (err != -EAGAIN)
 			break;
 		if (fatal_signal_pending(current)) {

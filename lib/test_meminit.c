@@ -15,14 +15,14 @@
 #define GARBAGE_INT (0x09A7BA9E)
 #define GARBAGE_BYTE (0x9E)
 
-#define REPORT_FAILURES_IN_FN() \
-	do {	\
-		if (failures)	\
-			pr_info("%s failed %d out of %d times\n",	\
-				__func__, failures, num_tests);		\
-		else		\
-			pr_info("all %d tests in %s passed\n",		\
-				num_tests, __func__);			\
+#define REPORT_FAILURES_IN_FN()                                                \
+	do {                                                                   \
+		if (failures)                                                  \
+			pr_info("%s failed %d out of %d times\n", __func__,    \
+				failures, num_tests);                          \
+		else                                                           \
+			pr_info("all %d tests in %s passed\n", num_tests,      \
+				__func__);                                     \
 	} while (0)
 
 /* Calculate the number of uninitialized bytes in the buffer. */
@@ -163,8 +163,8 @@ static void test_ctor(void *obj)
  * zeroed after the first use. This is checked by memcmp() in
  * do_kmem_cache_size().
  */
-static bool __init check_buf(void *buf, int size, bool want_ctor,
-			     bool want_rcu, bool want_zero)
+static bool __init check_buf(void *buf, int size, bool want_ctor, bool want_rcu,
+			     bool want_zero)
 {
 	int bytes;
 	bool fail = false;
@@ -192,9 +192,8 @@ static void *bulk_array[BULK_SIZE];
  *  want_rcu - use SLAB_TYPESAFE_BY_RCU;
  *  want_zero - use __GFP_ZERO.
  */
-static int __init do_kmem_cache_size(size_t size, bool want_ctor,
-				     bool want_rcu, bool want_zero,
-				     int *total_failures)
+static int __init do_kmem_cache_size(size_t size, bool want_ctor, bool want_rcu,
+				     bool want_zero, int *total_failures)
 {
 	struct kmem_cache *c;
 	int iter;
@@ -210,13 +209,16 @@ static int __init do_kmem_cache_size(size_t size, bool want_ctor,
 		if (!want_rcu && !want_ctor) {
 			int ret;
 
-			ret = kmem_cache_alloc_bulk(c, alloc_mask, BULK_SIZE, bulk_array);
+			ret = kmem_cache_alloc_bulk(c, alloc_mask, BULK_SIZE,
+						    bulk_array);
 			if (!ret) {
 				fail = true;
 			} else {
 				int i;
 				for (i = 0; i < ret; i++)
-					fail |= check_buf(bulk_array[i], size, want_ctor, want_rcu, want_zero);
+					fail |= check_buf(bulk_array[i], size,
+							  want_ctor, want_rcu,
+							  want_zero);
 				kmem_cache_free_bulk(c, ret, bulk_array);
 			}
 		}
@@ -250,8 +252,7 @@ static int __init do_kmem_cache_size(size_t size, bool want_ctor,
 		 * |want_zero| is false, because we wrote garbage to
 		 * the buffer already.
 		 */
-		fail |= check_buf(buf, size, want_ctor, want_rcu,
-				  false);
+		fail |= check_buf(buf, size, want_ctor, want_rcu, false);
 		if (buf_copy) {
 			fail |= (bool)memcmp(buf, buf_copy, size);
 			kfree(buf_copy);

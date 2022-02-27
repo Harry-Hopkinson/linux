@@ -125,7 +125,7 @@ long do_sys_truncate(const char __user *pathname, loff_t length)
 	struct path path;
 	int error;
 
-	if (length < 0)	/* sorry, but loff_t says... */
+	if (length < 0) /* sorry, but loff_t says... */
 		return -EINVAL;
 
 retry:
@@ -147,7 +147,8 @@ SYSCALL_DEFINE2(truncate, const char __user *, path, long, length)
 }
 
 #ifdef CONFIG_COMPAT
-COMPAT_SYSCALL_DEFINE2(truncate, const char __user *, path, compat_off_t, length)
+COMPAT_SYSCALL_DEFINE2(truncate, const char __user *, path, compat_off_t,
+		       length)
 {
 	return do_sys_truncate(path, length);
 }
@@ -224,7 +225,6 @@ SYSCALL_DEFINE2(ftruncate64, unsigned int, fd, loff_t, length)
 }
 #endif /* BITS_PER_LONG == 32 */
 
-
 int vfs_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
 {
 	struct inode *inode = file_inode(file);
@@ -243,8 +243,7 @@ int vfs_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
 		return -EOPNOTSUPP;
 
 	/* Punch hole must have keep size set */
-	if ((mode & FALLOC_FL_PUNCH_HOLE) &&
-	    !(mode & FALLOC_FL_KEEP_SIZE))
+	if ((mode & FALLOC_FL_PUNCH_HOLE) && !(mode & FALLOC_FL_KEEP_SIZE))
 		return -EOPNOTSUPP;
 
 	/* Collapse range should only be used exclusively. */
@@ -253,8 +252,7 @@ int vfs_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
 		return -EINVAL;
 
 	/* Insert range should only be used exclusively. */
-	if ((mode & FALLOC_FL_INSERT_RANGE) &&
-	    (mode & ~FALLOC_FL_INSERT_RANGE))
+	if ((mode & FALLOC_FL_INSERT_RANGE) && (mode & ~FALLOC_FL_INSERT_RANGE))
 		return -EINVAL;
 
 	/* Unshare range should only be used with allocate mode. */
@@ -393,7 +391,8 @@ static const struct cred *access_override_creds(void)
 	return old_cred;
 }
 
-static long do_faccessat(int dfd, const char __user *filename, int mode, int flags)
+static long do_faccessat(int dfd, const char __user *filename, int mode,
+			 int flags)
 {
 	struct path path;
 	struct inode *inode;
@@ -401,7 +400,7 @@ static long do_faccessat(int dfd, const char __user *filename, int mode, int fla
 	unsigned int lookup_flags = LOOKUP_FOLLOW;
 	const struct cred *old_cred = NULL;
 
-	if (mode & ~S_IRWXO)	/* where's F_OK, X_OK, W_OK, R_OK? */
+	if (mode & ~S_IRWXO) /* where's F_OK, X_OK, W_OK, R_OK? */
 		return -EINVAL;
 
 	if (flags & ~(AT_EACCESS | AT_SYMLINK_NOFOLLOW | AT_EMPTY_PATH))
@@ -579,8 +578,8 @@ retry_deleg:
 		goto out_unlock;
 	newattrs.ia_mode = (mode & S_IALLUGO) | (inode->i_mode & ~S_IALLUGO);
 	newattrs.ia_valid = ATTR_MODE | ATTR_CTIME;
-	error = notify_change(mnt_user_ns(path->mnt), path->dentry,
-			      &newattrs, &delegated_inode);
+	error = notify_change(mnt_user_ns(path->mnt), path->dentry, &newattrs,
+			      &delegated_inode);
 out_unlock:
 	inode_unlock(inode);
 	if (delegated_inode) {
@@ -628,8 +627,8 @@ retry:
 	return error;
 }
 
-SYSCALL_DEFINE3(fchmodat, int, dfd, const char __user *, filename,
-		umode_t, mode)
+SYSCALL_DEFINE3(fchmodat, int, dfd, const char __user *, filename, umode_t,
+		mode)
 {
 	return do_fchmodat(dfd, filename, mode);
 }
@@ -658,14 +657,14 @@ int chown_common(const struct path *path, uid_t user, gid_t group)
 	gid = mapped_kgid_user(mnt_userns, fs_userns, gid);
 
 retry_deleg:
-	newattrs.ia_valid =  ATTR_CTIME;
-	if (user != (uid_t) -1) {
+	newattrs.ia_valid = ATTR_CTIME;
+	if (user != (uid_t)-1) {
 		if (!uid_valid(uid))
 			return -EINVAL;
 		newattrs.ia_valid |= ATTR_UID;
 		newattrs.ia_uid = uid;
 	}
-	if (group != (gid_t) -1) {
+	if (group != (gid_t)-1) {
 		if (!gid_valid(gid))
 			return -EINVAL;
 		newattrs.ia_valid |= ATTR_GID;
@@ -731,7 +730,8 @@ SYSCALL_DEFINE3(chown, const char __user *, filename, uid_t, user, gid_t, group)
 	return do_fchownat(AT_FDCWD, filename, user, group, 0);
 }
 
-SYSCALL_DEFINE3(lchown, const char __user *, filename, uid_t, user, gid_t, group)
+SYSCALL_DEFINE3(lchown, const char __user *, filename, uid_t, user, gid_t,
+		group)
 {
 	return do_fchownat(AT_FDCWD, filename, user, group,
 			   AT_SYMLINK_NOFOLLOW);
@@ -767,8 +767,7 @@ SYSCALL_DEFINE3(fchown, unsigned int, fd, uid_t, user, gid_t, group)
 	return ksys_fchown(fd, user, group);
 }
 
-static int do_dentry_open(struct file *f,
-			  struct inode *inode,
+static int do_dentry_open(struct file *f, struct inode *inode,
 			  int (*open)(struct inode *, struct file *))
 {
 	static const struct file_operations empty_fops = {};
@@ -829,10 +828,10 @@ static int do_dentry_open(struct file *f,
 	if ((f->f_mode & (FMODE_READ | FMODE_WRITE)) == FMODE_READ)
 		i_readcount_inc(inode);
 	if ((f->f_mode & FMODE_READ) &&
-	     likely(f->f_op->read || f->f_op->read_iter))
+	    likely(f->f_op->read || f->f_op->read_iter))
 		f->f_mode |= FMODE_CAN_READ;
 	if ((f->f_mode & FMODE_WRITE) &&
-	     likely(f->f_op->write || f->f_op->write_iter))
+	    likely(f->f_op->write || f->f_op->write_iter))
 		f->f_mode |= FMODE_CAN_WRITE;
 
 	f->f_write_hint = WRITE_LIFE_NOT_SET;
@@ -983,7 +982,7 @@ struct file *dentry_open(const struct path *path, int flags,
 EXPORT_SYMBOL(dentry_open);
 
 struct file *open_with_fake_path(const struct path *path, int flags,
-				struct inode *inode, const struct cred *cred)
+				 struct inode *inode, const struct cred *cred)
 {
 	struct file *f = alloc_empty_file_noaccount(flags, cred);
 	if (!IS_ERR(f)) {
@@ -1000,8 +999,8 @@ struct file *open_with_fake_path(const struct path *path, int flags,
 }
 EXPORT_SYMBOL(open_with_fake_path);
 
-#define WILL_CREATE(flags)	(flags & (O_CREAT | __O_TMPFILE))
-#define O_PATH_FLAGS		(O_DIRECTORY | O_NOFOLLOW | O_PATH | O_CLOEXEC)
+#define WILL_CREATE(flags) (flags & (O_CREAT | __O_TMPFILE))
+#define O_PATH_FLAGS (O_DIRECTORY | O_NOFOLLOW | O_PATH | O_CLOEXEC)
 
 inline struct open_how build_open_how(int flags, umode_t mode)
 {
@@ -1026,8 +1025,9 @@ inline int build_open_flags(const struct open_how *how, struct open_flags *op)
 	int lookup_flags = 0;
 	int acc_mode = ACC_MODE(flags);
 
-	BUILD_BUG_ON_MSG(upper_32_bits(VALID_OPEN_FLAGS),
-			 "struct open_flags doesn't yet handle flags > 32 bits");
+	BUILD_BUG_ON_MSG(
+		upper_32_bits(VALID_OPEN_FLAGS),
+		"struct open_flags doesn't yet handle flags > 32 bits");
 
 	/*
 	 * Strip flags that either shouldn't be set by userspace like
@@ -1047,7 +1047,8 @@ inline int build_open_flags(const struct open_how *how, struct open_flags *op)
 		return -EINVAL;
 
 	/* Scoping flags are mutually exclusive. */
-	if ((how->resolve & RESOLVE_BENEATH) && (how->resolve & RESOLVE_IN_ROOT))
+	if ((how->resolve & RESOLVE_BENEATH) &&
+	    (how->resolve & RESOLVE_IN_ROOT))
 		return -EINVAL;
 
 	/* Deal with the mode. */
@@ -1174,7 +1175,7 @@ struct file *filp_open(const char *filename, int flags, umode_t mode)
 {
 	struct filename *name = getname_kernel(filename);
 	struct file *file = ERR_CAST(name);
-	
+
 	if (!IS_ERR(name)) {
 		file = file_open_name(name, flags, mode);
 		putname(name);
@@ -1183,8 +1184,8 @@ struct file *filp_open(const char *filename, int flags, umode_t mode)
 }
 EXPORT_SYMBOL(filp_open);
 
-struct file *file_open_root(const struct path *root,
-			    const char *filename, int flags, umode_t mode)
+struct file *file_open_root(const struct path *root, const char *filename,
+			    int flags, umode_t mode)
 {
 	struct open_flags op;
 	struct open_how how = build_open_how(flags, mode);
@@ -1229,7 +1230,6 @@ long do_sys_open(int dfd, const char __user *filename, int flags, umode_t mode)
 	struct open_how how = build_open_how(flags, mode);
 	return do_sys_openat2(dfd, filename, &how);
 }
-
 
 SYSCALL_DEFINE3(open, const char __user *, filename, int, flags, umode_t, mode)
 {
@@ -1276,7 +1276,8 @@ SYSCALL_DEFINE4(openat2, int, dfd, const char __user *, filename,
  * Exactly like sys_open(), except that it doesn't set the
  * O_LARGEFILE flag.
  */
-COMPAT_SYSCALL_DEFINE3(open, const char __user *, filename, int, flags, umode_t, mode)
+COMPAT_SYSCALL_DEFINE3(open, const char __user *, filename, int, flags, umode_t,
+		       mode)
 {
 	return do_sys_open(AT_FDCWD, filename, flags, mode);
 }
@@ -1285,7 +1286,8 @@ COMPAT_SYSCALL_DEFINE3(open, const char __user *, filename, int, flags, umode_t,
  * Exactly like sys_openat(), except that it doesn't set the
  * O_LARGEFILE flag.
  */
-COMPAT_SYSCALL_DEFINE4(openat, int, dfd, const char __user *, filename, int, flags, umode_t, mode)
+COMPAT_SYSCALL_DEFINE4(openat, int, dfd, const char __user *, filename, int,
+		       flags, umode_t, mode)
 {
 	return do_sys_open(dfd, filename, flags, mode);
 }
@@ -1343,8 +1345,7 @@ SYSCALL_DEFINE1(close, unsigned int, fd)
 	int retval = close_fd(fd);
 
 	/* can't restart close syscall because file table entry was cleared */
-	if (unlikely(retval == -ERESTARTSYS ||
-		     retval == -ERESTARTNOINTR ||
+	if (unlikely(retval == -ERESTARTSYS || retval == -ERESTARTNOINTR ||
 		     retval == -ERESTARTNOHAND ||
 		     retval == -ERESTART_RESTARTBLOCK))
 		retval = -EINTR;
@@ -1388,7 +1389,7 @@ SYSCALL_DEFINE0(vhangup)
  * the caller didn't specify O_LARGEFILE.  On 64bit systems we force
  * on this flag in sys_open.
  */
-int generic_file_open(struct inode * inode, struct file * filp)
+int generic_file_open(struct inode *inode, struct file *filp)
 {
 	if (!(filp->f_flags & O_LARGEFILE) && i_size_read(inode) > MAX_NON_LFS)
 		return -EOVERFLOW;
@@ -1423,7 +1424,8 @@ EXPORT_SYMBOL(nonseekable_open);
  */
 int stream_open(struct inode *inode, struct file *filp)
 {
-	filp->f_mode &= ~(FMODE_LSEEK | FMODE_PREAD | FMODE_PWRITE | FMODE_ATOMIC_POS);
+	filp->f_mode &=
+		~(FMODE_LSEEK | FMODE_PREAD | FMODE_PWRITE | FMODE_ATOMIC_POS);
 	filp->f_mode |= FMODE_STREAM;
 	return 0;
 }

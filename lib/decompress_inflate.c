@@ -31,7 +31,7 @@
 
 #include <linux/decompress/mm.h>
 
-#define GZIP_IOBUF_SIZE (16*1024)
+#define GZIP_IOBUF_SIZE (16 * 1024)
 
 static long INIT nofill(void *buffer, unsigned long len)
 {
@@ -40,11 +40,11 @@ static long INIT nofill(void *buffer, unsigned long len)
 
 /* Included from initramfs et al code */
 STATIC int INIT __gunzip(unsigned char *buf, long len,
-		       long (*fill)(void*, unsigned long),
-		       long (*flush)(void*, unsigned long),
-		       unsigned char *out_buf, long out_len,
-		       long *pos,
-		       void(*error)(char *x)) {
+			 long (*fill)(void *, unsigned long),
+			 long (*flush)(void *, unsigned long),
+			 unsigned char *out_buf, long out_len, long *pos,
+			 void (*error)(char *x))
+{
 	u8 *zbuf;
 	struct z_stream_s *strm;
 	int rc;
@@ -79,12 +79,13 @@ STATIC int INIT __gunzip(unsigned char *buf, long len,
 		goto gunzip_nomem3;
 	}
 
-	strm->workspace = malloc(flush ? zlib_inflate_workspacesize() :
+	strm->workspace = malloc(
+		flush ? zlib_inflate_workspacesize() :
 #ifdef CONFIG_ZLIB_DFLTCC
-	/* Always allocate the full workspace for DFLTCC */
-				 zlib_inflate_workspacesize());
+			/* Always allocate the full workspace for DFLTCC */
+			zlib_inflate_workspacesize());
 #else
-				 sizeof(struct inflate_state));
+			sizeof(struct inflate_state));
 #endif
 	if (strm->workspace == NULL) {
 		error("Out of memory while allocating workspace");
@@ -98,8 +99,7 @@ STATIC int INIT __gunzip(unsigned char *buf, long len,
 		len = fill(zbuf, GZIP_IOBUF_SIZE);
 
 	/* verify the gzip header */
-	if (len < 10 ||
-	   zbuf[0] != 0x1f || zbuf[1] != 0x8b || zbuf[2] != 0x08) {
+	if (len < 10 || zbuf[0] != 0x1f || zbuf[1] != 0x8b || zbuf[2] != 0x08) {
 		if (pos)
 			*pos = 0;
 		error("Not a gzip file");
@@ -180,7 +180,7 @@ STATIC int INIT __gunzip(unsigned char *buf, long len,
 	zlib_inflateEnd(strm);
 	if (pos)
 		/* add + 8 to skip over trailer */
-		*pos = strm->next_in - zbuf+8;
+		*pos = strm->next_in - zbuf + 8;
 
 gunzip_5:
 	free(strm->workspace);
@@ -198,21 +198,19 @@ gunzip_nomem1:
 
 #ifndef PREBOOT
 STATIC int INIT gunzip(unsigned char *buf, long len,
-		       long (*fill)(void*, unsigned long),
-		       long (*flush)(void*, unsigned long),
-		       unsigned char *out_buf,
-		       long *pos,
+		       long (*fill)(void *, unsigned long),
+		       long (*flush)(void *, unsigned long),
+		       unsigned char *out_buf, long *pos,
 		       void (*error)(char *x))
 {
 	return __gunzip(buf, len, fill, flush, out_buf, 0, pos, error);
 }
 #else
 STATIC int INIT __decompress(unsigned char *buf, long len,
-			   long (*fill)(void*, unsigned long),
-			   long (*flush)(void*, unsigned long),
-			   unsigned char *out_buf, long out_len,
-			   long *pos,
-			   void (*error)(char *x))
+			     long (*fill)(void *, unsigned long),
+			     long (*flush)(void *, unsigned long),
+			     unsigned char *out_buf, long out_len, long *pos,
+			     void (*error)(char *x))
 {
 	return __gunzip(buf, len, fill, flush, out_buf, out_len, pos, error);
 }

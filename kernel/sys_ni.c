@@ -393,7 +393,6 @@ COND_SYSCALL(spu_run);
 COND_SYSCALL(spu_create);
 COND_SYSCALL(subpage_prot);
 
-
 /*
  * Deprecated system calls which are still defined in
  * include/uapi/asm-generic/unistd.h and wanted by >= 1 arch

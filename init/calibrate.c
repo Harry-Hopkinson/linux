@@ -16,7 +16,7 @@ unsigned long lpj_fine;
 unsigned long preset_lpj;
 static int __init lpj_setup(char *str)
 {
-	preset_lpj = simple_strtoul(str,NULL,0);
+	preset_lpj = simple_strtoul(str, NULL, 0);
 	return 1;
 }
 
@@ -29,8 +29,8 @@ __setup("lpj=", lpj_setup);
  * Also, this code tries to handle non-maskable asynchronous events
  * (like SMIs)
  */
-#define DELAY_CALIBRATION_TICKS			((HZ < 100) ? 1 : (HZ/100))
-#define MAX_DIRECT_CALIBRATION_RETRIES		5
+#define DELAY_CALIBRATION_TICKS ((HZ < 100) ? 1 : (HZ / 100))
+#define MAX_DIRECT_CALIBRATION_RETRIES 5
 
 static unsigned long calibrate_delay_direct(void)
 {
@@ -41,11 +41,12 @@ static unsigned long calibrate_delay_direct(void)
 	unsigned long good_timer_sum = 0;
 	unsigned long good_timer_count = 0;
 	unsigned long measured_times[MAX_DIRECT_CALIBRATION_RETRIES];
-	int max = -1; /* index of measured_times with max/min values or not set */
+	int max =
+		-1; /* index of measured_times with max/min values or not set */
 	int min = -1;
 	int i;
 
-	if (read_current_timer(&pre_start) < 0 )
+	if (read_current_timer(&pre_start) < 0)
 		return 0;
 
 	/*
@@ -79,27 +80,28 @@ static unsigned long calibrate_delay_direct(void)
 
 		pre_end = 0;
 		end = post_start;
-		while (time_before_eq(jiffies, start_jiffies + 1 +
-					       DELAY_CALIBRATION_TICKS)) {
+		while (time_before_eq(
+			jiffies, start_jiffies + 1 + DELAY_CALIBRATION_TICKS)) {
 			pre_end = end;
 			read_current_timer(&end);
 		}
 		read_current_timer(&post_end);
 
-		timer_rate_max = (post_end - pre_start) /
-					DELAY_CALIBRATION_TICKS;
-		timer_rate_min = (pre_end - post_start) /
-					DELAY_CALIBRATION_TICKS;
+		timer_rate_max =
+			(post_end - pre_start) / DELAY_CALIBRATION_TICKS;
+		timer_rate_min =
+			(pre_end - post_start) / DELAY_CALIBRATION_TICKS;
 
 		/*
 		 * If the upper limit and lower limit of the timer_rate is
 		 * >= 12.5% apart, redo calibration.
 		 */
 		if (start >= post_end)
-			printk(KERN_NOTICE "calibrate_delay_direct() ignoring "
-					"timer_rate as we had a TSC wrap around"
-					" start=%lu >=post_end=%lu\n",
-				start, post_end);
+			printk(KERN_NOTICE
+			       "calibrate_delay_direct() ignoring "
+			       "timer_rate as we had a TSC wrap around"
+			       " start=%lu >=post_end=%lu\n",
+			       start, post_end);
 		if (start < post_end && pre_start != 0 && pre_end != 0 &&
 		    (timer_rate_max - timer_rate_min) < (timer_rate_max >> 3)) {
 			good_timer_count++;
@@ -111,7 +113,6 @@ static unsigned long calibrate_delay_direct(void)
 				min = i;
 		} else
 			measured_times[i] = 0;
-
 	}
 
 	/*
@@ -123,7 +124,7 @@ static unsigned long calibrate_delay_direct(void)
 		unsigned long maxdiff;
 
 		/* compute the estimate */
-		estimate = (good_timer_sum/good_timer_count);
+		estimate = (good_timer_sum / good_timer_count);
 		maxdiff = estimate >> 3;
 
 		/* if range is within 12% let's take it */
@@ -134,16 +135,16 @@ static unsigned long calibrate_delay_direct(void)
 		good_timer_sum = 0;
 		good_timer_count = 0;
 		if ((measured_times[max] - estimate) <
-				(estimate - measured_times[min])) {
+		    (estimate - measured_times[min])) {
 			printk(KERN_NOTICE "calibrate_delay_direct() dropping "
-					"min bogoMips estimate %d = %lu\n",
-				min, measured_times[min]);
+					   "min bogoMips estimate %d = %lu\n",
+			       min, measured_times[min]);
 			measured_times[min] = 0;
 			min = max;
 		} else {
 			printk(KERN_NOTICE "calibrate_delay_direct() dropping "
-					"max bogoMips estimate %d = %lu\n",
-				max, measured_times[max]);
+					   "max bogoMips estimate %d = %lu\n",
+			       max, measured_times[max]);
 			measured_times[max] = 0;
 			max = min;
 		}
@@ -158,12 +159,12 @@ static unsigned long calibrate_delay_direct(void)
 			if (measured_times[i] > measured_times[max])
 				max = i;
 		}
-
 	}
 
-	printk(KERN_NOTICE "calibrate_delay_direct() failed to get a good "
+	printk(KERN_NOTICE
+	       "calibrate_delay_direct() failed to get a good "
 	       "estimate for loops_per_jiffy.\nProbably due to long platform "
-		"interrupts. Consider using \"lpj=\" boot option.\n");
+	       "interrupts. Consider using \"lpj=\" boot option.\n");
 	return 0;
 }
 #else
@@ -190,7 +191,7 @@ static unsigned long calibrate_delay_converge(void)
 	unsigned long lpj, lpj_base, ticks, loopadd, loopadd_base, chop_limit;
 	int trials = 0, band = 0, trial_in_band = 0;
 
-	lpj = (1<<12);
+	lpj = (1 << 12);
 
 	/* wait for "start of" clock tick */
 	ticks = jiffies;
@@ -199,7 +200,7 @@ static unsigned long calibrate_delay_converge(void)
 	/* Go .. */
 	ticks = jiffies;
 	do {
-		if (++trial_in_band == (1<<band)) {
+		if (++trial_in_band == (1 << band)) {
 			++band;
 			trial_in_band = 0;
 		}
@@ -230,7 +231,7 @@ recalibrate:
 			; /* nothing */
 		ticks = jiffies;
 		__delay(lpj);
-		if (jiffies != ticks)	/* longer than 1 tick */
+		if (jiffies != ticks) /* longer than 1 tick */
 			lpj -= loopadd;
 		loopadd >>= 1;
 	}
@@ -305,9 +306,8 @@ void calibrate_delay(void)
 	}
 	per_cpu(cpu_loops_per_jiffy, this_cpu) = lpj;
 	if (!printed)
-		pr_cont("%lu.%02lu BogoMIPS (lpj=%lu)\n",
-			lpj/(500000/HZ),
-			(lpj/(5000/HZ)) % 100, lpj);
+		pr_cont("%lu.%02lu BogoMIPS (lpj=%lu)\n", lpj / (500000 / HZ),
+			(lpj / (5000 / HZ)) % 100, lpj);
 
 	loops_per_jiffy = lpj;
 	printed = true;

@@ -68,8 +68,9 @@ static void dec_pid_namespaces(struct ucounts *ucounts)
 	dec_ucount(ucounts, UCOUNT_PID_NAMESPACES);
 }
 
-static struct pid_namespace *create_pid_namespace(struct user_namespace *user_ns,
-	struct pid_namespace *parent_pid_ns)
+static struct pid_namespace *
+create_pid_namespace(struct user_namespace *user_ns,
+		     struct pid_namespace *parent_pid_ns)
 {
 	struct pid_namespace *ns;
 	unsigned int level = parent_pid_ns->level + 1;
@@ -140,7 +141,8 @@ static void destroy_pid_namespace(struct pid_namespace *ns)
 }
 
 struct pid_namespace *copy_pid_ns(unsigned long flags,
-	struct user_namespace *user_ns, struct pid_namespace *old_ns)
+				  struct user_namespace *user_ns,
+				  struct pid_namespace *old_ns)
 {
 	if (!(flags & CLONE_NEWPID))
 		return get_pid_ns(old_ns);
@@ -199,10 +201,11 @@ void zap_pid_ns_processes(struct pid_namespace *pid_ns)
 	rcu_read_lock();
 	read_lock(&tasklist_lock);
 	nr = 2;
-	idr_for_each_entry_continue(&pid_ns->idr, pid, nr) {
+	idr_for_each_entry_continue (&pid_ns->idr, pid, nr) {
 		task = pid_task(pid, PIDTYPE_PID);
 		if (task && !__fatal_signal_pending(task))
-			group_send_sig_info(SIGKILL, SEND_SIG_PRIV, task, PIDTYPE_MAX);
+			group_send_sig_info(SIGKILL, SEND_SIG_PRIV, task,
+					    PIDTYPE_MAX);
 	}
 	read_unlock(&tasklist_lock);
 	rcu_read_unlock();
@@ -256,8 +259,8 @@ void zap_pid_ns_processes(struct pid_namespace *pid_ns)
 }
 
 #ifdef CONFIG_CHECKPOINT_RESTORE
-static int pid_ns_ctl_handler(struct ctl_table *table, int write,
-		void *buffer, size_t *lenp, loff_t *ppos)
+static int pid_ns_ctl_handler(struct ctl_table *table, int write, void *buffer,
+			      size_t *lenp, loff_t *ppos)
 {
 	struct pid_namespace *pid_ns = task_active_pid_ns(current);
 	struct ctl_table tmp = *table;
@@ -292,10 +295,13 @@ static struct ctl_table pid_ns_ctl_table[] = {
 		.extra1 = SYSCTL_ZERO,
 		.extra2 = &pid_max,
 	},
-	{ }
+	{}
 };
-static struct ctl_path kern_path[] = { { .procname = "kernel", }, { } };
-#endif	/* CONFIG_CHECKPOINT_RESTORE */
+static struct ctl_path kern_path[] = { {
+					       .procname = "kernel",
+				       },
+				       {} };
+#endif /* CONFIG_CHECKPOINT_RESTORE */
 
 int reboot_pid_ns(struct pid_namespace *pid_ns, int cmd)
 {
@@ -428,24 +434,24 @@ static struct user_namespace *pidns_owner(struct ns_common *ns)
 }
 
 const struct proc_ns_operations pidns_operations = {
-	.name		= "pid",
-	.type		= CLONE_NEWPID,
-	.get		= pidns_get,
-	.put		= pidns_put,
-	.install	= pidns_install,
-	.owner		= pidns_owner,
-	.get_parent	= pidns_get_parent,
+	.name = "pid",
+	.type = CLONE_NEWPID,
+	.get = pidns_get,
+	.put = pidns_put,
+	.install = pidns_install,
+	.owner = pidns_owner,
+	.get_parent = pidns_get_parent,
 };
 
 const struct proc_ns_operations pidns_for_children_operations = {
-	.name		= "pid_for_children",
-	.real_ns_name	= "pid",
-	.type		= CLONE_NEWPID,
-	.get		= pidns_for_children_get,
-	.put		= pidns_put,
-	.install	= pidns_install,
-	.owner		= pidns_owner,
-	.get_parent	= pidns_get_parent,
+	.name = "pid_for_children",
+	.real_ns_name = "pid",
+	.type = CLONE_NEWPID,
+	.get = pidns_for_children_get,
+	.put = pidns_put,
+	.install = pidns_install,
+	.owner = pidns_owner,
+	.get_parent = pidns_get_parent,
 };
 
 static __init int pid_namespaces_init(void)

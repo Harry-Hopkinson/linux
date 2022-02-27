@@ -32,7 +32,8 @@ static int crypto_poly1305_init(struct shash_desc *desc)
 }
 
 static unsigned int crypto_poly1305_setdesckey(struct poly1305_desc_ctx *dctx,
-					       const u8 *src, unsigned int srclen)
+					       const u8 *src,
+					       unsigned int srclen)
 {
 	if (!dctx->sset) {
 		if (!dctx->rset && srclen >= POLY1305_BLOCK_SIZE) {
@@ -42,9 +43,9 @@ static unsigned int crypto_poly1305_setdesckey(struct poly1305_desc_ctx *dctx,
 			dctx->rset = 2;
 		}
 		if (srclen >= POLY1305_BLOCK_SIZE) {
-			dctx->s[0] = get_unaligned_le32(src +  0);
-			dctx->s[1] = get_unaligned_le32(src +  4);
-			dctx->s[2] = get_unaligned_le32(src +  8);
+			dctx->s[0] = get_unaligned_le32(src + 0);
+			dctx->s[1] = get_unaligned_le32(src + 4);
+			dctx->s[2] = get_unaligned_le32(src + 8);
 			dctx->s[3] = get_unaligned_le32(src + 12);
 			src += POLY1305_BLOCK_SIZE;
 			srclen -= POLY1305_BLOCK_SIZE;
@@ -69,8 +70,8 @@ static void poly1305_blocks(struct poly1305_desc_ctx *dctx, const u8 *src,
 			     srclen / POLY1305_BLOCK_SIZE, 1);
 }
 
-static int crypto_poly1305_update(struct shash_desc *desc,
-				  const u8 *src, unsigned int srclen)
+static int crypto_poly1305_update(struct shash_desc *desc, const u8 *src,
+				  unsigned int srclen)
 {
 	struct poly1305_desc_ctx *dctx = shash_desc_ctx(desc);
 	unsigned int bytes;
@@ -83,8 +84,7 @@ static int crypto_poly1305_update(struct shash_desc *desc,
 		dctx->buflen += bytes;
 
 		if (dctx->buflen == POLY1305_BLOCK_SIZE) {
-			poly1305_blocks(dctx, dctx->buf,
-					POLY1305_BLOCK_SIZE);
+			poly1305_blocks(dctx, dctx->buf, POLY1305_BLOCK_SIZE);
 			dctx->buflen = 0;
 		}
 	}

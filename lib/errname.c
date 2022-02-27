@@ -174,7 +174,8 @@ static const char *names_0[] = {
 };
 #undef E
 
-#define E(err) [err - 512 + BUILD_BUG_ON_ZERO(err < 512 || err > 550)] = "-" #err
+#define E(err)                                                                 \
+	[err - 512 + BUILD_BUG_ON_ZERO(err < 512 || err > 550)] = "-" #err
 static const char *names_512[] = {
 	E(ERESTARTSYS),
 	E(ERESTARTNOINTR),

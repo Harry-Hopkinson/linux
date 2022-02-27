@@ -147,9 +147,9 @@ static void mn_itree_inv_end(struct mmu_notifier_subscriptions *subscriptions)
 	 * they are progressed. This arrangement for tree updates is used to
 	 * avoid using a blocking lock during invalidate_range_start.
 	 */
-	hlist_for_each_entry_safe(interval_sub, next,
-				  &subscriptions->deferred_list,
-				  deferred_item) {
+	hlist_for_each_entry_safe (interval_sub, next,
+				   &subscriptions->deferred_list,
+				   deferred_item) {
 		if (RB_EMPTY_NODE(&interval_sub->interval_tree.rb))
 			interval_tree_insert(&interval_sub->interval_tree,
 					     &subscriptions->itree);
@@ -307,8 +307,8 @@ static void mn_hlist_release(struct mmu_notifier_subscriptions *subscriptions,
 	 * ->release returns.
 	 */
 	id = srcu_read_lock(&srcu);
-	hlist_for_each_entry_rcu(subscription, &subscriptions->list, hlist,
-				 srcu_read_lock_held(&srcu))
+	hlist_for_each_entry_rcu (subscription, &subscriptions->list, hlist,
+				  srcu_read_lock_held(&srcu))
 		/*
 		 * If ->release runs before mmu_notifier_unregister it must be
 		 * handled, as it's the only way for the driver to flush all
@@ -362,17 +362,16 @@ void __mmu_notifier_release(struct mm_struct *mm)
  * unmap the address and return 1 or 0 depending if the mapping previously
  * existed or not.
  */
-int __mmu_notifier_clear_flush_young(struct mm_struct *mm,
-					unsigned long start,
-					unsigned long end)
+int __mmu_notifier_clear_flush_young(struct mm_struct *mm, unsigned long start,
+				     unsigned long end)
 {
 	struct mmu_notifier *subscription;
 	int young = 0, id;
 
 	id = srcu_read_lock(&srcu);
-	hlist_for_each_entry_rcu(subscription,
-				 &mm->notifier_subscriptions->list, hlist,
-				 srcu_read_lock_held(&srcu)) {
+	hlist_for_each_entry_rcu (subscription,
+				  &mm->notifier_subscriptions->list, hlist,
+				  srcu_read_lock_held(&srcu)) {
 		if (subscription->ops->clear_flush_young)
 			young |= subscription->ops->clear_flush_young(
 				subscription, mm, start, end);
@@ -382,17 +381,16 @@ int __mmu_notifier_clear_flush_young(struct mm_struct *mm,
 	return young;
 }
 
-int __mmu_notifier_clear_young(struct mm_struct *mm,
-			       unsigned long start,
+int __mmu_notifier_clear_young(struct mm_struct *mm, unsigned long start,
 			       unsigned long end)
 {
 	struct mmu_notifier *subscription;
 	int young = 0, id;
 
 	id = srcu_read_lock(&srcu);
-	hlist_for_each_entry_rcu(subscription,
-				 &mm->notifier_subscriptions->list, hlist,
-				 srcu_read_lock_held(&srcu)) {
+	hlist_for_each_entry_rcu (subscription,
+				  &mm->notifier_subscriptions->list, hlist,
+				  srcu_read_lock_held(&srcu)) {
 		if (subscription->ops->clear_young)
 			young |= subscription->ops->clear_young(subscription,
 								mm, start, end);
@@ -402,16 +400,15 @@ int __mmu_notifier_clear_young(struct mm_struct *mm,
 	return young;
 }
 
-int __mmu_notifier_test_young(struct mm_struct *mm,
-			      unsigned long address)
+int __mmu_notifier_test_young(struct mm_struct *mm, unsigned long address)
 {
 	struct mmu_notifier *subscription;
 	int young = 0, id;
 
 	id = srcu_read_lock(&srcu);
-	hlist_for_each_entry_rcu(subscription,
-				 &mm->notifier_subscriptions->list, hlist,
-				 srcu_read_lock_held(&srcu)) {
+	hlist_for_each_entry_rcu (subscription,
+				  &mm->notifier_subscriptions->list, hlist,
+				  srcu_read_lock_held(&srcu)) {
 		if (subscription->ops->test_young) {
 			young = subscription->ops->test_young(subscription, mm,
 							      address);
@@ -431,9 +428,9 @@ void __mmu_notifier_change_pte(struct mm_struct *mm, unsigned long address,
 	int id;
 
 	id = srcu_read_lock(&srcu);
-	hlist_for_each_entry_rcu(subscription,
-				 &mm->notifier_subscriptions->list, hlist,
-				 srcu_read_lock_held(&srcu)) {
+	hlist_for_each_entry_rcu (subscription,
+				  &mm->notifier_subscriptions->list, hlist,
+				  srcu_read_lock_held(&srcu)) {
 		if (subscription->ops->change_pte)
 			subscription->ops->change_pte(subscription, mm, address,
 						      pte);
@@ -481,8 +478,8 @@ static int mn_hlist_invalidate_range_start(
 	int id;
 
 	id = srcu_read_lock(&srcu);
-	hlist_for_each_entry_rcu(subscription, &subscriptions->list, hlist,
-				 srcu_read_lock_held(&srcu)) {
+	hlist_for_each_entry_rcu (subscription, &subscriptions->list, hlist,
+				  srcu_read_lock_held(&srcu)) {
 		const struct mmu_notifier_ops *ops = subscription->ops;
 
 		if (ops->invalidate_range_start) {
@@ -519,8 +516,8 @@ static int mn_hlist_invalidate_range_start(
 		 * notifiers and one or more failed start, any that succeeded
 		 * start are expecting their end to be called.  Do so now.
 		 */
-		hlist_for_each_entry_rcu(subscription, &subscriptions->list,
-					 hlist, srcu_read_lock_held(&srcu)) {
+		hlist_for_each_entry_rcu (subscription, &subscriptions->list,
+					  hlist, srcu_read_lock_held(&srcu)) {
 			if (!subscription->ops->invalidate_range_end)
 				continue;
 
@@ -557,8 +554,8 @@ mn_hlist_invalidate_end(struct mmu_notifier_subscriptions *subscriptions,
 	int id;
 
 	id = srcu_read_lock(&srcu);
-	hlist_for_each_entry_rcu(subscription, &subscriptions->list, hlist,
-				 srcu_read_lock_held(&srcu)) {
+	hlist_for_each_entry_rcu (subscription, &subscriptions->list, hlist,
+				  srcu_read_lock_held(&srcu)) {
 		/*
 		 * Call invalidate_range here too to avoid the need for the
 		 * subsystem of having to register an invalidate_range_end
@@ -604,16 +601,16 @@ void __mmu_notifier_invalidate_range_end(struct mmu_notifier_range *range,
 	lock_map_release(&__mmu_notifier_invalidate_range_start_map);
 }
 
-void __mmu_notifier_invalidate_range(struct mm_struct *mm,
-				  unsigned long start, unsigned long end)
+void __mmu_notifier_invalidate_range(struct mm_struct *mm, unsigned long start,
+				     unsigned long end)
 {
 	struct mmu_notifier *subscription;
 	int id;
 
 	id = srcu_read_lock(&srcu);
-	hlist_for_each_entry_rcu(subscription,
-				 &mm->notifier_subscriptions->list, hlist,
-				 srcu_read_lock_held(&srcu)) {
+	hlist_for_each_entry_rcu (subscription,
+				  &mm->notifier_subscriptions->list, hlist,
+				  srcu_read_lock_held(&srcu)) {
 		if (subscription->ops->invalidate_range)
 			subscription->ops->invalidate_range(subscription, mm,
 							    start, end);
@@ -737,9 +734,9 @@ find_get_mmu_notifier(struct mm_struct *mm, const struct mmu_notifier_ops *ops)
 	struct mmu_notifier *subscription;
 
 	spin_lock(&mm->notifier_subscriptions->lock);
-	hlist_for_each_entry_rcu(subscription,
-				 &mm->notifier_subscriptions->list, hlist,
-				 lockdep_is_held(&mm->notifier_subscriptions->lock)) {
+	hlist_for_each_entry_rcu (
+		subscription, &mm->notifier_subscriptions->list, hlist,
+		lockdep_is_held(&mm->notifier_subscriptions->lock)) {
 		if (subscription->ops != ops)
 			continue;
 
@@ -1109,8 +1106,8 @@ void mmu_notifier_synchronize(void)
 }
 EXPORT_SYMBOL_GPL(mmu_notifier_synchronize);
 
-bool
-mmu_notifier_range_update_to_read_only(const struct mmu_notifier_range *range)
+bool mmu_notifier_range_update_to_read_only(
+	const struct mmu_notifier_range *range)
 {
 	if (!range->vma || range->event != MMU_NOTIFY_PROTECTION_VMA)
 		return false;

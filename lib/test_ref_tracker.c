@@ -14,11 +14,11 @@
 static struct ref_tracker_dir ref_dir;
 static struct ref_tracker *tracker[20];
 
-#define TRT_ALLOC(X) static noinline void 				\
-	alloctest_ref_tracker_alloc##X(struct ref_tracker_dir *dir, 	\
-				    struct ref_tracker **trackerp)	\
-	{								\
-		ref_tracker_alloc(dir, trackerp, GFP_KERNEL);		\
+#define TRT_ALLOC(X)                                                           \
+	static noinline void alloctest_ref_tracker_alloc##X(                   \
+		struct ref_tracker_dir *dir, struct ref_tracker **trackerp)    \
+	{                                                                      \
+		ref_tracker_alloc(dir, trackerp, GFP_KERNEL);                  \
 	}
 
 TRT_ALLOC(1)
@@ -43,13 +43,11 @@ TRT_ALLOC(19)
 
 #undef TRT_ALLOC
 
-static noinline void
-alloctest_ref_tracker_free(struct ref_tracker_dir *dir,
-			   struct ref_tracker **trackerp)
+static noinline void alloctest_ref_tracker_free(struct ref_tracker_dir *dir,
+						struct ref_tracker **trackerp)
 {
 	ref_tracker_free(dir, trackerp);
 }
-
 
 static struct timer_list test_ref_tracker_timer;
 static atomic_t test_ref_timer_done = ATOMIC_INIT(0);

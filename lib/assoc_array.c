@@ -34,7 +34,8 @@ begin_node:
 	if (assoc_array_ptr_is_shortcut(cursor)) {
 		/* Descend through a shortcut */
 		shortcut = assoc_array_ptr_to_shortcut(cursor);
-		cursor = READ_ONCE(shortcut->next_node); /* Address dependency. */
+		cursor = READ_ONCE(
+			shortcut->next_node); /* Address dependency. */
 	}
 
 	node = assoc_array_ptr_to_node(cursor);
@@ -95,7 +96,8 @@ finished_node:
 	if (assoc_array_ptr_is_shortcut(parent)) {
 		shortcut = assoc_array_ptr_to_shortcut(parent);
 		cursor = parent;
-		parent = READ_ONCE(shortcut->back_pointer); /* Address dependency. */
+		parent = READ_ONCE(
+			shortcut->back_pointer); /* Address dependency. */
 		slot = shortcut->parent_slot;
 		if (parent == stop)
 			return 0;
@@ -135,7 +137,8 @@ int assoc_array_iterate(const struct assoc_array *array,
 					void *iterator_data),
 			void *iterator_data)
 {
-	struct assoc_array_ptr *root = READ_ONCE(array->root); /* Address dependency. */
+	struct assoc_array_ptr *root =
+		READ_ONCE(array->root); /* Address dependency. */
 
 	if (!root)
 		return 0;
@@ -150,16 +153,17 @@ enum assoc_array_walk_status {
 
 struct assoc_array_walk_result {
 	struct {
-		struct assoc_array_node	*node;	/* Node in which leaf might be found */
-		int		level;
-		int		slot;
+		struct assoc_array_node
+			*node; /* Node in which leaf might be found */
+		int level;
+		int slot;
 	} terminal_node;
 	struct {
 		struct assoc_array_shortcut *shortcut;
-		int		level;
-		int		sc_level;
-		unsigned long	sc_segments;
-		unsigned long	dissimilarity;
+		int level;
+		int sc_level;
+		unsigned long sc_segments;
+		unsigned long dissimilarity;
 	} wrong_shortcut;
 };
 
@@ -168,8 +172,7 @@ struct assoc_array_walk_result {
  */
 static enum assoc_array_walk_status
 assoc_array_walk(const struct assoc_array *array,
-		 const struct assoc_array_ops *ops,
-		 const void *index_key,
+		 const struct assoc_array_ops *ops, const void *index_key,
 		 struct assoc_array_walk_result *result)
 {
 	struct assoc_array_shortcut *shortcut;
@@ -182,7 +185,7 @@ assoc_array_walk(const struct assoc_array *array,
 
 	pr_devel("-->%s()\n", __func__);
 
-	cursor = READ_ONCE(array->root);  /* Address dependency. */
+	cursor = READ_ONCE(array->root); /* Address dependency. */
 	if (!cursor)
 		return assoc_array_walk_tree_empty;
 
@@ -208,8 +211,8 @@ consider_node:
 	slot &= ASSOC_ARRAY_FAN_MASK;
 	ptr = READ_ONCE(node->slots[slot]); /* Address dependency. */
 
-	pr_devel("consider slot %x [ix=%d type=%lu]\n",
-		 slot, level, (unsigned long)ptr & 3);
+	pr_devel("consider slot %x [ix=%d type=%lu]\n", slot, level,
+		 (unsigned long)ptr & 3);
 
 	if (!assoc_array_ptr_is_meta(ptr)) {
 		/* The node doesn't have a node/shortcut pointer in the slot
@@ -252,17 +255,21 @@ follow_shortcut:
 		if ((sc_level & ASSOC_ARRAY_KEY_CHUNK_MASK) == 0)
 			segments = ops->get_key_chunk(index_key, sc_level);
 
-		sc_segments = shortcut->index_key[sc_level >> ASSOC_ARRAY_KEY_CHUNK_SHIFT];
+		sc_segments = shortcut->index_key[sc_level >>
+						  ASSOC_ARRAY_KEY_CHUNK_SHIFT];
 		dissimilarity = segments ^ sc_segments;
 
-		if (round_up(sc_level, ASSOC_ARRAY_KEY_CHUNK_SIZE) > shortcut->skip_to_level) {
+		if (round_up(sc_level, ASSOC_ARRAY_KEY_CHUNK_SIZE) >
+		    shortcut->skip_to_level) {
 			/* Trim segments that are beyond the shortcut */
-			int shift = shortcut->skip_to_level & ASSOC_ARRAY_KEY_CHUNK_MASK;
+			int shift = shortcut->skip_to_level &
+				    ASSOC_ARRAY_KEY_CHUNK_MASK;
 			dissimilarity &= ~(ULONG_MAX << shift);
 			next_sc_level = shortcut->skip_to_level;
 		} else {
 			next_sc_level = sc_level + ASSOC_ARRAY_KEY_CHUNK_SIZE;
-			next_sc_level = round_down(next_sc_level, ASSOC_ARRAY_KEY_CHUNK_SIZE);
+			next_sc_level = round_down(next_sc_level,
+						   ASSOC_ARRAY_KEY_CHUNK_SIZE);
 		}
 
 		if (dissimilarity != 0) {
@@ -302,8 +309,7 @@ follow_shortcut:
  * The caller must hold the RCU read lock or better.
  */
 void *assoc_array_find(const struct assoc_array *array,
-		       const struct assoc_array_ops *ops,
-		       const void *index_key)
+		       const struct assoc_array_ops *ops, const void *index_key)
 {
 	struct assoc_array_walk_result result;
 	const struct assoc_array_node *node;
@@ -471,10 +477,9 @@ static bool assoc_array_insert_in_empty_tree(struct assoc_array_edit *edit)
 /*
  * Handle insertion into a terminal node.
  */
-static bool assoc_array_insert_into_terminal_node(struct assoc_array_edit *edit,
-						  const struct assoc_array_ops *ops,
-						  const void *index_key,
-						  struct assoc_array_walk_result *result)
+static bool assoc_array_insert_into_terminal_node(
+	struct assoc_array_edit *edit, const struct assoc_array_ops *ops,
+	const void *index_key, struct assoc_array_walk_result *result)
 {
 	struct assoc_array_shortcut *shortcut, *new_s0;
 	struct assoc_array_node *node, *new_n0, *new_n1, *side;
@@ -485,8 +490,8 @@ static bool assoc_array_insert_into_terminal_node(struct assoc_array_edit *edit,
 	int level, diff;
 	int slot, next_slot, free_slot, i, j;
 
-	node	= result->terminal_node.node;
-	level	= result->terminal_node.level;
+	node = result->terminal_node.node;
+	level = result->terminal_node.level;
 	edit->segment_cache[ASSOC_ARRAY_FAN_OUT] = result->terminal_node.slot;
 
 	pr_devel("-->%s()\n", __func__);
@@ -694,7 +699,8 @@ found_slot_for_multiple_occupancy:
 				edit->set_backpointers[i] = &side->back_pointer;
 			} else {
 				shortcut = assoc_array_ptr_to_shortcut(ptr);
-				edit->set_backpointers[i] = &shortcut->back_pointer;
+				edit->set_backpointers[i] =
+					&shortcut->back_pointer;
 			}
 		}
 	}
@@ -703,7 +709,8 @@ found_slot_for_multiple_occupancy:
 	if (!ptr)
 		edit->set[0].ptr = &edit->array->root;
 	else if (assoc_array_ptr_is_node(ptr))
-		edit->set[0].ptr = &assoc_array_ptr_to_node(ptr)->slots[node->parent_slot];
+		edit->set[0].ptr =
+			&assoc_array_ptr_to_node(ptr)->slots[node->parent_slot];
 	else
 		edit->set[0].ptr = &assoc_array_ptr_to_shortcut(ptr)->next_node;
 	edit->excised_meta[0] = assoc_array_node_to_ptr(node);
@@ -728,8 +735,8 @@ all_leaves_cluster_together:
 	pr_devel("all leaves cluster together\n");
 	diff = INT_MAX;
 	for (i = 0; i < ASSOC_ARRAY_FAN_OUT; i++) {
-		int x = ops->diff_objects(assoc_array_ptr_to_leaf(node->slots[i]),
-					  index_key);
+		int x = ops->diff_objects(
+			assoc_array_ptr_to_leaf(node->slots[i]), index_key);
 		if (x < diff) {
 			BUG_ON(x < 0);
 			diff = x;
@@ -760,8 +767,8 @@ all_leaves_cluster_together:
 	BUG_ON(level <= 0);
 
 	for (i = 0; i < keylen; i++)
-		new_s0->index_key[i] =
-			ops->get_key_chunk(index_key, i * ASSOC_ARRAY_KEY_CHUNK_SIZE);
+		new_s0->index_key[i] = ops->get_key_chunk(
+			index_key, i * ASSOC_ARRAY_KEY_CHUNK_SIZE);
 
 	if (level & ASSOC_ARRAY_KEY_CHUNK_MASK) {
 		blank = ULONG_MAX << (level & ASSOC_ARRAY_KEY_CHUNK_MASK);
@@ -774,24 +781,26 @@ all_leaves_cluster_together:
 	 */
 	for (i = 0; i < ASSOC_ARRAY_FAN_OUT; i++) {
 		ptr = node->slots[i];
-		base_seg = ops->get_object_key_chunk(assoc_array_ptr_to_leaf(ptr),
-						     level);
+		base_seg = ops->get_object_key_chunk(
+			assoc_array_ptr_to_leaf(ptr), level);
 		base_seg >>= level & ASSOC_ARRAY_KEY_CHUNK_MASK;
 		edit->segment_cache[i] = base_seg & ASSOC_ARRAY_FAN_MASK;
 	}
 
 	base_seg = ops->get_key_chunk(index_key, level);
 	base_seg >>= level & ASSOC_ARRAY_KEY_CHUNK_MASK;
-	edit->segment_cache[ASSOC_ARRAY_FAN_OUT] = base_seg & ASSOC_ARRAY_FAN_MASK;
+	edit->segment_cache[ASSOC_ARRAY_FAN_OUT] =
+		base_seg & ASSOC_ARRAY_FAN_MASK;
 	goto do_split_node;
 }
 
 /*
  * Handle insertion into the middle of a shortcut.
  */
-static bool assoc_array_insert_mid_shortcut(struct assoc_array_edit *edit,
-					    const struct assoc_array_ops *ops,
-					    struct assoc_array_walk_result *result)
+static bool
+assoc_array_insert_mid_shortcut(struct assoc_array_edit *edit,
+				const struct assoc_array_ops *ops,
+				struct assoc_array_walk_result *result)
 {
 	struct assoc_array_shortcut *shortcut, *new_s0, *new_s1;
 	struct assoc_array_node *node, *new_n0, *side;
@@ -800,14 +809,14 @@ static bool assoc_array_insert_mid_shortcut(struct assoc_array_edit *edit,
 	int level, sc_level, diff;
 	int sc_slot;
 
-	shortcut	= result->wrong_shortcut.shortcut;
-	level		= result->wrong_shortcut.level;
-	sc_level	= result->wrong_shortcut.sc_level;
-	sc_segments	= result->wrong_shortcut.sc_segments;
-	dissimilarity	= result->wrong_shortcut.dissimilarity;
+	shortcut = result->wrong_shortcut.shortcut;
+	level = result->wrong_shortcut.level;
+	sc_level = result->wrong_shortcut.sc_level;
+	sc_segments = result->wrong_shortcut.sc_segments;
+	dissimilarity = result->wrong_shortcut.dissimilarity;
 
-	pr_devel("-->%s(ix=%d dis=%lx scix=%d)\n",
-		 __func__, level, dissimilarity, sc_level);
+	pr_devel("-->%s(ix=%d dis=%lx scix=%d)\n", __func__, level,
+		 dissimilarity, sc_level);
 
 	/* We need to split a shortcut and insert a node between the two
 	 * pieces.  Zero-length pieces will be dispensed with entirely.
@@ -884,8 +893,8 @@ static bool assoc_array_insert_mid_shortcut(struct assoc_array_edit *edit,
 	sc_slot = sc_segments >> (diff & ASSOC_ARRAY_KEY_CHUNK_MASK);
 	sc_slot &= ASSOC_ARRAY_FAN_MASK;
 
-	pr_devel("new slot %lx >> %d -> %d\n",
-		 sc_segments, diff & ASSOC_ARRAY_KEY_CHUNK_MASK, sc_slot);
+	pr_devel("new slot %lx >> %d -> %d\n", sc_segments,
+		 diff & ASSOC_ARRAY_KEY_CHUNK_MASK, sc_slot);
 
 	/* Determine whether we need to follow the new node with a replacement
 	 * for the current shortcut.  We could in theory reuse the current
@@ -894,8 +903,10 @@ static bool assoc_array_insert_mid_shortcut(struct assoc_array_edit *edit,
 	 */
 	level = diff + ASSOC_ARRAY_LEVEL_STEP;
 	if (level < shortcut->skip_to_level) {
-		pr_devel("post-shortcut %d...%d\n", level, shortcut->skip_to_level);
-		keylen = round_up(shortcut->skip_to_level, ASSOC_ARRAY_KEY_CHUNK_SIZE);
+		pr_devel("post-shortcut %d...%d\n", level,
+			 shortcut->skip_to_level);
+		keylen = round_up(shortcut->skip_to_level,
+				  ASSOC_ARRAY_KEY_CHUNK_SIZE);
 		keylen >>= ASSOC_ARRAY_KEY_CHUNK_SHIFT;
 
 		new_s1 = kzalloc(struct_size(new_s1, index_key, keylen),
@@ -962,8 +973,7 @@ static bool assoc_array_insert_mid_shortcut(struct assoc_array_edit *edit,
  */
 struct assoc_array_edit *assoc_array_insert(struct assoc_array *array,
 					    const struct assoc_array_ops *ops,
-					    const void *index_key,
-					    void *object)
+					    const void *index_key, void *object)
 {
 	struct assoc_array_walk_result result;
 	struct assoc_array_edit *edit;
@@ -1034,9 +1044,9 @@ void assoc_array_insert_set_object(struct assoc_array_edit *edit, void *object)
 }
 
 struct assoc_array_delete_collapse_context {
-	struct assoc_array_node	*node;
-	const void		*skip_leaf;
-	int			slot;
+	struct assoc_array_node *node;
+	const void *skip_leaf;
+	int slot;
 };
 
 /*
@@ -1106,8 +1116,7 @@ struct assoc_array_edit *assoc_array_delete(struct assoc_array *array,
 
 		for (slot = 0; slot < ASSOC_ARRAY_FAN_OUT; slot++) {
 			ptr = node->slots[slot];
-			if (ptr &&
-			    assoc_array_ptr_is_leaf(ptr) &&
+			if (ptr && assoc_array_ptr_is_leaf(ptr) &&
 			    ops->compare_object(assoc_array_ptr_to_leaf(ptr),
 						index_key))
 				goto found_leaf;
@@ -1171,28 +1180,31 @@ found_leaf:
 			}
 		}
 
-		pr_devel("leaves: %ld [m=%d]\n",
-			 node->nr_leaves_on_branch - 1, has_meta);
+		pr_devel("leaves: %ld [m=%d]\n", node->nr_leaves_on_branch - 1,
+			 has_meta);
 
 		/* Look further up the tree to see if we can collapse this node
 		 * into a more proximal node too.
 		 */
 		parent = node;
 	collapse_up:
-		pr_devel("collapse subtree: %ld\n", parent->nr_leaves_on_branch);
+		pr_devel("collapse subtree: %ld\n",
+			 parent->nr_leaves_on_branch);
 
 		ptr = parent->back_pointer;
 		if (!ptr)
 			goto do_collapse;
 		if (assoc_array_ptr_is_shortcut(ptr)) {
-			struct assoc_array_shortcut *s = assoc_array_ptr_to_shortcut(ptr);
+			struct assoc_array_shortcut *s =
+				assoc_array_ptr_to_shortcut(ptr);
 			ptr = s->back_pointer;
 			if (!ptr)
 				goto do_collapse;
 		}
 
 		grandparent = assoc_array_ptr_to_node(ptr);
-		if (grandparent->nr_leaves_on_branch <= ASSOC_ARRAY_FAN_OUT + 1) {
+		if (grandparent->nr_leaves_on_branch <=
+		    ASSOC_ARRAY_FAN_OUT + 1) {
 			parent = grandparent;
 			goto collapse_up;
 		}
@@ -1206,7 +1218,8 @@ found_leaf:
 			node = parent;
 
 			/* Create a new node to collapse into */
-			new_n0 = kzalloc(sizeof(struct assoc_array_node), GFP_KERNEL);
+			new_n0 = kzalloc(sizeof(struct assoc_array_node),
+					 GFP_KERNEL);
 			if (!new_n0)
 				goto enomem;
 			edit->new_meta[0] = assoc_array_node_to_ptr(new_n0);
@@ -1217,26 +1230,35 @@ found_leaf:
 			edit->adjust_count_on = new_n0;
 
 			collapse.node = new_n0;
-			collapse.skip_leaf = assoc_array_ptr_to_leaf(edit->dead_leaf);
+			collapse.skip_leaf =
+				assoc_array_ptr_to_leaf(edit->dead_leaf);
 			collapse.slot = 0;
-			assoc_array_subtree_iterate(assoc_array_node_to_ptr(node),
-						    node->back_pointer,
-						    assoc_array_delete_collapse_iterator,
-						    &collapse);
-			pr_devel("collapsed %d,%lu\n", collapse.slot, new_n0->nr_leaves_on_branch);
-			BUG_ON(collapse.slot != new_n0->nr_leaves_on_branch - 1);
+			assoc_array_subtree_iterate(
+				assoc_array_node_to_ptr(node),
+				node->back_pointer,
+				assoc_array_delete_collapse_iterator,
+				&collapse);
+			pr_devel("collapsed %d,%lu\n", collapse.slot,
+				 new_n0->nr_leaves_on_branch);
+			BUG_ON(collapse.slot !=
+			       new_n0->nr_leaves_on_branch - 1);
 
 			if (!node->back_pointer) {
 				edit->set[1].ptr = &array->root;
-			} else if (assoc_array_ptr_is_leaf(node->back_pointer)) {
+			} else if (assoc_array_ptr_is_leaf(
+					   node->back_pointer)) {
 				BUG();
-			} else if (assoc_array_ptr_is_node(node->back_pointer)) {
+			} else if (assoc_array_ptr_is_node(
+					   node->back_pointer)) {
 				struct assoc_array_node *p =
-					assoc_array_ptr_to_node(node->back_pointer);
+					assoc_array_ptr_to_node(
+						node->back_pointer);
 				edit->set[1].ptr = &p->slots[node->parent_slot];
-			} else if (assoc_array_ptr_is_shortcut(node->back_pointer)) {
+			} else if (assoc_array_ptr_is_shortcut(
+					   node->back_pointer)) {
 				struct assoc_array_shortcut *s =
-					assoc_array_ptr_to_shortcut(node->back_pointer);
+					assoc_array_ptr_to_shortcut(
+						node->back_pointer);
 				edit->set[1].ptr = &s->next_node;
 			}
 			edit->set[1].to = assoc_array_node_to_ptr(new_n0);
@@ -1306,7 +1328,8 @@ static void assoc_array_rcu_cleanup(struct rcu_head *head)
 	pr_devel("-->%s()\n", __func__);
 
 	if (edit->dead_leaf)
-		edit->ops->free_object(assoc_array_ptr_to_leaf(edit->dead_leaf));
+		edit->ops->free_object(
+			assoc_array_ptr_to_leaf(edit->dead_leaf));
 	for (i = 0; i < ARRAY_SIZE(edit->excised_meta); i++)
 		if (edit->excised_meta[i])
 			kfree(assoc_array_ptr_to_node(edit->excised_meta[i]));
@@ -1319,7 +1342,8 @@ static void assoc_array_rcu_cleanup(struct rcu_head *head)
 			n->back_pointer = NULL;
 		} else {
 			struct assoc_array_shortcut *s =
-				assoc_array_ptr_to_shortcut(edit->excised_subtree);
+				assoc_array_ptr_to_shortcut(
+					edit->excised_subtree);
 			s->back_pointer = NULL;
 		}
 		assoc_array_destroy_subtree(edit->excised_subtree,
@@ -1358,7 +1382,8 @@ void assoc_array_apply_edit(struct assoc_array_edit *edit)
 	smp_wmb();
 	for (i = 0; i < ARRAY_SIZE(edit->set_parent_slot); i++)
 		if (edit->set_parent_slot[i].p)
-			*edit->set_parent_slot[i].p = edit->set_parent_slot[i].to;
+			*edit->set_parent_slot[i].p =
+				edit->set_parent_slot[i].to;
 
 	smp_wmb();
 	for (i = 0; i < ARRAY_SIZE(edit->set_backpointers); i++)
@@ -1450,8 +1475,7 @@ void assoc_array_cancel_edit(struct assoc_array_edit *edit)
  * Accesses to the tree may take place concurrently with this function,
  * provided they hold the RCU read lock.
  */
-int assoc_array_gc(struct assoc_array *array,
-		   const struct assoc_array_ops *ops,
+int assoc_array_gc(struct assoc_array *array, const struct assoc_array_ops *ops,
 		   bool (*iterator)(void *object, void *iterator_data),
 		   void *iterator_data)
 {
@@ -1487,7 +1511,8 @@ descend:
 	 */
 	if (assoc_array_ptr_is_shortcut(cursor)) {
 		shortcut = assoc_array_ptr_to_shortcut(cursor);
-		keylen = round_up(shortcut->skip_to_level, ASSOC_ARRAY_KEY_CHUNK_SIZE);
+		keylen = round_up(shortcut->skip_to_level,
+				  ASSOC_ARRAY_KEY_CHUNK_SIZE);
 		keylen >>= ASSOC_ARRAY_KEY_CHUNK_SHIFT;
 		new_s = kmalloc(struct_size(new_s, index_key, keylen),
 				GFP_KERNEL);
@@ -1573,8 +1598,8 @@ continue_node:
 
 		if (child->nr_leaves_on_branch <= nr_free + 1) {
 			/* Fold the child node into this one */
-			pr_devel("[%d] fold node %lu/%d [nx %d]\n",
-				 slot, child->nr_leaves_on_branch, nr_free + 1,
+			pr_devel("[%d] fold node %lu/%d [nx %d]\n", slot,
+				 child->nr_leaves_on_branch, nr_free + 1,
 				 next_slot);
 
 			/* We would already have reaped an intervening shortcut
@@ -1599,8 +1624,8 @@ continue_node:
 			}
 			kfree(child);
 		} else {
-			pr_devel("[%d] retain node %lu/%d [nx %d]\n",
-				 slot, child->nr_leaves_on_branch, nr_free + 1,
+			pr_devel("[%d] retain node %lu/%d [nx %d]\n", slot,
+				 child->nr_leaves_on_branch, nr_free + 1,
 				 next_slot);
 		}
 	}
@@ -1636,7 +1661,8 @@ continue_node:
 
 				pr_devel("excise preceding shortcut\n");
 
-				new_parent = new_s->back_pointer = s->back_pointer;
+				new_parent = new_s->back_pointer =
+					s->back_pointer;
 				slot = new_s->parent_slot = s->parent_slot;
 				kfree(s);
 				if (!new_parent) {

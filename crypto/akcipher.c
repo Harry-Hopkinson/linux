@@ -29,8 +29,8 @@ static int crypto_akcipher_report(struct sk_buff *skb, struct crypto_alg *alg)
 
 	strscpy(rakcipher.type, "akcipher", sizeof(rakcipher.type));
 
-	return nla_put(skb, CRYPTOCFGA_REPORT_AKCIPHER,
-		       sizeof(rakcipher), &rakcipher);
+	return nla_put(skb, CRYPTOCFGA_REPORT_AKCIPHER, sizeof(rakcipher),
+		       &rakcipher);
 }
 #else
 static int crypto_akcipher_report(struct sk_buff *skb, struct crypto_alg *alg)
@@ -39,8 +39,8 @@ static int crypto_akcipher_report(struct sk_buff *skb, struct crypto_alg *alg)
 }
 #endif
 
-static void crypto_akcipher_show(struct seq_file *m, struct crypto_alg *alg)
-	__maybe_unused;
+static void crypto_akcipher_show(struct seq_file *m,
+				 struct crypto_alg *alg) __maybe_unused;
 
 static void crypto_akcipher_show(struct seq_file *m, struct crypto_alg *alg)
 {
@@ -91,8 +91,8 @@ static const struct crypto_type crypto_akcipher_type = {
 };
 
 int crypto_grab_akcipher(struct crypto_akcipher_spawn *spawn,
-			 struct crypto_instance *inst,
-			 const char *name, u32 type, u32 mask)
+			 struct crypto_instance *inst, const char *name,
+			 u32 type, u32 mask)
 {
 	spawn->base.frontend = &crypto_akcipher_type;
 	return crypto_grab_spawn(&spawn->base, inst, name, type, mask);

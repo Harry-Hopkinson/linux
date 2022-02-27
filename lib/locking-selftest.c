@@ -27,9 +27,9 @@
 #include <linux/local_lock.h>
 
 #ifdef CONFIG_PREEMPT_RT
-# define NON_RT(...)
+#define NON_RT(...)
 #else
-# define NON_RT(...)	__VA_ARGS__
+#define NON_RT(...) __VA_ARGS__
 #endif
 
 /*
@@ -49,16 +49,16 @@ static int __init setup_debug_locks_verbose(char *str)
 
 __setup("debug_locks_verbose=", setup_debug_locks_verbose);
 
-#define FAILURE		0
-#define SUCCESS		1
+#define FAILURE 0
+#define SUCCESS 1
 
-#define LOCKTYPE_SPIN	0x1
-#define LOCKTYPE_RWLOCK	0x2
-#define LOCKTYPE_MUTEX	0x4
-#define LOCKTYPE_RWSEM	0x8
-#define LOCKTYPE_WW	0x10
+#define LOCKTYPE_SPIN 0x1
+#define LOCKTYPE_RWLOCK 0x2
+#define LOCKTYPE_MUTEX 0x4
+#define LOCKTYPE_RWSEM 0x8
+#define LOCKTYPE_WW 0x10
 #define LOCKTYPE_RTMUTEX 0x20
-#define LOCKTYPE_LL	0x40
+#define LOCKTYPE_LL 0x40
 #define LOCKTYPE_SPECIAL 0x80
 
 static struct ww_acquire_ctx t, t2;
@@ -151,16 +151,17 @@ static DEFINE_PER_CPU(local_lock_t, local_A);
  * non-inlined runtime initializers, to let separate locks share
  * the same lock-class:
  */
-#define INIT_CLASS_FUNC(class) 				\
-static noinline void					\
-init_class_##class(spinlock_t *lock, rwlock_t *rwlock, \
-	struct mutex *mutex, struct rw_semaphore *rwsem)\
-{							\
-	spin_lock_init(lock);			\
-	rwlock_init(rwlock);				\
-	mutex_init(mutex);				\
-	init_rwsem(rwsem);				\
-}
+#define INIT_CLASS_FUNC(class)                                                 \
+	static noinline void init_class_##class(spinlock_t * lock,             \
+						rwlock_t * rwlock,             \
+						struct mutex * mutex,          \
+						struct rw_semaphore * rwsem)   \
+	{                                                                      \
+		spin_lock_init(lock);                                          \
+		rwlock_init(rwlock);                                           \
+		mutex_init(mutex);                                             \
+		init_rwsem(rwsem);                                             \
+	}
 
 INIT_CLASS_FUNC(X)
 INIT_CLASS_FUNC(Y)
@@ -195,112 +196,166 @@ static void init_shared_classes(void)
  * context, causing the locks to be marked as hardirq-safe/softirq-safe:
  */
 
-#define HARDIRQ_DISABLE		local_irq_disable
-#define HARDIRQ_ENABLE		local_irq_enable
+#define HARDIRQ_DISABLE local_irq_disable
+#define HARDIRQ_ENABLE local_irq_enable
 
-#define HARDIRQ_ENTER()				\
-	local_irq_disable();			\
-	__irq_enter();				\
-	lockdep_hardirq_threaded();		\
+#define HARDIRQ_ENTER()                                                        \
+	local_irq_disable();                                                   \
+	__irq_enter();                                                         \
+	lockdep_hardirq_threaded();                                            \
 	WARN_ON(!in_irq());
 
-#define HARDIRQ_EXIT()				\
-	__irq_exit();				\
+#define HARDIRQ_EXIT()                                                         \
+	__irq_exit();                                                          \
 	local_irq_enable();
 
-#define SOFTIRQ_DISABLE		local_bh_disable
-#define SOFTIRQ_ENABLE		local_bh_enable
+#define SOFTIRQ_DISABLE local_bh_disable
+#define SOFTIRQ_ENABLE local_bh_enable
 
-#define SOFTIRQ_ENTER()				\
-		local_bh_disable();		\
-		local_irq_disable();		\
-		lockdep_softirq_enter();	\
-		WARN_ON(!in_softirq());
+#define SOFTIRQ_ENTER()                                                        \
+	local_bh_disable();                                                    \
+	local_irq_disable();                                                   \
+	lockdep_softirq_enter();                                               \
+	WARN_ON(!in_softirq());
 
-#define SOFTIRQ_EXIT()				\
-		lockdep_softirq_exit();		\
-		local_irq_enable();		\
-		local_bh_enable();
+#define SOFTIRQ_EXIT()                                                         \
+	lockdep_softirq_exit();                                                \
+	local_irq_enable();                                                    \
+	local_bh_enable();
 
 /*
  * Shortcuts for lock/unlock API variants, to keep
  * the testcases compact:
  */
-#define L(x)			spin_lock(&lock_##x)
-#define U(x)			spin_unlock(&lock_##x)
-#define LU(x)			L(x); U(x)
-#define SI(x)			spin_lock_init(&lock_##x)
+#define L(x) spin_lock(&lock_##x)
+#define U(x) spin_unlock(&lock_##x)
+#define LU(x)                                                                  \
+	L(x);                                                                  \
+	U(x)
+#define SI(x) spin_lock_init(&lock_##x)
 
-#define WL(x)			write_lock(&rwlock_##x)
-#define WU(x)			write_unlock(&rwlock_##x)
-#define WLU(x)			WL(x); WU(x)
+#define WL(x) write_lock(&rwlock_##x)
+#define WU(x) write_unlock(&rwlock_##x)
+#define WLU(x)                                                                 \
+	WL(x);                                                                 \
+	WU(x)
 
-#define RL(x)			read_lock(&rwlock_##x)
-#define RU(x)			read_unlock(&rwlock_##x)
-#define RLU(x)			RL(x); RU(x)
-#define RWI(x)			rwlock_init(&rwlock_##x)
+#define RL(x) read_lock(&rwlock_##x)
+#define RU(x) read_unlock(&rwlock_##x)
+#define RLU(x)                                                                 \
+	RL(x);                                                                 \
+	RU(x)
+#define RWI(x) rwlock_init(&rwlock_##x)
 
-#define ML(x)			mutex_lock(&mutex_##x)
-#define MU(x)			mutex_unlock(&mutex_##x)
-#define MI(x)			mutex_init(&mutex_##x)
+#define ML(x) mutex_lock(&mutex_##x)
+#define MU(x) mutex_unlock(&mutex_##x)
+#define MI(x) mutex_init(&mutex_##x)
 
-#define RTL(x)			rt_mutex_lock(&rtmutex_##x)
-#define RTU(x)			rt_mutex_unlock(&rtmutex_##x)
-#define RTI(x)			rt_mutex_init(&rtmutex_##x)
+#define RTL(x) rt_mutex_lock(&rtmutex_##x)
+#define RTU(x) rt_mutex_unlock(&rtmutex_##x)
+#define RTI(x) rt_mutex_init(&rtmutex_##x)
 
-#define WSL(x)			down_write(&rwsem_##x)
-#define WSU(x)			up_write(&rwsem_##x)
+#define WSL(x) down_write(&rwsem_##x)
+#define WSU(x) up_write(&rwsem_##x)
 
-#define RSL(x)			down_read(&rwsem_##x)
-#define RSU(x)			up_read(&rwsem_##x)
-#define RWSI(x)			init_rwsem(&rwsem_##x)
+#define RSL(x) down_read(&rwsem_##x)
+#define RSU(x) up_read(&rwsem_##x)
+#define RWSI(x) init_rwsem(&rwsem_##x)
 
 #ifndef CONFIG_DEBUG_WW_MUTEX_SLOWPATH
-#define WWAI(x)			ww_acquire_init(x, &ww_lockdep)
+#define WWAI(x) ww_acquire_init(x, &ww_lockdep)
 #else
-#define WWAI(x)			do { ww_acquire_init(x, &ww_lockdep); (x)->deadlock_inject_countdown = ~0U; } while (0)
+#define WWAI(x)                                                                \
+	do {                                                                   \
+		ww_acquire_init(x, &ww_lockdep);                               \
+		(x)->deadlock_inject_countdown = ~0U;                          \
+	} while (0)
 #endif
-#define WWAD(x)			ww_acquire_done(x)
-#define WWAF(x)			ww_acquire_fini(x)
+#define WWAD(x) ww_acquire_done(x)
+#define WWAF(x) ww_acquire_fini(x)
 
-#define WWL(x, c)		ww_mutex_lock(x, c)
-#define WWT(x)			ww_mutex_trylock(x, NULL)
-#define WWL1(x)			ww_mutex_lock(x, NULL)
-#define WWU(x)			ww_mutex_unlock(x)
+#define WWL(x, c) ww_mutex_lock(x, c)
+#define WWT(x) ww_mutex_trylock(x, NULL)
+#define WWL1(x) ww_mutex_lock(x, NULL)
+#define WWU(x) ww_mutex_unlock(x)
 
-
-#define LOCK_UNLOCK_2(x,y)	LOCK(x); LOCK(y); UNLOCK(y); UNLOCK(x)
+#define LOCK_UNLOCK_2(x, y)                                                    \
+	LOCK(x);                                                               \
+	LOCK(y);                                                               \
+	UNLOCK(y);                                                             \
+	UNLOCK(x)
 
 /*
  * Generate different permutations of the same testcase, using
  * the same basic lock-dependency/state events:
  */
 
-#define GENERATE_TESTCASE(name)			\
-						\
-static void name(void) { E(); }
+#define GENERATE_TESTCASE(name)                                                \
+                                                                               \
+	static void name(void)                                                 \
+	{                                                                      \
+		E();                                                           \
+	}
 
-#define GENERATE_PERMUTATIONS_2_EVENTS(name)	\
-						\
-static void name##_12(void) { E1(); E2(); }	\
-static void name##_21(void) { E2(); E1(); }
+#define GENERATE_PERMUTATIONS_2_EVENTS(name)                                   \
+                                                                               \
+	static void name##_12(void)                                            \
+	{                                                                      \
+		E1();                                                          \
+		E2();                                                          \
+	}                                                                      \
+	static void name##_21(void)                                            \
+	{                                                                      \
+		E2();                                                          \
+		E1();                                                          \
+	}
 
-#define GENERATE_PERMUTATIONS_3_EVENTS(name)		\
-							\
-static void name##_123(void) { E1(); E2(); E3(); }	\
-static void name##_132(void) { E1(); E3(); E2(); }	\
-static void name##_213(void) { E2(); E1(); E3(); }	\
-static void name##_231(void) { E2(); E3(); E1(); }	\
-static void name##_312(void) { E3(); E1(); E2(); }	\
-static void name##_321(void) { E3(); E2(); E1(); }
+#define GENERATE_PERMUTATIONS_3_EVENTS(name)                                   \
+                                                                               \
+	static void name##_123(void)                                           \
+	{                                                                      \
+		E1();                                                          \
+		E2();                                                          \
+		E3();                                                          \
+	}                                                                      \
+	static void name##_132(void)                                           \
+	{                                                                      \
+		E1();                                                          \
+		E3();                                                          \
+		E2();                                                          \
+	}                                                                      \
+	static void name##_213(void)                                           \
+	{                                                                      \
+		E2();                                                          \
+		E1();                                                          \
+		E3();                                                          \
+	}                                                                      \
+	static void name##_231(void)                                           \
+	{                                                                      \
+		E2();                                                          \
+		E3();                                                          \
+		E1();                                                          \
+	}                                                                      \
+	static void name##_312(void)                                           \
+	{                                                                      \
+		E3();                                                          \
+		E1();                                                          \
+		E2();                                                          \
+	}                                                                      \
+	static void name##_321(void)                                           \
+	{                                                                      \
+		E3();                                                          \
+		E2();                                                          \
+		E1();                                                          \
+	}
 
 /*
  * AA deadlock:
  */
 
-#define E()					\
-						\
-	LOCK(X1);				\
+#define E()                                                                    \
+                                                                               \
+	LOCK(X1);                                                              \
 	LOCK(X2); /* this one should fail */
 
 /*
@@ -487,7 +542,6 @@ static void rwsem_ABBA2(void)
 	MU(Y1); // should fail
 }
 
-
 /*
  * write_lock(A)
  * spin_lock(B)
@@ -524,9 +578,9 @@ static void rwsem_ABBA3(void)
  * ABBA deadlock:
  */
 
-#define E()					\
-						\
-	LOCK_UNLOCK_2(A, B);			\
+#define E()                                                                    \
+                                                                               \
+	LOCK_UNLOCK_2(A, B);                                                   \
 	LOCK_UNLOCK_2(B, A); /* fail */
 
 /*
@@ -556,10 +610,10 @@ GENERATE_TESTCASE(ABBA_rtmutex);
  * AB BC CA deadlock:
  */
 
-#define E()					\
-						\
-	LOCK_UNLOCK_2(A, B);			\
-	LOCK_UNLOCK_2(B, C);			\
+#define E()                                                                    \
+                                                                               \
+	LOCK_UNLOCK_2(A, B);                                                   \
+	LOCK_UNLOCK_2(B, C);                                                   \
 	LOCK_UNLOCK_2(C, A); /* fail */
 
 /*
@@ -589,10 +643,10 @@ GENERATE_TESTCASE(ABBCCA_rtmutex);
  * AB CA BC deadlock:
  */
 
-#define E()					\
-						\
-	LOCK_UNLOCK_2(A, B);			\
-	LOCK_UNLOCK_2(C, A);			\
+#define E()                                                                    \
+                                                                               \
+	LOCK_UNLOCK_2(A, B);                                                   \
+	LOCK_UNLOCK_2(C, A);                                                   \
 	LOCK_UNLOCK_2(B, C); /* fail */
 
 /*
@@ -622,11 +676,11 @@ GENERATE_TESTCASE(ABCABC_rtmutex);
  * AB BC CD DA deadlock:
  */
 
-#define E()					\
-						\
-	LOCK_UNLOCK_2(A, B);			\
-	LOCK_UNLOCK_2(B, C);			\
-	LOCK_UNLOCK_2(C, D);			\
+#define E()                                                                    \
+                                                                               \
+	LOCK_UNLOCK_2(A, B);                                                   \
+	LOCK_UNLOCK_2(B, C);                                                   \
+	LOCK_UNLOCK_2(C, D);                                                   \
 	LOCK_UNLOCK_2(D, A); /* fail */
 
 /*
@@ -655,11 +709,11 @@ GENERATE_TESTCASE(ABBCCDDA_rtmutex);
 /*
  * AB CD BD DA deadlock:
  */
-#define E()					\
-						\
-	LOCK_UNLOCK_2(A, B);			\
-	LOCK_UNLOCK_2(C, D);			\
-	LOCK_UNLOCK_2(B, D);			\
+#define E()                                                                    \
+                                                                               \
+	LOCK_UNLOCK_2(A, B);                                                   \
+	LOCK_UNLOCK_2(C, D);                                                   \
+	LOCK_UNLOCK_2(B, D);                                                   \
 	LOCK_UNLOCK_2(D, A); /* fail */
 
 /*
@@ -688,11 +742,11 @@ GENERATE_TESTCASE(ABCDBDDA_rtmutex);
 /*
  * AB CD BC DA deadlock:
  */
-#define E()					\
-						\
-	LOCK_UNLOCK_2(A, B);			\
-	LOCK_UNLOCK_2(C, D);			\
-	LOCK_UNLOCK_2(B, C);			\
+#define E()                                                                    \
+                                                                               \
+	LOCK_UNLOCK_2(A, B);                                                   \
+	LOCK_UNLOCK_2(C, D);                                                   \
+	LOCK_UNLOCK_2(B, C);                                                   \
 	LOCK_UNLOCK_2(D, A); /* fail */
 
 /*
@@ -719,18 +773,22 @@ GENERATE_TESTCASE(ABCDBCDA_rtmutex);
 #undef E
 
 #ifdef CONFIG_PREEMPT_RT
-# define RT_PREPARE_DBL_UNLOCK()	{ migrate_disable(); rcu_read_lock(); }
+#define RT_PREPARE_DBL_UNLOCK()                                                \
+	{                                                                      \
+		migrate_disable();                                             \
+		rcu_read_lock();                                               \
+	}
 #else
-# define RT_PREPARE_DBL_UNLOCK()
+#define RT_PREPARE_DBL_UNLOCK()
 #endif
 /*
  * Double unlock:
  */
-#define E()					\
-						\
-	LOCK(A);				\
-	RT_PREPARE_DBL_UNLOCK();		\
-	UNLOCK(A);				\
+#define E()                                                                    \
+                                                                               \
+	LOCK(A);                                                               \
+	RT_PREPARE_DBL_UNLOCK();                                               \
+	UNLOCK(A);                                                             \
 	UNLOCK(A); /* fail */
 
 /*
@@ -759,9 +817,9 @@ GENERATE_TESTCASE(double_unlock_rtmutex);
 /*
  * initializing a held lock:
  */
-#define E()					\
-						\
-	LOCK(A);				\
+#define E()                                                                    \
+                                                                               \
+	LOCK(A);                                                               \
 	INIT(A); /* fail */
 
 /*
@@ -790,16 +848,16 @@ GENERATE_TESTCASE(init_held_rtmutex);
 /*
  * locking an irq-safe lock with irqs enabled:
  */
-#define E1()				\
-					\
-	IRQ_ENTER();			\
-	LOCK(A);			\
-	UNLOCK(A);			\
+#define E1()                                                                   \
+                                                                               \
+	IRQ_ENTER();                                                           \
+	LOCK(A);                                                               \
+	UNLOCK(A);                                                             \
 	IRQ_EXIT();
 
-#define E2()				\
-					\
-	LOCK(A);			\
+#define E2()                                                                   \
+                                                                               \
+	LOCK(A);                                                               \
 	UNLOCK(A);
 
 /*
@@ -832,18 +890,18 @@ GENERATE_PERMUTATIONS_2_EVENTS(irqsafe1_soft_wlock)
 /*
  * Enabling hardirqs with a softirq-safe lock held:
  */
-#define E1()				\
-					\
-	SOFTIRQ_ENTER();		\
-	LOCK(A);			\
-	UNLOCK(A);			\
+#define E1()                                                                   \
+                                                                               \
+	SOFTIRQ_ENTER();                                                       \
+	LOCK(A);                                                               \
+	UNLOCK(A);                                                             \
 	SOFTIRQ_EXIT();
 
-#define E2()				\
-					\
-	HARDIRQ_DISABLE();		\
-	LOCK(A);			\
-	HARDIRQ_ENABLE();		\
+#define E2()                                                                   \
+                                                                               \
+	HARDIRQ_DISABLE();                                                     \
+	LOCK(A);                                                               \
+	HARDIRQ_ENABLE();                                                      \
 	UNLOCK(A);
 
 /*
@@ -866,18 +924,18 @@ GENERATE_PERMUTATIONS_2_EVENTS(irqsafe2A_rlock)
 /*
  * Enabling irqs with an irq-safe lock held:
  */
-#define E1()				\
-					\
-	IRQ_ENTER();			\
-	LOCK(A);			\
-	UNLOCK(A);			\
+#define E1()                                                                   \
+                                                                               \
+	IRQ_ENTER();                                                           \
+	LOCK(A);                                                               \
+	UNLOCK(A);                                                             \
 	IRQ_EXIT();
 
-#define E2()				\
-					\
-	IRQ_DISABLE();			\
-	LOCK(A);			\
-	IRQ_ENABLE();			\
+#define E2()                                                                   \
+                                                                               \
+	IRQ_DISABLE();                                                         \
+	LOCK(A);                                                               \
+	IRQ_ENABLE();                                                          \
 	UNLOCK(A);
 
 /*
@@ -909,23 +967,23 @@ GENERATE_PERMUTATIONS_2_EVENTS(irqsafe2B_soft_wlock)
 /*
  * Acquiring a irq-unsafe lock while holding an irq-safe-lock:
  */
-#define E1()				\
-					\
-	LOCK(A);			\
-	LOCK(B);			\
-	UNLOCK(B);			\
-	UNLOCK(A);			\
+#define E1()                                                                   \
+                                                                               \
+	LOCK(A);                                                               \
+	LOCK(B);                                                               \
+	UNLOCK(B);                                                             \
+	UNLOCK(A);
 
-#define E2()				\
-					\
-	LOCK(B);			\
+#define E2()                                                                   \
+                                                                               \
+	LOCK(B);                                                               \
 	UNLOCK(B);
 
-#define E3()				\
-					\
-	IRQ_ENTER();			\
-	LOCK(A);			\
-	UNLOCK(A);			\
+#define E3()                                                                   \
+                                                                               \
+	IRQ_ENTER();                                                           \
+	LOCK(A);                                                               \
+	UNLOCK(A);                                                             \
 	IRQ_EXIT();
 
 /*
@@ -960,22 +1018,22 @@ GENERATE_PERMUTATIONS_3_EVENTS(irqsafe3_soft_wlock)
  * a softirq-unsafe lock:
  */
 
-#define E1()				\
-	IRQ_DISABLE();			\
-	LOCK(A);			\
-	LOCK(B);			\
-	UNLOCK(B);			\
-	UNLOCK(A);			\
+#define E1()                                                                   \
+	IRQ_DISABLE();                                                         \
+	LOCK(A);                                                               \
+	LOCK(B);                                                               \
+	UNLOCK(B);                                                             \
+	UNLOCK(A);                                                             \
 	IRQ_ENABLE();
 
-#define E2()				\
-	LOCK(B);			\
+#define E2()                                                                   \
+	LOCK(B);                                                               \
 	UNLOCK(B);
 
-#define E3()				\
-	IRQ_ENTER();			\
-	LOCK(A);			\
-	UNLOCK(A);			\
+#define E3()                                                                   \
+	IRQ_ENTER();                                                           \
+	LOCK(A);                                                               \
+	UNLOCK(A);                                                             \
 	IRQ_EXIT();
 
 /*
@@ -1021,25 +1079,25 @@ GENERATE_PERMUTATIONS_3_EVENTS(irqsafe4_soft_wlock)
  * will spin on A.
  */
 
-#define E1()				\
-					\
-	IRQ_DISABLE();			\
-	WL(A);				\
-	LOCK(B);			\
-	UNLOCK(B);			\
-	WU(A);				\
+#define E1()                                                                   \
+                                                                               \
+	IRQ_DISABLE();                                                         \
+	WL(A);                                                                 \
+	LOCK(B);                                                               \
+	UNLOCK(B);                                                             \
+	WU(A);                                                                 \
 	IRQ_ENABLE();
 
-#define E2()				\
-					\
-	LOCK(B);			\
+#define E2()                                                                   \
+                                                                               \
+	LOCK(B);                                                               \
 	UNLOCK(B);
 
-#define E3()				\
-					\
-	IRQ_ENTER();			\
-	RL(A);				\
-	RU(A);				\
+#define E3()                                                                   \
+                                                                               \
+	IRQ_ENTER();                                                           \
+	RL(A);                                                                 \
+	RU(A);                                                                 \
 	IRQ_EXIT();
 
 /*
@@ -1073,25 +1131,25 @@ GENERATE_PERMUTATIONS_3_EVENTS(irq_inversion_soft_wlock)
  * write-read / write-read / write-read deadlock even if read is recursive
  */
 
-#define E1()				\
-					\
-	WL(X1);				\
-	RL(Y1);				\
-	RU(Y1);				\
+#define E1()                                                                   \
+                                                                               \
+	WL(X1);                                                                \
+	RL(Y1);                                                                \
+	RU(Y1);                                                                \
 	WU(X1);
 
-#define E2()				\
-					\
-	WL(Y1);				\
-	RL(Z1);				\
-	RU(Z1);				\
+#define E2()                                                                   \
+                                                                               \
+	WL(Y1);                                                                \
+	RL(Z1);                                                                \
+	RU(Z1);                                                                \
 	WU(Y1);
 
-#define E3()				\
-					\
-	WL(Z1);				\
-	RL(X1);				\
-	RU(X1);				\
+#define E3()                                                                   \
+                                                                               \
+	WL(Z1);                                                                \
+	RL(X1);                                                                \
+	RU(X1);                                                                \
 	WU(Z1);
 
 #include "locking-selftest-rlock.h"
@@ -1105,25 +1163,25 @@ GENERATE_PERMUTATIONS_3_EVENTS(W1R2_W2R3_W3R1)
  * write-write / read-read / write-read deadlock even if read is recursive
  */
 
-#define E1()				\
-					\
-	WL(X1);				\
-	WL(Y1);				\
-	WU(Y1);				\
+#define E1()                                                                   \
+                                                                               \
+	WL(X1);                                                                \
+	WL(Y1);                                                                \
+	WU(Y1);                                                                \
 	WU(X1);
 
-#define E2()				\
-					\
-	RL(Y1);				\
-	RL(Z1);				\
-	RU(Z1);				\
+#define E2()                                                                   \
+                                                                               \
+	RL(Y1);                                                                \
+	RL(Z1);                                                                \
+	RU(Z1);                                                                \
 	RU(Y1);
 
-#define E3()				\
-					\
-	WL(Z1);				\
-	RL(X1);				\
-	RU(X1);				\
+#define E3()                                                                   \
+                                                                               \
+	WL(Z1);                                                                \
+	RL(X1);                                                                \
+	RU(X1);                                                                \
 	WU(Z1);
 
 #include "locking-selftest-rlock.h"
@@ -1137,25 +1195,25 @@ GENERATE_PERMUTATIONS_3_EVENTS(W1W2_R2R3_W3R1)
  * write-write / read-read / read-write is not deadlock when read is recursive
  */
 
-#define E1()				\
-					\
-	WL(X1);				\
-	WL(Y1);				\
-	WU(Y1);				\
+#define E1()                                                                   \
+                                                                               \
+	WL(X1);                                                                \
+	WL(Y1);                                                                \
+	WU(Y1);                                                                \
 	WU(X1);
 
-#define E2()				\
-					\
-	RL(Y1);				\
-	RL(Z1);				\
-	RU(Z1);				\
+#define E2()                                                                   \
+                                                                               \
+	RL(Y1);                                                                \
+	RL(Z1);                                                                \
+	RU(Z1);                                                                \
 	RU(Y1);
 
-#define E3()				\
-					\
-	RL(Z1);				\
-	WL(X1);				\
-	WU(X1);				\
+#define E3()                                                                   \
+                                                                               \
+	RL(Z1);                                                                \
+	WL(X1);                                                                \
+	WU(X1);                                                                \
 	RU(Z1);
 
 #include "locking-selftest-rlock.h"
@@ -1169,25 +1227,25 @@ GENERATE_PERMUTATIONS_3_EVENTS(W1R2_R2R3_W3W1)
  * write-read / read-read / write-write is not deadlock when read is recursive
  */
 
-#define E1()				\
-					\
-	WL(X1);				\
-	RL(Y1);				\
-	RU(Y1);				\
+#define E1()                                                                   \
+                                                                               \
+	WL(X1);                                                                \
+	RL(Y1);                                                                \
+	RU(Y1);                                                                \
 	WU(X1);
 
-#define E2()				\
-					\
-	RL(Y1);				\
-	RL(Z1);				\
-	RU(Z1);				\
+#define E2()                                                                   \
+                                                                               \
+	RL(Y1);                                                                \
+	RL(Z1);                                                                \
+	RU(Z1);                                                                \
 	RU(Y1);
 
-#define E3()				\
-					\
-	WL(Z1);				\
-	WL(X1);				\
-	WU(X1);				\
+#define E3()                                                                   \
+                                                                               \
+	WL(Z1);                                                                \
+	WL(X1);                                                                \
+	WU(X1);                                                                \
 	WU(Z1);
 
 #include "locking-selftest-rlock.h"
@@ -1200,25 +1258,25 @@ GENERATE_PERMUTATIONS_3_EVENTS(W1W2_R2R3_R3W1)
  * read-lock / write-lock recursion that is actually safe.
  */
 
-#define E1()				\
-					\
-	IRQ_DISABLE();			\
-	WL(A);				\
-	WU(A);				\
+#define E1()                                                                   \
+                                                                               \
+	IRQ_DISABLE();                                                         \
+	WL(A);                                                                 \
+	WU(A);                                                                 \
 	IRQ_ENABLE();
 
-#define E2()				\
-					\
-	RL(A);				\
-	RU(A);				\
+#define E2()                                                                   \
+                                                                               \
+	RL(A);                                                                 \
+	RU(A);
 
-#define E3()				\
-					\
-	IRQ_ENTER();			\
-	LOCK(A);			\
-	L(B);				\
-	U(B);				\
-	UNLOCK(A);			\
+#define E3()                                                                   \
+                                                                               \
+	IRQ_ENTER();                                                           \
+	LOCK(A);                                                               \
+	L(B);                                                                  \
+	U(B);                                                                  \
+	UNLOCK(A);                                                             \
 	IRQ_EXIT();
 
 /*
@@ -1248,25 +1306,25 @@ GENERATE_PERMUTATIONS_3_EVENTS(irq_read_recursion_soft_wlock)
  * read-lock / write-lock recursion that is unsafe.
  */
 
-#define E1()				\
-					\
-	IRQ_DISABLE();			\
-	L(B);				\
-	LOCK(A);			\
-	UNLOCK(A);			\
-	U(B);				\
+#define E1()                                                                   \
+                                                                               \
+	IRQ_DISABLE();                                                         \
+	L(B);                                                                  \
+	LOCK(A);                                                               \
+	UNLOCK(A);                                                             \
+	U(B);                                                                  \
 	IRQ_ENABLE();
 
-#define E2()				\
-					\
-	RL(A);				\
-	RU(A);				\
+#define E2()                                                                   \
+                                                                               \
+	RL(A);                                                                 \
+	RU(A);
 
-#define E3()				\
-					\
-	IRQ_ENTER();			\
-	L(B);				\
-	U(B);				\
+#define E3()                                                                   \
+                                                                               \
+	IRQ_ENTER();                                                           \
+	L(B);                                                                  \
+	U(B);                                                                  \
 	IRQ_EXIT();
 
 /*
@@ -1304,25 +1362,25 @@ GENERATE_PERMUTATIONS_3_EVENTS(irq_read_recursion2_soft_wlock)
  * 			write_lock(A); // if this one is read_lock(), no deadlock
  */
 
-#define E1()				\
-					\
-	IRQ_DISABLE();			\
-	WL(B);				\
-	LOCK(A);			\
-	UNLOCK(A);			\
-	WU(B);				\
+#define E1()                                                                   \
+                                                                               \
+	IRQ_DISABLE();                                                         \
+	WL(B);                                                                 \
+	LOCK(A);                                                               \
+	UNLOCK(A);                                                             \
+	WU(B);                                                                 \
 	IRQ_ENABLE();
 
-#define E2()				\
-					\
-	RL(A);				\
-	RU(A);				\
+#define E2()                                                                   \
+                                                                               \
+	RL(A);                                                                 \
+	RU(A);
 
-#define E3()				\
-					\
-	IRQ_ENTER();			\
-	RL(B);				\
-	RU(B);				\
+#define E3()                                                                   \
+                                                                               \
+	IRQ_ENTER();                                                           \
+	RL(B);                                                                 \
+	RU(B);                                                                 \
 	IRQ_EXIT();
 
 /*
@@ -1345,52 +1403,52 @@ GENERATE_PERMUTATIONS_3_EVENTS(irq_read_recursion3_soft_wlock)
 #endif
 
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
-# define I_SPINLOCK(x)	lockdep_reset_lock(&lock_##x.dep_map)
-# define I_RAW_SPINLOCK(x)	lockdep_reset_lock(&raw_lock_##x.dep_map)
-# define I_RWLOCK(x)	lockdep_reset_lock(&rwlock_##x.dep_map)
-# define I_MUTEX(x)	lockdep_reset_lock(&mutex_##x.dep_map)
-# define I_RWSEM(x)	lockdep_reset_lock(&rwsem_##x.dep_map)
-# define I_WW(x)	lockdep_reset_lock(&x.dep_map)
-# define I_LOCAL_LOCK(x) lockdep_reset_lock(this_cpu_ptr(&local_##x.dep_map))
+#define I_SPINLOCK(x) lockdep_reset_lock(&lock_##x.dep_map)
+#define I_RAW_SPINLOCK(x) lockdep_reset_lock(&raw_lock_##x.dep_map)
+#define I_RWLOCK(x) lockdep_reset_lock(&rwlock_##x.dep_map)
+#define I_MUTEX(x) lockdep_reset_lock(&mutex_##x.dep_map)
+#define I_RWSEM(x) lockdep_reset_lock(&rwsem_##x.dep_map)
+#define I_WW(x) lockdep_reset_lock(&x.dep_map)
+#define I_LOCAL_LOCK(x) lockdep_reset_lock(this_cpu_ptr(&local_##x.dep_map))
 #ifdef CONFIG_RT_MUTEXES
-# define I_RTMUTEX(x)	lockdep_reset_lock(&rtmutex_##x.dep_map)
+#define I_RTMUTEX(x) lockdep_reset_lock(&rtmutex_##x.dep_map)
 #endif
 #else
-# define I_SPINLOCK(x)
-# define I_RAW_SPINLOCK(x)
-# define I_RWLOCK(x)
-# define I_MUTEX(x)
-# define I_RWSEM(x)
-# define I_WW(x)
-# define I_LOCAL_LOCK(x)
+#define I_SPINLOCK(x)
+#define I_RAW_SPINLOCK(x)
+#define I_RWLOCK(x)
+#define I_MUTEX(x)
+#define I_RWSEM(x)
+#define I_WW(x)
+#define I_LOCAL_LOCK(x)
 #endif
 
 #ifndef I_RTMUTEX
-# define I_RTMUTEX(x)
+#define I_RTMUTEX(x)
 #endif
 
 #ifdef CONFIG_RT_MUTEXES
-#define I2_RTMUTEX(x)	rt_mutex_init(&rtmutex_##x)
+#define I2_RTMUTEX(x) rt_mutex_init(&rtmutex_##x)
 #else
 #define I2_RTMUTEX(x)
 #endif
 
-#define I1(x)					\
-	do {					\
-		I_SPINLOCK(x);			\
-		I_RWLOCK(x);			\
-		I_MUTEX(x);			\
-		I_RWSEM(x);			\
-		I_RTMUTEX(x);			\
+#define I1(x)                                                                  \
+	do {                                                                   \
+		I_SPINLOCK(x);                                                 \
+		I_RWLOCK(x);                                                   \
+		I_MUTEX(x);                                                    \
+		I_RWSEM(x);                                                    \
+		I_RTMUTEX(x);                                                  \
 	} while (0)
 
-#define I2(x)					\
-	do {					\
-		spin_lock_init(&lock_##x);	\
-		rwlock_init(&rwlock_##x);	\
-		mutex_init(&mutex_##x);		\
-		init_rwsem(&rwsem_##x);		\
-		I2_RTMUTEX(x);			\
+#define I2(x)                                                                  \
+	do {                                                                   \
+		spin_lock_init(&lock_##x);                                     \
+		rwlock_init(&rwlock_##x);                                      \
+		mutex_init(&mutex_##x);                                        \
+		init_rwsem(&rwsem_##x);                                        \
+		I2_RTMUTEX(x);                                                 \
 	} while (0)
 
 static void reset_locks(void)
@@ -1399,22 +1457,41 @@ static void reset_locks(void)
 	lockdep_free_key_range(&ww_lockdep.acquire_key, 1);
 	lockdep_free_key_range(&ww_lockdep.mutex_key, 1);
 
-	I1(A); I1(B); I1(C); I1(D);
-	I1(X1); I1(X2); I1(Y1); I1(Y2); I1(Z1); I1(Z2);
-	I_WW(t); I_WW(t2); I_WW(o.base); I_WW(o2.base); I_WW(o3.base);
-	I_RAW_SPINLOCK(A); I_RAW_SPINLOCK(B);
+	I1(A);
+	I1(B);
+	I1(C);
+	I1(D);
+	I1(X1);
+	I1(X2);
+	I1(Y1);
+	I1(Y2);
+	I1(Z1);
+	I1(Z2);
+	I_WW(t);
+	I_WW(t2);
+	I_WW(o.base);
+	I_WW(o2.base);
+	I_WW(o3.base);
+	I_RAW_SPINLOCK(A);
+	I_RAW_SPINLOCK(B);
 	I_LOCAL_LOCK(A);
 
 	lockdep_reset();
 
-	I2(A); I2(B); I2(C); I2(D);
+	I2(A);
+	I2(B);
+	I2(C);
+	I2(D);
 	init_shared_classes();
 	raw_spin_lock_init(&raw_lock_A);
 	raw_spin_lock_init(&raw_lock_B);
 	local_lock_init(this_cpu_ptr(&local_A));
 
-	ww_mutex_init(&o, &ww_lockdep); ww_mutex_init(&o2, &ww_lockdep); ww_mutex_init(&o3, &ww_lockdep);
-	memset(&t, 0, sizeof(t)); memset(&t2, 0, sizeof(t2));
+	ww_mutex_init(&o, &ww_lockdep);
+	ww_mutex_init(&o2, &ww_lockdep);
+	ww_mutex_init(&o3, &ww_lockdep);
+	memset(&t, 0, sizeof(t));
+	memset(&t2, 0, sizeof(t2));
 	memset(&ww_lockdep.acquire_key, 0, sizeof(ww_lockdep.acquire_key));
 	memset(&ww_lockdep.mutex_key, 0, sizeof(ww_lockdep.mutex_key));
 	local_irq_enable();
@@ -1449,10 +1526,9 @@ static void dotest(void (*testcase_fn)(void), int expected, int lockclass_mask)
 	if (expected == FAILURE && debug_locks) {
 		expected_testcase_failures++;
 		pr_cont("failed|");
-	}
-	else
+	} else
 #endif
-	if (debug_locks != expected) {
+		if (debug_locks != expected) {
 		unexpected_testcase_failures++;
 		pr_cont("FAILED|");
 	} else {
@@ -1492,7 +1568,7 @@ static void dotest(void (*testcase_fn)(void), int expected, int lockclass_mask)
 }
 
 #ifdef CONFIG_RT_MUTEXES
-#define dotest_rt(fn, e, m)	dotest((fn), (e), (m))
+#define dotest_rt(fn, e, m) dotest((fn), (e), (m))
 #else
 #define dotest_rt(fn, e, m)
 #endif
@@ -1502,168 +1578,167 @@ static inline void print_testname(const char *testname)
 	printk("%33s:", testname);
 }
 
-#define DO_TESTCASE_1(desc, name, nr)				\
-	print_testname(desc"/"#nr);				\
-	dotest(name##_##nr, SUCCESS, LOCKTYPE_RWLOCK);		\
+#define DO_TESTCASE_1(desc, name, nr)                                          \
+	print_testname(desc "/" #nr);                                          \
+	dotest(name##_##nr, SUCCESS, LOCKTYPE_RWLOCK);                         \
 	pr_cont("\n");
 
-#define DO_TESTCASE_1B(desc, name, nr)				\
-	print_testname(desc"/"#nr);				\
-	dotest(name##_##nr, FAILURE, LOCKTYPE_RWLOCK);		\
+#define DO_TESTCASE_1B(desc, name, nr)                                         \
+	print_testname(desc "/" #nr);                                          \
+	dotest(name##_##nr, FAILURE, LOCKTYPE_RWLOCK);                         \
 	pr_cont("\n");
 
-#define DO_TESTCASE_1RR(desc, name, nr)				\
-	print_testname(desc"/"#nr);				\
-	pr_cont("             |");				\
-	dotest(name##_##nr, SUCCESS, LOCKTYPE_RWLOCK);		\
+#define DO_TESTCASE_1RR(desc, name, nr)                                        \
+	print_testname(desc "/" #nr);                                          \
+	pr_cont("             |");                                             \
+	dotest(name##_##nr, SUCCESS, LOCKTYPE_RWLOCK);                         \
 	pr_cont("\n");
 
-#define DO_TESTCASE_1RRB(desc, name, nr)			\
-	print_testname(desc"/"#nr);				\
-	pr_cont("             |");				\
-	dotest(name##_##nr, FAILURE, LOCKTYPE_RWLOCK);		\
+#define DO_TESTCASE_1RRB(desc, name, nr)                                       \
+	print_testname(desc "/" #nr);                                          \
+	pr_cont("             |");                                             \
+	dotest(name##_##nr, FAILURE, LOCKTYPE_RWLOCK);                         \
 	pr_cont("\n");
 
-
-#define DO_TESTCASE_3(desc, name, nr)				\
-	print_testname(desc"/"#nr);				\
-	dotest(name##_spin_##nr, FAILURE, LOCKTYPE_SPIN);	\
-	dotest(name##_wlock_##nr, FAILURE, LOCKTYPE_RWLOCK);	\
-	dotest(name##_rlock_##nr, SUCCESS, LOCKTYPE_RWLOCK);	\
+#define DO_TESTCASE_3(desc, name, nr)                                          \
+	print_testname(desc "/" #nr);                                          \
+	dotest(name##_spin_##nr, FAILURE, LOCKTYPE_SPIN);                      \
+	dotest(name##_wlock_##nr, FAILURE, LOCKTYPE_RWLOCK);                   \
+	dotest(name##_rlock_##nr, SUCCESS, LOCKTYPE_RWLOCK);                   \
 	pr_cont("\n");
 
-#define DO_TESTCASE_3RW(desc, name, nr)				\
-	print_testname(desc"/"#nr);				\
-	dotest(name##_spin_##nr, FAILURE, LOCKTYPE_SPIN|LOCKTYPE_RWLOCK);\
-	dotest(name##_wlock_##nr, FAILURE, LOCKTYPE_RWLOCK);	\
-	dotest(name##_rlock_##nr, SUCCESS, LOCKTYPE_RWLOCK);	\
+#define DO_TESTCASE_3RW(desc, name, nr)                                        \
+	print_testname(desc "/" #nr);                                          \
+	dotest(name##_spin_##nr, FAILURE, LOCKTYPE_SPIN | LOCKTYPE_RWLOCK);    \
+	dotest(name##_wlock_##nr, FAILURE, LOCKTYPE_RWLOCK);                   \
+	dotest(name##_rlock_##nr, SUCCESS, LOCKTYPE_RWLOCK);                   \
 	pr_cont("\n");
 
-#define DO_TESTCASE_2RW(desc, name, nr)				\
-	print_testname(desc"/"#nr);				\
-	pr_cont("      |");					\
-	dotest(name##_wlock_##nr, FAILURE, LOCKTYPE_RWLOCK);	\
-	dotest(name##_rlock_##nr, SUCCESS, LOCKTYPE_RWLOCK);	\
+#define DO_TESTCASE_2RW(desc, name, nr)                                        \
+	print_testname(desc "/" #nr);                                          \
+	pr_cont("      |");                                                    \
+	dotest(name##_wlock_##nr, FAILURE, LOCKTYPE_RWLOCK);                   \
+	dotest(name##_rlock_##nr, SUCCESS, LOCKTYPE_RWLOCK);                   \
 	pr_cont("\n");
 
-#define DO_TESTCASE_2x2RW(desc, name, nr)			\
-	DO_TESTCASE_2RW("hard-"desc, name##_hard, nr)		\
-	NON_RT(DO_TESTCASE_2RW("soft-"desc, name##_soft, nr))	\
+#define DO_TESTCASE_2x2RW(desc, name, nr)                                      \
+	DO_TESTCASE_2RW("hard-" desc, name##_hard, nr)                         \
+	NON_RT(DO_TESTCASE_2RW("soft-" desc, name##_soft, nr))
 
-#define DO_TESTCASE_6x2x2RW(desc, name)				\
-	DO_TESTCASE_2x2RW(desc, name, 123);			\
-	DO_TESTCASE_2x2RW(desc, name, 132);			\
-	DO_TESTCASE_2x2RW(desc, name, 213);			\
-	DO_TESTCASE_2x2RW(desc, name, 231);			\
-	DO_TESTCASE_2x2RW(desc, name, 312);			\
+#define DO_TESTCASE_6x2x2RW(desc, name)                                        \
+	DO_TESTCASE_2x2RW(desc, name, 123);                                    \
+	DO_TESTCASE_2x2RW(desc, name, 132);                                    \
+	DO_TESTCASE_2x2RW(desc, name, 213);                                    \
+	DO_TESTCASE_2x2RW(desc, name, 231);                                    \
+	DO_TESTCASE_2x2RW(desc, name, 312);                                    \
 	DO_TESTCASE_2x2RW(desc, name, 321);
 
-#define DO_TESTCASE_6(desc, name)				\
-	print_testname(desc);					\
-	dotest(name##_spin, FAILURE, LOCKTYPE_SPIN);		\
-	dotest(name##_wlock, FAILURE, LOCKTYPE_RWLOCK);		\
-	dotest(name##_rlock, FAILURE, LOCKTYPE_RWLOCK);		\
-	dotest(name##_mutex, FAILURE, LOCKTYPE_MUTEX);		\
-	dotest(name##_wsem, FAILURE, LOCKTYPE_RWSEM);		\
-	dotest(name##_rsem, FAILURE, LOCKTYPE_RWSEM);		\
-	dotest_rt(name##_rtmutex, FAILURE, LOCKTYPE_RTMUTEX);	\
+#define DO_TESTCASE_6(desc, name)                                              \
+	print_testname(desc);                                                  \
+	dotest(name##_spin, FAILURE, LOCKTYPE_SPIN);                           \
+	dotest(name##_wlock, FAILURE, LOCKTYPE_RWLOCK);                        \
+	dotest(name##_rlock, FAILURE, LOCKTYPE_RWLOCK);                        \
+	dotest(name##_mutex, FAILURE, LOCKTYPE_MUTEX);                         \
+	dotest(name##_wsem, FAILURE, LOCKTYPE_RWSEM);                          \
+	dotest(name##_rsem, FAILURE, LOCKTYPE_RWSEM);                          \
+	dotest_rt(name##_rtmutex, FAILURE, LOCKTYPE_RTMUTEX);                  \
 	pr_cont("\n");
 
-#define DO_TESTCASE_6_SUCCESS(desc, name)			\
-	print_testname(desc);					\
-	dotest(name##_spin, SUCCESS, LOCKTYPE_SPIN);		\
-	dotest(name##_wlock, SUCCESS, LOCKTYPE_RWLOCK);		\
-	dotest(name##_rlock, SUCCESS, LOCKTYPE_RWLOCK);		\
-	dotest(name##_mutex, SUCCESS, LOCKTYPE_MUTEX);		\
-	dotest(name##_wsem, SUCCESS, LOCKTYPE_RWSEM);		\
-	dotest(name##_rsem, SUCCESS, LOCKTYPE_RWSEM);		\
-	dotest_rt(name##_rtmutex, SUCCESS, LOCKTYPE_RTMUTEX);	\
+#define DO_TESTCASE_6_SUCCESS(desc, name)                                      \
+	print_testname(desc);                                                  \
+	dotest(name##_spin, SUCCESS, LOCKTYPE_SPIN);                           \
+	dotest(name##_wlock, SUCCESS, LOCKTYPE_RWLOCK);                        \
+	dotest(name##_rlock, SUCCESS, LOCKTYPE_RWLOCK);                        \
+	dotest(name##_mutex, SUCCESS, LOCKTYPE_MUTEX);                         \
+	dotest(name##_wsem, SUCCESS, LOCKTYPE_RWSEM);                          \
+	dotest(name##_rsem, SUCCESS, LOCKTYPE_RWSEM);                          \
+	dotest_rt(name##_rtmutex, SUCCESS, LOCKTYPE_RTMUTEX);                  \
 	pr_cont("\n");
 
 /*
  * 'read' variant: rlocks must not trigger.
  */
-#define DO_TESTCASE_6R(desc, name)				\
-	print_testname(desc);					\
-	dotest(name##_spin, FAILURE, LOCKTYPE_SPIN);		\
-	dotest(name##_wlock, FAILURE, LOCKTYPE_RWLOCK);		\
-	dotest(name##_rlock, SUCCESS, LOCKTYPE_RWLOCK);		\
-	dotest(name##_mutex, FAILURE, LOCKTYPE_MUTEX);		\
-	dotest(name##_wsem, FAILURE, LOCKTYPE_RWSEM);		\
-	dotest(name##_rsem, FAILURE, LOCKTYPE_RWSEM);		\
-	dotest_rt(name##_rtmutex, FAILURE, LOCKTYPE_RTMUTEX);	\
+#define DO_TESTCASE_6R(desc, name)                                             \
+	print_testname(desc);                                                  \
+	dotest(name##_spin, FAILURE, LOCKTYPE_SPIN);                           \
+	dotest(name##_wlock, FAILURE, LOCKTYPE_RWLOCK);                        \
+	dotest(name##_rlock, SUCCESS, LOCKTYPE_RWLOCK);                        \
+	dotest(name##_mutex, FAILURE, LOCKTYPE_MUTEX);                         \
+	dotest(name##_wsem, FAILURE, LOCKTYPE_RWSEM);                          \
+	dotest(name##_rsem, FAILURE, LOCKTYPE_RWSEM);                          \
+	dotest_rt(name##_rtmutex, FAILURE, LOCKTYPE_RTMUTEX);                  \
 	pr_cont("\n");
 
-#define DO_TESTCASE_2I(desc, name, nr)				\
-	DO_TESTCASE_1("hard-"desc, name##_hard, nr);		\
-	NON_RT(DO_TESTCASE_1("soft-"desc, name##_soft, nr));
+#define DO_TESTCASE_2I(desc, name, nr)                                         \
+	DO_TESTCASE_1("hard-" desc, name##_hard, nr);                          \
+	NON_RT(DO_TESTCASE_1("soft-" desc, name##_soft, nr));
 
-#define DO_TESTCASE_2IB(desc, name, nr)				\
-	DO_TESTCASE_1B("hard-"desc, name##_hard, nr);		\
-	NON_RT(DO_TESTCASE_1B("soft-"desc, name##_soft, nr));
+#define DO_TESTCASE_2IB(desc, name, nr)                                        \
+	DO_TESTCASE_1B("hard-" desc, name##_hard, nr);                         \
+	NON_RT(DO_TESTCASE_1B("soft-" desc, name##_soft, nr));
 
-#define DO_TESTCASE_6I(desc, name, nr)				\
-	DO_TESTCASE_3("hard-"desc, name##_hard, nr);		\
-	NON_RT(DO_TESTCASE_3("soft-"desc, name##_soft, nr));
+#define DO_TESTCASE_6I(desc, name, nr)                                         \
+	DO_TESTCASE_3("hard-" desc, name##_hard, nr);                          \
+	NON_RT(DO_TESTCASE_3("soft-" desc, name##_soft, nr));
 
-#define DO_TESTCASE_6IRW(desc, name, nr)			\
-	DO_TESTCASE_3RW("hard-"desc, name##_hard, nr);		\
-	NON_RT(DO_TESTCASE_3RW("soft-"desc, name##_soft, nr));
+#define DO_TESTCASE_6IRW(desc, name, nr)                                       \
+	DO_TESTCASE_3RW("hard-" desc, name##_hard, nr);                        \
+	NON_RT(DO_TESTCASE_3RW("soft-" desc, name##_soft, nr));
 
-#define DO_TESTCASE_2x3(desc, name)				\
-	DO_TESTCASE_3(desc, name, 12);				\
+#define DO_TESTCASE_2x3(desc, name)                                            \
+	DO_TESTCASE_3(desc, name, 12);                                         \
 	DO_TESTCASE_3(desc, name, 21);
 
-#define DO_TESTCASE_2x6(desc, name)				\
-	DO_TESTCASE_6I(desc, name, 12);				\
+#define DO_TESTCASE_2x6(desc, name)                                            \
+	DO_TESTCASE_6I(desc, name, 12);                                        \
 	DO_TESTCASE_6I(desc, name, 21);
 
-#define DO_TESTCASE_6x2(desc, name)				\
-	DO_TESTCASE_2I(desc, name, 123);			\
-	DO_TESTCASE_2I(desc, name, 132);			\
-	DO_TESTCASE_2I(desc, name, 213);			\
-	DO_TESTCASE_2I(desc, name, 231);			\
-	DO_TESTCASE_2I(desc, name, 312);			\
+#define DO_TESTCASE_6x2(desc, name)                                            \
+	DO_TESTCASE_2I(desc, name, 123);                                       \
+	DO_TESTCASE_2I(desc, name, 132);                                       \
+	DO_TESTCASE_2I(desc, name, 213);                                       \
+	DO_TESTCASE_2I(desc, name, 231);                                       \
+	DO_TESTCASE_2I(desc, name, 312);                                       \
 	DO_TESTCASE_2I(desc, name, 321);
 
-#define DO_TESTCASE_6x2B(desc, name)				\
-	DO_TESTCASE_2IB(desc, name, 123);			\
-	DO_TESTCASE_2IB(desc, name, 132);			\
-	DO_TESTCASE_2IB(desc, name, 213);			\
-	DO_TESTCASE_2IB(desc, name, 231);			\
-	DO_TESTCASE_2IB(desc, name, 312);			\
+#define DO_TESTCASE_6x2B(desc, name)                                           \
+	DO_TESTCASE_2IB(desc, name, 123);                                      \
+	DO_TESTCASE_2IB(desc, name, 132);                                      \
+	DO_TESTCASE_2IB(desc, name, 213);                                      \
+	DO_TESTCASE_2IB(desc, name, 231);                                      \
+	DO_TESTCASE_2IB(desc, name, 312);                                      \
 	DO_TESTCASE_2IB(desc, name, 321);
 
-#define DO_TESTCASE_6x1RR(desc, name)				\
-	DO_TESTCASE_1RR(desc, name, 123);			\
-	DO_TESTCASE_1RR(desc, name, 132);			\
-	DO_TESTCASE_1RR(desc, name, 213);			\
-	DO_TESTCASE_1RR(desc, name, 231);			\
-	DO_TESTCASE_1RR(desc, name, 312);			\
+#define DO_TESTCASE_6x1RR(desc, name)                                          \
+	DO_TESTCASE_1RR(desc, name, 123);                                      \
+	DO_TESTCASE_1RR(desc, name, 132);                                      \
+	DO_TESTCASE_1RR(desc, name, 213);                                      \
+	DO_TESTCASE_1RR(desc, name, 231);                                      \
+	DO_TESTCASE_1RR(desc, name, 312);                                      \
 	DO_TESTCASE_1RR(desc, name, 321);
 
-#define DO_TESTCASE_6x1RRB(desc, name)				\
-	DO_TESTCASE_1RRB(desc, name, 123);			\
-	DO_TESTCASE_1RRB(desc, name, 132);			\
-	DO_TESTCASE_1RRB(desc, name, 213);			\
-	DO_TESTCASE_1RRB(desc, name, 231);			\
-	DO_TESTCASE_1RRB(desc, name, 312);			\
+#define DO_TESTCASE_6x1RRB(desc, name)                                         \
+	DO_TESTCASE_1RRB(desc, name, 123);                                     \
+	DO_TESTCASE_1RRB(desc, name, 132);                                     \
+	DO_TESTCASE_1RRB(desc, name, 213);                                     \
+	DO_TESTCASE_1RRB(desc, name, 231);                                     \
+	DO_TESTCASE_1RRB(desc, name, 312);                                     \
 	DO_TESTCASE_1RRB(desc, name, 321);
 
-#define DO_TESTCASE_6x6(desc, name)				\
-	DO_TESTCASE_6I(desc, name, 123);			\
-	DO_TESTCASE_6I(desc, name, 132);			\
-	DO_TESTCASE_6I(desc, name, 213);			\
-	DO_TESTCASE_6I(desc, name, 231);			\
-	DO_TESTCASE_6I(desc, name, 312);			\
+#define DO_TESTCASE_6x6(desc, name)                                            \
+	DO_TESTCASE_6I(desc, name, 123);                                       \
+	DO_TESTCASE_6I(desc, name, 132);                                       \
+	DO_TESTCASE_6I(desc, name, 213);                                       \
+	DO_TESTCASE_6I(desc, name, 231);                                       \
+	DO_TESTCASE_6I(desc, name, 312);                                       \
 	DO_TESTCASE_6I(desc, name, 321);
 
-#define DO_TESTCASE_6x6RW(desc, name)				\
-	DO_TESTCASE_6IRW(desc, name, 123);			\
-	DO_TESTCASE_6IRW(desc, name, 132);			\
-	DO_TESTCASE_6IRW(desc, name, 213);			\
-	DO_TESTCASE_6IRW(desc, name, 231);			\
-	DO_TESTCASE_6IRW(desc, name, 312);			\
+#define DO_TESTCASE_6x6RW(desc, name)                                          \
+	DO_TESTCASE_6IRW(desc, name, 123);                                     \
+	DO_TESTCASE_6IRW(desc, name, 132);                                     \
+	DO_TESTCASE_6IRW(desc, name, 213);                                     \
+	DO_TESTCASE_6IRW(desc, name, 231);                                     \
+	DO_TESTCASE_6IRW(desc, name, 312);                                     \
 	DO_TESTCASE_6IRW(desc, name, 321);
 
 static void ww_test_fail_acquire(void)
@@ -1675,8 +1750,7 @@ static void ww_test_fail_acquire(void)
 
 	ret = WWL(&o, &t);
 
-	if (WARN_ON(!o.ctx) ||
-	    WARN_ON(ret))
+	if (WARN_ON(!o.ctx) || WARN_ON(ret))
 		return;
 
 	/* No lockdep test, pure API */
@@ -1701,19 +1775,19 @@ static void ww_test_fail_acquire(void)
 }
 
 #ifdef CONFIG_PREEMPT_RT
-#define ww_mutex_base_lock(b)			rt_mutex_lock(b)
-#define ww_mutex_base_trylock(b)		rt_mutex_trylock(b)
-#define ww_mutex_base_lock_nest_lock(b, b2)	rt_mutex_lock_nest_lock(b, b2)
-#define ww_mutex_base_lock_interruptible(b)	rt_mutex_lock_interruptible(b)
-#define ww_mutex_base_lock_killable(b)		rt_mutex_lock_killable(b)
-#define ww_mutex_base_unlock(b)			rt_mutex_unlock(b)
+#define ww_mutex_base_lock(b) rt_mutex_lock(b)
+#define ww_mutex_base_trylock(b) rt_mutex_trylock(b)
+#define ww_mutex_base_lock_nest_lock(b, b2) rt_mutex_lock_nest_lock(b, b2)
+#define ww_mutex_base_lock_interruptible(b) rt_mutex_lock_interruptible(b)
+#define ww_mutex_base_lock_killable(b) rt_mutex_lock_killable(b)
+#define ww_mutex_base_unlock(b) rt_mutex_unlock(b)
 #else
-#define ww_mutex_base_lock(b)			mutex_lock(b)
-#define ww_mutex_base_trylock(b)		mutex_trylock(b)
-#define ww_mutex_base_lock_nest_lock(b, b2)	mutex_lock_nest_lock(b, b2)
-#define ww_mutex_base_lock_interruptible(b)	mutex_lock_interruptible(b)
-#define ww_mutex_base_lock_killable(b)		mutex_lock_killable(b)
-#define ww_mutex_base_unlock(b)			mutex_unlock(b)
+#define ww_mutex_base_lock(b) mutex_lock(b)
+#define ww_mutex_base_trylock(b) mutex_trylock(b)
+#define ww_mutex_base_lock_nest_lock(b, b2) mutex_lock_nest_lock(b, b2)
+#define ww_mutex_base_lock_interruptible(b) mutex_lock_interruptible(b)
+#define ww_mutex_base_lock_killable(b) mutex_lock_killable(b)
+#define ww_mutex_base_unlock(b) mutex_unlock(b)
 #endif
 
 static void ww_test_normal(void)
@@ -2360,7 +2434,6 @@ static void ww_tests(void)
 	pr_cont("\n");
 }
 
-
 /*
  * <in hardirq handler>
  * read_lock(&A);
@@ -2427,7 +2500,6 @@ static void queued_read_lock_hardirq_ER_rE(void)
  */
 static void queued_read_lock_hardirq_inversion(void)
 {
-
 	HARDIRQ_ENTER();
 	LOCK(B);
 	UNLOCK(B);
@@ -2513,14 +2585,14 @@ static void hardirq_exit(int *_)
 	HARDIRQ_EXIT();
 }
 
-#define HARDIRQ_CONTEXT(name, ...)					\
-	int hardirq_guard_##name __guard(hardirq_exit);			\
+#define HARDIRQ_CONTEXT(name, ...)                                             \
+	int hardirq_guard_##name __guard(hardirq_exit);                        \
 	HARDIRQ_ENTER();
 
-#define NOTTHREADED_HARDIRQ_CONTEXT(name, ...)				\
-	int notthreaded_hardirq_guard_##name __guard(hardirq_exit);	\
-	local_irq_disable();						\
-	__irq_enter();							\
+#define NOTTHREADED_HARDIRQ_CONTEXT(name, ...)                                 \
+	int notthreaded_hardirq_guard_##name __guard(hardirq_exit);            \
+	local_irq_disable();                                                   \
+	__irq_enter();                                                         \
 	WARN_ON(!in_irq());
 
 static void softirq_exit(int *_)
@@ -2528,8 +2600,8 @@ static void softirq_exit(int *_)
 	SOFTIRQ_EXIT();
 }
 
-#define SOFTIRQ_CONTEXT(name, ...)				\
-	int softirq_guard_##name __guard(softirq_exit);		\
+#define SOFTIRQ_CONTEXT(name, ...)                                             \
+	int softirq_guard_##name __guard(softirq_exit);                        \
 	SOFTIRQ_ENTER();
 
 static void rcu_exit(int *_)
@@ -2537,8 +2609,8 @@ static void rcu_exit(int *_)
 	rcu_read_unlock();
 }
 
-#define RCU_CONTEXT(name, ...)					\
-	int rcu_guard_##name __guard(rcu_exit);			\
+#define RCU_CONTEXT(name, ...)                                                 \
+	int rcu_guard_##name __guard(rcu_exit);                                \
 	rcu_read_lock();
 
 static void rcu_bh_exit(int *_)
@@ -2546,8 +2618,8 @@ static void rcu_bh_exit(int *_)
 	rcu_read_unlock_bh();
 }
 
-#define RCU_BH_CONTEXT(name, ...)				\
-	int rcu_bh_guard_##name __guard(rcu_bh_exit);		\
+#define RCU_BH_CONTEXT(name, ...)                                              \
+	int rcu_bh_guard_##name __guard(rcu_bh_exit);                          \
 	rcu_read_lock_bh();
 
 static void rcu_sched_exit(int *_)
@@ -2555,8 +2627,8 @@ static void rcu_sched_exit(int *_)
 	rcu_read_unlock_sched();
 }
 
-#define RCU_SCHED_CONTEXT(name, ...)				\
-	int rcu_sched_guard_##name __guard(rcu_sched_exit);	\
+#define RCU_SCHED_CONTEXT(name, ...)                                           \
+	int rcu_sched_guard_##name __guard(rcu_sched_exit);                    \
 	rcu_read_lock_sched();
 
 static void raw_spinlock_exit(raw_spinlock_t **lock)
@@ -2564,8 +2636,9 @@ static void raw_spinlock_exit(raw_spinlock_t **lock)
 	raw_spin_unlock(*lock);
 }
 
-#define RAW_SPINLOCK_CONTEXT(name, lock)						\
-	raw_spinlock_t *raw_spinlock_guard_##name __guard(raw_spinlock_exit) = &(lock);	\
+#define RAW_SPINLOCK_CONTEXT(name, lock)                                       \
+	raw_spinlock_t *raw_spinlock_guard_##name __guard(raw_spinlock_exit) = \
+		&(lock);                                                       \
 	raw_spin_lock(&(lock));
 
 static void spinlock_exit(spinlock_t **lock)
@@ -2573,8 +2646,8 @@ static void spinlock_exit(spinlock_t **lock)
 	spin_unlock(*lock);
 }
 
-#define SPINLOCK_CONTEXT(name, lock)						\
-	spinlock_t *spinlock_guard_##name __guard(spinlock_exit) = &(lock);	\
+#define SPINLOCK_CONTEXT(name, lock)                                           \
+	spinlock_t *spinlock_guard_##name __guard(spinlock_exit) = &(lock);    \
 	spin_lock(&(lock));
 
 static void mutex_exit(struct mutex **lock)
@@ -2582,19 +2655,19 @@ static void mutex_exit(struct mutex **lock)
 	mutex_unlock(*lock);
 }
 
-#define MUTEX_CONTEXT(name, lock)					\
-	struct mutex *mutex_guard_##name __guard(mutex_exit) = &(lock);	\
+#define MUTEX_CONTEXT(name, lock)                                              \
+	struct mutex *mutex_guard_##name __guard(mutex_exit) = &(lock);        \
 	mutex_lock(&(lock));
 
-#define GENERATE_2_CONTEXT_TESTCASE(outer, outer_lock, inner, inner_lock)	\
-										\
-static void __maybe_unused inner##_in_##outer(void)				\
-{										\
-	outer##_CONTEXT(_, outer_lock);						\
-	{									\
-		inner##_CONTEXT(_, inner_lock);					\
-	}									\
-}
+#define GENERATE_2_CONTEXT_TESTCASE(outer, outer_lock, inner, inner_lock)      \
+                                                                               \
+	static void __maybe_unused inner##_in_##outer(void)                    \
+	{                                                                      \
+		outer##_CONTEXT(_, outer_lock);                                \
+		{                                                              \
+			inner##_CONTEXT(_, inner_lock);                        \
+		}                                                              \
+	}
 
 /*
  * wait contexts (considering PREEMPT_RT)
@@ -2625,16 +2698,17 @@ static void __maybe_unused inner##_in_##outer(void)				\
  * ---------------+-------+----------+------+-------
  */
 
-#define GENERATE_2_CONTEXT_TESTCASE_FOR_ALL_OUTER(inner, inner_lock)		\
-GENERATE_2_CONTEXT_TESTCASE(HARDIRQ, , inner, inner_lock)			\
-GENERATE_2_CONTEXT_TESTCASE(NOTTHREADED_HARDIRQ, , inner, inner_lock)		\
-GENERATE_2_CONTEXT_TESTCASE(SOFTIRQ, , inner, inner_lock)			\
-GENERATE_2_CONTEXT_TESTCASE(RCU, , inner, inner_lock)				\
-GENERATE_2_CONTEXT_TESTCASE(RCU_BH, , inner, inner_lock)			\
-GENERATE_2_CONTEXT_TESTCASE(RCU_SCHED, , inner, inner_lock)			\
-GENERATE_2_CONTEXT_TESTCASE(RAW_SPINLOCK, raw_lock_A, inner, inner_lock)	\
-GENERATE_2_CONTEXT_TESTCASE(SPINLOCK, lock_A, inner, inner_lock)		\
-GENERATE_2_CONTEXT_TESTCASE(MUTEX, mutex_A, inner, inner_lock)
+#define GENERATE_2_CONTEXT_TESTCASE_FOR_ALL_OUTER(inner, inner_lock)           \
+	GENERATE_2_CONTEXT_TESTCASE(HARDIRQ, , inner, inner_lock)              \
+	GENERATE_2_CONTEXT_TESTCASE(NOTTHREADED_HARDIRQ, , inner, inner_lock)  \
+	GENERATE_2_CONTEXT_TESTCASE(SOFTIRQ, , inner, inner_lock)              \
+	GENERATE_2_CONTEXT_TESTCASE(RCU, , inner, inner_lock)                  \
+	GENERATE_2_CONTEXT_TESTCASE(RCU_BH, , inner, inner_lock)               \
+	GENERATE_2_CONTEXT_TESTCASE(RCU_SCHED, , inner, inner_lock)            \
+	GENERATE_2_CONTEXT_TESTCASE(RAW_SPINLOCK, raw_lock_A, inner,           \
+				    inner_lock)                                \
+	GENERATE_2_CONTEXT_TESTCASE(SPINLOCK, lock_A, inner, inner_lock)       \
+	GENERATE_2_CONTEXT_TESTCASE(MUTEX, mutex_A, inner, inner_lock)
 
 GENERATE_2_CONTEXT_TESTCASE_FOR_ALL_OUTER(RCU, )
 GENERATE_2_CONTEXT_TESTCASE_FOR_ALL_OUTER(RAW_SPINLOCK, raw_lock_B)
@@ -2642,28 +2716,28 @@ GENERATE_2_CONTEXT_TESTCASE_FOR_ALL_OUTER(SPINLOCK, lock_B)
 GENERATE_2_CONTEXT_TESTCASE_FOR_ALL_OUTER(MUTEX, mutex_B)
 
 /* the outer context allows all kinds of preemption */
-#define DO_CONTEXT_TESTCASE_OUTER_PREEMPTIBLE(outer)			\
-	dotest(RCU_in_##outer, SUCCESS, LOCKTYPE_RWLOCK);		\
-	dotest(RAW_SPINLOCK_in_##outer, SUCCESS, LOCKTYPE_SPIN);	\
-	dotest(SPINLOCK_in_##outer, SUCCESS, LOCKTYPE_SPIN);		\
-	dotest(MUTEX_in_##outer, SUCCESS, LOCKTYPE_MUTEX);		\
+#define DO_CONTEXT_TESTCASE_OUTER_PREEMPTIBLE(outer)                           \
+	dotest(RCU_in_##outer, SUCCESS, LOCKTYPE_RWLOCK);                      \
+	dotest(RAW_SPINLOCK_in_##outer, SUCCESS, LOCKTYPE_SPIN);               \
+	dotest(SPINLOCK_in_##outer, SUCCESS, LOCKTYPE_SPIN);                   \
+	dotest(MUTEX_in_##outer, SUCCESS, LOCKTYPE_MUTEX);
 
 /*
  * the outer context only allows the preemption introduced by spinlock_t (which
  * is a sleepable lock for PREEMPT_RT)
  */
-#define DO_CONTEXT_TESTCASE_OUTER_LIMITED_PREEMPTIBLE(outer)		\
-	dotest(RCU_in_##outer, SUCCESS, LOCKTYPE_RWLOCK);		\
-	dotest(RAW_SPINLOCK_in_##outer, SUCCESS, LOCKTYPE_SPIN);	\
-	dotest(SPINLOCK_in_##outer, SUCCESS, LOCKTYPE_SPIN);		\
-	dotest(MUTEX_in_##outer, FAILURE, LOCKTYPE_MUTEX);		\
+#define DO_CONTEXT_TESTCASE_OUTER_LIMITED_PREEMPTIBLE(outer)                   \
+	dotest(RCU_in_##outer, SUCCESS, LOCKTYPE_RWLOCK);                      \
+	dotest(RAW_SPINLOCK_in_##outer, SUCCESS, LOCKTYPE_SPIN);               \
+	dotest(SPINLOCK_in_##outer, SUCCESS, LOCKTYPE_SPIN);                   \
+	dotest(MUTEX_in_##outer, FAILURE, LOCKTYPE_MUTEX);
 
 /* the outer doesn't allows any kind of preemption */
-#define DO_CONTEXT_TESTCASE_OUTER_NOT_PREEMPTIBLE(outer)			\
-	dotest(RCU_in_##outer, SUCCESS, LOCKTYPE_RWLOCK);		\
-	dotest(RAW_SPINLOCK_in_##outer, SUCCESS, LOCKTYPE_SPIN);	\
-	dotest(SPINLOCK_in_##outer, FAILURE, LOCKTYPE_SPIN);		\
-	dotest(MUTEX_in_##outer, FAILURE, LOCKTYPE_MUTEX);		\
+#define DO_CONTEXT_TESTCASE_OUTER_NOT_PREEMPTIBLE(outer)                       \
+	dotest(RCU_in_##outer, SUCCESS, LOCKTYPE_RWLOCK);                      \
+	dotest(RAW_SPINLOCK_in_##outer, SUCCESS, LOCKTYPE_SPIN);               \
+	dotest(SPINLOCK_in_##outer, FAILURE, LOCKTYPE_SPIN);                   \
+	dotest(MUTEX_in_##outer, FAILURE, LOCKTYPE_MUTEX);
 
 static void wait_context_tests(void)
 {
@@ -2711,17 +2785,17 @@ static void wait_context_tests(void)
 
 static void local_lock_2(void)
 {
-	local_lock(&local_A);	/* IRQ-ON */
+	local_lock(&local_A); /* IRQ-ON */
 	local_unlock(&local_A);
 
 	HARDIRQ_ENTER();
-	spin_lock(&lock_A);		/* IN-IRQ */
+	spin_lock(&lock_A); /* IN-IRQ */
 	spin_unlock(&lock_A);
 	HARDIRQ_EXIT()
 
 	HARDIRQ_DISABLE();
 	spin_lock(&lock_A);
-	local_lock(&local_A);	/* IN-IRQ <-> IRQ-ON cycle, false */
+	local_lock(&local_A); /* IN-IRQ <-> IRQ-ON cycle, false */
 	local_unlock(&local_A);
 	spin_unlock(&lock_A);
 	HARDIRQ_ENABLE();
@@ -2729,19 +2803,20 @@ static void local_lock_2(void)
 
 static void local_lock_3A(void)
 {
-	local_lock(&local_A);	/* IRQ-ON */
-	spin_lock(&lock_B);		/* IRQ-ON */
+	local_lock(&local_A); /* IRQ-ON */
+	spin_lock(&lock_B); /* IRQ-ON */
 	spin_unlock(&lock_B);
 	local_unlock(&local_A);
 
 	HARDIRQ_ENTER();
-	spin_lock(&lock_A);		/* IN-IRQ */
+	spin_lock(&lock_A); /* IN-IRQ */
 	spin_unlock(&lock_A);
 	HARDIRQ_EXIT()
 
 	HARDIRQ_DISABLE();
 	spin_lock(&lock_A);
-	local_lock(&local_A);	/* IN-IRQ <-> IRQ-ON cycle only if we count local_lock(), false */
+	local_lock(
+		&local_A); /* IN-IRQ <-> IRQ-ON cycle only if we count local_lock(), false */
 	local_unlock(&local_A);
 	spin_unlock(&lock_A);
 	HARDIRQ_ENABLE();
@@ -2749,30 +2824,30 @@ static void local_lock_3A(void)
 
 static void local_lock_3B(void)
 {
-	local_lock(&local_A);	/* IRQ-ON */
-	spin_lock(&lock_B);		/* IRQ-ON */
+	local_lock(&local_A); /* IRQ-ON */
+	spin_lock(&lock_B); /* IRQ-ON */
 	spin_unlock(&lock_B);
 	local_unlock(&local_A);
 
 	HARDIRQ_ENTER();
-	spin_lock(&lock_A);		/* IN-IRQ */
+	spin_lock(&lock_A); /* IN-IRQ */
 	spin_unlock(&lock_A);
 	HARDIRQ_EXIT()
 
 	HARDIRQ_DISABLE();
 	spin_lock(&lock_A);
-	local_lock(&local_A);	/* IN-IRQ <-> IRQ-ON cycle only if we count local_lock(), false */
+	local_lock(
+		&local_A); /* IN-IRQ <-> IRQ-ON cycle only if we count local_lock(), false */
 	local_unlock(&local_A);
 	spin_unlock(&lock_A);
 	HARDIRQ_ENABLE();
 
 	HARDIRQ_DISABLE();
 	spin_lock(&lock_A);
-	spin_lock(&lock_B);		/* IN-IRQ <-> IRQ-ON cycle, true */
+	spin_lock(&lock_B); /* IN-IRQ <-> IRQ-ON cycle, true */
 	spin_unlock(&lock_B);
 	spin_unlock(&lock_A);
 	HARDIRQ_DISABLE();
-
 }
 
 static void local_lock_tests(void)
@@ -2982,31 +3057,32 @@ void locking_selftest(void)
 	local_lock_tests();
 
 	print_testname("hardirq_unsafe_softirq_safe");
-	dotest(hardirq_deadlock_softirq_not_deadlock, FAILURE, LOCKTYPE_SPECIAL);
+	dotest(hardirq_deadlock_softirq_not_deadlock, FAILURE,
+	       LOCKTYPE_SPECIAL);
 	pr_cont("\n");
 
 	if (unexpected_testcase_failures) {
 		printk("-----------------------------------------------------------------\n");
 		debug_locks = 0;
 		printk("BUG: %3d unexpected failures (out of %3d) - debugging disabled! |\n",
-			unexpected_testcase_failures, testcase_total);
+		       unexpected_testcase_failures, testcase_total);
 		printk("-----------------------------------------------------------------\n");
 	} else if (expected_testcase_failures && testcase_successes) {
 		printk("--------------------------------------------------------\n");
 		printk("%3d out of %3d testcases failed, as expected. |\n",
-			expected_testcase_failures, testcase_total);
+		       expected_testcase_failures, testcase_total);
 		printk("----------------------------------------------------\n");
 		debug_locks = 1;
 	} else if (expected_testcase_failures && !testcase_successes) {
 		printk("--------------------------------------------------------\n");
 		printk("All %3d testcases failed, as expected. |\n",
-			expected_testcase_failures);
+		       expected_testcase_failures);
 		printk("----------------------------------------\n");
 		debug_locks = 1;
 	} else {
 		printk("-------------------------------------------------------\n");
 		printk("Good, all %3d testcases passed! |\n",
-			testcase_successes);
+		       testcase_successes);
 		printk("---------------------------------\n");
 		debug_locks = 1;
 	}

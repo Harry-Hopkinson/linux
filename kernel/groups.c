@@ -44,7 +44,7 @@ static int groups_to_user(gid_t __user *grouplist,
 	for (i = 0; i < count; i++) {
 		gid_t gid;
 		gid = from_kgid_munged(user_ns, group_info->gid[i]);
-		if (put_user(gid, grouplist+i))
+		if (put_user(gid, grouplist + i))
 			return -EFAULT;
 	}
 	return 0;
@@ -52,7 +52,7 @@ static int groups_to_user(gid_t __user *grouplist,
 
 /* fill a group_info from a user-space array - it must be allocated already */
 static int groups_from_user(struct group_info *group_info,
-    gid_t __user *grouplist)
+			    gid_t __user *grouplist)
 {
 	struct user_namespace *user_ns = current_user_ns();
 	int i;
@@ -61,7 +61,7 @@ static int groups_from_user(struct group_info *group_info,
 	for (i = 0; i < count; i++) {
 		gid_t gid;
 		kgid_t kgid;
-		if (get_user(gid, grouplist+i))
+		if (get_user(gid, grouplist + i))
 			return -EFAULT;
 
 		kgid = make_kgid(user_ns, gid);
@@ -99,7 +99,7 @@ int groups_search(const struct group_info *group_info, kgid_t grp)
 	left = 0;
 	right = group_info->ngroups;
 	while (left < right) {
-		unsigned int mid = (left+right)/2;
+		unsigned int mid = (left + right) / 2;
 		if (gid_gt(grp, group_info->gid[mid]))
 			left = mid + 1;
 		else if (gid_lt(grp, group_info->gid[mid]))
@@ -174,7 +174,7 @@ bool may_setgroups(void)
 	struct user_namespace *user_ns = current_user_ns();
 
 	return ns_capable_setid(user_ns, CAP_SETGID) &&
-		userns_may_setgroups(user_ns);
+	       userns_may_setgroups(user_ns);
 }
 
 /*

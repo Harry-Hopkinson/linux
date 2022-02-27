@@ -101,16 +101,16 @@
  * XZ_PREBOOT here.
  */
 #ifdef STATIC
-#	define XZ_PREBOOT
+#define XZ_PREBOOT
 #endif
 #ifdef __KERNEL__
-#	include <linux/decompress/mm.h>
+#include <linux/decompress/mm.h>
 #endif
 #define XZ_EXTERN STATIC
 
 #ifndef XZ_PREBOOT
-#	include <linux/slab.h>
-#	include <linux/xz.h>
+#include <linux/slab.h>
+#include <linux/xz.h>
 #else
 /*
  * Use the internal CRC32 code instead of kernel's CRC32 module, which
@@ -123,19 +123,19 @@
  * architecture or none if no BCJ filter is available for the architecture.
  */
 #ifdef CONFIG_X86
-#	define XZ_DEC_X86
+#define XZ_DEC_X86
 #endif
 #ifdef CONFIG_PPC
-#	define XZ_DEC_POWERPC
+#define XZ_DEC_POWERPC
 #endif
 #ifdef CONFIG_ARM
-#	define XZ_DEC_ARM
+#define XZ_DEC_ARM
 #endif
 #ifdef CONFIG_IA64
-#	define XZ_DEC_IA64
+#define XZ_DEC_IA64
 #endif
 #ifdef CONFIG_SPARC
-#	define XZ_DEC_SPARC
+#define XZ_DEC_SPARC
 #endif
 
 /*
@@ -157,7 +157,11 @@
 #define kmalloc(size, flags) malloc(size)
 #define kfree(ptr) free(ptr)
 #define vmalloc(size) malloc(size)
-#define vfree(ptr) do { if (ptr != NULL) free(ptr); } while (0)
+#define vfree(ptr)                                                             \
+	do {                                                                   \
+		if (ptr != NULL)                                               \
+			free(ptr);                                             \
+	} while (0)
 
 /*
  * FIXME: Not all basic memory functions are provided in architecture-specific
@@ -251,8 +255,7 @@ void *memmove(void *dest, const void *src, size_t size)
 STATIC int INIT unxz(unsigned char *in, long in_size,
 		     long (*fill)(void *dest, unsigned long size),
 		     long (*flush)(void *src, unsigned long size),
-		     unsigned char *out, long *in_used,
-		     void (*error)(char *x))
+		     unsigned char *out, long *in_used, void (*error)(char *x))
 {
 	struct xz_buf b;
 	struct xz_dec *s;
@@ -322,8 +325,9 @@ STATIC int INIT unxz(unsigned char *in, long in_size,
 
 			ret = xz_dec_run(s, &b);
 
-			if (flush != NULL && (b.out_pos == b.out_size
-					|| (ret != XZ_OK && b.out_pos > 0))) {
+			if (flush != NULL &&
+			    (b.out_pos == b.out_size ||
+			     (ret != XZ_OK && b.out_pos > 0))) {
 				/*
 				 * Setting ret here may hide an error
 				 * returned by xz_dec_run(), but probably
@@ -363,7 +367,7 @@ STATIC int INIT unxz(unsigned char *in, long in_size,
 
 	case XZ_OPTIONS_ERROR:
 		error("Input was encoded with settings that are not "
-				"supported by this XZ decoder");
+		      "supported by this XZ decoder");
 		break;
 
 	case XZ_DATA_ERROR:
@@ -396,11 +400,10 @@ error_alloc_state:
  */
 #ifdef XZ_PREBOOT
 STATIC int INIT __decompress(unsigned char *buf, long len,
-			   long (*fill)(void*, unsigned long),
-			   long (*flush)(void*, unsigned long),
-			   unsigned char *out_buf, long olen,
-			   long *pos,
-			   void (*error)(char *x))
+			     long (*fill)(void *, unsigned long),
+			     long (*flush)(void *, unsigned long),
+			     unsigned char *out_buf, long olen, long *pos,
+			     void (*error)(char *x))
 {
 	return unxz(buf, len, fill, flush, out_buf, pos, error);
 }

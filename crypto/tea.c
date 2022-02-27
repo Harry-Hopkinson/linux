@@ -21,15 +21,15 @@
 #include <linux/crypto.h>
 #include <linux/types.h>
 
-#define TEA_KEY_SIZE		16
-#define TEA_BLOCK_SIZE		8
-#define TEA_ROUNDS		32
-#define TEA_DELTA		0x9e3779b9
+#define TEA_KEY_SIZE 16
+#define TEA_BLOCK_SIZE 8
+#define TEA_ROUNDS 32
+#define TEA_DELTA 0x9e3779b9
 
-#define XTEA_KEY_SIZE		16
-#define XTEA_BLOCK_SIZE		8
-#define XTEA_ROUNDS		32
-#define XTEA_DELTA		0x9e3779b9
+#define XTEA_KEY_SIZE 16
+#define XTEA_BLOCK_SIZE 8
+#define XTEA_ROUNDS 32
+#define XTEA_DELTA 0x9e3779b9
 
 struct tea_ctx {
 	u32 KEY[4];
@@ -50,8 +50,7 @@ static int tea_setkey(struct crypto_tfm *tfm, const u8 *in_key,
 	ctx->KEY[2] = le32_to_cpu(key[2]);
 	ctx->KEY[3] = le32_to_cpu(key[3]);
 
-	return 0; 
-
+	return 0;
 }
 
 static void tea_encrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
@@ -77,7 +76,7 @@ static void tea_encrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 		y += ((z << 4) + k0) ^ (z + sum) ^ ((z >> 5) + k1);
 		z += ((y << 4) + k2) ^ (y + sum) ^ ((y >> 5) + k3);
 	}
-	
+
 	out[0] = cpu_to_le32(y);
 	out[1] = cpu_to_le32(z);
 }
@@ -107,7 +106,7 @@ static void tea_decrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 		y -= ((z << 4) + k0) ^ (z + sum) ^ ((z >> 5) + k1);
 		sum -= TEA_DELTA;
 	}
-	
+
 	out[0] = cpu_to_le32(y);
 	out[1] = cpu_to_le32(z);
 }
@@ -123,8 +122,7 @@ static int xtea_setkey(struct crypto_tfm *tfm, const u8 *in_key,
 	ctx->KEY[2] = le32_to_cpu(key[2]);
 	ctx->KEY[3] = le32_to_cpu(key[3]);
 
-	return 0; 
-
+	return 0;
 }
 
 static void xtea_encrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
@@ -139,11 +137,11 @@ static void xtea_encrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 	z = le32_to_cpu(in[1]);
 
 	while (sum != limit) {
-		y += ((z << 4 ^ z >> 5) + z) ^ (sum + ctx->KEY[sum&3]); 
+		y += ((z << 4 ^ z >> 5) + z) ^ (sum + ctx->KEY[sum & 3]);
 		sum += XTEA_DELTA;
-		z += ((y << 4 ^ y >> 5) + y) ^ (sum + ctx->KEY[sum>>11 &3]); 
+		z += ((y << 4 ^ y >> 5) + y) ^ (sum + ctx->KEY[sum >> 11 & 3]);
 	}
-	
+
 	out[0] = cpu_to_le32(y);
 	out[1] = cpu_to_le32(z);
 }
@@ -161,15 +159,14 @@ static void xtea_decrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 	sum = XTEA_DELTA * XTEA_ROUNDS;
 
 	while (sum) {
-		z -= ((y << 4 ^ y >> 5) + y) ^ (sum + ctx->KEY[sum>>11 & 3]);
+		z -= ((y << 4 ^ y >> 5) + y) ^ (sum + ctx->KEY[sum >> 11 & 3]);
 		sum -= XTEA_DELTA;
 		y -= ((z << 4 ^ z >> 5) + z) ^ (sum + ctx->KEY[sum & 3]);
 	}
-	
+
 	out[0] = cpu_to_le32(y);
 	out[1] = cpu_to_le32(z);
 }
-
 
 static void xeta_encrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 {
@@ -183,11 +180,11 @@ static void xeta_encrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 	z = le32_to_cpu(in[1]);
 
 	while (sum != limit) {
-		y += (z << 4 ^ z >> 5) + (z ^ sum) + ctx->KEY[sum&3];
+		y += (z << 4 ^ z >> 5) + (z ^ sum) + ctx->KEY[sum & 3];
 		sum += XTEA_DELTA;
-		z += (y << 4 ^ y >> 5) + (y ^ sum) + ctx->KEY[sum>>11 &3];
+		z += (y << 4 ^ y >> 5) + (y ^ sum) + ctx->KEY[sum >> 11 & 3];
 	}
-	
+
 	out[0] = cpu_to_le32(y);
 	out[1] = cpu_to_le32(z);
 }
@@ -205,58 +202,53 @@ static void xeta_decrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 	sum = XTEA_DELTA * XTEA_ROUNDS;
 
 	while (sum) {
-		z -= (y << 4 ^ y >> 5) + (y ^ sum) + ctx->KEY[sum>>11 & 3];
+		z -= (y << 4 ^ y >> 5) + (y ^ sum) + ctx->KEY[sum >> 11 & 3];
 		sum -= XTEA_DELTA;
 		y -= (z << 4 ^ z >> 5) + (z ^ sum) + ctx->KEY[sum & 3];
 	}
-	
+
 	out[0] = cpu_to_le32(y);
 	out[1] = cpu_to_le32(z);
 }
 
-static struct crypto_alg tea_algs[3] = { {
-	.cra_name		=	"tea",
-	.cra_driver_name	=	"tea-generic",
-	.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
-	.cra_blocksize		=	TEA_BLOCK_SIZE,
-	.cra_ctxsize		=	sizeof (struct tea_ctx),
-	.cra_alignmask		=	3,
-	.cra_module		=	THIS_MODULE,
-	.cra_u			=	{ .cipher = {
-	.cia_min_keysize	=	TEA_KEY_SIZE,
-	.cia_max_keysize	=	TEA_KEY_SIZE,
-	.cia_setkey		= 	tea_setkey,
-	.cia_encrypt		=	tea_encrypt,
-	.cia_decrypt		=	tea_decrypt } }
-}, {
-	.cra_name		=	"xtea",
-	.cra_driver_name	=	"xtea-generic",
-	.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
-	.cra_blocksize		=	XTEA_BLOCK_SIZE,
-	.cra_ctxsize		=	sizeof (struct xtea_ctx),
-	.cra_alignmask		=	3,
-	.cra_module		=	THIS_MODULE,
-	.cra_u			=	{ .cipher = {
-	.cia_min_keysize	=	XTEA_KEY_SIZE,
-	.cia_max_keysize	=	XTEA_KEY_SIZE,
-	.cia_setkey		= 	xtea_setkey,
-	.cia_encrypt		=	xtea_encrypt,
-	.cia_decrypt		=	xtea_decrypt } }
-}, {
-	.cra_name		=	"xeta",
-	.cra_driver_name	=	"xeta-generic",
-	.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
-	.cra_blocksize		=	XTEA_BLOCK_SIZE,
-	.cra_ctxsize		=	sizeof (struct xtea_ctx),
-	.cra_alignmask		=	3,
-	.cra_module		=	THIS_MODULE,
-	.cra_u			=	{ .cipher = {
-	.cia_min_keysize	=	XTEA_KEY_SIZE,
-	.cia_max_keysize	=	XTEA_KEY_SIZE,
-	.cia_setkey		= 	xtea_setkey,
-	.cia_encrypt		=	xeta_encrypt,
-	.cia_decrypt		=	xeta_decrypt } }
-} };
+static struct crypto_alg tea_algs[3] = {
+	{ .cra_name = "tea",
+	  .cra_driver_name = "tea-generic",
+	  .cra_flags = CRYPTO_ALG_TYPE_CIPHER,
+	  .cra_blocksize = TEA_BLOCK_SIZE,
+	  .cra_ctxsize = sizeof(struct tea_ctx),
+	  .cra_alignmask = 3,
+	  .cra_module = THIS_MODULE,
+	  .cra_u = { .cipher = { .cia_min_keysize = TEA_KEY_SIZE,
+				 .cia_max_keysize = TEA_KEY_SIZE,
+				 .cia_setkey = tea_setkey,
+				 .cia_encrypt = tea_encrypt,
+				 .cia_decrypt = tea_decrypt } } },
+	{ .cra_name = "xtea",
+	  .cra_driver_name = "xtea-generic",
+	  .cra_flags = CRYPTO_ALG_TYPE_CIPHER,
+	  .cra_blocksize = XTEA_BLOCK_SIZE,
+	  .cra_ctxsize = sizeof(struct xtea_ctx),
+	  .cra_alignmask = 3,
+	  .cra_module = THIS_MODULE,
+	  .cra_u = { .cipher = { .cia_min_keysize = XTEA_KEY_SIZE,
+				 .cia_max_keysize = XTEA_KEY_SIZE,
+				 .cia_setkey = xtea_setkey,
+				 .cia_encrypt = xtea_encrypt,
+				 .cia_decrypt = xtea_decrypt } } },
+	{ .cra_name = "xeta",
+	  .cra_driver_name = "xeta-generic",
+	  .cra_flags = CRYPTO_ALG_TYPE_CIPHER,
+	  .cra_blocksize = XTEA_BLOCK_SIZE,
+	  .cra_ctxsize = sizeof(struct xtea_ctx),
+	  .cra_alignmask = 3,
+	  .cra_module = THIS_MODULE,
+	  .cra_u = { .cipher = { .cia_min_keysize = XTEA_KEY_SIZE,
+				 .cia_max_keysize = XTEA_KEY_SIZE,
+				 .cia_setkey = xtea_setkey,
+				 .cia_encrypt = xeta_encrypt,
+				 .cia_decrypt = xeta_decrypt } } }
+};
 
 static int __init tea_mod_init(void)
 {

@@ -49,7 +49,7 @@ struct cpu_rmap *alloc_cpu_rmap(unsigned int size, gfp_t flags)
 	 * CPUs that are not present/online, since we definitely want
 	 * any newly-hotplugged CPUs to have some object assigned.
 	 */
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu (cpu) {
 		rmap->near[cpu].index = cpu % size;
 		rmap->near[cpu].dist = CPU_RMAP_DIST_INF;
 	}
@@ -96,7 +96,7 @@ static bool cpu_rmap_copy_neigh(struct cpu_rmap *rmap, unsigned int cpu,
 {
 	int neigh;
 
-	for_each_cpu(neigh, mask) {
+	for_each_cpu (neigh, mask) {
 		if (rmap->near[cpu].dist > dist &&
 		    rmap->near[neigh].dist <= dist) {
 			rmap->near[cpu].index = rmap->near[neigh].index;
@@ -115,15 +115,15 @@ static void debug_print_rmap(const struct cpu_rmap *rmap, const char *prefix)
 
 	pr_info("cpu_rmap %p, %s:\n", rmap, prefix);
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu (cpu) {
 		index = rmap->near[cpu].index;
-		pr_info("cpu %d -> obj %u (distance %u)\n",
-			cpu, index, rmap->near[cpu].dist);
+		pr_info("cpu %d -> obj %u (distance %u)\n", cpu, index,
+			rmap->near[cpu].dist);
 	}
 }
 #else
-static inline void
-debug_print_rmap(const struct cpu_rmap *rmap, const char *prefix)
+static inline void debug_print_rmap(const struct cpu_rmap *rmap,
+				    const char *prefix)
 {
 }
 #endif
@@ -164,7 +164,7 @@ int cpu_rmap_update(struct cpu_rmap *rmap, u16 index,
 	/* Invalidate distance for all CPUs for which this used to be
 	 * the nearest object.  Mark those CPUs for update.
 	 */
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu (cpu) {
 		if (rmap->near[cpu].index == index) {
 			rmap->near[cpu].dist = CPU_RMAP_DIST_INF;
 			cpumask_set_cpu(cpu, update_mask);
@@ -176,7 +176,7 @@ int cpu_rmap_update(struct cpu_rmap *rmap, u16 index,
 	/* Set distance to 0 for all CPUs in the new affinity mask.
 	 * Mark all CPUs within their NUMA nodes for update.
 	 */
-	for_each_cpu(cpu, affinity) {
+	for_each_cpu (cpu, affinity) {
 		rmap->near[cpu].index = index;
 		rmap->near[cpu].dist = 0;
 		cpumask_or(update_mask, update_mask,
@@ -186,12 +186,12 @@ int cpu_rmap_update(struct cpu_rmap *rmap, u16 index,
 	debug_print_rmap(rmap, "after updating neighbours");
 
 	/* Update distances based on topology */
-	for_each_cpu(cpu, update_mask) {
+	for_each_cpu (cpu, update_mask) {
 		if (cpu_rmap_copy_neigh(rmap, cpu,
 					topology_sibling_cpumask(cpu), 1))
 			continue;
-		if (cpu_rmap_copy_neigh(rmap, cpu,
-					topology_core_cpumask(cpu), 2))
+		if (cpu_rmap_copy_neigh(rmap, cpu, topology_core_cpumask(cpu),
+					2))
 			continue;
 		if (cpu_rmap_copy_neigh(rmap, cpu,
 					cpumask_of_node(cpu_to_node(cpu)), 3))
@@ -246,11 +246,10 @@ EXPORT_SYMBOL(free_irq_cpu_rmap);
  *
  * This is executed in workqueue context.
  */
-static void
-irq_cpu_rmap_notify(struct irq_affinity_notify *notify, const cpumask_t *mask)
+static void irq_cpu_rmap_notify(struct irq_affinity_notify *notify,
+				const cpumask_t *mask)
 {
-	struct irq_glue *glue =
-		container_of(notify, struct irq_glue, notify);
+	struct irq_glue *glue = container_of(notify, struct irq_glue, notify);
 	int rc;
 
 	rc = cpu_rmap_update(glue->rmap, glue->index, mask);
@@ -264,8 +263,7 @@ irq_cpu_rmap_notify(struct irq_affinity_notify *notify, const cpumask_t *mask)
  */
 static void irq_cpu_rmap_release(struct kref *ref)
 {
-	struct irq_glue *glue =
-		container_of(ref, struct irq_glue, notify.kref);
+	struct irq_glue *glue = container_of(ref, struct irq_glue, notify.kref);
 
 	cpu_rmap_put(glue->rmap);
 	kfree(glue);

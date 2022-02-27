@@ -14,7 +14,7 @@
 
 unsigned long initrd_start, initrd_end;
 int initrd_below_start_ok;
-unsigned int real_root_dev;	/* do_proc_dointvec cannot handle kdev_t */
+unsigned int real_root_dev; /* do_proc_dointvec cannot handle kdev_t */
 static int __initdata mount_initrd = 1;
 
 phys_addr_t phys_initrd_start __initdata;
@@ -66,7 +66,10 @@ static int __init init_linuxrc(struct subprocess_info *info, struct cred *new)
 static void __init handle_initrd(void)
 {
 	struct subprocess_info *info;
-	static char *argv[] = { "linuxrc", NULL, };
+	static char *argv[] = {
+		"linuxrc",
+		NULL,
+	};
 	extern char *envp_init[];
 	int error;
 

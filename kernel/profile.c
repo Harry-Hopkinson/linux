@@ -35,10 +35,10 @@
 struct profile_hit {
 	u32 pc, hits;
 };
-#define PROFILE_GRPSHIFT	3
-#define PROFILE_GRPSZ		(1 << PROFILE_GRPSHIFT)
-#define NR_PROFILE_HIT		(PAGE_SIZE/sizeof(struct profile_hit))
-#define NR_PROFILE_GRP		(NR_PROFILE_HIT/PROFILE_GRPSZ)
+#define PROFILE_GRPSHIFT 3
+#define PROFILE_GRPSZ (1 << PROFILE_GRPSHIFT)
+#define NR_PROFILE_HIT (PAGE_SIZE / sizeof(struct profile_hit))
+#define NR_PROFILE_GRP (NR_PROFILE_HIT / PROFILE_GRPSZ)
 
 static atomic_t *prof_buffer;
 static unsigned long prof_len;
@@ -93,13 +93,11 @@ int profile_setup(char *str)
 	} else if (get_option(&str, &par)) {
 		prof_shift = clamp(par, 0, BITS_PER_LONG - 1);
 		prof_on = CPU_PROFILING;
-		pr_info("kernel profiling enabled (shift: %u)\n",
-			prof_shift);
+		pr_info("kernel profiling enabled (shift: %u)\n", prof_shift);
 	}
 	return 1;
 }
 __setup("profile=", profile_setup);
-
 
 int __ref profile_init(void)
 {
@@ -109,19 +107,19 @@ int __ref profile_init(void)
 
 	/* only text is profiled */
 	prof_len = (_etext - _stext) >> prof_shift;
-	buffer_bytes = prof_len*sizeof(atomic_t);
+	buffer_bytes = prof_len * sizeof(atomic_t);
 
 	if (!alloc_cpumask_var(&prof_cpu_mask, GFP_KERNEL))
 		return -ENOMEM;
 
 	cpumask_copy(prof_cpu_mask, cpu_possible_mask);
 
-	prof_buffer = kzalloc(buffer_bytes, GFP_KERNEL|__GFP_NOWARN);
+	prof_buffer = kzalloc(buffer_bytes, GFP_KERNEL | __GFP_NOWARN);
 	if (prof_buffer)
 		return 0;
 
 	prof_buffer = alloc_pages_exact(buffer_bytes,
-					GFP_KERNEL|__GFP_ZERO|__GFP_NOWARN);
+					GFP_KERNEL | __GFP_ZERO | __GFP_NOWARN);
 	if (prof_buffer)
 		return 0;
 
@@ -180,7 +178,7 @@ static void profile_flip_buffers(void)
 	j = per_cpu(cpu_profile_flip, get_cpu());
 	put_cpu();
 	on_each_cpu(__profile_flip_buffers, NULL, 1);
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu (cpu) {
 		struct profile_hit *hits = per_cpu(cpu_profile_hits, cpu)[j];
 		for (i = 0; i < NR_PROFILE_HIT; ++i) {
 			if (!hits[i].hits) {
@@ -203,9 +201,9 @@ static void profile_discard_flip_buffers(void)
 	i = per_cpu(cpu_profile_flip, get_cpu());
 	put_cpu();
 	on_each_cpu(__profile_flip_buffers, NULL, 1);
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu (cpu) {
 		struct profile_hit *hits = per_cpu(cpu_profile_hits, cpu)[i];
-		memset(hits, 0, NR_PROFILE_HIT*sizeof(struct profile_hit));
+		memset(hits, 0, NR_PROFILE_HIT * sizeof(struct profile_hit));
 	}
 	mutex_unlock(&profile_flip_mutex);
 }
@@ -294,7 +292,6 @@ static int profile_prepare_cpu(unsigned int cpu)
 			return -ENOMEM;
 		}
 		per_cpu(cpu_profile_hits, cpu)[i] = page_address(page);
-
 	}
 	return 0;
 }
@@ -308,8 +305,12 @@ static int profile_online_cpu(unsigned int cpu)
 }
 
 #else /* !CONFIG_SMP */
-#define profile_flip_buffers()		do { } while (0)
-#define profile_discard_flip_buffers()	do { } while (0)
+#define profile_flip_buffers()                                                 \
+	do {                                                                   \
+	} while (0)
+#define profile_discard_flip_buffers()                                         \
+	do {                                                                   \
+	} while (0)
 
 static void do_profile_hits(int type, void *__pc, unsigned int nr_hits)
 {
@@ -353,7 +354,8 @@ static int prof_cpu_mask_proc_open(struct inode *inode, struct file *file)
 }
 
 static ssize_t prof_cpu_mask_proc_write(struct file *file,
-	const char __user *buffer, size_t count, loff_t *pos)
+					const char __user *buffer, size_t count,
+					loff_t *pos)
 {
 	cpumask_var_t new_value;
 	int err;
@@ -371,11 +373,11 @@ static ssize_t prof_cpu_mask_proc_write(struct file *file,
 }
 
 static const struct proc_ops prof_cpu_mask_proc_ops = {
-	.proc_open	= prof_cpu_mask_proc_open,
-	.proc_read	= seq_read,
-	.proc_lseek	= seq_lseek,
-	.proc_release	= single_release,
-	.proc_write	= prof_cpu_mask_proc_write,
+	.proc_open = prof_cpu_mask_proc_open,
+	.proc_read = seq_read,
+	.proc_lseek = seq_lseek,
+	.proc_release = single_release,
+	.proc_write = prof_cpu_mask_proc_write,
 };
 
 void create_prof_cpu_mask(void)
@@ -390,8 +392,8 @@ void create_prof_cpu_mask(void)
  * buffer. Use of the program readprofile is recommended in order to
  * get meaningful info out of these data.
  */
-static ssize_t
-read_profile(struct file *file, char __user *buf, size_t count, loff_t *ppos)
+static ssize_t read_profile(struct file *file, char __user *buf, size_t count,
+			    loff_t *ppos)
 {
 	unsigned long p = *ppos;
 	ssize_t read;
@@ -399,16 +401,19 @@ read_profile(struct file *file, char __user *buf, size_t count, loff_t *ppos)
 	unsigned long sample_step = 1UL << prof_shift;
 
 	profile_flip_buffers();
-	if (p >= (prof_len+1)*sizeof(unsigned int))
+	if (p >= (prof_len + 1) * sizeof(unsigned int))
 		return 0;
-	if (count > (prof_len+1)*sizeof(unsigned int) - p)
-		count = (prof_len+1)*sizeof(unsigned int) - p;
+	if (count > (prof_len + 1) * sizeof(unsigned int) - p)
+		count = (prof_len + 1) * sizeof(unsigned int) - p;
 	read = 0;
 
 	while (p < sizeof(unsigned int) && count > 0) {
-		if (put_user(*((char *)(&sample_step)+p), buf))
+		if (put_user(*((char *)(&sample_step) + p), buf))
 			return -EFAULT;
-		buf++; p++; count--; read++;
+		buf++;
+		p++;
+		count--;
+		read++;
 	}
 	pnt = (char *)prof_buffer + p - sizeof(atomic_t);
 	if (copy_to_user(buf, (void *)pnt, count))
@@ -446,9 +451,9 @@ static ssize_t write_profile(struct file *file, const char __user *buf,
 }
 
 static const struct proc_ops profile_proc_ops = {
-	.proc_read	= read_profile,
-	.proc_write	= write_profile,
-	.proc_lseek	= default_llseek,
+	.proc_read = read_profile,
+	.proc_write = write_profile,
+	.proc_lseek = default_llseek,
 };
 
 int __ref create_proc_profile(void)
@@ -475,8 +480,8 @@ int __ref create_proc_profile(void)
 	online_state = err;
 	err = 0;
 #endif
-	entry = proc_create("profile", S_IWUSR | S_IRUGO,
-			    NULL, &profile_proc_ops);
+	entry = proc_create("profile", S_IWUSR | S_IRUGO, NULL,
+			    &profile_proc_ops);
 	if (!entry)
 		goto err_state_onl;
 	proc_set_size(entry, (1 + prof_len) * sizeof(atomic_t));

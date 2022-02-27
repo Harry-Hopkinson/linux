@@ -25,9 +25,9 @@
 #include "internal.h"
 
 struct scomp_scratch {
-	spinlock_t	lock;
-	void		*src;
-	void		*dst;
+	spinlock_t lock;
+	void *src;
+	void *dst;
 };
 
 static DEFINE_PER_CPU(struct scomp_scratch, scomp_scratch) = {
@@ -47,8 +47,8 @@ static int crypto_scomp_report(struct sk_buff *skb, struct crypto_alg *alg)
 
 	strscpy(rscomp.type, "scomp", sizeof(rscomp.type));
 
-	return nla_put(skb, CRYPTOCFGA_REPORT_COMPRESS,
-		       sizeof(rscomp), &rscomp);
+	return nla_put(skb, CRYPTOCFGA_REPORT_COMPRESS, sizeof(rscomp),
+		       &rscomp);
 }
 #else
 static int crypto_scomp_report(struct sk_buff *skb, struct crypto_alg *alg)
@@ -57,8 +57,8 @@ static int crypto_scomp_report(struct sk_buff *skb, struct crypto_alg *alg)
 }
 #endif
 
-static void crypto_scomp_show(struct seq_file *m, struct crypto_alg *alg)
-	__maybe_unused;
+static void crypto_scomp_show(struct seq_file *m,
+			      struct crypto_alg *alg) __maybe_unused;
 
 static void crypto_scomp_show(struct seq_file *m, struct crypto_alg *alg)
 {
@@ -70,7 +70,7 @@ static void crypto_scomp_free_scratches(void)
 	struct scomp_scratch *scratch;
 	int i;
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu (i) {
 		scratch = per_cpu_ptr(&scomp_scratch, i);
 
 		vfree(scratch->src);
@@ -85,7 +85,7 @@ static int crypto_scomp_alloc_scratches(void)
 	struct scomp_scratch *scratch;
 	int i;
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu (i) {
 		void *mem;
 
 		scratch = per_cpu_ptr(&scomp_scratch, i);

@@ -52,11 +52,11 @@ static void adjust_for_msb_right_quirk(u64 *to_write, int *box_start_bit,
 	*to_write = bit_reverse(*to_write, box_bit_width);
 	*to_write <<= *box_end_bit;
 
-	new_box_end_bit   = box_bit_width - *box_start_bit - 1;
+	new_box_end_bit = box_bit_width - *box_start_bit - 1;
 	new_box_start_bit = box_bit_width - *box_end_bit - 1;
 	*box_mask = GENMASK_ULL(new_box_start_bit, new_box_end_bit);
 	*box_start_bit = new_box_start_bit;
-	*box_end_bit   = new_box_end_bit;
+	*box_end_bit = new_box_end_bit;
 }
 
 /**
@@ -127,12 +127,12 @@ int packing(void *pbuf, u64 *uval, int startbit, int endbit, size_t pbuflen,
 	 * logical bit significance. "box" denotes the current logical u8.
 	 */
 	plogical_first_u8 = startbit / 8;
-	plogical_last_u8  = endbit / 8;
+	plogical_last_u8 = endbit / 8;
 
 	for (box = plogical_first_u8; box >= plogical_last_u8; box--) {
 		/* Bit indices into the currently accessed 8-bit box */
 		int box_start_bit, box_end_bit, box_addr;
-		u8  box_mask;
+		u8 box_mask;
 		/* Corresponding bits from the unpacked u64 parameter */
 		int proj_start_bit, proj_end_bit;
 		u64 proj_mask;
@@ -158,9 +158,9 @@ int packing(void *pbuf, u64 *uval, int startbit, int endbit, size_t pbuflen,
 		 * anywhere within the unpacked u64.
 		 */
 		proj_start_bit = ((box * 8) + box_start_bit) - endbit;
-		proj_end_bit   = ((box * 8) + box_end_bit) - endbit;
+		proj_end_bit = ((box * 8) + box_end_bit) - endbit;
 		proj_mask = GENMASK_ULL(proj_start_bit, proj_end_bit);
-		box_mask  = GENMASK_ULL(box_start_bit, box_end_bit);
+		box_mask = GENMASK_ULL(box_start_bit, box_end_bit);
 
 		/* Determine the offset of the u8 box inside the pbuf,
 		 * adjusted for quirks. The adjusted box_addr will be used for
@@ -171,8 +171,7 @@ int packing(void *pbuf, u64 *uval, int startbit, int endbit, size_t pbuflen,
 		if (quirks & QUIRK_LITTLE_ENDIAN)
 			box_addr = get_le_offset(box_addr);
 		if (quirks & QUIRK_LSW32_IS_FIRST)
-			box_addr = get_reverse_lsw32_offset(box_addr,
-							    pbuflen);
+			box_addr = get_reverse_lsw32_offset(box_addr, pbuflen);
 
 		if (op == UNPACK) {
 			u64 pval;

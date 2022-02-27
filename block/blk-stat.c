@@ -35,7 +35,7 @@ void blk_rq_stat_sum(struct blk_rq_stat *dst, struct blk_rq_stat *src)
 	dst->max = max(dst->max, src->max);
 
 	dst->mean = div_u64(src->batch + dst->mean * dst->nr_samples,
-				dst->nr_samples + src->nr_samples);
+			    dst->nr_samples + src->nr_samples);
 
 	dst->nr_samples += src->nr_samples;
 }
@@ -62,7 +62,7 @@ void blk_stat_add(struct request *rq, u64 now)
 
 	rcu_read_lock();
 	cpu = get_cpu();
-	list_for_each_entry_rcu(cb, &q->stats->callbacks, list) {
+	list_for_each_entry_rcu (cb, &q->stats->callbacks, list) {
 		if (!blk_stat_is_active(cb))
 			continue;
 
@@ -86,7 +86,7 @@ static void blk_stat_timer_fn(struct timer_list *t)
 	for (bucket = 0; bucket < cb->buckets; bucket++)
 		blk_rq_stat_init(&cb->stat[bucket]);
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu (cpu) {
 		struct blk_rq_stat *cpu_stat;
 
 		cpu_stat = per_cpu_ptr(cb->cpu_stat, cpu);
@@ -110,8 +110,8 @@ blk_stat_alloc_callback(void (*timer_fn)(struct blk_stat_callback *),
 	if (!cb)
 		return NULL;
 
-	cb->stat = kmalloc_array(buckets, sizeof(struct blk_rq_stat),
-				 GFP_KERNEL);
+	cb->stat =
+		kmalloc_array(buckets, sizeof(struct blk_rq_stat), GFP_KERNEL);
 	if (!cb->stat) {
 		kfree(cb);
 		return NULL;
@@ -140,7 +140,7 @@ void blk_stat_add_callback(struct request_queue *q,
 	unsigned long flags;
 	int cpu;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu (cpu) {
 		struct blk_rq_stat *cpu_stat;
 
 		cpu_stat = per_cpu_ptr(cb->cpu_stat, cpu);
@@ -235,8 +235,8 @@ bool blk_stats_alloc_enable(struct request_queue *q)
 {
 	struct blk_rq_stat *poll_stat;
 
-	poll_stat = kcalloc(BLK_MQ_POLL_STATS_BKTS, sizeof(*poll_stat),
-				GFP_ATOMIC);
+	poll_stat =
+		kcalloc(BLK_MQ_POLL_STATS_BKTS, sizeof(*poll_stat), GFP_ATOMIC);
 	if (!poll_stat)
 		return false;
 

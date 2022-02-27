@@ -19,8 +19,8 @@
 #include <linux/minmax.h>
 #include <linux/swab.h>
 
-#if !defined(find_next_bit) || !defined(find_next_zero_bit) ||			\
-	!defined(find_next_bit_le) || !defined(find_next_zero_bit_le) ||	\
+#if !defined(find_next_bit) || !defined(find_next_zero_bit) ||                 \
+	!defined(find_next_bit_le) || !defined(find_next_zero_bit_le) ||       \
 	!defined(find_next_and_bit)
 /*
  * This is a common helper function for find_next_bit, find_next_zero_bit, and
@@ -30,8 +30,9 @@
  *  - The optional "addr2", which is anded with "addr1" if present.
  */
 unsigned long _find_next_bit(const unsigned long *addr1,
-		const unsigned long *addr2, unsigned long nbits,
-		unsigned long start, unsigned long invert, unsigned long le)
+			     const unsigned long *addr2, unsigned long nbits,
+			     unsigned long start, unsigned long invert,
+			     unsigned long le)
 {
 	unsigned long tmp, mask;
 
@@ -81,7 +82,8 @@ unsigned long _find_first_bit(const unsigned long *addr, unsigned long size)
 
 	for (idx = 0; idx * BITS_PER_LONG < size; idx++) {
 		if (addr[idx])
-			return min(idx * BITS_PER_LONG + __ffs(addr[idx]), size);
+			return min(idx * BITS_PER_LONG + __ffs(addr[idx]),
+				   size);
 	}
 
 	return size;
@@ -114,7 +116,8 @@ EXPORT_SYMBOL(_find_first_and_bit);
 /*
  * Find the first cleared bit in a memory region.
  */
-unsigned long _find_first_zero_bit(const unsigned long *addr, unsigned long size)
+unsigned long _find_first_zero_bit(const unsigned long *addr,
+				   unsigned long size)
 {
 	unsigned long idx;
 
@@ -133,7 +136,7 @@ unsigned long _find_last_bit(const unsigned long *addr, unsigned long size)
 {
 	if (size) {
 		unsigned long val = BITMAP_LAST_WORD_MASK(size);
-		unsigned long idx = (size-1) / BITS_PER_LONG;
+		unsigned long idx = (size - 1) / BITS_PER_LONG;
 
 		do {
 			val &= addr[idx];

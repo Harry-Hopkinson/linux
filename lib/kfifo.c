@@ -21,8 +21,8 @@ static inline unsigned int kfifo_unused(struct __kfifo *fifo)
 	return (fifo->mask + 1) - (fifo->in - fifo->out);
 }
 
-int __kfifo_alloc(struct __kfifo *fifo, unsigned int size,
-		size_t esize, gfp_t gfp_mask)
+int __kfifo_alloc(struct __kfifo *fifo, unsigned int size, size_t esize,
+		  gfp_t gfp_mask)
 {
 	/*
 	 * round up to the next power of 2, since our 'let the indices
@@ -63,8 +63,8 @@ void __kfifo_free(struct __kfifo *fifo)
 }
 EXPORT_SYMBOL(__kfifo_free);
 
-int __kfifo_init(struct __kfifo *fifo, void *buffer,
-		unsigned int size, size_t esize)
+int __kfifo_init(struct __kfifo *fifo, void *buffer, unsigned int size,
+		 size_t esize)
 {
 	size /= esize;
 
@@ -87,7 +87,7 @@ int __kfifo_init(struct __kfifo *fifo, void *buffer,
 EXPORT_SYMBOL(__kfifo_init);
 
 static void kfifo_copy_in(struct __kfifo *fifo, const void *src,
-		unsigned int len, unsigned int off)
+			  unsigned int len, unsigned int off)
 {
 	unsigned int size = fifo->mask + 1;
 	unsigned int esize = fifo->esize;
@@ -110,8 +110,7 @@ static void kfifo_copy_in(struct __kfifo *fifo, const void *src,
 	smp_wmb();
 }
 
-unsigned int __kfifo_in(struct __kfifo *fifo,
-		const void *buf, unsigned int len)
+unsigned int __kfifo_in(struct __kfifo *fifo, const void *buf, unsigned int len)
 {
 	unsigned int l;
 
@@ -125,8 +124,8 @@ unsigned int __kfifo_in(struct __kfifo *fifo,
 }
 EXPORT_SYMBOL(__kfifo_in);
 
-static void kfifo_copy_out(struct __kfifo *fifo, void *dst,
-		unsigned int len, unsigned int off)
+static void kfifo_copy_out(struct __kfifo *fifo, void *dst, unsigned int len,
+			   unsigned int off)
 {
 	unsigned int size = fifo->mask + 1;
 	unsigned int esize = fifo->esize;
@@ -149,8 +148,7 @@ static void kfifo_copy_out(struct __kfifo *fifo, void *dst,
 	smp_wmb();
 }
 
-unsigned int __kfifo_out_peek(struct __kfifo *fifo,
-		void *buf, unsigned int len)
+unsigned int __kfifo_out_peek(struct __kfifo *fifo, void *buf, unsigned int len)
 {
 	unsigned int l;
 
@@ -163,8 +161,7 @@ unsigned int __kfifo_out_peek(struct __kfifo *fifo,
 }
 EXPORT_SYMBOL(__kfifo_out_peek);
 
-unsigned int __kfifo_out(struct __kfifo *fifo,
-		void *buf, unsigned int len)
+unsigned int __kfifo_out(struct __kfifo *fifo, void *buf, unsigned int len)
 {
 	len = __kfifo_out_peek(fifo, buf, len);
 	fifo->out += len;
@@ -173,8 +170,9 @@ unsigned int __kfifo_out(struct __kfifo *fifo,
 EXPORT_SYMBOL(__kfifo_out);
 
 static unsigned long kfifo_copy_from_user(struct __kfifo *fifo,
-	const void __user *from, unsigned int len, unsigned int off,
-	unsigned int *copied)
+					  const void __user *from,
+					  unsigned int len, unsigned int off,
+					  unsigned int *copied)
 {
 	unsigned int size = fifo->mask + 1;
 	unsigned int esize = fifo->esize;
@@ -208,7 +206,7 @@ static unsigned long kfifo_copy_from_user(struct __kfifo *fifo,
 }
 
 int __kfifo_from_user(struct __kfifo *fifo, const void __user *from,
-		unsigned long len, unsigned int *copied)
+		      unsigned long len, unsigned int *copied)
 {
 	unsigned int l;
 	unsigned long ret;
@@ -234,7 +232,8 @@ int __kfifo_from_user(struct __kfifo *fifo, const void __user *from,
 EXPORT_SYMBOL(__kfifo_from_user);
 
 static unsigned long kfifo_copy_to_user(struct __kfifo *fifo, void __user *to,
-		unsigned int len, unsigned int off, unsigned int *copied)
+					unsigned int len, unsigned int off,
+					unsigned int *copied)
 {
 	unsigned int l;
 	unsigned long ret;
@@ -267,8 +266,8 @@ static unsigned long kfifo_copy_to_user(struct __kfifo *fifo, void __user *to,
 	return ret;
 }
 
-int __kfifo_to_user(struct __kfifo *fifo, void __user *to,
-		unsigned long len, unsigned int *copied)
+int __kfifo_to_user(struct __kfifo *fifo, void __user *to, unsigned long len,
+		    unsigned int *copied)
 {
 	unsigned int l;
 	unsigned long ret;
@@ -292,8 +291,8 @@ int __kfifo_to_user(struct __kfifo *fifo, void __user *to,
 }
 EXPORT_SYMBOL(__kfifo_to_user);
 
-static int setup_sgl_buf(struct scatterlist *sgl, void *buf,
-		int nents, unsigned int len)
+static int setup_sgl_buf(struct scatterlist *sgl, void *buf, int nents,
+			 unsigned int len)
 {
 	int n;
 	unsigned int l;
@@ -332,7 +331,7 @@ static int setup_sgl_buf(struct scatterlist *sgl, void *buf,
 }
 
 static unsigned int setup_sgl(struct __kfifo *fifo, struct scatterlist *sgl,
-		int nents, unsigned int len, unsigned int off)
+			      int nents, unsigned int len, unsigned int off)
 {
 	unsigned int size = fifo->mask + 1;
 	unsigned int esize = fifo->esize;
@@ -354,7 +353,8 @@ static unsigned int setup_sgl(struct __kfifo *fifo, struct scatterlist *sgl,
 }
 
 unsigned int __kfifo_dma_in_prepare(struct __kfifo *fifo,
-		struct scatterlist *sgl, int nents, unsigned int len)
+				    struct scatterlist *sgl, int nents,
+				    unsigned int len)
 {
 	unsigned int l;
 
@@ -367,7 +367,8 @@ unsigned int __kfifo_dma_in_prepare(struct __kfifo *fifo,
 EXPORT_SYMBOL(__kfifo_dma_in_prepare);
 
 unsigned int __kfifo_dma_out_prepare(struct __kfifo *fifo,
-		struct scatterlist *sgl, int nents, unsigned int len)
+				     struct scatterlist *sgl, int nents,
+				     unsigned int len)
 {
 	unsigned int l;
 
@@ -389,8 +390,7 @@ unsigned int __kfifo_max_r(unsigned int len, size_t recsize)
 }
 EXPORT_SYMBOL(__kfifo_max_r);
 
-#define	__KFIFO_PEEK(data, out, mask) \
-	((data)[(out) & (mask)])
+#define __KFIFO_PEEK(data, out, mask) ((data)[(out) & (mask)])
 /*
  * __kfifo_peek_n internal helper function for determinate the length of
  * the next record in the fifo
@@ -409,10 +409,8 @@ static unsigned int __kfifo_peek_n(struct __kfifo *fifo, size_t recsize)
 	return l;
 }
 
-#define	__KFIFO_POKE(data, in, mask, val) \
-	( \
-	(data)[(in) & (mask)] = (unsigned char)(val) \
-	)
+#define __KFIFO_POKE(data, in, mask, val)                                      \
+	((data)[(in) & (mask)] = (unsigned char)(val))
 
 /*
  * __kfifo_poke_n internal helper function for storing the length of
@@ -436,7 +434,7 @@ unsigned int __kfifo_len_r(struct __kfifo *fifo, size_t recsize)
 EXPORT_SYMBOL(__kfifo_len_r);
 
 unsigned int __kfifo_in_r(struct __kfifo *fifo, const void *buf,
-		unsigned int len, size_t recsize)
+			  unsigned int len, size_t recsize)
 {
 	if (len + recsize > kfifo_unused(fifo))
 		return 0;
@@ -449,8 +447,9 @@ unsigned int __kfifo_in_r(struct __kfifo *fifo, const void *buf,
 }
 EXPORT_SYMBOL(__kfifo_in_r);
 
-static unsigned int kfifo_out_copy_r(struct __kfifo *fifo,
-	void *buf, unsigned int len, size_t recsize, unsigned int *n)
+static unsigned int kfifo_out_copy_r(struct __kfifo *fifo, void *buf,
+				     unsigned int len, size_t recsize,
+				     unsigned int *n)
 {
 	*n = __kfifo_peek_n(fifo, recsize);
 
@@ -462,7 +461,7 @@ static unsigned int kfifo_out_copy_r(struct __kfifo *fifo,
 }
 
 unsigned int __kfifo_out_peek_r(struct __kfifo *fifo, void *buf,
-		unsigned int len, size_t recsize)
+				unsigned int len, size_t recsize)
 {
 	unsigned int n;
 
@@ -473,8 +472,8 @@ unsigned int __kfifo_out_peek_r(struct __kfifo *fifo, void *buf,
 }
 EXPORT_SYMBOL(__kfifo_out_peek_r);
 
-unsigned int __kfifo_out_r(struct __kfifo *fifo, void *buf,
-		unsigned int len, size_t recsize)
+unsigned int __kfifo_out_r(struct __kfifo *fifo, void *buf, unsigned int len,
+			   size_t recsize)
 {
 	unsigned int n;
 
@@ -497,7 +496,7 @@ void __kfifo_skip_r(struct __kfifo *fifo, size_t recsize)
 EXPORT_SYMBOL(__kfifo_skip_r);
 
 int __kfifo_from_user_r(struct __kfifo *fifo, const void __user *from,
-	unsigned long len, unsigned int *copied, size_t recsize)
+			unsigned long len, unsigned int *copied, size_t recsize)
 {
 	unsigned long ret;
 
@@ -520,8 +519,8 @@ int __kfifo_from_user_r(struct __kfifo *fifo, const void __user *from,
 }
 EXPORT_SYMBOL(__kfifo_from_user_r);
 
-int __kfifo_to_user_r(struct __kfifo *fifo, void __user *to,
-	unsigned long len, unsigned int *copied, size_t recsize)
+int __kfifo_to_user_r(struct __kfifo *fifo, void __user *to, unsigned long len,
+		      unsigned int *copied, size_t recsize)
 {
 	unsigned long ret;
 	unsigned int n;
@@ -546,7 +545,8 @@ int __kfifo_to_user_r(struct __kfifo *fifo, void __user *to,
 EXPORT_SYMBOL(__kfifo_to_user_r);
 
 unsigned int __kfifo_dma_in_prepare_r(struct __kfifo *fifo,
-	struct scatterlist *sgl, int nents, unsigned int len, size_t recsize)
+				      struct scatterlist *sgl, int nents,
+				      unsigned int len, size_t recsize)
 {
 	BUG_ON(!nents);
 
@@ -559,8 +559,8 @@ unsigned int __kfifo_dma_in_prepare_r(struct __kfifo *fifo,
 }
 EXPORT_SYMBOL(__kfifo_dma_in_prepare_r);
 
-void __kfifo_dma_in_finish_r(struct __kfifo *fifo,
-	unsigned int len, size_t recsize)
+void __kfifo_dma_in_finish_r(struct __kfifo *fifo, unsigned int len,
+			     size_t recsize)
 {
 	len = __kfifo_max_r(len, recsize);
 	__kfifo_poke_n(fifo, len, recsize);
@@ -569,7 +569,8 @@ void __kfifo_dma_in_finish_r(struct __kfifo *fifo,
 EXPORT_SYMBOL(__kfifo_dma_in_finish_r);
 
 unsigned int __kfifo_dma_out_prepare_r(struct __kfifo *fifo,
-	struct scatterlist *sgl, int nents, unsigned int len, size_t recsize)
+				       struct scatterlist *sgl, int nents,
+				       unsigned int len, size_t recsize)
 {
 	BUG_ON(!nents);
 

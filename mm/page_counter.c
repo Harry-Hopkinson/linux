@@ -96,8 +96,7 @@ void page_counter_charge(struct page_counter *counter, unsigned long nr_pages)
  * of its ancestors has hit its configured limit.
  */
 bool page_counter_try_charge(struct page_counter *counter,
-			     unsigned long nr_pages,
-			     struct page_counter **fail)
+			     unsigned long nr_pages, struct page_counter **fail)
 {
 	struct page_counter *c;
 

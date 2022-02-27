@@ -79,8 +79,7 @@ SYSCALL_DEFINE3(msync, unsigned long, start, size_t, len, int, flags)
 			unmapped_error = -ENOMEM;
 		}
 		/* Here vma->vm_start <= start < vma->vm_end. */
-		if ((flags & MS_INVALIDATE) &&
-				(vma->vm_flags & VM_LOCKED)) {
+		if ((flags & MS_INVALIDATE) && (vma->vm_flags & VM_LOCKED)) {
 			error = -EBUSY;
 			goto out_unlock;
 		}
@@ -89,8 +88,7 @@ SYSCALL_DEFINE3(msync, unsigned long, start, size_t, len, int, flags)
 			 ((loff_t)vma->vm_pgoff << PAGE_SHIFT);
 		fend = fstart + (min(end, vma->vm_end) - start) - 1;
 		start = vma->vm_end;
-		if ((flags & MS_SYNC) && file &&
-				(vma->vm_flags & VM_SHARED)) {
+		if ((flags & MS_SYNC) && file && (vma->vm_flags & VM_SHARED)) {
 			get_file(file);
 			mmap_read_unlock(mm);
 			error = vfs_fsync_range(file, fstart, fend, 1);
@@ -110,5 +108,5 @@ SYSCALL_DEFINE3(msync, unsigned long, start, size_t, len, int, flags)
 out_unlock:
 	mmap_read_unlock(mm);
 out:
-	return error ? : unmapped_error;
+	return error ?: unmapped_error;
 }

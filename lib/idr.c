@@ -30,8 +30,8 @@
  * or -ENOSPC if no free IDs could be found.  If an error occurred,
  * @nextid is unchanged.
  */
-int idr_alloc_u32(struct idr *idr, void *ptr, u32 *nextid,
-			unsigned long max, gfp_t gfp)
+int idr_alloc_u32(struct idr *idr, void *ptr, u32 *nextid, unsigned long max,
+		  gfp_t gfp)
 {
 	struct radix_tree_iter iter;
 	void __rcu **slot;
@@ -192,14 +192,14 @@ EXPORT_SYMBOL_GPL(idr_find);
  * seen and deleted entries may be seen, but adding and removing entries
  * will not cause other entries to be skipped, nor spurious ones to be seen.
  */
-int idr_for_each(const struct idr *idr,
-		int (*fn)(int id, void *p, void *data), void *data)
+int idr_for_each(const struct idr *idr, int (*fn)(int id, void *p, void *data),
+		 void *data)
 {
 	struct radix_tree_iter iter;
 	void __rcu **slot;
 	int base = idr->idr_base;
 
-	radix_tree_for_each_slot(slot, &idr->idr_rt, &iter, 0) {
+	radix_tree_for_each_slot (slot, &idr->idr_rt, &iter, 0) {
 		int ret;
 		unsigned long id = iter.index + base;
 
@@ -233,7 +233,7 @@ void *idr_get_next_ul(struct idr *idr, unsigned long *nextid)
 	unsigned long id = *nextid;
 
 	id = (id < base) ? 0 : id - base;
-	radix_tree_for_each_slot(slot, &idr->idr_rt, &iter, id) {
+	radix_tree_for_each_slot (slot, &idr->idr_rt, &iter, id) {
 		entry = rcu_dereference_raw(*slot);
 		if (!entry)
 			continue;
@@ -378,7 +378,7 @@ EXPORT_SYMBOL(idr_replace);
  * or %-ENOSPC if there are no free IDs.
  */
 int ida_alloc_range(struct ida *ida, unsigned int min, unsigned int max,
-			gfp_t gfp)
+		    gfp_t gfp)
 {
 	XA_STATE(xas, &ida->xa, min / IDA_BITMAP_BITS);
 	unsigned bit = min % IDA_BITMAP_BITS;
@@ -513,13 +513,12 @@ void ida_free(struct ida *ida, unsigned int id)
 		xas_set_mark(&xas, XA_FREE_MARK);
 		if (bitmap_empty(bitmap->bitmap, IDA_BITMAP_BITS)) {
 			kfree(bitmap);
-delete:
-			xas_store(&xas, NULL);
+			delete : xas_store(&xas, NULL);
 		}
 	}
 	xas_unlock_irqrestore(&xas, flags);
 	return;
- err:
+err:
 	xas_unlock_irqrestore(&xas, flags);
 	WARN(1, "ida_free called for id=%d which is not allocated.\n", id);
 }
@@ -544,7 +543,7 @@ void ida_destroy(struct ida *ida)
 	unsigned long flags;
 
 	xas_lock_irqsave(&xas, flags);
-	xas_for_each(&xas, bitmap, ULONG_MAX) {
+	xas_for_each (&xas, bitmap, ULONG_MAX) {
 		if (!xa_is_value(bitmap))
 			kfree(bitmap);
 		xas_store(&xas, NULL);
@@ -555,7 +554,7 @@ EXPORT_SYMBOL(ida_destroy);
 
 #ifndef __KERNEL__
 extern void xa_dump_index(unsigned long index, unsigned int shift);
-#define IDA_CHUNK_SHIFT		ilog2(IDA_BITMAP_BITS)
+#define IDA_CHUNK_SHIFT ilog2(IDA_BITMAP_BITS)
 
 static void ida_dump_entry(void *entry, unsigned long index)
 {
@@ -566,14 +565,14 @@ static void ida_dump_entry(void *entry, unsigned long index)
 
 	if (xa_is_node(entry)) {
 		struct xa_node *node = xa_to_node(entry);
-		unsigned int shift = node->shift + IDA_CHUNK_SHIFT +
-			XA_CHUNK_SHIFT;
+		unsigned int shift =
+			node->shift + IDA_CHUNK_SHIFT + XA_CHUNK_SHIFT;
 
 		xa_dump_index(index * IDA_BITMAP_BITS, shift);
 		xa_dump_node(node);
 		for (i = 0; i < XA_CHUNK_SIZE; i++)
 			ida_dump_entry(node->slots[i],
-					index | (i << node->shift));
+				       index | (i << node->shift));
 	} else if (xa_is_value(entry)) {
 		xa_dump_index(index * IDA_BITMAP_BITS, ilog2(BITS_PER_LONG));
 		pr_cont("value: data %lx [%px]\n", xa_to_value(entry), entry);
@@ -592,7 +591,7 @@ static void ida_dump(struct ida *ida)
 {
 	struct xarray *xa = &ida->xa;
 	pr_debug("ida: %p node %p free %d\n", ida, xa->xa_head,
-				xa->xa_flags >> ROOT_TAG_SHIFT);
+		 xa->xa_flags >> ROOT_TAG_SHIFT);
 	ida_dump_entry(xa->xa_head, 0);
 }
 #endif

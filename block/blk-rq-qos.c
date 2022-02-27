@@ -212,9 +212,8 @@ struct rq_qos_wait_data {
 static int rq_qos_wake_function(struct wait_queue_entry *curr,
 				unsigned int mode, int wake_flags, void *key)
 {
-	struct rq_qos_wait_data *data = container_of(curr,
-						     struct rq_qos_wait_data,
-						     wq);
+	struct rq_qos_wait_data *data =
+		container_of(curr, struct rq_qos_wait_data, wq);
 
 	/*
 	 * If we fail to get a budget, return -1 to interrupt the wake up loop

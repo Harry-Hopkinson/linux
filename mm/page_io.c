@@ -42,9 +42,10 @@ void end_swap_bio_write(struct bio *bio)
 		 * Also clear PG_reclaim to avoid folio_rotate_reclaimable()
 		 */
 		set_page_dirty(page);
-		pr_alert_ratelimited("Write-error on swap-device (%u:%u:%llu)\n",
-				     MAJOR(bio_dev(bio)), MINOR(bio_dev(bio)),
-				     (unsigned long long)bio->bi_iter.bi_sector);
+		pr_alert_ratelimited(
+			"Write-error on swap-device (%u:%u:%llu)\n",
+			MAJOR(bio_dev(bio)), MINOR(bio_dev(bio)),
+			(unsigned long long)bio->bi_iter.bi_sector);
 		ClearPageReclaim(page);
 	}
 	end_page_writeback(page);
@@ -94,8 +95,7 @@ static void swap_slot_free_notify(struct page *page)
 		offset = swp_offset(entry);
 
 		SetPageDirty(page);
-		disk->fops->swap_slot_free_notify(sis->bdev,
-				offset);
+		disk->fops->swap_slot_free_notify(sis->bdev, offset);
 	}
 }
 
@@ -107,9 +107,10 @@ static void end_swap_bio_read(struct bio *bio)
 	if (bio->bi_status) {
 		SetPageError(page);
 		ClearPageUptodate(page);
-		pr_alert_ratelimited("Read-error on swap-device (%u:%u:%llu)\n",
-				     MAJOR(bio_dev(bio)), MINOR(bio_dev(bio)),
-				     (unsigned long long)bio->bi_iter.bi_sector);
+		pr_alert_ratelimited(
+			"Read-error on swap-device (%u:%u:%llu)\n",
+			MAJOR(bio_dev(bio)), MINOR(bio_dev(bio)),
+			(unsigned long long)bio->bi_iter.bi_sector);
 		goto out;
 	}
 
@@ -126,8 +127,7 @@ out:
 }
 
 int generic_swapfile_activate(struct swap_info_struct *sis,
-				struct file *swap_file,
-				sector_t *span)
+			      struct file *swap_file, sector_t *span)
 {
 	struct address_space *mapping = swap_file->f_mapping;
 	struct inode *inode = mapping->host;
@@ -152,7 +152,7 @@ int generic_swapfile_activate(struct swap_info_struct *sis,
 	page_no = 0;
 	last_block = i_size_read(inode) >> blkbits;
 	while ((probe_block + blocks_per_page) <= last_block &&
-			page_no < sis->max) {
+	       page_no < sis->max) {
 		unsigned block_in_page;
 		sector_t first_block;
 
@@ -172,7 +172,7 @@ int generic_swapfile_activate(struct swap_info_struct *sis,
 		}
 
 		for (block_in_page = 1; block_in_page < blocks_per_page;
-					block_in_page++) {
+		     block_in_page++) {
 			sector_t block;
 
 			block = probe_block + block_in_page;
@@ -188,7 +188,7 @@ int generic_swapfile_activate(struct swap_info_struct *sis,
 		}
 
 		first_block >>= (PAGE_SHIFT - blkbits);
-		if (page_no) {	/* exclude the header page */
+		if (page_no) { /* exclude the header page */
 			if (first_block < lowest_block)
 				lowest_block = first_block;
 			if (first_block > highest_block)
@@ -204,13 +204,13 @@ int generic_swapfile_activate(struct swap_info_struct *sis,
 		nr_extents += ret;
 		page_no++;
 		probe_block += blocks_per_page;
-reprobe:
+	reprobe:
 		continue;
 	}
 	ret = nr_extents;
 	*span = 1 + highest_block - lowest_block;
 	if (page_no == 0)
-		page_no = 1;	/* force Empty message */
+		page_no = 1; /* force Empty message */
 	sis->max = page_no;
 	sis->pages = page_no - 1;
 	sis->highest_bit = page_no - 1;
@@ -280,11 +280,13 @@ static void bio_associate_blkg_from_page(struct bio *bio, struct page *page)
 	rcu_read_unlock();
 }
 #else
-#define bio_associate_blkg_from_page(bio, page)		do { } while (0)
+#define bio_associate_blkg_from_page(bio, page)                                \
+	do {                                                                   \
+	} while (0)
 #endif /* CONFIG_MEMCG && CONFIG_BLK_CGROUP */
 
 int __swap_writepage(struct page *page, struct writeback_control *wbc,
-		bio_end_io_t end_write_func)
+		     bio_end_io_t end_write_func)
 {
 	struct bio *bio;
 	int ret;
@@ -295,11 +297,9 @@ int __swap_writepage(struct page *page, struct writeback_control *wbc,
 		struct kiocb kiocb;
 		struct file *swap_file = sis->swap_file;
 		struct address_space *mapping = swap_file->f_mapping;
-		struct bio_vec bv = {
-			.bv_page = page,
-			.bv_len  = PAGE_SIZE,
-			.bv_offset = 0
-		};
+		struct bio_vec bv = { .bv_page = page,
+				      .bv_len = PAGE_SIZE,
+				      .bv_offset = 0 };
 		struct iov_iter from;
 
 		iov_iter_bvec(&from, WRITE, &bv, 1, PAGE_SIZE);
@@ -325,8 +325,9 @@ int __swap_writepage(struct page *page, struct writeback_control *wbc,
 			 */
 			set_page_dirty(page);
 			ClearPageReclaim(page);
-			pr_err_ratelimited("Write error on dio swapfile (%llu)\n",
-					   page_file_offset(page));
+			pr_err_ratelimited(
+				"Write error on dio swapfile (%llu)\n",
+				page_file_offset(page));
 		}
 		end_page_writeback(page);
 		return ret;

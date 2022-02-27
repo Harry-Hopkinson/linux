@@ -32,8 +32,7 @@ int blk_rq_count_integrity_sg(struct request_queue *q, struct bio *bio)
 	struct bvec_iter iter;
 	int prev = 0;
 
-	bio_for_each_integrity_vec(iv, bio, iter) {
-
+	bio_for_each_integrity_vec (iv, bio, iter) {
 		if (prev) {
 			if (!biovec_phys_mergeable(q, &ivprv, &iv))
 				goto new_segment;
@@ -42,7 +41,7 @@ int blk_rq_count_integrity_sg(struct request_queue *q, struct bio *bio)
 
 			seg_size += iv.bv_len;
 		} else {
-new_segment:
+		new_segment:
 			segments++;
 			seg_size = iv.bv_len;
 		}
@@ -74,8 +73,7 @@ int blk_rq_map_integrity_sg(struct request_queue *q, struct bio *bio,
 	struct bvec_iter iter;
 	int prev = 0;
 
-	bio_for_each_integrity_vec(iv, bio, iter) {
-
+	bio_for_each_integrity_vec (iv, bio, iter) {
 		if (prev) {
 			if (!biovec_phys_mergeable(q, &ivprv, &iv))
 				goto new_segment;
@@ -84,7 +82,7 @@ int blk_rq_map_integrity_sg(struct request_queue *q, struct bio *bio,
 
 			sg->length += iv.bv_len;
 		} else {
-new_segment:
+		new_segment:
 			if (!sg)
 				sg = sglist;
 			else {
@@ -130,30 +128,28 @@ int blk_integrity_compare(struct gendisk *gd1, struct gendisk *gd2)
 		return -1;
 
 	if (b1->interval_exp != b2->interval_exp) {
-		pr_err("%s: %s/%s protection interval %u != %u\n",
-		       __func__, gd1->disk_name, gd2->disk_name,
-		       1 << b1->interval_exp, 1 << b2->interval_exp);
+		pr_err("%s: %s/%s protection interval %u != %u\n", __func__,
+		       gd1->disk_name, gd2->disk_name, 1 << b1->interval_exp,
+		       1 << b2->interval_exp);
 		return -1;
 	}
 
 	if (b1->tuple_size != b2->tuple_size) {
 		pr_err("%s: %s/%s tuple sz %u != %u\n", __func__,
-		       gd1->disk_name, gd2->disk_name,
-		       b1->tuple_size, b2->tuple_size);
+		       gd1->disk_name, gd2->disk_name, b1->tuple_size,
+		       b2->tuple_size);
 		return -1;
 	}
 
 	if (b1->tag_size && b2->tag_size && (b1->tag_size != b2->tag_size)) {
-		pr_err("%s: %s/%s tag sz %u != %u\n", __func__,
-		       gd1->disk_name, gd2->disk_name,
-		       b1->tag_size, b2->tag_size);
+		pr_err("%s: %s/%s tag sz %u != %u\n", __func__, gd1->disk_name,
+		       gd2->disk_name, b1->tag_size, b2->tag_size);
 		return -1;
 	}
 
 	if (b1->profile != b2->profile) {
-		pr_err("%s: %s/%s type %s != %s\n", __func__,
-		       gd1->disk_name, gd2->disk_name,
-		       b1->profile->name, b2->profile->name);
+		pr_err("%s: %s/%s type %s != %s\n", __func__, gd1->disk_name,
+		       gd2->disk_name, b1->profile->name, b2->profile->name);
 		return -1;
 	}
 
@@ -221,7 +217,8 @@ struct integrity_sysfs_entry {
 static ssize_t integrity_attr_show(struct kobject *kobj, struct attribute *attr,
 				   char *page)
 {
-	struct gendisk *disk = container_of(kobj, struct gendisk, integrity_kobj);
+	struct gendisk *disk =
+		container_of(kobj, struct gendisk, integrity_kobj);
 	struct blk_integrity *bi = &disk->queue->integrity;
 	struct integrity_sysfs_entry *entry =
 		container_of(attr, struct integrity_sysfs_entry, attr);
@@ -233,7 +230,8 @@ static ssize_t integrity_attr_store(struct kobject *kobj,
 				    struct attribute *attr, const char *page,
 				    size_t count)
 {
-	struct gendisk *disk = container_of(kobj, struct gendisk, integrity_kobj);
+	struct gendisk *disk =
+		container_of(kobj, struct gendisk, integrity_kobj);
 	struct blk_integrity *bi = &disk->queue->integrity;
 	struct integrity_sysfs_entry *entry =
 		container_of(attr, struct integrity_sysfs_entry, attr);
@@ -267,7 +265,7 @@ static ssize_t integrity_interval_show(struct blk_integrity *bi, char *page)
 static ssize_t integrity_verify_store(struct blk_integrity *bi,
 				      const char *page, size_t count)
 {
-	char *p = (char *) page;
+	char *p = (char *)page;
 	unsigned long val = simple_strtoul(p, &p, 10);
 
 	if (val)
@@ -286,7 +284,7 @@ static ssize_t integrity_verify_show(struct blk_integrity *bi, char *page)
 static ssize_t integrity_generate_store(struct blk_integrity *bi,
 					const char *page, size_t count)
 {
-	char *p = (char *) page;
+	char *p = (char *)page;
 	unsigned long val = simple_strtoul(p, &p, 10);
 
 	if (val)
@@ -352,13 +350,13 @@ static struct attribute *integrity_attrs[] = {
 ATTRIBUTE_GROUPS(integrity);
 
 static const struct sysfs_ops integrity_ops = {
-	.show	= &integrity_attr_show,
-	.store	= &integrity_attr_store,
+	.show = &integrity_attr_show,
+	.store = &integrity_attr_store,
 };
 
 static struct kobj_type integrity_ktype = {
 	.default_groups = integrity_groups,
-	.sysfs_ops	= &integrity_ops,
+	.sysfs_ops = &integrity_ops,
 };
 
 static blk_status_t blk_integrity_nop_fn(struct blk_integrity_iter *iter)
@@ -371,7 +369,7 @@ static void blk_integrity_nop_prepare(struct request *rq)
 }
 
 static void blk_integrity_nop_complete(struct request *rq,
-		unsigned int nr_bytes)
+				       unsigned int nr_bytes)
 {
 }
 
@@ -394,14 +392,15 @@ static const struct blk_integrity_profile nop_profile = {
  * struct with values appropriate for the underlying hardware. See
  * Documentation/block/data-integrity.rst.
  */
-void blk_integrity_register(struct gendisk *disk, struct blk_integrity *template)
+void blk_integrity_register(struct gendisk *disk,
+			    struct blk_integrity *template)
 {
 	struct blk_integrity *bi = &disk->queue->integrity;
 
-	bi->flags = BLK_INTEGRITY_VERIFY | BLK_INTEGRITY_GENERATE |
-		template->flags;
-	bi->interval_exp = template->interval_exp ? :
-		ilog2(queue_logical_block_size(disk->queue));
+	bi->flags =
+		BLK_INTEGRITY_VERIFY | BLK_INTEGRITY_GENERATE | template->flags;
+	bi->interval_exp = template->interval_exp ?:
+				   ilog2(queue_logical_block_size(disk->queue));
 	bi->profile = template->profile ? template->profile : &nop_profile;
 	bi->tuple_size = template->tuple_size;
 	bi->tag_size = template->tag_size;

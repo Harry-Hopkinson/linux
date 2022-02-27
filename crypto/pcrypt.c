@@ -19,7 +19,7 @@
 
 static struct padata_instance *pencrypt;
 static struct padata_instance *pdecrypt;
-static struct kset           *pcrypt_kset;
+static struct kset *pcrypt_kset;
 
 struct pcrypt_instance_ctx {
 	struct crypto_aead_spawn spawn;
@@ -33,14 +33,14 @@ struct pcrypt_aead_ctx {
 	unsigned int cb_cpu;
 };
 
-static inline struct pcrypt_instance_ctx *pcrypt_tfm_ictx(
-	struct crypto_aead *tfm)
+static inline struct pcrypt_instance_ctx *
+pcrypt_tfm_ictx(struct crypto_aead *tfm)
 {
 	return aead_instance_ctx(aead_alg_instance(tfm));
 }
 
-static int pcrypt_aead_setkey(struct crypto_aead *parent,
-			      const u8 *key, unsigned int keylen)
+static int pcrypt_aead_setkey(struct crypto_aead *parent, const u8 *key,
+			      unsigned int keylen)
 {
 	struct pcrypt_aead_ctx *ctx = crypto_aead_ctx(parent);
 
@@ -110,8 +110,8 @@ static int pcrypt_aead_encrypt(struct aead_request *req)
 	aead_request_set_tfm(creq, ctx->child);
 	aead_request_set_callback(creq, flags & ~CRYPTO_TFM_REQ_MAY_SLEEP,
 				  pcrypt_aead_done, req);
-	aead_request_set_crypt(creq, req->src, req->dst,
-			       req->cryptlen, req->iv);
+	aead_request_set_crypt(creq, req->src, req->dst, req->cryptlen,
+			       req->iv);
 	aead_request_set_ad(creq, req->assoclen);
 
 	err = padata_do_parallel(ictx->psenc, padata, &ctx->cb_cpu);
@@ -157,8 +157,8 @@ static int pcrypt_aead_decrypt(struct aead_request *req)
 	aead_request_set_tfm(creq, ctx->child);
 	aead_request_set_callback(creq, flags & ~CRYPTO_TFM_REQ_MAY_SLEEP,
 				  pcrypt_aead_done, req);
-	aead_request_set_crypt(creq, req->src, req->dst,
-			       req->cryptlen, req->iv);
+	aead_request_set_crypt(creq, req->src, req->dst, req->cryptlen,
+			       req->iv);
 	aead_request_set_ad(creq, req->assoclen);
 
 	err = padata_do_parallel(ictx->psdec, padata, &ctx->cb_cpu);
@@ -190,8 +190,8 @@ static int pcrypt_aead_init_tfm(struct crypto_aead *tfm)
 
 	ctx->child = cipher;
 	crypto_aead_set_reqsize(tfm, sizeof(struct pcrypt_request) +
-				     sizeof(struct aead_request) +
-				     crypto_aead_reqsize(cipher));
+					     sizeof(struct aead_request) +
+					     crypto_aead_reqsize(cipher));
 
 	return 0;
 }
@@ -282,7 +282,7 @@ static int pcrypt_create_aead(struct crypto_template *tmpl, struct rtattr **tb,
 
 	err = aead_register_instance(tmpl, inst);
 	if (err) {
-err_free_inst:
+	err_free_inst:
 		pcrypt_free(inst);
 	}
 	return err;

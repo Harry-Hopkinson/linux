@@ -23,7 +23,7 @@
 #include <linux/vmalloc.h>
 #include <linux/wait.h>
 
-#define MAX_ENTRIES	1000000
+#define MAX_ENTRIES 1000000
 #define TEST_INSERT_FAIL INT_MAX
 
 static int parm_entries = 50000;
@@ -52,21 +52,22 @@ MODULE_PARM_DESC(tcount, "Number of threads to spawn (default: 10)");
 
 static bool enomem_retry = false;
 module_param(enomem_retry, bool, 0);
-MODULE_PARM_DESC(enomem_retry, "Retry insert even if -ENOMEM was returned (default: off)");
+MODULE_PARM_DESC(enomem_retry,
+		 "Retry insert even if -ENOMEM was returned (default: off)");
 
 struct test_obj_val {
-	int	id;
-	int	tid;
+	int id;
+	int tid;
 };
 
 struct test_obj {
-	struct test_obj_val	value;
-	struct rhash_head	node;
+	struct test_obj_val value;
+	struct rhash_head node;
 };
 
 struct test_obj_rhl {
-	struct test_obj_val	value;
-	struct rhlist_head	list_node;
+	struct test_obj_val value;
+	struct rhlist_head list_node;
 };
 
 struct thread_data {
@@ -113,7 +114,7 @@ static atomic_t startup_count;
 static DECLARE_WAIT_QUEUE_HEAD(startup_wait);
 
 static int insert_retry(struct rhashtable *ht, struct test_obj *obj,
-                        const struct rhashtable_params params)
+			const struct rhashtable_params params)
 {
 	int err, retries = -1, enomem_retries = 0;
 
@@ -131,7 +132,7 @@ static int insert_retry(struct rhashtable *ht, struct test_obj *obj,
 		pr_info(" %u insertions retried after -ENOMEM\n",
 			enomem_retries);
 
-	return err ? : retries;
+	return err ?: retries;
 }
 
 static int __init test_rht_lookup(struct rhashtable *ht, struct test_obj *array,
@@ -276,14 +277,14 @@ static int __init test_rhltable(unsigned int entries)
 	if (entries == 0)
 		entries = 1;
 
-	rhl_test_objects = vzalloc(array_size(entries,
-					      sizeof(*rhl_test_objects)));
+	rhl_test_objects =
+		vzalloc(array_size(entries, sizeof(*rhl_test_objects)));
 	if (!rhl_test_objects)
 		return -ENOMEM;
 
 	ret = -ENOMEM;
-	obj_in_table = vzalloc(array_size(sizeof(unsigned long),
-					  BITS_TO_LONGS(entries)));
+	obj_in_table = vzalloc(
+		array_size(sizeof(unsigned long), BITS_TO_LONGS(entries)));
 	if (!obj_in_table)
 		goto out_free;
 
@@ -317,15 +318,17 @@ static int __init test_rhltable(unsigned int entries)
 
 		rcu_read_lock();
 		h = rhltable_lookup(&rhlt, &key, test_rht_params);
-		if (WARN(!h, "key not found during iteration %d of %d", i, entries)) {
+		if (WARN(!h, "key not found during iteration %d of %d", i,
+			 entries)) {
 			rcu_read_unlock();
 			break;
 		}
 
 		if (i) {
 			j = i - 1;
-			rhl_for_each_entry_rcu(obj, pos, h, list_node) {
-				if (WARN(pos == &rhl_test_objects[j].list_node, "old element found, should be gone"))
+			rhl_for_each_entry_rcu (obj, pos, h, list_node) {
+				if (WARN(pos == &rhl_test_objects[j].list_node,
+					 "old element found, should be gone"))
 					break;
 			}
 		}
@@ -334,7 +337,7 @@ static int __init test_rhltable(unsigned int entries)
 
 		found = false;
 
-		rhl_for_each_entry_rcu(obj, pos, h, list_node) {
+		rhl_for_each_entry_rcu (obj, pos, h, list_node) {
 			if (pos == &rhl_test_objects[i].list_node) {
 				found = true;
 				break;
@@ -346,7 +349,8 @@ static int __init test_rhltable(unsigned int entries)
 		if (WARN(!found, "element %d not found", i))
 			break;
 
-		err = rhltable_remove(&rhlt, &rhl_test_objects[i].list_node, test_rht_params);
+		err = rhltable_remove(&rhlt, &rhl_test_objects[i].list_node,
+				      test_rht_params);
 		WARN(err, "rhltable_remove: err %d for iteration %d\n", err, i);
 		if (err == 0)
 			clear_bit(i, obj_in_table);
@@ -356,7 +360,8 @@ static int __init test_rhltable(unsigned int entries)
 		ret = err;
 
 	for (i = 0; i < entries; i++) {
-		WARN(test_bit(i, obj_in_table), "elem %d allegedly still present", i);
+		WARN(test_bit(i, obj_in_table),
+		     "elem %d allegedly still present", i);
 
 		err = rhltable_insert(&rhlt, &rhl_test_objects[i].list_node,
 				      test_rht_params);
@@ -381,14 +386,16 @@ static int __init test_rhltable(unsigned int entries)
 			continue;
 		}
 
-		err = rhltable_remove(&rhlt, &rhl_test_objects[i].list_node, test_rht_params);
+		err = rhltable_remove(&rhlt, &rhl_test_objects[i].list_node,
+				      test_rht_params);
 		if (test_bit(i, obj_in_table)) {
 			clear_bit(i, obj_in_table);
 			if (WARN(err, "cannot remove element at slot %d", i))
 				continue;
 		} else {
-			if (WARN(err != -ENOENT, "removed non-existent element %d, error %d not %d",
-			     i, err, -ENOENT))
+			if (WARN(err != -ENOENT,
+				 "removed non-existent element %d, error %d not %d",
+				 i, err, -ENOENT))
 				continue;
 		}
 
@@ -397,12 +404,15 @@ static int __init test_rhltable(unsigned int entries)
 			continue;
 		}
 
-		err = rhltable_insert(&rhlt, &rhl_test_objects[i].list_node, test_rht_params);
+		err = rhltable_insert(&rhlt, &rhl_test_objects[i].list_node,
+				      test_rht_params);
 		if (err == 0) {
-			if (WARN(test_and_set_bit(i, obj_in_table), "succeeded to insert same object %d", i))
+			if (WARN(test_and_set_bit(i, obj_in_table),
+				 "succeeded to insert same object %d", i))
 				continue;
 		} else {
-			if (WARN(!test_bit(i, obj_in_table), "failed to insert object %d", i))
+			if (WARN(!test_bit(i, obj_in_table),
+				 "failed to insert object %d", i))
 				continue;
 		}
 
@@ -413,12 +423,16 @@ static int __init test_rhltable(unsigned int entries)
 
 		i = prandom_u32_max(entries);
 		if (test_bit(i, obj_in_table)) {
-			err = rhltable_remove(&rhlt, &rhl_test_objects[i].list_node, test_rht_params);
+			err = rhltable_remove(&rhlt,
+					      &rhl_test_objects[i].list_node,
+					      test_rht_params);
 			WARN(err, "cannot remove element at slot %d", i);
 			if (err == 0)
 				clear_bit(i, obj_in_table);
 		} else {
-			err = rhltable_insert(&rhlt, &rhl_test_objects[i].list_node, test_rht_params);
+			err = rhltable_insert(&rhlt,
+					      &rhl_test_objects[i].list_node,
+					      test_rht_params);
 			WARN(err, "failed to insert object %d", i);
 			if (err == 0)
 				set_bit(i, obj_in_table);
@@ -427,12 +441,14 @@ static int __init test_rhltable(unsigned int entries)
 
 	for (i = 0; i < entries; i++) {
 		cond_resched();
-		err = rhltable_remove(&rhlt, &rhl_test_objects[i].list_node, test_rht_params);
+		err = rhltable_remove(&rhlt, &rhl_test_objects[i].list_node,
+				      test_rht_params);
 		if (test_bit(i, obj_in_table)) {
 			if (WARN(err, "cannot remove element at slot %d", i))
 				continue;
 		} else {
-			if (WARN(err != -ENOENT, "removed non-existent element, error %d not %d",
+			if (WARN(err != -ENOENT,
+				 "removed non-existent element, error %d not %d",
 				 err, -ENOENT))
 				continue;
 		}
@@ -472,7 +488,7 @@ static int __init test_rhashtable_max(struct test_obj *array,
 		err = 0;
 	} else {
 		pr_info("insert element %u should have failed with %d, got %d\n",
-				ht.max_elems, -E2BIG, err);
+			ht.max_elems, -E2BIG, err);
 		if (err == 0)
 			err = -1;
 	}
@@ -499,30 +515,36 @@ static unsigned int __init print_ht(struct rhltable *rhlt)
 		struct test_obj_rhl *p;
 
 		pos = rht_ptr_exclusive(tbl->buckets + i);
-		next = !rht_is_a_nulls(pos) ? rht_dereference(pos->next, ht) : NULL;
+		next = !rht_is_a_nulls(pos) ? rht_dereference(pos->next, ht) :
+					      NULL;
 
 		if (!rht_is_a_nulls(pos)) {
 			offset += sprintf(buff + offset, "\nbucket[%d] -> ", i);
 		}
 
 		while (!rht_is_a_nulls(pos)) {
-			struct rhlist_head *list = container_of(pos, struct rhlist_head, rhead);
+			struct rhlist_head *list =
+				container_of(pos, struct rhlist_head, rhead);
 			offset += sprintf(buff + offset, "[[");
 			do {
 				pos = &list->rhead;
 				list = rht_dereference(list->next, ht);
 				p = rht_obj(ht, pos);
 
-				offset += sprintf(buff + offset, " val %d (tid=%d)%s", p->value.id, p->value.tid,
-					list? ", " : " ");
+				offset += sprintf(buff + offset,
+						  " val %d (tid=%d)%s",
+						  p->value.id, p->value.tid,
+						  list ? ", " : " ");
 				cnt++;
 			} while (list);
 
 			pos = next,
 			next = !rht_is_a_nulls(pos) ?
-				rht_dereference(pos->next, ht) : NULL;
+				       rht_dereference(pos->next, ht) :
+				       NULL;
 
-			offset += sprintf(buff + offset, "]]%s", !rht_is_a_nulls(pos) ? " -> " : "");
+			offset += sprintf(buff + offset, "]]%s",
+					  !rht_is_a_nulls(pos) ? " -> " : "");
 		}
 	}
 	printk(KERN_ERR "\n---- ht: ----%s\n-------------\n", buff);
@@ -555,20 +577,23 @@ static int __init test_insert_dup(struct test_obj_rhl *rhl_test_objects,
 		key += test_rht_params_dup.key_offset;
 
 		if (slow) {
-			err = PTR_ERR(rhashtable_insert_slow(&rhlt->ht, key,
-							     &rhl_test_objects[i].list_node.rhead));
+			err = PTR_ERR(rhashtable_insert_slow(
+				&rhlt->ht, key,
+				&rhl_test_objects[i].list_node.rhead));
 			if (err == -EAGAIN)
 				err = 0;
 		} else
 			err = rhltable_insert(rhlt,
 					      &rhl_test_objects[i].list_node,
 					      test_rht_params_dup);
-		if (WARN(err, "error %d on element %d/%d (%s)\n", err, i, cnt, slow? "slow" : "fast"))
+		if (WARN(err, "error %d on element %d/%d (%s)\n", err, i, cnt,
+			 slow ? "slow" : "fast"))
 			goto skip_print;
 	}
 
 	ret = print_ht(rhlt);
-	WARN(ret != cnt, "missing rhltable elements (%d != %d, %s)\n", ret, cnt, slow? "slow" : "fast");
+	WARN(ret != cnt, "missing rhltable elements (%d != %d, %s)\n", ret, cnt,
+	     slow ? "slow" : "fast");
 
 skip_print:
 	rhltable_destroy(rhlt);
@@ -613,9 +638,11 @@ static int thread_lookup_test(struct thread_data *tdata)
 
 		obj = rhashtable_lookup_fast(&ht, &key, test_rht_params);
 		if (obj && (tdata->objs[i].value.id == TEST_INSERT_FAIL)) {
-			pr_err("  found unexpected object %d-%d\n", key.tid, key.id);
+			pr_err("  found unexpected object %d-%d\n", key.tid,
+			       key.id);
 			err++;
-		} else if (!obj && (tdata->objs[i].value.id != TEST_INSERT_FAIL)) {
+		} else if (!obj &&
+			   (tdata->objs[i].value.id != TEST_INSERT_FAIL)) {
 			pr_err("  object %d-%d not found!\n", key.tid, key.id);
 			err++;
 		} else if (obj && memcmp(&obj->value, &key, sizeof(key))) {
@@ -636,7 +663,8 @@ static int threadfunc(void *data)
 
 	if (atomic_dec_and_test(&startup_count))
 		wake_up(&startup_wait);
-	if (wait_event_interruptible(startup_wait, atomic_read(&startup_count) == -1)) {
+	if (wait_event_interruptible(startup_wait,
+				     atomic_read(&startup_count) == -1)) {
 		pr_err("  thread[%d]: interrupted\n", tdata->id);
 		goto out;
 	}
@@ -669,7 +697,7 @@ static int threadfunc(void *data)
 			if (tdata->objs[i].value.id == TEST_INSERT_FAIL)
 				continue;
 			err = rhashtable_remove_fast(&ht, &tdata->objs[i].node,
-			                             test_rht_params);
+						     test_rht_params);
 			if (err) {
 				pr_err("  thread[%d]: rhashtable_remove_fast failed\n",
 				       tdata->id);
@@ -708,7 +736,7 @@ static int __init test_rht_init(void)
 	entries = min(parm_entries, MAX_ENTRIES);
 
 	test_rht_params.automatic_shrinking = shrinking;
-	test_rht_params.max_size = max_size ? : roundup_pow_of_two(entries);
+	test_rht_params.max_size = max_size ?: roundup_pow_of_two(entries);
 	test_rht_params.nelem_hint = size;
 
 	objs = vzalloc(array_size(sizeof(struct test_obj),
@@ -723,7 +751,8 @@ static int __init test_rht_init(void)
 		s64 time;
 
 		pr_info("Test %02d:\n", i);
-		memset(objs, 0, test_rht_params.max_size * sizeof(struct test_obj));
+		memset(objs, 0,
+		       test_rht_params.max_size * sizeof(struct test_obj));
 
 		err = rhashtable_init(&ht, &test_rht_params);
 		if (err < 0) {
@@ -744,8 +773,9 @@ static int __init test_rht_init(void)
 	}
 
 	pr_info("test if its possible to exceed max_size %d: %s\n",
-			test_rht_params.max_size, test_rhashtable_max(objs, entries) == 0 ?
-			"no, ok" : "YES, failed");
+		test_rht_params.max_size,
+		test_rhashtable_max(objs, entries) == 0 ? "no, ok" :
+							  "YES, failed");
 	vfree(objs);
 
 	do_div(total_time, runs);
@@ -757,19 +787,19 @@ static int __init test_rht_init(void)
 		return 0;
 
 	pr_info("Testing concurrent rhashtable access from %d threads\n",
-	        tcount);
+		tcount);
 	atomic_set(&startup_count, tcount);
 	tdata = vzalloc(array_size(tcount, sizeof(struct thread_data)));
 	if (!tdata)
 		return -ENOMEM;
-	objs  = vzalloc(array3_size(sizeof(struct test_obj), tcount, entries));
+	objs = vzalloc(array3_size(sizeof(struct test_obj), tcount, entries));
 	if (!objs) {
 		vfree(tdata);
 		return -ENOMEM;
 	}
 
-	test_rht_params.max_size = max_size ? :
-	                           roundup_pow_of_two(tcount * entries);
+	test_rht_params.max_size =
+		max_size ?: roundup_pow_of_two(tcount * entries);
 	err = rhashtable_init(&ht, &test_rht_params);
 	if (err < 0) {
 		pr_warn("Test failed: Unable to initialize hashtable: %d\n",
@@ -783,7 +813,7 @@ static int __init test_rht_init(void)
 		tdata[i].entries = entries;
 		tdata[i].objs = objs + i * entries;
 		tdata[i].task = kthread_run(threadfunc, &tdata[i],
-		                            "rhashtable_thrad[%d]", i);
+					    "rhashtable_thrad[%d]", i);
 		if (IS_ERR(tdata[i].task)) {
 			pr_err(" kthread_run failed for thread %d\n", i);
 			atomic_dec(&startup_count);
@@ -791,7 +821,8 @@ static int __init test_rht_init(void)
 			started_threads++;
 		}
 	}
-	if (wait_event_interruptible(startup_wait, atomic_read(&startup_count) == 0))
+	if (wait_event_interruptible(startup_wait,
+				     atomic_read(&startup_count) == 0))
 		pr_err("  wait_event interruptible failed\n");
 	/* count is 0 now, set it to -1 and wake up all threads together */
 	atomic_dec(&startup_count);
@@ -800,8 +831,8 @@ static int __init test_rht_init(void)
 		if (IS_ERR(tdata[i].task))
 			continue;
 		if ((err = kthread_stop(tdata[i].task))) {
-			pr_warn("Test failed: thread %d returned: %d\n",
-			        i, err);
+			pr_warn("Test failed: thread %d returned: %d\n", i,
+				err);
 			failed_threads++;
 		}
 	}
@@ -815,7 +846,7 @@ static int __init test_rht_init(void)
 	 */
 	err = test_rhltable(entries / 16);
 	pr_info("Started %d threads, %d failed, rhltable test returns %d\n",
-	        started_threads, failed_threads, err);
+		started_threads, failed_threads, err);
 	return 0;
 }
 

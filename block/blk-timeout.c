@@ -28,8 +28,8 @@ EXPORT_SYMBOL_GPL(__blk_should_fake_timeout);
 
 static int __init fail_io_timeout_debugfs(void)
 {
-	struct dentry *dir = fault_create_debugfs_attr("fail_io_timeout",
-						NULL, &fail_io_timeout);
+	struct dentry *dir = fault_create_debugfs_attr("fail_io_timeout", NULL,
+						       &fail_io_timeout);
 
 	return PTR_ERR_OR_ZERO(dir);
 }
@@ -53,7 +53,7 @@ ssize_t part_timeout_store(struct device *dev, struct device_attribute *attr,
 
 	if (count) {
 		struct request_queue *q = disk->queue;
-		char *p = (char *) buf;
+		char *p = (char *)buf;
 
 		val = simple_strtoul(p, &p, 10);
 		if (val)
@@ -163,5 +163,4 @@ void blk_add_timer(struct request *req)
 		if (!timer_pending(&q->timeout) || (diff >= HZ / 2))
 			mod_timer(&q->timeout, expiry);
 	}
-
 }

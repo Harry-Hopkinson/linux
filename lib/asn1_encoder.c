@@ -20,9 +20,8 @@
  * positive integers, but it should be simple enough to add the
  * negative case if a use comes along.
  */
-unsigned char *
-asn1_encode_integer(unsigned char *data, const unsigned char *end_data,
-		    s64 integer)
+unsigned char *asn1_encode_integer(unsigned char *data,
+				   const unsigned char *end_data, s64 integer)
 {
 	int data_len = end_data - data;
 	unsigned char *d = &data[2];
@@ -49,7 +48,7 @@ asn1_encode_integer(unsigned char *data, const unsigned char *end_data,
 		goto out;
 	}
 
-	for (i = sizeof(integer); i > 0 ; i--) {
+	for (i = sizeof(integer); i > 0; i--) {
 		int byte = integer >> (8 * (i - 1));
 
 		if (!found && byte == 0)
@@ -78,7 +77,7 @@ asn1_encode_integer(unsigned char *data, const unsigned char *end_data,
 		data_len--;
 	}
 
- out:
+out:
 	data[1] = d - data - 2;
 
 	return d;
@@ -123,7 +122,7 @@ static int asn1_encode_oid_digit(unsigned char **_data, int *data_len, u32 oid)
 		ret = -EINVAL;
 	}
 
- out:
+out:
 	*_data = data;
 	return ret;
 }
@@ -137,9 +136,9 @@ static int asn1_encode_oid_digit(unsigned char **_data, int *data_len, u32 oid)
  *
  * this encodes an OID up to ASN.1 when presented as an array of OID values
  */
-unsigned char *
-asn1_encode_oid(unsigned char *data, const unsigned char *end_data,
-		u32 oid[], int oid_len)
+unsigned char *asn1_encode_oid(unsigned char *data,
+			       const unsigned char *end_data, u32 oid[],
+			       int oid_len)
 {
 	int data_len = end_data - data;
 	unsigned char *d = data + 2;
@@ -153,7 +152,6 @@ asn1_encode_oid(unsigned char *data, const unsigned char *end_data,
 
 	if (IS_ERR(data))
 		return data;
-
 
 	/* need at least 3 bytes for tag, length and OID encoding */
 	if (data_len < 3)
@@ -266,9 +264,9 @@ static int asn1_encode_length(unsigned char **data, int *data_len, int len)
  * expects to be called with @data pointing to where the first encode
  * returned it and still NULL for @string but the real length in @len.
  */
-unsigned char *
-asn1_encode_tag(unsigned char *data, const unsigned char *end_data,
-		u32 tag, const unsigned char *string, int len)
+unsigned char *asn1_encode_tag(unsigned char *data,
+			       const unsigned char *end_data, u32 tag,
+			       const unsigned char *string, int len)
 {
 	int data_len = end_data - data;
 	int ret;
@@ -276,8 +274,7 @@ asn1_encode_tag(unsigned char *data, const unsigned char *end_data,
 	if (WARN(tag > 30, "ASN.1 tag can't be > 30"))
 		return ERR_PTR(-EINVAL);
 
-	if (!string && WARN(len > 127,
-			    "BUG: recode tag is too big (>127)"))
+	if (!string && WARN(len > 127, "BUG: recode tag is too big (>127)"))
 		return ERR_PTR(-EINVAL);
 
 	if (IS_ERR(data))
@@ -324,10 +321,9 @@ EXPORT_SYMBOL_GPL(asn1_encode_tag);
  *
  * Note ASN.1 octet strings may contain zeros, so the length is obligatory.
  */
-unsigned char *
-asn1_encode_octet_string(unsigned char *data,
-			 const unsigned char *end_data,
-			 const unsigned char *string, u32 len)
+unsigned char *asn1_encode_octet_string(unsigned char *data,
+					const unsigned char *end_data,
+					const unsigned char *string, u32 len)
 {
 	int data_len = end_data - data;
 	int ret;
@@ -369,15 +365,14 @@ EXPORT_SYMBOL_GPL(asn1_encode_octet_string);
  * pointers, the repeat expects to be called with @data pointing to
  * where the first encode placed it.
  */
-unsigned char *
-asn1_encode_sequence(unsigned char *data, const unsigned char *end_data,
-		     const unsigned char *seq, int len)
+unsigned char *asn1_encode_sequence(unsigned char *data,
+				    const unsigned char *end_data,
+				    const unsigned char *seq, int len)
 {
 	int data_len = end_data - data;
 	int ret;
 
-	if (!seq && WARN(len > 127,
-			 "BUG: recode sequence is too big (>127)"))
+	if (!seq && WARN(len > 127, "BUG: recode sequence is too big (>127)"))
 		return ERR_PTR(-EINVAL);
 
 	if (IS_ERR(data))
@@ -422,9 +417,8 @@ EXPORT_SYMBOL_GPL(asn1_encode_sequence);
  * @end_data:	end of data pointer, points one beyond last usable byte in @data
  * @val:	the boolean true/false value
  */
-unsigned char *
-asn1_encode_boolean(unsigned char *data, const unsigned char *end_data,
-		    bool val)
+unsigned char *asn1_encode_boolean(unsigned char *data,
+				   const unsigned char *end_data, bool val)
 {
 	int data_len = end_data - data;
 

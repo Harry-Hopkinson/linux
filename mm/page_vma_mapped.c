@@ -187,9 +187,8 @@ bool page_vma_mapped_walk(struct page_vma_mapped_walk *pvmw)
 	 * any PageKsm page: whose page->index misleads vma_address()
 	 * and vma_address_end() to disaster.
 	 */
-	end = PageTransCompound(page) ?
-		vma_address_end(page, pvmw->vma) :
-		pvmw->address + PAGE_SIZE;
+	end = PageTransCompound(page) ? vma_address_end(page, pvmw->vma) :
+					pvmw->address + PAGE_SIZE;
 	if (pvmw->pte)
 		goto next_pte;
 restart:
@@ -260,10 +259,10 @@ restart:
 		}
 		if (!map_pte(pvmw))
 			goto next_pte;
-this_pte:
+	this_pte:
 		if (check_pte(pvmw))
 			return true;
-next_pte:
+	next_pte:
 		do {
 			pvmw->address += PAGE_SIZE;
 			if (pvmw->address >= end)

@@ -29,7 +29,7 @@ static int walk_pte_range_inner(pte_t *pte, unsigned long addr,
 	for (;;) {
 		err = ops->pte_entry(pte, addr, addr + PAGE_SIZE, walk);
 		if (err)
-		       break;
+			break;
 		if (addr >= end - PAGE_SIZE)
 			break;
 		addr += PAGE_SIZE;
@@ -60,7 +60,8 @@ static int walk_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
 
 #ifdef CONFIG_ARCH_HAS_HUGEPD
 static int walk_hugepd_range(hugepd_t *phpd, unsigned long addr,
-			     unsigned long end, struct mm_walk *walk, int pdshift)
+			     unsigned long end, struct mm_walk *walk,
+			     int pdshift)
 {
 	int err = 0;
 	const struct mm_walk_ops *ops = walk->ops;
@@ -91,7 +92,8 @@ static int walk_hugepd_range(hugepd_t *phpd, unsigned long addr,
 }
 #else
 static int walk_hugepd_range(hugepd_t *phpd, unsigned long addr,
-			     unsigned long end, struct mm_walk *walk, int pdshift)
+			     unsigned long end, struct mm_walk *walk,
+			     int pdshift)
 {
 	return 0;
 }
@@ -108,7 +110,7 @@ static int walk_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
 
 	pmd = pmd_offset(pud, addr);
 	do {
-again:
+	again:
 		next = pmd_addr_end(addr, end);
 		if (pmd_none(*pmd) || (!walk->vma && !walk->no_vma)) {
 			if (ops->pte_hole)
@@ -137,8 +139,7 @@ again:
 		 * pages when we _need_ to
 		 */
 		if ((!walk->vma && (pmd_leaf(*pmd) || !pmd_present(*pmd))) ||
-		    walk->action == ACTION_CONTINUE ||
-		    !(ops->pte_entry))
+		    walk->action == ACTION_CONTINUE || !(ops->pte_entry))
 			continue;
 
 		if (walk->vma) {
@@ -148,7 +149,8 @@ again:
 		}
 
 		if (is_hugepd(__hugepd(pmd_val(*pmd))))
-			err = walk_hugepd_range((hugepd_t *)pmd, addr, next, walk, PMD_SHIFT);
+			err = walk_hugepd_range((hugepd_t *)pmd, addr, next,
+						walk, PMD_SHIFT);
 		else
 			err = walk_pte_range(pmd, addr, next, walk);
 		if (err)
@@ -169,7 +171,7 @@ static int walk_pud_range(p4d_t *p4d, unsigned long addr, unsigned long end,
 
 	pud = pud_offset(p4d, addr);
 	do {
- again:
+	again:
 		next = pud_addr_end(addr, end);
 		if (pud_none(*pud) || (!walk->vma && !walk->no_vma)) {
 			if (ops->pte_hole)
@@ -200,7 +202,8 @@ static int walk_pud_range(p4d_t *p4d, unsigned long addr, unsigned long end,
 			goto again;
 
 		if (is_hugepd(__hugepd(pud_val(*pud))))
-			err = walk_hugepd_range((hugepd_t *)pud, addr, next, walk, PUD_SHIFT);
+			err = walk_hugepd_range((hugepd_t *)pud, addr, next,
+						walk, PUD_SHIFT);
 		else
 			err = walk_pmd_range(pud, addr, next, walk);
 		if (err)
@@ -235,7 +238,8 @@ static int walk_p4d_range(pgd_t *pgd, unsigned long addr, unsigned long end,
 				break;
 		}
 		if (is_hugepd(__hugepd(p4d_val(*p4d))))
-			err = walk_hugepd_range((hugepd_t *)p4d, addr, next, walk, P4D_SHIFT);
+			err = walk_hugepd_range((hugepd_t *)p4d, addr, next,
+						walk, P4D_SHIFT);
 		else if (ops->pud_entry || ops->pmd_entry || ops->pte_entry)
 			err = walk_pud_range(p4d, addr, next, walk);
 		if (err)
@@ -272,8 +276,10 @@ static int walk_pgd_range(unsigned long addr, unsigned long end,
 				break;
 		}
 		if (is_hugepd(__hugepd(pgd_val(*pgd))))
-			err = walk_hugepd_range((hugepd_t *)pgd, addr, next, walk, PGDIR_SHIFT);
-		else if (ops->p4d_entry || ops->pud_entry || ops->pmd_entry || ops->pte_entry)
+			err = walk_hugepd_range((hugepd_t *)pgd, addr, next,
+						walk, PGDIR_SHIFT);
+		else if (ops->p4d_entry || ops->pud_entry || ops->pmd_entry ||
+			 ops->pte_entry)
 			err = walk_p4d_range(pgd, addr, next, walk);
 		if (err)
 			break;
@@ -334,7 +340,7 @@ static int walk_hugetlb_range(unsigned long addr, unsigned long end,
  * error, where we abort the current walk.
  */
 static int walk_page_test(unsigned long start, unsigned long end,
-			struct mm_walk *walk)
+			  struct mm_walk *walk)
 {
 	struct vm_area_struct *vma = walk->vma;
 	const struct mm_walk_ops *ops = walk->ops;
@@ -360,7 +366,7 @@ static int walk_page_test(unsigned long start, unsigned long end,
 }
 
 static int __walk_page_range(unsigned long start, unsigned long end,
-			struct mm_walk *walk)
+			     struct mm_walk *walk)
 {
 	int err = 0;
 	struct vm_area_struct *vma = walk->vma;
@@ -425,16 +431,16 @@ static int __walk_page_range(unsigned long start, unsigned long end,
  *   because these function traverse vma list and/or access to vma's data.
  */
 int walk_page_range(struct mm_struct *mm, unsigned long start,
-		unsigned long end, const struct mm_walk_ops *ops,
-		void *private)
+		    unsigned long end, const struct mm_walk_ops *ops,
+		    void *private)
 {
 	int err = 0;
 	unsigned long next;
 	struct vm_area_struct *vma;
 	struct mm_walk walk = {
-		.ops		= ops,
-		.mm		= mm,
-		.private	= private,
+		.ops = ops,
+		.mm = mm,
+		.private = private,
 	};
 
 	if (start >= end)
@@ -487,16 +493,13 @@ int walk_page_range(struct mm_struct *mm, unsigned long start,
  */
 int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
 			  unsigned long end, const struct mm_walk_ops *ops,
-			  pgd_t *pgd,
-			  void *private)
+			  pgd_t *pgd, void *private)
 {
-	struct mm_walk walk = {
-		.ops		= ops,
-		.mm		= mm,
-		.pgd		= pgd,
-		.private	= private,
-		.no_vma		= true
-	};
+	struct mm_walk walk = { .ops = ops,
+				.mm = mm,
+				.pgd = pgd,
+				.private = private,
+				.no_vma = true };
 
 	if (start >= end || !walk.mm)
 		return -EINVAL;
@@ -507,13 +510,13 @@ int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
 }
 
 int walk_page_vma(struct vm_area_struct *vma, const struct mm_walk_ops *ops,
-		void *private)
+		  void *private)
 {
 	struct mm_walk walk = {
-		.ops		= ops,
-		.mm		= vma->vm_mm,
-		.vma		= vma,
-		.private	= private,
+		.ops = ops,
+		.mm = vma->vm_mm,
+		.vma = vma,
+		.private = private,
 	};
 	int err;
 
@@ -561,12 +564,11 @@ int walk_page_vma(struct vm_area_struct *vma, const struct mm_walk_ops *ops,
  * caller defined premature termination.
  */
 int walk_page_mapping(struct address_space *mapping, pgoff_t first_index,
-		      pgoff_t nr, const struct mm_walk_ops *ops,
-		      void *private)
+		      pgoff_t nr, const struct mm_walk_ops *ops, void *private)
 {
 	struct mm_walk walk = {
-		.ops		= ops,
-		.private	= private,
+		.ops = ops,
+		.private = private,
 	};
 	struct vm_area_struct *vma;
 	pgoff_t vba, vea, cba, cea;
@@ -575,7 +577,8 @@ int walk_page_mapping(struct address_space *mapping, pgoff_t first_index,
 
 	lockdep_assert_held(&mapping->i_mmap_rwsem);
 	vma_interval_tree_foreach(vma, &mapping->i_mmap, first_index,
-				  first_index + nr - 1) {
+				  first_index + nr - 1)
+	{
 		/* Clip to the vma */
 		vba = vma->vm_pgoff;
 		vea = vba + vma_pages(vma);

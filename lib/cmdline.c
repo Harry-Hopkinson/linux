@@ -149,7 +149,7 @@ EXPORT_SYMBOL(get_options);
 
 unsigned long long memparse(const char *ptr, char **retptr)
 {
-	char *endptr;	/* local pointer to end of parsed string */
+	char *endptr; /* local pointer to end of parsed string */
 
 	unsigned long long ret = simple_strtoull(ptr, &endptr, 0);
 
@@ -256,12 +256,12 @@ char *next_arg(char *args, char **param, char **val)
 		/* Don't include quotes in value. */
 		if (**val == '"') {
 			(*val)++;
-			if (args[i-1] == '"')
-				args[i-1] = '\0';
+			if (args[i - 1] == '"')
+				args[i - 1] = '\0';
 		}
 	}
-	if (quoted && args[i-1] == '"')
-		args[i-1] = '\0';
+	if (quoted && args[i - 1] == '"')
+		args[i - 1] = '\0';
 
 	if (args[i]) {
 		args[i] = '\0';

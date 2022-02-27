@@ -59,10 +59,10 @@ static void free_memcg_path_bufs(void)
 	int cpu;
 	char **old = tmp_bufs;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu (cpu) {
 		memcg_path = per_cpu_ptr(&memcg_paths, cpu);
-		*(old++) = rcu_dereference_protected(memcg_path->buf,
-			lockdep_is_held(&reg_lock));
+		*(old++) = rcu_dereference_protected(
+			memcg_path->buf, lockdep_is_held(&reg_lock));
 		rcu_assign_pointer(memcg_path->buf, NULL);
 	}
 
@@ -70,7 +70,7 @@ static void free_memcg_path_bufs(void)
 	synchronize_rcu();
 
 	old = tmp_bufs;
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu (cpu) {
 		kfree(*(old++));
 	}
 
@@ -94,7 +94,7 @@ int trace_mmap_lock_reg(void)
 	if (tmp_bufs == NULL)
 		goto out_fail;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu (cpu) {
 		new = kmalloc(MEMCG_PATH_BUF_SIZE * CONTEXT_COUNT, GFP_KERNEL);
 		if (new == NULL)
 			goto out_fail_free;

@@ -20,9 +20,9 @@ static inline unsigned long vma_last_pgoff(struct vm_area_struct *v)
 	return v->vm_pgoff + vma_pages(v) - 1;
 }
 
-INTERVAL_TREE_DEFINE(struct vm_area_struct, shared.rb,
-		     unsigned long, shared.rb_subtree_last,
-		     vma_start_pgoff, vma_last_pgoff, /* empty */, vma_interval_tree)
+INTERVAL_TREE_DEFINE(struct vm_area_struct, shared.rb, unsigned long,
+		     shared.rb_subtree_last, vma_start_pgoff, vma_last_pgoff,
+		     /* empty */, vma_interval_tree)
 
 /* Insert node immediately after prev in the interval tree */
 void vma_interval_tree_insert_after(struct vm_area_struct *node,
@@ -45,7 +45,7 @@ void vma_interval_tree_insert_after(struct vm_area_struct *node,
 			parent->shared.rb_subtree_last = last;
 		while (parent->shared.rb.rb_left) {
 			parent = rb_entry(parent->shared.rb.rb_left,
-				struct vm_area_struct, shared.rb);
+					  struct vm_area_struct, shared.rb);
 			if (parent->shared.rb_subtree_last < last)
 				parent->shared.rb_subtree_last = last;
 		}
@@ -69,8 +69,8 @@ static inline unsigned long avc_last_pgoff(struct anon_vma_chain *avc)
 }
 
 INTERVAL_TREE_DEFINE(struct anon_vma_chain, rb, unsigned long, rb_subtree_last,
-		     avc_start_pgoff, avc_last_pgoff,
-		     static inline, __anon_vma_interval_tree)
+		     avc_start_pgoff, avc_last_pgoff, static inline,
+		     __anon_vma_interval_tree)
 
 void anon_vma_interval_tree_insert(struct anon_vma_chain *node,
 				   struct rb_root_cached *root)

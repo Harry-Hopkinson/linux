@@ -31,8 +31,7 @@
  * performed on the raw inode simply passs init_user_ns.
  */
 static bool chown_ok(struct user_namespace *mnt_userns,
-		     const struct inode *inode,
-		     kuid_t uid)
+		     const struct inode *inode, kuid_t uid)
 {
 	kuid_t kuid = i_uid_into_mnt(mnt_userns, inode);
 	if (uid_eq(current_fsuid(), kuid) && uid_eq(uid, inode->i_uid))
@@ -126,9 +125,10 @@ int setattr_prepare(struct user_namespace *mnt_userns, struct dentry *dentry,
 		if (!inode_owner_or_capable(mnt_userns, inode))
 			return -EPERM;
 		/* Also check the setgid bit! */
-               if (!in_group_p((ia_valid & ATTR_GID) ? attr->ia_gid :
-                                i_gid_into_mnt(mnt_userns, inode)) &&
-                    !capable_wrt_inode_uidgid(mnt_userns, inode, CAP_FSETID))
+		if (!in_group_p((ia_valid & ATTR_GID) ?
+					attr->ia_gid :
+					i_gid_into_mnt(mnt_userns, inode)) &&
+		    !capable_wrt_inode_uidgid(mnt_userns, inode, CAP_FSETID))
 			attr->ia_mode &= ~S_ISGID;
 	}
 
@@ -356,7 +356,7 @@ int notify_change(struct user_namespace *mnt_userns, struct dentry *dentry,
 	 * no function will ever call notify_change with both ATTR_MODE and
 	 * ATTR_KILL_S*ID set.
 	 */
-	if ((ia_valid & (ATTR_KILL_SUID|ATTR_KILL_SGID)) &&
+	if ((ia_valid & (ATTR_KILL_SUID | ATTR_KILL_SGID)) &&
 	    (ia_valid & ATTR_MODE))
 		BUG();
 

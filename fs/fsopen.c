@@ -21,8 +21,8 @@
 /*
  * Allow the user to read back any error, warning or informational messages.
  */
-static ssize_t fscontext_read(struct file *file,
-			      char __user *_buf, size_t len, loff_t *pos)
+static ssize_t fscontext_read(struct file *file, char __user *_buf, size_t len,
+			      loff_t *pos)
 {
 	struct fs_context *fc = file->private_data;
 	struct fc_log *log = fc->log.log;
@@ -76,9 +76,9 @@ static int fscontext_release(struct inode *inode, struct file *file)
 }
 
 const struct file_operations fscontext_fops = {
-	.read		= fscontext_read,
-	.release	= fscontext_release,
-	.llseek		= no_llseek,
+	.read = fscontext_read,
+	.release = fscontext_release,
+	.llseek = no_llseek,
 };
 
 /*
@@ -155,7 +155,8 @@ err_fc:
 /*
  * Pick a superblock into a context for reconfiguration.
  */
-SYSCALL_DEFINE3(fspick, int, dfd, const char __user *, path, unsigned int, flags)
+SYSCALL_DEFINE3(fspick, int, dfd, const char __user *, path, unsigned int,
+		flags)
 {
 	struct fs_context *fc;
 	struct path target;
@@ -165,10 +166,8 @@ SYSCALL_DEFINE3(fspick, int, dfd, const char __user *, path, unsigned int, flags
 	if (!ns_capable(current->nsproxy->mnt_ns->user_ns, CAP_SYS_ADMIN))
 		return -EPERM;
 
-	if ((flags & ~(FSPICK_CLOEXEC |
-		       FSPICK_SYMLINK_NOFOLLOW |
-		       FSPICK_NO_AUTOMOUNT |
-		       FSPICK_EMPTY_PATH)) != 0)
+	if ((flags & ~(FSPICK_CLOEXEC | FSPICK_SYMLINK_NOFOLLOW |
+		       FSPICK_NO_AUTOMOUNT | FSPICK_EMPTY_PATH)) != 0)
 		return -EINVAL;
 
 	lookup_flags = LOOKUP_FOLLOW | LOOKUP_AUTOMOUNT;
@@ -311,12 +310,8 @@ static int vfs_fsconfig_locked(struct fs_context *fc, int cmd,
  * (*) fsconfig_set_fd: An open file descriptor is specified.  @_value must be
  *     NULL and @aux indicates the file descriptor.
  */
-SYSCALL_DEFINE5(fsconfig,
-		int, fd,
-		unsigned int, cmd,
-		const char __user *, _key,
-		const void __user *, _value,
-		int, aux)
+SYSCALL_DEFINE5(fsconfig, int, fd, unsigned int, cmd, const char __user *, _key,
+		const void __user *, _value, int, aux)
 {
 	struct fs_context *fc;
 	struct fd f;
@@ -324,7 +319,7 @@ SYSCALL_DEFINE5(fsconfig,
 	int lookup_flags = 0;
 
 	struct fs_parameter param = {
-		.type	= fs_value_is_undefined,
+		.type = fs_value_is_undefined,
 	};
 
 	if (fd < 0)

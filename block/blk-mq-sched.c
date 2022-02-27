@@ -64,7 +64,7 @@ static bool blk_mq_dispatch_hctx_list(struct list_head *rq_list)
 	LIST_HEAD(hctx_list);
 	unsigned int count = 0;
 
-	list_for_each_entry(rq, rq_list, queuelist) {
+	list_for_each_entry (rq, rq_list, queuelist) {
 		if (rq->mq_hctx != hctx) {
 			list_cut_before(&hctx_list, rq_list, &rq->queuelist);
 			goto dispatch;
@@ -77,7 +77,7 @@ dispatch:
 	return blk_mq_dispatch_rq_list(hctx, &hctx_list, count);
 }
 
-#define BLK_MQ_BUDGET_DELAY	3		/* ms units */
+#define BLK_MQ_BUDGET_DELAY 3 /* ms units */
 
 /*
  * Only SCSI implements .get_budget and .put_budget, and SCSI restarts
@@ -336,7 +336,7 @@ void blk_mq_sched_dispatch_requests(struct blk_mq_hw_ctx *hctx)
 }
 
 bool blk_mq_sched_bio_merge(struct request_queue *q, struct bio *bio,
-		unsigned int nr_segs)
+			    unsigned int nr_segs)
 {
 	struct elevator_queue *e = q->elevator;
 	struct blk_mq_ctx *ctx;
@@ -475,7 +475,8 @@ void blk_mq_sched_insert_requests(struct blk_mq_hw_ctx *hctx,
 		 * us one extra enqueue & dequeue to sw queue.
 		 */
 		if (!hctx->dispatch_busy && !run_queue_async) {
-			blk_mq_run_dispatch_ops(hctx->queue,
+			blk_mq_run_dispatch_ops(
+				hctx->queue,
 				blk_mq_try_issue_list_directly(hctx, list));
 			if (list_empty(list))
 				goto out;
@@ -484,7 +485,7 @@ void blk_mq_sched_insert_requests(struct blk_mq_hw_ctx *hctx,
 	}
 
 	blk_mq_run_hw_queue(hctx, run_queue_async);
- out:
+out:
 	percpu_ref_put(&q->q_usage_counter);
 }
 
@@ -497,8 +498,8 @@ static int blk_mq_sched_alloc_map_and_rqs(struct request_queue *q,
 		return 0;
 	}
 
-	hctx->sched_tags = blk_mq_alloc_map_and_rqs(q->tag_set, hctx_idx,
-						    q->nr_requests);
+	hctx->sched_tags =
+		blk_mq_alloc_map_and_rqs(q->tag_set, hctx_idx, q->nr_requests);
 
 	if (!hctx->sched_tags)
 		return -ENOMEM;
@@ -512,12 +513,13 @@ static void blk_mq_exit_sched_shared_tags(struct request_queue *queue)
 }
 
 /* called in queue's release handler, tagset has gone away */
-static void blk_mq_sched_tags_teardown(struct request_queue *q, unsigned int flags)
+static void blk_mq_sched_tags_teardown(struct request_queue *q,
+				       unsigned int flags)
 {
 	struct blk_mq_hw_ctx *hctx;
 	int i;
 
-	queue_for_each_hw_ctx(q, hctx, i) {
+	queue_for_each_hw_ctx (q, hctx, i) {
 		if (hctx->sched_tags) {
 			if (!blk_mq_is_shared_tags(flags))
 				blk_mq_free_rq_map(hctx->sched_tags);
@@ -537,9 +539,8 @@ static int blk_mq_init_sched_shared_tags(struct request_queue *queue)
 	 * Set initial depth at max so that we don't need to reallocate for
 	 * updating nr_requests.
 	 */
-	queue->sched_shared_tags = blk_mq_alloc_map_and_rqs(set,
-						BLK_MQ_NO_HCTX_IDX,
-						MAX_SCHED_RQ);
+	queue->sched_shared_tags =
+		blk_mq_alloc_map_and_rqs(set, BLK_MQ_NO_HCTX_IDX, MAX_SCHED_RQ);
 	if (!queue->sched_shared_tags)
 		return -ENOMEM;
 
@@ -575,7 +576,7 @@ int blk_mq_init_sched(struct request_queue *q, struct elevator_type *e)
 			return ret;
 	}
 
-	queue_for_each_hw_ctx(q, hctx, i) {
+	queue_for_each_hw_ctx (q, hctx, i) {
 		ret = blk_mq_sched_alloc_map_and_rqs(q, hctx, i);
 		if (ret)
 			goto err_free_map_and_rqs;
@@ -587,7 +588,7 @@ int blk_mq_init_sched(struct request_queue *q, struct elevator_type *e)
 
 	blk_mq_debugfs_register_sched(q);
 
-	queue_for_each_hw_ctx(q, hctx, i) {
+	queue_for_each_hw_ctx (q, hctx, i) {
 		if (e->ops.init_hctx) {
 			ret = e->ops.init_hctx(hctx, i);
 			if (ret) {
@@ -624,10 +625,10 @@ void blk_mq_sched_free_rqs(struct request_queue *q)
 		blk_mq_free_rqs(q->tag_set, q->sched_shared_tags,
 				BLK_MQ_NO_HCTX_IDX);
 	} else {
-		queue_for_each_hw_ctx(q, hctx, i) {
+		queue_for_each_hw_ctx (q, hctx, i) {
 			if (hctx->sched_tags)
-				blk_mq_free_rqs(q->tag_set,
-						hctx->sched_tags, i);
+				blk_mq_free_rqs(q->tag_set, hctx->sched_tags,
+						i);
 		}
 	}
 }
@@ -638,7 +639,7 @@ void blk_mq_exit_sched(struct request_queue *q, struct elevator_queue *e)
 	unsigned int i;
 	unsigned int flags = 0;
 
-	queue_for_each_hw_ctx(q, hctx, i) {
+	queue_for_each_hw_ctx (q, hctx, i) {
 		blk_mq_debugfs_unregister_sched_hctx(hctx);
 		if (e->type->ops.exit_hctx && hctx->sched_data) {
 			e->type->ops.exit_hctx(hctx, i);

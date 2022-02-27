@@ -25,8 +25,8 @@
 #include <trace/events/block.h>
 #include "blk.h"
 
-#define POOL_SIZE	64
-#define ISA_POOL_SIZE	16
+#define POOL_SIZE 64
+#define ISA_POOL_SIZE 16
 
 static struct bio_set bounce_bio_set, bounce_bio_split;
 static mempool_t page_pool;
@@ -84,7 +84,7 @@ static void copy_to_high_bio_irq(struct bio *to, struct bio *from)
 	 */
 	struct bvec_iter from_iter = BVEC_ITER_ALL_INIT;
 
-	bio_for_each_segment(tovec, to, iter) {
+	bio_for_each_segment (tovec, to, iter) {
 		fromvec = bio_iter_iovec(from, from_iter);
 		if (tovec.bv_page != fromvec.bv_page) {
 			/*
@@ -93,7 +93,7 @@ static void copy_to_high_bio_irq(struct bio *to, struct bio *from)
 			 * copy, bounce_copy_vec already uses tovec->bv_len
 			 */
 			memcpy_to_bvec(&tovec, page_address(fromvec.bv_page) +
-				       tovec.bv_offset);
+						       tovec.bv_offset);
 		}
 		bio_advance_iter(from, &from_iter, tovec.bv_len);
 	}
@@ -109,7 +109,7 @@ static void bounce_end_io(struct bio *bio)
 	/*
 	 * free up bounce indirect pages used
 	 */
-	bio_for_each_segment_all(bvec, bio, iter_all) {
+	bio_for_each_segment_all (bvec, bio, iter_all) {
 		orig_vec = bio_iter_iovec(bio_orig, orig_iter);
 		if (bvec->bv_page != orig_vec.bv_page) {
 			dec_zone_page_state(bvec->bv_page, NR_BOUNCE);
@@ -167,14 +167,14 @@ static struct bio *bounce_clone_bio(struct bio *bio_src)
 	 */
 	bio = bio_alloc_bioset(GFP_NOIO, bio_segments(bio_src),
 			       &bounce_bio_set);
-	bio->bi_bdev		= bio_src->bi_bdev;
+	bio->bi_bdev = bio_src->bi_bdev;
 	if (bio_flagged(bio_src, BIO_REMAPPED))
 		bio_set_flag(bio, BIO_REMAPPED);
-	bio->bi_opf		= bio_src->bi_opf;
-	bio->bi_ioprio		= bio_src->bi_ioprio;
-	bio->bi_write_hint	= bio_src->bi_write_hint;
-	bio->bi_iter.bi_sector	= bio_src->bi_iter.bi_sector;
-	bio->bi_iter.bi_size	= bio_src->bi_iter.bi_size;
+	bio->bi_opf = bio_src->bi_opf;
+	bio->bi_ioprio = bio_src->bi_ioprio;
+	bio->bi_write_hint = bio_src->bi_write_hint;
+	bio->bi_iter.bi_sector = bio_src->bi_iter.bi_sector;
+	bio->bi_iter.bi_size = bio_src->bi_iter.bi_size;
 
 	switch (bio_op(bio)) {
 	case REQ_OP_DISCARD:
@@ -185,7 +185,7 @@ static struct bio *bounce_clone_bio(struct bio *bio_src)
 		bio->bi_io_vec[bio->bi_vcnt++] = bio_src->bi_io_vec[0];
 		break;
 	default:
-		bio_for_each_segment(bv, bio_src, iter)
+		bio_for_each_segment (bv, bio_src, iter)
 			bio->bi_io_vec[bio->bi_vcnt++] = bv;
 		break;
 	}
@@ -217,7 +217,7 @@ void __blk_queue_bounce(struct request_queue *q, struct bio **bio_orig)
 	bool bounce = false;
 	int sectors = 0;
 
-	bio_for_each_segment(from, *bio_orig, iter) {
+	bio_for_each_segment (from, *bio_orig, iter) {
 		if (i++ < BIO_MAX_VECS)
 			sectors += from.bv_len >> 9;
 		if (PageHighMem(from.bv_page))
@@ -227,7 +227,8 @@ void __blk_queue_bounce(struct request_queue *q, struct bio **bio_orig)
 		return;
 
 	if (sectors < bio_sectors(*bio_orig)) {
-		bio = bio_split(*bio_orig, sectors, GFP_NOIO, &bounce_bio_split);
+		bio = bio_split(*bio_orig, sectors, GFP_NOIO,
+				&bounce_bio_split);
 		bio_chain(bio, *bio_orig);
 		submit_bio_noacct(*bio_orig);
 		*bio_orig = bio;

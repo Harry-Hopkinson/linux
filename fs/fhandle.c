@@ -46,9 +46,9 @@ static long do_sys_name_to_handle(struct path *path,
 	handle_dwords = f_handle.handle_bytes >> 2;
 
 	/* we ask for a non connected handle */
-	retval = exportfs_encode_fh(path->dentry,
-				    (struct fid *)handle->f_handle,
-				    &handle_dwords,  0);
+	retval =
+		exportfs_encode_fh(path->dentry, (struct fid *)handle->f_handle,
+				   &handle_dwords, 0);
 	handle->handle_type = retval;
 	/* convert handle size to bytes */
 	handle_bytes = handle_dwords * sizeof(u32);
@@ -91,8 +91,8 @@ static long do_sys_name_to_handle(struct path *path,
  * value required.
  */
 SYSCALL_DEFINE5(name_to_handle_at, int, dfd, const char __user *, name,
-		struct file_handle __user *, handle, int __user *, mnt_id,
-		int, flag)
+		struct file_handle __user *, handle, int __user *, mnt_id, int,
+		flag)
 {
 	struct path path;
 	int lookup_flags;
@@ -149,10 +149,10 @@ static int do_handle_to_path(int mountdirfd, struct file_handle *handle,
 	}
 	/* change the handle size to multiple of sizeof(u32) */
 	handle_dwords = handle->handle_bytes >> 2;
-	path->dentry = exportfs_decode_fh(path->mnt,
-					  (struct fid *)handle->f_handle,
-					  handle_dwords, handle->handle_type,
-					  vfs_dentry_acceptable, NULL);
+	path->dentry =
+		exportfs_decode_fh(path->mnt, (struct fid *)handle->f_handle,
+				   handle_dwords, handle->handle_type,
+				   vfs_dentry_acceptable, NULL);
 	if (IS_ERR(path->dentry)) {
 		retval = PTR_ERR(path->dentry);
 		goto out_mnt;
@@ -165,7 +165,7 @@ out_err:
 }
 
 static int handle_to_path(int mountdirfd, struct file_handle __user *ufh,
-		   struct path *path)
+			  struct path *path)
 {
 	int retval = 0;
 	struct file_handle f_handle;
@@ -197,8 +197,7 @@ static int handle_to_path(int mountdirfd, struct file_handle __user *ufh,
 	}
 	/* copy the full handle */
 	*handle = f_handle;
-	if (copy_from_user(&handle->f_handle,
-			   &ufh->f_handle,
+	if (copy_from_user(&handle->f_handle, &ufh->f_handle,
 			   f_handle.handle_bytes)) {
 		retval = -EFAULT;
 		goto out_handle;
@@ -232,7 +231,7 @@ static long do_handle_open(int mountdirfd, struct file_handle __user *ufh,
 	file = file_open_root(&path, "", open_flag, 0);
 	if (IS_ERR(file)) {
 		put_unused_fd(fd);
-		retval =  PTR_ERR(file);
+		retval = PTR_ERR(file);
 	} else {
 		retval = fd;
 		fsnotify_open(file);
@@ -253,9 +252,8 @@ static long do_handle_open(int mountdirfd, struct file_handle __user *ufh,
  * to the vfsmount pointed by the @mountdirfd. @flags
  * value is same as the open(2) flags.
  */
-SYSCALL_DEFINE3(open_by_handle_at, int, mountdirfd,
-		struct file_handle __user *, handle,
-		int, flags)
+SYSCALL_DEFINE3(open_by_handle_at, int, mountdirfd, struct file_handle __user *,
+		handle, int, flags)
 {
 	long ret;
 
@@ -272,7 +270,7 @@ SYSCALL_DEFINE3(open_by_handle_at, int, mountdirfd,
  * doesn't set the O_LARGEFILE flag.
  */
 COMPAT_SYSCALL_DEFINE3(open_by_handle_at, int, mountdirfd,
-			     struct file_handle __user *, handle, int, flags)
+		       struct file_handle __user *, handle, int, flags)
 {
 	return do_handle_open(mountdirfd, handle, flags);
 }

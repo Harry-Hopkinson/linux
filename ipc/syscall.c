@@ -18,7 +18,7 @@
 #include <linux/uaccess.h>
 
 int ksys_ipc(unsigned int call, int first, unsigned long second,
-	unsigned long third, void __user * ptr, long fifth)
+	     unsigned long third, void __user *ptr, long fifth)
 {
 	int version, ret;
 
@@ -31,11 +31,13 @@ int ksys_ipc(unsigned int call, int first, unsigned long second,
 				       second, NULL);
 	case SEMTIMEDOP:
 		if (IS_ENABLED(CONFIG_64BIT))
-			return ksys_semtimedop(first, ptr, second,
-			        (const struct __kernel_timespec __user *)fifth);
+			return ksys_semtimedop(
+				first, ptr, second,
+				(const struct __kernel_timespec __user *)fifth);
 		else if (IS_ENABLED(CONFIG_COMPAT_32BIT_TIME))
-			return compat_ksys_semtimedop(first, ptr, second,
-			        (const struct old_timespec32 __user *)fifth);
+			return compat_ksys_semtimedop(
+				first, ptr, second,
+				(const struct old_timespec32 __user *)fifth);
 		else
 			return -ENOSYS;
 
@@ -45,14 +47,14 @@ int ksys_ipc(unsigned int call, int first, unsigned long second,
 		unsigned long arg;
 		if (!ptr)
 			return -EINVAL;
-		if (get_user(arg, (unsigned long __user *) ptr))
+		if (get_user(arg, (unsigned long __user *)ptr))
 			return -EFAULT;
 		return ksys_old_semctl(first, second, third, arg);
 	}
 
 	case MSGSND:
-		return ksys_msgsnd(first, (struct msgbuf __user *) ptr,
-				  second, third);
+		return ksys_msgsnd(first, (struct msgbuf __user *)ptr, second,
+				   third);
 	case MSGRCV:
 		switch (version) {
 		case 0: {
@@ -61,32 +63,31 @@ int ksys_ipc(unsigned int call, int first, unsigned long second,
 				return -EINVAL;
 
 			if (copy_from_user(&tmp,
-					   (struct ipc_kludge __user *) ptr,
+					   (struct ipc_kludge __user *)ptr,
 					   sizeof(tmp)))
 				return -EFAULT;
-			return ksys_msgrcv(first, tmp.msgp, second,
-					   tmp.msgtyp, third);
+			return ksys_msgrcv(first, tmp.msgp, second, tmp.msgtyp,
+					   third);
 		}
 		default:
-			return ksys_msgrcv(first,
-					   (struct msgbuf __user *) ptr,
+			return ksys_msgrcv(first, (struct msgbuf __user *)ptr,
 					   second, fifth, third);
 		}
 	case MSGGET:
-		return ksys_msgget((key_t) first, second);
+		return ksys_msgget((key_t)first, second);
 	case MSGCTL:
 		return ksys_old_msgctl(first, second,
-				   (struct msqid_ds __user *)ptr);
+				       (struct msqid_ds __user *)ptr);
 
 	case SHMAT:
 		switch (version) {
 		default: {
 			unsigned long raddr;
-			ret = do_shmat(first, (char __user *)ptr,
-				       second, &raddr, SHMLBA);
+			ret = do_shmat(first, (char __user *)ptr, second,
+				       &raddr, SHMLBA);
 			if (ret)
 				return ret;
-			return put_user(raddr, (unsigned long __user *) third);
+			return put_user(raddr, (unsigned long __user *)third);
 		}
 		case 1:
 			/*
@@ -101,7 +102,7 @@ int ksys_ipc(unsigned int call, int first, unsigned long second,
 		return ksys_shmget(first, second, third);
 	case SHMCTL:
 		return ksys_old_shmctl(first, second,
-				   (struct shmid_ds __user *) ptr);
+				       (struct shmid_ds __user *)ptr);
 	default:
 		return -ENOSYS;
 	}
@@ -118,7 +119,7 @@ SYSCALL_DEFINE6(ipc, unsigned int, call, int, first, unsigned long, second,
 #include <linux/compat.h>
 
 #ifndef COMPAT_SHMLBA
-#define COMPAT_SHMLBA	SHMLBA
+#define COMPAT_SHMLBA SHMLBA
 #endif
 
 struct compat_ipc_kludge {
@@ -127,8 +128,8 @@ struct compat_ipc_kludge {
 };
 
 #ifdef CONFIG_ARCH_WANT_OLD_COMPAT_IPC
-int compat_ksys_ipc(u32 call, int first, int second,
-	u32 third, compat_uptr_t ptr, u32 fifth)
+int compat_ksys_ipc(u32 call, int first, int second, u32 third,
+		    compat_uptr_t ptr, u32 fifth)
 {
 	int version;
 	u32 pad;
@@ -144,13 +145,13 @@ int compat_ksys_ipc(u32 call, int first, int second,
 		if (!IS_ENABLED(CONFIG_COMPAT_32BIT_TIME))
 			return -ENOSYS;
 		return compat_ksys_semtimedop(first, compat_ptr(ptr), second,
-						compat_ptr(fifth));
+					      compat_ptr(fifth));
 	case SEMGET:
 		return ksys_semget(first, second, third);
 	case SEMCTL:
 		if (!ptr)
 			return -EINVAL;
-		if (get_user(pad, (u32 __user *) compat_ptr(ptr)))
+		if (get_user(pad, (u32 __user *)compat_ptr(ptr)))
 			return -EFAULT;
 		return compat_ksys_old_semctl(first, second, third, pad);
 
@@ -170,7 +171,7 @@ int compat_ksys_ipc(u32 call, int first, int second,
 			if (copy_from_user(&ipck, uptr, sizeof(ipck)))
 				return -EFAULT;
 			return compat_ksys_msgrcv(first, ipck.msgp, second,
-						 ipck.msgtyp, third);
+						  ipck.msgtyp, third);
 		}
 		return compat_ksys_msgrcv(first, ptr, second, fifth, third);
 	}
@@ -189,7 +190,8 @@ int compat_ksys_ipc(u32 call, int first, int second,
 			       COMPAT_SHMLBA);
 		if (err < 0)
 			return err;
-		return put_user(raddr, (compat_ulong_t __user *)compat_ptr(third));
+		return put_user(raddr,
+				(compat_ulong_t __user *)compat_ptr(third));
 	}
 	case SHMDT:
 		return ksys_shmdt(compat_ptr(ptr));
@@ -202,8 +204,8 @@ int compat_ksys_ipc(u32 call, int first, int second,
 	return -ENOSYS;
 }
 
-COMPAT_SYSCALL_DEFINE6(ipc, u32, call, int, first, int, second,
-	u32, third, compat_uptr_t, ptr, u32, fifth)
+COMPAT_SYSCALL_DEFINE6(ipc, u32, call, int, first, int, second, u32, third,
+		       compat_uptr_t, ptr, u32, fifth)
 {
 	return compat_ksys_ipc(call, first, second, third, ptr, fifth);
 }

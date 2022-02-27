@@ -13,17 +13,20 @@ static unsigned int tests_run;
 static unsigned int tests_passed;
 
 #ifdef __KERNEL__
-void ida_dump(struct ida *ida) { }
+void ida_dump(struct ida *ida)
+{
+}
 #endif
-#define IDA_BUG_ON(ida, x) do {						\
-	tests_run++;							\
-	if (x) {							\
-		ida_dump(ida);						\
-		dump_stack();						\
-	} else {							\
-		tests_passed++;						\
-	}								\
-} while (0)
+#define IDA_BUG_ON(ida, x)                                                     \
+	do {                                                                   \
+		tests_run++;                                                   \
+		if (x) {                                                       \
+			ida_dump(ida);                                         \
+			dump_stack();                                          \
+		} else {                                                       \
+			tests_passed++;                                        \
+		}                                                              \
+	} while (0)
 
 /*
  * Straightforward checks that allocating and freeing IDs work.
@@ -86,8 +89,8 @@ static void ida_check_leaf(struct ida *ida, unsigned int base)
 	unsigned long i;
 
 	for (i = 0; i < IDA_BITMAP_BITS; i++) {
-		IDA_BUG_ON(ida, ida_alloc_min(ida, base, GFP_KERNEL) !=
-				base + i);
+		IDA_BUG_ON(ida,
+			   ida_alloc_min(ida, base, GFP_KERNEL) != base + i);
 	}
 
 	ida_destroy(ida);
@@ -112,10 +115,10 @@ static void ida_check_max(struct ida *ida)
 		unsigned long base = (1UL << 31) - j;
 		for (i = 0; i < j; i++) {
 			IDA_BUG_ON(ida, ida_alloc_min(ida, base, GFP_KERNEL) !=
-					base + i);
+						base + i);
 		}
-		IDA_BUG_ON(ida, ida_alloc_min(ida, base, GFP_KERNEL) !=
-				-ENOSPC);
+		IDA_BUG_ON(ida,
+			   ida_alloc_min(ida, base, GFP_KERNEL) != -ENOSPC);
 		ida_destroy(ida);
 		IDA_BUG_ON(ida, !ida_is_empty(ida));
 	}
@@ -131,7 +134,7 @@ static void ida_check_conv(struct ida *ida)
 	for (i = 0; i < IDA_BITMAP_BITS * 2; i += IDA_BITMAP_BITS) {
 		IDA_BUG_ON(ida, ida_alloc_min(ida, i + 1, GFP_KERNEL) != i + 1);
 		IDA_BUG_ON(ida, ida_alloc_min(ida, i + BITS_PER_LONG,
-					GFP_KERNEL) != i + BITS_PER_LONG);
+					      GFP_KERNEL) != i + BITS_PER_LONG);
 		ida_free(ida, i + 1);
 		ida_free(ida, i + BITS_PER_LONG);
 		IDA_BUG_ON(ida, !ida_is_empty(ida));

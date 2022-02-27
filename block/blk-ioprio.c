@@ -31,17 +31,17 @@
  * See also <linux/ioprio.h>.
  */
 enum prio_policy {
-	POLICY_NO_CHANGE	= 0,
-	POLICY_NONE_TO_RT	= 1,
-	POLICY_RESTRICT_TO_BE	= 2,
-	POLICY_ALL_TO_IDLE	= 3,
+	POLICY_NO_CHANGE = 0,
+	POLICY_NONE_TO_RT = 1,
+	POLICY_RESTRICT_TO_BE = 2,
+	POLICY_ALL_TO_IDLE = 3,
 };
 
 static const char *policy_name[] = {
-	[POLICY_NO_CHANGE]	= "no-change",
-	[POLICY_NONE_TO_RT]	= "none-to-rt",
-	[POLICY_RESTRICT_TO_BE]	= "restrict-to-be",
-	[POLICY_ALL_TO_IDLE]	= "idle",
+	[POLICY_NO_CHANGE] = "no-change",
+	[POLICY_NONE_TO_RT] = "none-to-rt",
+	[POLICY_RESTRICT_TO_BE] = "restrict-to-be",
+	[POLICY_ALL_TO_IDLE] = "idle",
 };
 
 static struct blkcg_policy ioprio_policy;
@@ -61,8 +61,8 @@ struct ioprio_blkg {
  */
 struct ioprio_blkcg {
 	struct blkcg_policy_data cpd;
-	enum prio_policy	 prio_policy;
-	bool			 prio_set;
+	enum prio_policy prio_policy;
+	bool prio_set;
 };
 
 static inline struct ioprio_blkg *pd_to_ioprio(struct blkg_policy_data *pd)
@@ -154,33 +154,30 @@ static void ioprio_free_cpd(struct blkcg_policy_data *cpd)
 	kfree(blkcg);
 }
 
-#define IOPRIO_ATTRS						\
-	{							\
-		.name		= "prio.class",			\
-		.seq_show	= ioprio_show_prio_policy,	\
-		.write		= ioprio_set_prio_policy,	\
-	},							\
-	{ } /* sentinel */
+#define IOPRIO_ATTRS                                                           \
+	{                                                                      \
+		.name = "prio.class",                                          \
+		.seq_show = ioprio_show_prio_policy,                           \
+		.write = ioprio_set_prio_policy,                               \
+	},                                                                     \
+	{                                                                      \
+	} /* sentinel */
 
 /* cgroup v2 attributes */
-static struct cftype ioprio_files[] = {
-	IOPRIO_ATTRS
-};
+static struct cftype ioprio_files[] = { IOPRIO_ATTRS };
 
 /* cgroup v1 attributes */
-static struct cftype ioprio_legacy_files[] = {
-	IOPRIO_ATTRS
-};
+static struct cftype ioprio_legacy_files[] = { IOPRIO_ATTRS };
 
 static struct blkcg_policy ioprio_policy = {
-	.dfl_cftypes	= ioprio_files,
+	.dfl_cftypes = ioprio_files,
 	.legacy_cftypes = ioprio_legacy_files,
 
-	.cpd_alloc_fn	= ioprio_alloc_cpd,
-	.cpd_free_fn	= ioprio_free_cpd,
+	.cpd_alloc_fn = ioprio_alloc_cpd,
+	.cpd_free_fn = ioprio_free_cpd,
 
-	.pd_alloc_fn	= ioprio_alloc_pd,
-	.pd_free_fn	= ioprio_free_pd,
+	.pd_alloc_fn = ioprio_alloc_pd,
+	.pd_free_fn = ioprio_free_pd,
 };
 
 struct blk_ioprio {
@@ -205,7 +202,7 @@ static void blkcg_ioprio_track(struct rq_qos *rqos, struct request *rq,
 	 * IOPRIO_CLASS_NONE, the cgroup I/O priority is assigned to the bio.
 	 */
 	prio = max_t(u16, bio->bi_ioprio,
-			IOPRIO_PRIO_VALUE(blkcg->prio_policy, 0));
+		     IOPRIO_PRIO_VALUE(blkcg->prio_policy, 0));
 	if (prio > bio->bi_ioprio)
 		bio->bi_ioprio = prio;
 }
@@ -220,8 +217,8 @@ static void blkcg_ioprio_exit(struct rq_qos *rqos)
 }
 
 static struct rq_qos_ops blkcg_ioprio_ops = {
-	.track	= blkcg_ioprio_track,
-	.exit	= blkcg_ioprio_exit,
+	.track = blkcg_ioprio_track,
+	.exit = blkcg_ioprio_exit,
 };
 
 int blk_ioprio_init(struct request_queue *q)

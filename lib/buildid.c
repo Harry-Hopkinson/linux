@@ -13,10 +13,8 @@
  * 32-bit and 64-bit system, because Elf32_Nhdr and Elf64_Nhdr are
  * identical.
  */
-static int parse_build_id_buf(unsigned char *build_id,
-			      __u32 *size,
-			      const void *note_start,
-			      Elf32_Word note_size)
+static int parse_build_id_buf(unsigned char *build_id, __u32 *size,
+			      const void *note_start, Elf32_Word note_size)
 {
 	Elf32_Word note_offs = 0, new_offs;
 
@@ -25,12 +23,12 @@ static int parse_build_id_buf(unsigned char *build_id,
 
 		if (nhdr->n_type == BUILD_ID &&
 		    nhdr->n_namesz == sizeof("GNU") &&
-		    !strcmp((char *)(nhdr + 1), "GNU") &&
-		    nhdr->n_descsz > 0 &&
+		    !strcmp((char *)(nhdr + 1), "GNU") && nhdr->n_descsz > 0 &&
 		    nhdr->n_descsz <= BUILD_ID_SIZE_MAX) {
 			memcpy(build_id,
 			       note_start + note_offs +
-			       ALIGN(sizeof("GNU"), 4) + sizeof(Elf32_Nhdr),
+				       ALIGN(sizeof("GNU"), 4) +
+				       sizeof(Elf32_Nhdr),
 			       nhdr->n_descsz);
 			memset(build_id + nhdr->n_descsz, 0,
 			       BUILD_ID_SIZE_MAX - nhdr->n_descsz);
@@ -39,8 +37,8 @@ static int parse_build_id_buf(unsigned char *build_id,
 			return 0;
 		}
 		new_offs = note_offs + sizeof(Elf32_Nhdr) +
-			ALIGN(nhdr->n_namesz, 4) + ALIGN(nhdr->n_descsz, 4);
-		if (new_offs <= note_offs)  /* overflow */
+			   ALIGN(nhdr->n_namesz, 4) + ALIGN(nhdr->n_descsz, 4);
+		if (new_offs <= note_offs) /* overflow */
 			break;
 		note_offs = new_offs;
 	}
@@ -48,10 +46,8 @@ static int parse_build_id_buf(unsigned char *build_id,
 	return -EINVAL;
 }
 
-static inline int parse_build_id(const void *page_addr,
-				 unsigned char *build_id,
-				 __u32 *size,
-				 const void *note_start,
+static inline int parse_build_id(const void *page_addr, unsigned char *build_id,
+				 __u32 *size, const void *note_start,
 				 Elf32_Word note_size)
 {
 	/* check for overflow */
@@ -137,7 +133,7 @@ int build_id_parse(struct vm_area_struct *vma, unsigned char *build_id,
 
 	page = find_get_page(vma->vm_file->f_mapping, 0);
 	if (!page)
-		return -EFAULT;	/* page not mapped */
+		return -EFAULT; /* page not mapped */
 
 	ret = -EINVAL;
 	page_addr = kmap_atomic(page);

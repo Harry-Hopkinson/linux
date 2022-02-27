@@ -75,7 +75,7 @@ static struct zpool_driver *zpool_get_driver(const char *type)
 	struct zpool_driver *driver;
 
 	spin_lock(&drivers_lock);
-	list_for_each_entry(driver, &drivers_head, list) {
+	list_for_each_entry (driver, &drivers_head, list) {
 		if (!strcmp(driver->type, type)) {
 			bool got = try_module_get(driver->owner);
 
@@ -149,7 +149,7 @@ EXPORT_SYMBOL(zpool_has_pool);
  * Returns: New zpool on success, NULL on failure.
  */
 struct zpool *zpool_create_pool(const char *type, const char *name, gfp_t gfp,
-		const struct zpool_ops *ops)
+				const struct zpool_ops *ops)
 {
 	struct zpool_driver *driver;
 	struct zpool *zpool;
@@ -261,7 +261,7 @@ bool zpool_malloc_support_movable(struct zpool *zpool)
  * Returns: 0 on success, negative value on error.
  */
 int zpool_malloc(struct zpool *zpool, size_t size, gfp_t gfp,
-			unsigned long *handle)
+		 unsigned long *handle)
 {
 	return zpool->driver->malloc(zpool->pool, size, gfp, handle);
 }
@@ -303,10 +303,11 @@ void zpool_free(struct zpool *zpool, unsigned long handle)
  * Returns: 0 on success, negative value on error/failure.
  */
 int zpool_shrink(struct zpool *zpool, unsigned int pages,
-			unsigned int *reclaimed)
+		 unsigned int *reclaimed)
 {
 	return zpool->driver->shrink ?
-	       zpool->driver->shrink(zpool->pool, pages, reclaimed) : -EINVAL;
+		       zpool->driver->shrink(zpool->pool, pages, reclaimed) :
+		       -EINVAL;
 }
 
 /**
@@ -332,7 +333,7 @@ int zpool_shrink(struct zpool *zpool, unsigned int pages,
  * Returns: A pointer to the handle's mapped memory area.
  */
 void *zpool_map_handle(struct zpool *zpool, unsigned long handle,
-			enum zpool_mapmode mapmode)
+		       enum zpool_mapmode mapmode)
 {
 	return zpool->driver->map(zpool->pool, handle, mapmode);
 }

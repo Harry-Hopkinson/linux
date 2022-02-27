@@ -81,7 +81,7 @@ static int crypto_cts_setkey(struct crypto_skcipher *parent, const u8 *key,
 
 	crypto_skcipher_clear_flags(child, CRYPTO_TFM_REQ_MASK);
 	crypto_skcipher_set_flags(child, crypto_skcipher_get_flags(parent) &
-					 CRYPTO_TFM_REQ_MASK);
+						 CRYPTO_TFM_REQ_MASK);
 	return crypto_skcipher_setkey(child, key, keylen);
 }
 
@@ -118,9 +118,9 @@ static int cts_cbc_encrypt(struct skcipher_request *req)
 	scatterwalk_map_and_copy(d, sg, 0, bsize + lastn, 1);
 	memzero_explicit(d, sizeof(d));
 
-	skcipher_request_set_callback(subreq, req->base.flags &
-					      CRYPTO_TFM_REQ_MAY_BACKLOG,
-				      cts_cbc_crypt_done, req);
+	skcipher_request_set_callback(
+		subreq, req->base.flags & CRYPTO_TFM_REQ_MAY_BACKLOG,
+		cts_cbc_crypt_done, req);
 	skcipher_request_set_crypt(subreq, sg, sg, bsize, req->iv);
 	return crypto_skcipher_encrypt(subreq);
 }
@@ -169,11 +169,9 @@ static int crypto_cts_encrypt(struct skcipher_request *req)
 
 	skcipher_request_set_callback(subreq, req->base.flags,
 				      crypto_cts_encrypt_done, req);
-	skcipher_request_set_crypt(subreq, req->src, req->dst,
-				   offset, req->iv);
+	skcipher_request_set_crypt(subreq, req->src, req->dst, offset, req->iv);
 
-	return crypto_skcipher_encrypt(subreq) ?:
-	       cts_cbc_encrypt(req);
+	return crypto_skcipher_encrypt(subreq) ?: cts_cbc_encrypt(req);
 }
 
 static int cts_cbc_decrypt(struct skcipher_request *req)
@@ -211,9 +209,9 @@ static int cts_cbc_decrypt(struct skcipher_request *req)
 	scatterwalk_map_and_copy(d, sg, 0, bsize + lastn, 1);
 	memzero_explicit(d, sizeof(d));
 
-	skcipher_request_set_callback(subreq, req->base.flags &
-					      CRYPTO_TFM_REQ_MAY_BACKLOG,
-				      cts_cbc_crypt_done, req);
+	skcipher_request_set_callback(
+		subreq, req->base.flags & CRYPTO_TFM_REQ_MAY_BACKLOG,
+		cts_cbc_crypt_done, req);
 
 	skcipher_request_set_crypt(subreq, sg, sg, bsize, space);
 	return crypto_skcipher_decrypt(subreq);
@@ -273,11 +271,9 @@ static int crypto_cts_decrypt(struct skcipher_request *req)
 		scatterwalk_map_and_copy(space, req->src, offset - 2 * bsize,
 					 bsize, 0);
 
-	skcipher_request_set_crypt(subreq, req->src, req->dst,
-				   offset, req->iv);
+	skcipher_request_set_crypt(subreq, req->src, req->dst, offset, req->iv);
 
-	return crypto_skcipher_decrypt(subreq) ?:
-	       cts_cbc_decrypt(req);
+	return crypto_skcipher_decrypt(subreq) ?: cts_cbc_decrypt(req);
 }
 
 static int crypto_cts_init_tfm(struct crypto_skcipher *tfm)
@@ -299,7 +295,7 @@ static int crypto_cts_init_tfm(struct crypto_skcipher *tfm)
 	align = crypto_skcipher_alignmask(tfm);
 	bsize = crypto_skcipher_blocksize(cipher);
 	reqsize = ALIGN(sizeof(struct crypto_cts_reqctx) +
-			crypto_skcipher_reqsize(cipher),
+				crypto_skcipher_reqsize(cipher),
 			crypto_tfm_ctx_alignment()) +
 		  (align & ~(crypto_tfm_ctx_alignment() - 1)) + bsize;
 
@@ -380,7 +376,7 @@ static int crypto_cts_create(struct crypto_template *tmpl, struct rtattr **tb)
 
 	err = skcipher_register_instance(tmpl, inst);
 	if (err) {
-err_free_inst:
+	err_free_inst:
 		crypto_cts_free(inst);
 	}
 	return err;

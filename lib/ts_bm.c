@@ -47,12 +47,11 @@
 #define DEBUGP(args, format...)
 #endif
 
-struct ts_bm
-{
-	u8 *		pattern;
-	unsigned int	patlen;
-	unsigned int 	bad_shift[ASIZE];
-	unsigned int	good_shift[];
+struct ts_bm {
+	u8 *pattern;
+	unsigned int patlen;
+	unsigned int bad_shift[ASIZE];
+	unsigned int good_shift[];
 };
 
 static unsigned int bm_find(struct ts_config *conf, struct ts_state *state)
@@ -70,22 +69,24 @@ static unsigned int bm_find(struct ts_config *conf, struct ts_state *state)
 			break;
 
 		while (shift < text_len) {
-			DEBUGP("Searching in position %d (%c)\n", 
-				shift, text[shift]);
-			for (i = 0; i < bm->patlen; i++) 
-				if ((icase ? toupper(text[shift-i])
-				    : text[shift-i])
-					!= bm->pattern[bm->patlen-1-i])
-				     goto next;
+			DEBUGP("Searching in position %d (%c)\n", shift,
+			       text[shift]);
+			for (i = 0; i < bm->patlen; i++)
+				if ((icase ? toupper(text[shift - i]) :
+					     text[shift - i]) !=
+				    bm->pattern[bm->patlen - 1 - i])
+					goto next;
 
 			/* London calling... */
 			DEBUGP("found!\n");
-			return consumed += (shift-(bm->patlen-1));
+			return consumed += (shift - (bm->patlen - 1));
 
-next:			bs = bm->bad_shift[text[shift-i]];
+		next:
+			bs = bm->bad_shift[text[shift - i]];
 
 			/* Now jumping to... */
-			shift = max_t(int, shift-i+bs, shift+bm->good_shift[i]);
+			shift = max_t(int, shift - i + bs,
+				      shift + bm->good_shift[i]);
 		}
 		consumed += text_len;
 	}
@@ -95,15 +96,15 @@ next:			bs = bm->bad_shift[text[shift-i]];
 
 static int subpattern(u8 *pattern, int i, int j, int g)
 {
-	int x = i+g-1, y = j+g-1, ret = 0;
+	int x = i + g - 1, y = j + g - 1, ret = 0;
 
-	while(pattern[x--] == pattern[y--]) {
+	while (pattern[x--] == pattern[y--]) {
 		if (y < 0) {
 			ret = 1;
 			break;
 		}
 		if (--g == 0) {
-			ret = pattern[i-1] != pattern[j-1];
+			ret = pattern[i - 1] != pattern[j - 1];
 			break;
 		}
 	}
@@ -120,8 +121,8 @@ static void compute_prefix_tbl(struct ts_bm *bm, int flags)
 	for (i = 0; i < bm->patlen - 1; i++) {
 		bm->bad_shift[bm->pattern[i]] = bm->patlen - 1 - i;
 		if (flags & TS_IGNORECASE)
-			bm->bad_shift[tolower(bm->pattern[i])]
-			    = bm->patlen - 1 - i;
+			bm->bad_shift[tolower(bm->pattern[i])] =
+				bm->patlen - 1 - i;
 	}
 
 	/* Compute the good shift array, used to match reocurrences 
@@ -129,10 +130,10 @@ static void compute_prefix_tbl(struct ts_bm *bm, int flags)
 	bm->good_shift[0] = 1;
 	for (i = 1; i < bm->patlen; i++)
 		bm->good_shift[i] = bm->patlen;
-        for (i = bm->patlen-1, g = 1; i > 0; g++, i--) {
-		for (j = i-1; j >= 1-g ; j--)
+	for (i = bm->patlen - 1, g = 1; i > 0; g++, i--) {
+		for (j = i - 1; j >= 1 - g; j--)
 			if (subpattern(bm->pattern, i, j, g)) {
-				bm->good_shift[g] = bm->patlen-j-g;
+				bm->good_shift[g] = bm->patlen - j - g;
 				break;
 			}
 	}
@@ -154,7 +155,7 @@ static struct ts_config *bm_init(const void *pattern, unsigned int len,
 	conf->flags = flags;
 	bm = ts_config_priv(conf);
 	bm->patlen = len;
-	bm->pattern = (u8 *) bm->good_shift + prefix_tbl_len;
+	bm->pattern = (u8 *)bm->good_shift + prefix_tbl_len;
 	if (flags & TS_IGNORECASE)
 		for (i = 0; i < len; i++)
 			bm->pattern[i] = toupper(((u8 *)pattern)[i]);
@@ -177,15 +178,13 @@ static unsigned int bm_get_pattern_len(struct ts_config *conf)
 	return bm->patlen;
 }
 
-static struct ts_ops bm_ops = {
-	.name		  = "bm",
-	.find		  = bm_find,
-	.init		  = bm_init,
-	.get_pattern	  = bm_get_pattern,
-	.get_pattern_len  = bm_get_pattern_len,
-	.owner		  = THIS_MODULE,
-	.list		  = LIST_HEAD_INIT(bm_ops.list)
-};
+static struct ts_ops bm_ops = { .name = "bm",
+				.find = bm_find,
+				.init = bm_init,
+				.get_pattern = bm_get_pattern,
+				.get_pattern_len = bm_get_pattern_len,
+				.owner = THIS_MODULE,
+				.list = LIST_HEAD_INIT(bm_ops.list) };
 
 static int __init init_bm(void)
 {

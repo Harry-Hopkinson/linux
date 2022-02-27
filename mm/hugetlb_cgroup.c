@@ -23,9 +23,9 @@
 #include <linux/hugetlb.h>
 #include <linux/hugetlb_cgroup.h>
 
-#define MEMFILE_PRIVATE(x, val)	(((x) << 16) | (val))
-#define MEMFILE_IDX(val)	(((val) >> 16) & 0xffff)
-#define MEMFILE_ATTR(val)	((val) & 0xffff)
+#define MEMFILE_PRIVATE(x, val) (((x) << 16) | (val))
+#define MEMFILE_IDX(val) (((val) >> 16) & 0xffff)
+#define MEMFILE_ATTR(val) ((val)&0xffff)
 
 static struct hugetlb_cgroup *root_h_cgroup __read_mostly;
 
@@ -50,14 +50,14 @@ hugetlb_cgroup_counter_from_cgroup_rsvd(struct hugetlb_cgroup *h_cg, int idx)
 	return __hugetlb_cgroup_counter_from_cgroup(h_cg, idx, true);
 }
 
-static inline
-struct hugetlb_cgroup *hugetlb_cgroup_from_css(struct cgroup_subsys_state *s)
+static inline struct hugetlb_cgroup *
+hugetlb_cgroup_from_css(struct cgroup_subsys_state *s)
 {
 	return s ? container_of(s, struct hugetlb_cgroup, css) : NULL;
 }
 
-static inline
-struct hugetlb_cgroup *hugetlb_cgroup_from_task(struct task_struct *task)
+static inline struct hugetlb_cgroup *
+hugetlb_cgroup_from_task(struct task_struct *task)
 {
 	return hugetlb_cgroup_from_css(task_css(task, hugetlb_cgrp_id));
 }
@@ -79,7 +79,7 @@ static inline bool hugetlb_cgroup_have_usage(struct hugetlb_cgroup *h_cg)
 
 	for (idx = 0; idx < hugetlb_max_hstate; idx++) {
 		if (page_counter_read(
-				hugetlb_cgroup_counter_from_cgroup(h_cg, idx)))
+			    hugetlb_cgroup_counter_from_cgroup(h_cg, idx)))
 			return true;
 	}
 	return false;
@@ -127,7 +127,7 @@ static void hugetlb_cgroup_free(struct hugetlb_cgroup *h_cgroup)
 {
 	int node;
 
-	for_each_node(node)
+	for_each_node (node)
 		kfree(h_cgroup->nodeinfo[node]);
 	kfree(h_cgroup);
 }
@@ -135,7 +135,8 @@ static void hugetlb_cgroup_free(struct hugetlb_cgroup *h_cgroup)
 static struct cgroup_subsys_state *
 hugetlb_cgroup_css_alloc(struct cgroup_subsys_state *parent_css)
 {
-	struct hugetlb_cgroup *parent_h_cgroup = hugetlb_cgroup_from_css(parent_css);
+	struct hugetlb_cgroup *parent_h_cgroup =
+		hugetlb_cgroup_from_css(parent_css);
 	struct hugetlb_cgroup *h_cgroup;
 	int node;
 
@@ -153,7 +154,7 @@ hugetlb_cgroup_css_alloc(struct cgroup_subsys_state *parent_css)
 	 * never be onlined. It's better to use memory hotplug callback
 	 * function.
 	 */
-	for_each_node(node) {
+	for_each_node (node) {
 		/* Set node_to_alloc to -1 for offline nodes. */
 		int node_to_alloc =
 			node_state(node, N_NORMAL_MEMORY) ? node : -1;
@@ -229,9 +230,9 @@ static void hugetlb_cgroup_css_offline(struct cgroup_subsys_state *css)
 
 	do {
 		idx = 0;
-		for_each_hstate(h) {
+		for_each_hstate (h) {
 			spin_lock_irq(&hugetlb_lock);
-			list_for_each_entry(page, &h->hugepage_activelist, lru)
+			list_for_each_entry (page, &h->hugepage_activelist, lru)
 				hugetlb_cgroup_move_parent(idx, h_cg, page);
 
 			spin_unlock_irq(&hugetlb_lock);
@@ -479,12 +480,12 @@ static int hugetlb_cgroup_read_numa_stat(struct seq_file *seq, void *dummy)
 	if (legacy) {
 		/* Add up usage across all nodes for the non-hierarchical total. */
 		usage = 0;
-		for_each_node_state(nid, N_MEMORY)
+		for_each_node_state (nid, N_MEMORY)
 			usage += READ_ONCE(h_cg->nodeinfo[nid]->usage[idx]);
 		seq_printf(seq, "total=%lu", usage * PAGE_SIZE);
 
 		/* Simply print the per-node usage for the non-hierarchical total. */
-		for_each_node_state(nid, N_MEMORY)
+		for_each_node_state (nid, N_MEMORY)
 			seq_printf(seq, " N%d=%lu", nid,
 				   READ_ONCE(h_cg->nodeinfo[nid]->usage[idx]) *
 					   PAGE_SIZE);
@@ -502,10 +503,10 @@ static int hugetlb_cgroup_read_numa_stat(struct seq_file *seq, void *dummy)
 	 * For each node, transverse the css tree to obtain the hierarchical
 	 * node usage.
 	 */
-	for_each_node_state(nid, N_MEMORY) {
+	for_each_node_state (nid, N_MEMORY) {
 		usage = 0;
 		rcu_read_lock();
-		css_for_each_descendant_pre(css, &h_cg->css) {
+		css_for_each_descendant_pre (css, &h_cg->css) {
 			usage += READ_ONCE(hugetlb_cgroup_from_css(css)
 						   ->nodeinfo[nid]
 						   ->usage[idx]);
@@ -593,9 +594,8 @@ static int hugetlb_cgroup_read_u64_max(struct seq_file *seq, void *v)
 
 static DEFINE_MUTEX(hugetlb_limit_mutex);
 
-static ssize_t hugetlb_cgroup_write(struct kernfs_open_file *of,
-				    char *buf, size_t nbytes, loff_t off,
-				    const char *max)
+static ssize_t hugetlb_cgroup_write(struct kernfs_open_file *of, char *buf,
+				    size_t nbytes, loff_t off, const char *max)
 {
 	int ret, idx;
 	unsigned long nr_pages;
@@ -637,14 +637,14 @@ static ssize_t hugetlb_cgroup_write_legacy(struct kernfs_open_file *of,
 	return hugetlb_cgroup_write(of, buf, nbytes, off, "-1");
 }
 
-static ssize_t hugetlb_cgroup_write_dfl(struct kernfs_open_file *of,
-					char *buf, size_t nbytes, loff_t off)
+static ssize_t hugetlb_cgroup_write_dfl(struct kernfs_open_file *of, char *buf,
+					size_t nbytes, loff_t off)
 {
 	return hugetlb_cgroup_write(of, buf, nbytes, off, "max");
 }
 
-static ssize_t hugetlb_cgroup_reset(struct kernfs_open_file *of,
-				    char *buf, size_t nbytes, loff_t off)
+static ssize_t hugetlb_cgroup_reset(struct kernfs_open_file *of, char *buf,
+				    size_t nbytes, loff_t off)
 {
 	int ret = 0;
 	struct page_counter *counter, *rsvd_counter;
@@ -765,8 +765,8 @@ static void __init __hugetlb_cgroup_file_dfl_init(int idx)
 	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.events.local", buf);
 	cft->private = MEMFILE_PRIVATE(idx, 0);
 	cft->seq_show = hugetlb_events_local_show;
-	cft->file_offset = offsetof(struct hugetlb_cgroup,
-				    events_local_file[idx]);
+	cft->file_offset =
+		offsetof(struct hugetlb_cgroup, events_local_file[idx]);
 	cft->flags = CFTYPE_NOT_ON_ROOT;
 
 	/* Add the numa stat file */
@@ -870,7 +870,7 @@ void __init hugetlb_cgroup_file_init(void)
 {
 	struct hstate *h;
 
-	for_each_hstate(h) {
+	for_each_hstate (h) {
 		/*
 		 * Add cgroup control files only if the huge page consists
 		 * of more than two normal pages. This is because we use
@@ -913,9 +913,9 @@ static struct cftype hugetlb_files[] = {
 };
 
 struct cgroup_subsys hugetlb_cgrp_subsys = {
-	.css_alloc	= hugetlb_cgroup_css_alloc,
-	.css_offline	= hugetlb_cgroup_css_offline,
-	.css_free	= hugetlb_cgroup_css_free,
-	.dfl_cftypes	= hugetlb_files,
-	.legacy_cftypes	= hugetlb_files,
+	.css_alloc = hugetlb_cgroup_css_alloc,
+	.css_offline = hugetlb_cgroup_css_offline,
+	.css_free = hugetlb_cgroup_css_free,
+	.dfl_cftypes = hugetlb_files,
+	.legacy_cftypes = hugetlb_files,
 };

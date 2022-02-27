@@ -53,7 +53,7 @@ int ___ratelimit(struct ratelimit_state *rs, const char *func)
 				rs->missed = 0;
 			}
 		}
-		rs->begin   = jiffies;
+		rs->begin = jiffies;
 		rs->printed = 0;
 	}
 	if (rs->burst && rs->burst > rs->printed) {

@@ -15,7 +15,8 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/page_isolation.h>
 
-static int set_migratetype_isolate(struct page *page, int migratetype, int isol_flags)
+static int set_migratetype_isolate(struct page *page, int migratetype,
+				   int isol_flags)
 {
 	struct zone *zone = page_zone(page);
 	struct page *unmovable;
@@ -44,8 +45,8 @@ static int set_migratetype_isolate(struct page *page, int migratetype, int isol_
 
 		set_pageblock_migratetype(page, MIGRATE_ISOLATE);
 		zone->nr_isolate_pageblock++;
-		nr_pages = move_freepages_block(zone, page, MIGRATE_ISOLATE,
-									NULL);
+		nr_pages =
+			move_freepages_block(zone, page, MIGRATE_ISOLATE, NULL);
 
 		__mod_zone_freepage_state(zone, -nr_pages, mt);
 		spin_unlock_irqrestore(&zone->lock, flags);
@@ -94,7 +95,8 @@ static void unset_migratetype_isolate(struct page *page, unsigned migratetype)
 			buddy = page + (buddy_pfn - pfn);
 
 			if (!is_migrate_isolate_page(buddy)) {
-				isolated_page = !!__isolate_free_page(page, order);
+				isolated_page =
+					!!__isolate_free_page(page, order);
 				/*
 				 * Isolating a free page in an isolated pageblock
 				 * is expected to always work as watermarks don't
@@ -127,8 +129,8 @@ out:
 	spin_unlock_irqrestore(&zone->lock, flags);
 }
 
-static inline struct page *
-__first_valid_page(unsigned long pfn, unsigned long nr_pages)
+static inline struct page *__first_valid_page(unsigned long pfn,
+					      unsigned long nr_pages)
 {
 	int i;
 
@@ -193,9 +195,7 @@ int start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
 	BUG_ON(!IS_ALIGNED(start_pfn, pageblock_nr_pages));
 	BUG_ON(!IS_ALIGNED(end_pfn, pageblock_nr_pages));
 
-	for (pfn = start_pfn;
-	     pfn < end_pfn;
-	     pfn += pageblock_nr_pages) {
+	for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages) {
 		page = __first_valid_page(pfn, pageblock_nr_pages);
 		if (page && set_migratetype_isolate(page, migratetype, flags)) {
 			undo_isolate_page_range(start_pfn, pfn, migratetype);
@@ -209,7 +209,7 @@ int start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
  * Make isolated pages available again.
  */
 void undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-			    unsigned migratetype)
+			     unsigned migratetype)
 {
 	unsigned long pfn;
 	struct page *page;
@@ -217,9 +217,7 @@ void undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
 	BUG_ON(!IS_ALIGNED(start_pfn, pageblock_nr_pages));
 	BUG_ON(!IS_ALIGNED(end_pfn, pageblock_nr_pages));
 
-	for (pfn = start_pfn;
-	     pfn < end_pfn;
-	     pfn += pageblock_nr_pages) {
+	for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages) {
 		page = __first_valid_page(pfn, pageblock_nr_pages);
 		if (!page || !is_migrate_isolate_page(page))
 			continue;
@@ -233,9 +231,9 @@ void undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
  *
  * Returns the last tested pfn.
  */
-static unsigned long
-__test_page_isolated_in_pageblock(unsigned long pfn, unsigned long end_pfn,
-				  int flags)
+static unsigned long __test_page_isolated_in_pageblock(unsigned long pfn,
+						       unsigned long end_pfn,
+						       int flags)
 {
 	struct page *page;
 

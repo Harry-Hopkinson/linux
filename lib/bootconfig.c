@@ -43,7 +43,7 @@ static int open_brace[XBC_DEPTH_MAX] __initdata;
 static int brace_index __initdata;
 
 #ifdef __KERNEL__
-static inline void * __init xbc_alloc_mem(size_t size)
+static inline void *__init xbc_alloc_mem(size_t size)
 {
 	return memblock_alloc(size, SMP_CACHE_BYTES);
 }
@@ -100,7 +100,7 @@ static int __init xbc_parse_error(const char *msg, const char *p)
  * Return the address of root node of extended boot config. If the
  * extended boot config is not initiized, return NULL.
  */
-struct xbc_node * __init xbc_root_node(void)
+struct xbc_node *__init xbc_root_node(void)
 {
 	if (unlikely(!xbc_data))
 		return NULL;
@@ -126,7 +126,7 @@ int __init xbc_node_index(struct xbc_node *node)
  * Return the parent node of @node. If the node is top node of the tree,
  * return NULL.
  */
-struct xbc_node * __init xbc_node_get_parent(struct xbc_node *node)
+struct xbc_node *__init xbc_node_get_parent(struct xbc_node *node)
 {
 	return node->parent == XBC_NODE_MAX ? NULL : &xbc_nodes[node->parent];
 }
@@ -138,7 +138,7 @@ struct xbc_node * __init xbc_node_get_parent(struct xbc_node *node)
  * Return the first child node of @node. If the node has no child, return
  * NULL.
  */
-struct xbc_node * __init xbc_node_get_child(struct xbc_node *node)
+struct xbc_node *__init xbc_node_get_child(struct xbc_node *node)
 {
 	return node->child ? &xbc_nodes[node->child] : NULL;
 }
@@ -152,7 +152,7 @@ struct xbc_node * __init xbc_node_get_child(struct xbc_node *node)
  * has no siblings. (You also has to check whether the parent's child node
  * is @node or not.)
  */
-struct xbc_node * __init xbc_node_get_next(struct xbc_node *node)
+struct xbc_node *__init xbc_node_get_next(struct xbc_node *node)
 {
 	return node->next ? &xbc_nodes[node->next] : NULL;
 }
@@ -164,7 +164,7 @@ struct xbc_node * __init xbc_node_get_next(struct xbc_node *node)
  * Return the data (which is always a null terminated string) of @node.
  * If the node has invalid data, warn and return NULL.
  */
-const char * __init xbc_node_get_data(struct xbc_node *node)
+const char *__init xbc_node_get_data(struct xbc_node *node)
 {
 	int offset = node->data & ~XBC_VALUE;
 
@@ -174,8 +174,8 @@ const char * __init xbc_node_get_data(struct xbc_node *node)
 	return xbc_data + offset;
 }
 
-static bool __init
-xbc_node_match_prefix(struct xbc_node *node, const char **prefix)
+static bool __init xbc_node_match_prefix(struct xbc_node *node,
+					 const char **prefix)
 {
 	const char *p = xbc_node_get_data(node);
 	int len = strlen(p);
@@ -202,8 +202,8 @@ xbc_node_match_prefix(struct xbc_node *node, const char **prefix)
  * several words jointed with '.'. If @parent is NULL, this searches the
  * node from whole tree. Return NULL if no node is matched.
  */
-struct xbc_node * __init
-xbc_node_find_subkey(struct xbc_node *parent, const char *key)
+struct xbc_node *__init xbc_node_find_subkey(struct xbc_node *parent,
+					     const char *key)
 {
 	struct xbc_node *node;
 
@@ -239,9 +239,8 @@ xbc_node_find_subkey(struct xbc_node *parent, const char *key)
  * key has no value. And also it will return the value of the first entry if
  * the value is an array.
  */
-const char * __init
-xbc_node_find_value(struct xbc_node *parent, const char *key,
-		    struct xbc_node **vnode)
+const char *__init xbc_node_find_value(struct xbc_node *parent, const char *key,
+				       struct xbc_node **vnode)
 {
 	struct xbc_node *node = xbc_node_find_subkey(parent, key);
 
@@ -275,8 +274,8 @@ xbc_node_find_value(struct xbc_node *parent, const char *key,
  * keys under given key.
  */
 int __init xbc_node_compose_key_after(struct xbc_node *root,
-				      struct xbc_node *node,
-				      char *buf, size_t size)
+				      struct xbc_node *node, char *buf,
+				      size_t size)
 {
 	uint16_t keys[XBC_DEPTH_MAX];
 	int depth = 0, ret = 0, total = 0;
@@ -323,15 +322,15 @@ int __init xbc_node_compose_key_after(struct xbc_node *root,
  * under @root node (including @root node itself).
  * Return the next node or NULL if next leaf node is not found.
  */
-struct xbc_node * __init xbc_node_find_next_leaf(struct xbc_node *root,
-						 struct xbc_node *node)
+struct xbc_node *__init xbc_node_find_next_leaf(struct xbc_node *root,
+						struct xbc_node *node)
 {
 	struct xbc_node *next;
 
 	if (unlikely(!xbc_data))
 		return NULL;
 
-	if (!node) {	/* First try */
+	if (!node) { /* First try */
 		node = root;
 		if (!node)
 			node = xbc_nodes;
@@ -343,7 +342,7 @@ struct xbc_node * __init xbc_node_find_next_leaf(struct xbc_node *root,
 			goto found;
 		}
 
-		if (node == root)	/* @root was a leaf, no child node. */
+		if (node == root) /* @root was a leaf, no child node. */
 			return NULL;
 
 		while (!node->next) {
@@ -375,8 +374,8 @@ found:
  * Note that this returns 0-length string if the key has no value, or
  * the value of the first entry if the value is an array.
  */
-const char * __init xbc_node_find_next_key_value(struct xbc_node *root,
-						 struct xbc_node **leaf)
+const char *__init xbc_node_find_next_key_value(struct xbc_node *root,
+						struct xbc_node **leaf)
 {
 	/* tip must be passed */
 	if (WARN_ON(!leaf))
@@ -388,12 +387,13 @@ const char * __init xbc_node_find_next_key_value(struct xbc_node *root,
 	if ((*leaf)->child)
 		return xbc_node_get_data(xbc_node_get_child(*leaf));
 	else
-		return "";	/* No value key */
+		return ""; /* No value key */
 }
 
 /* XBC parse and tree build */
 
-static int __init xbc_init_node(struct xbc_node *node, char *data, uint32_t flag)
+static int __init xbc_init_node(struct xbc_node *node, char *data,
+				uint32_t flag)
 {
 	unsigned long offset = data - xbc_data;
 
@@ -407,7 +407,7 @@ static int __init xbc_init_node(struct xbc_node *node, char *data, uint32_t flag
 	return 0;
 }
 
-static struct xbc_node * __init xbc_add_node(char *data, uint32_t flag)
+static struct xbc_node *__init xbc_add_node(char *data, uint32_t flag)
 {
 	struct xbc_node *node;
 
@@ -437,7 +437,8 @@ static inline __init struct xbc_node *xbc_last_child(struct xbc_node *node)
 	return node;
 }
 
-static struct xbc_node * __init __xbc_add_sibling(char *data, uint32_t flag, bool head)
+static struct xbc_node *__init __xbc_add_sibling(char *data, uint32_t flag,
+						 bool head)
 {
 	struct xbc_node *sib, *node = xbc_add_node(data, flag);
 
@@ -464,12 +465,13 @@ static struct xbc_node * __init __xbc_add_sibling(char *data, uint32_t flag, boo
 	return node;
 }
 
-static inline struct xbc_node * __init xbc_add_sibling(char *data, uint32_t flag)
+static inline struct xbc_node *__init xbc_add_sibling(char *data, uint32_t flag)
 {
 	return __xbc_add_sibling(data, flag, false);
 }
 
-static inline struct xbc_node * __init xbc_add_head_sibling(char *data, uint32_t flag)
+static inline struct xbc_node *__init xbc_add_head_sibling(char *data,
+							   uint32_t flag)
 {
 	return __xbc_add_sibling(data, flag, true);
 }
@@ -585,7 +587,7 @@ static int __init __xbc_parse_value(char **__v, char **__n)
 		return xbc_parse_error("No closing quotes", p);
 	if (c == '#') {
 		p = skip_comment(p);
-		c = '\n';	/* A comment must be treated as a newline */
+		c = '\n'; /* A comment must be treated as a newline */
 	}
 	*__n = p;
 	*__v = v;
@@ -617,8 +619,8 @@ static int __init xbc_parse_array(char **__v)
 	return c;
 }
 
-static inline __init
-struct xbc_node *find_match_node(struct xbc_node *node, char *k)
+static inline __init struct xbc_node *find_match_node(struct xbc_node *node,
+						      char *k)
 {
 	while (node) {
 		if (!strcmp(xbc_node_get_data(node), k))
@@ -638,7 +640,7 @@ static int __init __xbc_add_key(char *k)
 	if (unlikely(xbc_node_num == 0))
 		goto add_node;
 
-	if (!last_parent)	/* the first level */
+	if (!last_parent) /* the first level */
 		node = find_match_node(xbc_nodes, k);
 	else {
 		child = xbc_node_get_child(last_parent);
@@ -651,7 +653,7 @@ static int __init __xbc_add_key(char *k)
 	if (node)
 		last_parent = node;
 	else {
-add_node:
+	add_node:
 		node = xbc_add_child(k, XBC_KEY);
 		if (!node)
 			return -ENOMEM;
@@ -699,7 +701,7 @@ static int __init xbc_parse_kv(char **k, char *v, int op)
 			unsigned short nidx = child->next;
 
 			xbc_init_node(child, v, XBC_VALUE);
-			child->next = nidx;	/* keep subkeys */
+			child->next = nidx; /* keep subkeys */
 			goto array;
 		}
 		/* op must be '+' */
@@ -710,7 +712,7 @@ static int __init xbc_parse_kv(char **k, char *v, int op)
 		return -ENOMEM;
 
 array:
-	if (c == ',') {	/* Array */
+	if (c == ',') { /* Array */
 		c = xbc_parse_array(&next);
 		if (c < 0)
 			return c;
@@ -779,7 +781,7 @@ static int __init xbc_verify_tree(void)
 	if (brace_index) {
 		n = &xbc_nodes[open_brace[brace_index]];
 		return xbc_parse_error("Brace is not closed",
-					xbc_node_get_data(n));
+				       xbc_node_get_data(n));
 	}
 
 	/* Empty tree */
@@ -790,7 +792,8 @@ static int __init xbc_verify_tree(void)
 
 	for (i = 0; i < xbc_node_num; i++) {
 		if (xbc_nodes[i].next > xbc_node_num) {
-			return xbc_parse_error("No closing brace",
+			return xbc_parse_error(
+				"No closing brace",
 				xbc_node_get_data(xbc_nodes + i));
 		}
 	}
@@ -805,7 +808,7 @@ static int __init xbc_verify_tree(void)
 		len += wlen;
 		if (len > XBC_KEYLEN_MAX)
 			return xbc_parse_error("Too long key length",
-				xbc_node_get_data(n));
+					       xbc_node_get_data(n));
 
 		m = xbc_node_get_child(n);
 		if (m && xbc_node_is_key(m)) {
@@ -813,7 +816,7 @@ static int __init xbc_verify_tree(void)
 			depth++;
 			if (depth > XBC_DEPTH_MAX)
 				return xbc_parse_error("Too many key words",
-						xbc_node_get_data(n));
+						       xbc_node_get_data(n));
 			continue;
 		}
 		len -= wlen;
@@ -855,10 +858,10 @@ static int __init xbc_parse_tree(void)
 		case ':':
 		case '+':
 			if (*q++ != '=') {
-				ret = xbc_parse_error(c == '+' ?
-						"Wrong '+' operator" :
-						"Wrong ':' operator",
-							q - 2);
+				ret = xbc_parse_error(
+					c == '+' ? "Wrong '+' operator" :
+						   "Wrong ':' operator",
+					q - 2);
 				break;
 			}
 			fallthrough;
@@ -932,7 +935,7 @@ int __init xbc_init(const char *data, size_t size, const char **emsg, int *epos)
 	if (size > XBC_DATA_MAX || size == 0) {
 		if (emsg)
 			*emsg = size ? "Config data is too big" :
-				"Config data is empty";
+				       "Config data is empty";
 		return -ERANGE;
 	}
 

@@ -114,8 +114,8 @@ static bool task_work_func_match(struct callback_head *cb, void *data)
  * RETURNS:
  * The found work or NULL if not found.
  */
-struct callback_head *
-task_work_cancel(struct task_struct *task, task_work_func_t func)
+struct callback_head *task_work_cancel(struct task_struct *task,
+				       task_work_func_t func)
 {
 	return task_work_cancel_match(task, task_work_func_match, func);
 }

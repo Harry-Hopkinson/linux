@@ -71,8 +71,7 @@ static void crypto_aegis128_update(struct aegis_state *state)
 }
 
 static void crypto_aegis128_update_a(struct aegis_state *state,
-				     const union aegis_block *msg,
-				     bool do_simd)
+				     const union aegis_block *msg, bool do_simd)
 {
 	if (IS_ENABLED(CONFIG_CRYPTO_AEGIS128_SIMD) && do_simd) {
 		crypto_aegis128_update_simd(state, msg);
@@ -96,8 +95,7 @@ static void crypto_aegis128_update_u(struct aegis_state *state, const void *msg,
 }
 
 static void crypto_aegis128_init(struct aegis_state *state,
-				 const union aegis_block *key,
-				 const u8 *iv)
+				 const union aegis_block *key, const u8 *iv)
 {
 	union aegis_block key_iv;
 	unsigned int i;
@@ -120,13 +118,12 @@ static void crypto_aegis128_init(struct aegis_state *state,
 	}
 }
 
-static void crypto_aegis128_ad(struct aegis_state *state,
-			       const u8 *src, unsigned int size,
-			       bool do_simd)
+static void crypto_aegis128_ad(struct aegis_state *state, const u8 *src,
+			       unsigned int size, bool do_simd)
 {
 	if (AEGIS_ALIGNED(src)) {
 		const union aegis_block *src_blk =
-				(const union aegis_block *)src;
+			(const union aegis_block *)src;
 
 		while (size >= AEGIS_BLOCK_SIZE) {
 			crypto_aegis128_update_a(state, src_blk, do_simd);
@@ -157,10 +154,9 @@ static void crypto_aegis128_encrypt_chunk(struct aegis_state *state, u8 *dst,
 
 	if (AEGIS_ALIGNED(src) && AEGIS_ALIGNED(dst)) {
 		while (size >= AEGIS_BLOCK_SIZE) {
-			union aegis_block *dst_blk =
-					(union aegis_block *)dst;
+			union aegis_block *dst_blk = (union aegis_block *)dst;
 			const union aegis_block *src_blk =
-					(const union aegis_block *)src;
+				(const union aegis_block *)src;
 
 			tmp = state->blocks[2];
 			crypto_aegis_block_and(&tmp, &state->blocks[3]);
@@ -218,10 +214,9 @@ static void crypto_aegis128_decrypt_chunk(struct aegis_state *state, u8 *dst,
 
 	if (AEGIS_ALIGNED(src) && AEGIS_ALIGNED(dst)) {
 		while (size >= AEGIS_BLOCK_SIZE) {
-			union aegis_block *dst_blk =
-					(union aegis_block *)dst;
+			union aegis_block *dst_blk = (union aegis_block *)dst;
 			const union aegis_block *src_blk =
-					(const union aegis_block *)src;
+				(const union aegis_block *)src;
 
 			tmp = state->blocks[2];
 			crypto_aegis_block_and(&tmp, &state->blocks[3]);
@@ -275,8 +270,7 @@ static void crypto_aegis128_decrypt_chunk(struct aegis_state *state, u8 *dst,
 
 static void crypto_aegis128_process_ad(struct aegis_state *state,
 				       struct scatterlist *sg_src,
-				       unsigned int assoclen,
-				       bool do_simd)
+				       unsigned int assoclen, bool do_simd)
 {
 	struct scatter_walk walk;
 	union aegis_block buf;
@@ -319,12 +313,11 @@ static void crypto_aegis128_process_ad(struct aegis_state *state,
 	}
 }
 
-static __always_inline
-int crypto_aegis128_process_crypt(struct aegis_state *state,
-				  struct skcipher_walk *walk,
-				  void (*crypt)(struct aegis_state *state,
-					        u8 *dst, const u8 *src,
-					        unsigned int size))
+static __always_inline int
+crypto_aegis128_process_crypt(struct aegis_state *state,
+			      struct skcipher_walk *walk,
+			      void (*crypt)(struct aegis_state *state, u8 *dst,
+					    const u8 *src, unsigned int size))
 {
 	int err = 0;
 
@@ -342,8 +335,8 @@ int crypto_aegis128_process_crypt(struct aegis_state *state,
 }
 
 static void crypto_aegis128_final(struct aegis_state *state,
-				  union aegis_block *tag_xor,
-				  u64 assoclen, u64 cryptlen)
+				  union aegis_block *tag_xor, u64 assoclen,
+				  u64 cryptlen)
 {
 	u64 assocbits = assoclen * 8;
 	u64 cryptbits = cryptlen * 8;
@@ -504,41 +497,41 @@ static int crypto_aegis128_decrypt_simd(struct aead_request *req)
 }
 
 static struct aead_alg crypto_aegis128_alg_generic = {
-	.setkey			= crypto_aegis128_setkey,
-	.setauthsize		= crypto_aegis128_setauthsize,
-	.encrypt		= crypto_aegis128_encrypt_generic,
-	.decrypt		= crypto_aegis128_decrypt_generic,
+	.setkey = crypto_aegis128_setkey,
+	.setauthsize = crypto_aegis128_setauthsize,
+	.encrypt = crypto_aegis128_encrypt_generic,
+	.decrypt = crypto_aegis128_decrypt_generic,
 
-	.ivsize			= AEGIS128_NONCE_SIZE,
-	.maxauthsize		= AEGIS128_MAX_AUTH_SIZE,
-	.chunksize		= AEGIS_BLOCK_SIZE,
+	.ivsize = AEGIS128_NONCE_SIZE,
+	.maxauthsize = AEGIS128_MAX_AUTH_SIZE,
+	.chunksize = AEGIS_BLOCK_SIZE,
 
-	.base.cra_blocksize	= 1,
-	.base.cra_ctxsize	= sizeof(struct aegis_ctx),
-	.base.cra_alignmask	= 0,
-	.base.cra_priority	= 100,
-	.base.cra_name		= "aegis128",
-	.base.cra_driver_name	= "aegis128-generic",
-	.base.cra_module	= THIS_MODULE,
+	.base.cra_blocksize = 1,
+	.base.cra_ctxsize = sizeof(struct aegis_ctx),
+	.base.cra_alignmask = 0,
+	.base.cra_priority = 100,
+	.base.cra_name = "aegis128",
+	.base.cra_driver_name = "aegis128-generic",
+	.base.cra_module = THIS_MODULE,
 };
 
 static struct aead_alg crypto_aegis128_alg_simd = {
-	.setkey			= crypto_aegis128_setkey,
-	.setauthsize		= crypto_aegis128_setauthsize,
-	.encrypt		= crypto_aegis128_encrypt_simd,
-	.decrypt		= crypto_aegis128_decrypt_simd,
+	.setkey = crypto_aegis128_setkey,
+	.setauthsize = crypto_aegis128_setauthsize,
+	.encrypt = crypto_aegis128_encrypt_simd,
+	.decrypt = crypto_aegis128_decrypt_simd,
 
-	.ivsize			= AEGIS128_NONCE_SIZE,
-	.maxauthsize		= AEGIS128_MAX_AUTH_SIZE,
-	.chunksize		= AEGIS_BLOCK_SIZE,
+	.ivsize = AEGIS128_NONCE_SIZE,
+	.maxauthsize = AEGIS128_MAX_AUTH_SIZE,
+	.chunksize = AEGIS_BLOCK_SIZE,
 
-	.base.cra_blocksize	= 1,
-	.base.cra_ctxsize	= sizeof(struct aegis_ctx),
-	.base.cra_alignmask	= 0,
-	.base.cra_priority	= 200,
-	.base.cra_name		= "aegis128",
-	.base.cra_driver_name	= "aegis128-simd",
-	.base.cra_module	= THIS_MODULE,
+	.base.cra_blocksize = 1,
+	.base.cra_ctxsize = sizeof(struct aegis_ctx),
+	.base.cra_alignmask = 0,
+	.base.cra_priority = 200,
+	.base.cra_name = "aegis128",
+	.base.cra_driver_name = "aegis128-simd",
+	.base.cra_module = THIS_MODULE,
 };
 
 static int __init crypto_aegis128_module_init(void)

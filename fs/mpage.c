@@ -48,7 +48,7 @@ static void mpage_end_io(struct bio *bio)
 	struct bio_vec *bv;
 	struct bvec_iter_all iter_all;
 
-	bio_for_each_segment_all(bv, bio, iter_all) {
+	bio_for_each_segment_all (bv, bio, iter_all) {
 		struct page *page = bv->bv_page;
 		page_endio(page, bio_op(bio),
 			   blk_status_to_errno(bio->bi_status));
@@ -66,10 +66,8 @@ static struct bio *mpage_bio_submit(int op, int op_flags, struct bio *bio)
 	return NULL;
 }
 
-static struct bio *
-mpage_alloc(struct block_device *bdev,
-		sector_t first_sector, int nr_vecs,
-		gfp_t gfp_flags)
+static struct bio *mpage_alloc(struct block_device *bdev, sector_t first_sector,
+			       int nr_vecs, gfp_t gfp_flags)
 {
 	struct bio *bio;
 
@@ -99,8 +97,8 @@ mpage_alloc(struct block_device *bdev,
  * them.  So when the buffer is up to date and the page size == block size,
  * this marks the page up to date instead of adding new buffers.
  */
-static void 
-map_buffer_to_page(struct page *page, struct buffer_head *bh, int page_block) 
+static void map_buffer_to_page(struct page *page, struct buffer_head *bh,
+			       int page_block)
 {
 	struct inode *inode = page->mapping->host;
 	struct buffer_head *page_bh, *head;
@@ -111,9 +109,8 @@ map_buffer_to_page(struct page *page, struct buffer_head *bh, int page_block)
 		 * don't make any buffers if there is only one buffer on
 		 * the page and the page just needs to be set up to date
 		 */
-		if (inode->i_blkbits == PAGE_SHIFT &&
-		    buffer_uptodate(bh)) {
-			SetPageUptodate(page);    
+		if (inode->i_blkbits == PAGE_SHIFT && buffer_uptodate(bh)) {
+			SetPageUptodate(page);
 			return;
 		}
 		create_empty_buffers(page, i_blocksize(inode), 0);
@@ -197,20 +194,20 @@ static struct bio *do_mpage_readpage(struct mpage_readpage_args *args)
 	 */
 	nblocks = map_bh->b_size >> blkbits;
 	if (buffer_mapped(map_bh) &&
-			block_in_file > args->first_logical_block &&
-			block_in_file < (args->first_logical_block + nblocks)) {
+	    block_in_file > args->first_logical_block &&
+	    block_in_file < (args->first_logical_block + nblocks)) {
 		unsigned map_offset = block_in_file - args->first_logical_block;
 		unsigned last = nblocks - map_offset;
 
-		for (relative_block = 0; ; relative_block++) {
+		for (relative_block = 0;; relative_block++) {
 			if (relative_block == last) {
 				clear_buffer_mapped(map_bh);
 				break;
 			}
 			if (page_block == blocks_per_page)
 				break;
-			blocks[page_block] = map_bh->b_blocknr + map_offset +
-						relative_block;
+			blocks[page_block] =
+				map_bh->b_blocknr + map_offset + relative_block;
 			page_block++;
 			block_in_file++;
 		}
@@ -226,7 +223,8 @@ static struct bio *do_mpage_readpage(struct mpage_readpage_args *args)
 		map_bh->b_size = 0;
 
 		if (block_in_file < last_block) {
-			map_bh->b_size = (last_block-block_in_file) << blkbits;
+			map_bh->b_size = (last_block - block_in_file)
+					 << blkbits;
 			if (args->get_block(inode, block_in_file, map_bh, 0))
 				goto confused;
 			args->first_logical_block = block_in_file;
@@ -251,21 +249,22 @@ static struct bio *do_mpage_readpage(struct mpage_readpage_args *args)
 			map_buffer_to_page(page, map_bh, page_block);
 			goto confused;
 		}
-	
+
 		if (first_hole != blocks_per_page)
-			goto confused;		/* hole -> non-hole */
+			goto confused; /* hole -> non-hole */
 
 		/* Contiguous blocks? */
-		if (page_block && blocks[page_block-1] != map_bh->b_blocknr-1)
+		if (page_block &&
+		    blocks[page_block - 1] != map_bh->b_blocknr - 1)
 			goto confused;
 		nblocks = map_bh->b_size >> blkbits;
-		for (relative_block = 0; ; relative_block++) {
+		for (relative_block = 0;; relative_block++) {
 			if (relative_block == nblocks) {
 				clear_buffer_mapped(map_bh);
 				break;
 			} else if (page_block == blocks_per_page)
 				break;
-			blocks[page_block] = map_bh->b_blocknr+relative_block;
+			blocks[page_block] = map_bh->b_blocknr + relative_block;
 			page_block++;
 			block_in_file++;
 		}
@@ -293,7 +292,7 @@ alloc_new:
 	if (args->bio == NULL) {
 		if (first_hole == blocks_per_page) {
 			if (!bdev_read_page(bdev, blocks[0] << (blkbits - 9),
-								page))
+					    page))
 				goto out;
 		}
 		args->bio = mpage_alloc(bdev, blocks[0] << (blkbits - 9),
@@ -469,7 +468,7 @@ void clean_page_buffers(struct page *page)
 }
 
 static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
-		      void *data)
+			     void *data)
 {
 	struct mpage_data *mpd = data;
 	struct bio *bio = mpd->bio;
@@ -514,12 +513,12 @@ static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
 			}
 
 			if (first_unmapped != blocks_per_page)
-				goto confused;	/* hole -> non-hole */
+				goto confused; /* hole -> non-hole */
 
 			if (!buffer_dirty(bh) || !buffer_uptodate(bh))
 				goto confused;
 			if (page_block) {
-				if (bh->b_blocknr != blocks[page_block-1] + 1)
+				if (bh->b_blocknr != blocks[page_block - 1] + 1)
 					goto confused;
 			}
 			blocks[page_block++] = bh->b_blocknr;
@@ -550,8 +549,7 @@ static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
 	block_in_file = (sector_t)page->index << (PAGE_SHIFT - blkbits);
 	last_block = (i_size - 1) >> blkbits;
 	map_bh.b_page = page;
-	for (page_block = 0; page_block < blocks_per_page; ) {
-
+	for (page_block = 0; page_block < blocks_per_page;) {
 		map_bh.b_state = 0;
 		map_bh.b_size = 1 << blkbits;
 		if (mpd->get_block(inode, block_in_file, &map_bh, 1))
@@ -563,7 +561,7 @@ static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
 			boundary_bdev = map_bh.b_bdev;
 		}
 		if (page_block) {
-			if (map_bh.b_blocknr != blocks[page_block-1] + 1)
+			if (map_bh.b_blocknr != blocks[page_block - 1] + 1)
 				goto confused;
 		}
 		blocks[page_block++] = map_bh.b_blocknr;
@@ -605,11 +603,11 @@ alloc_new:
 	if (bio == NULL) {
 		if (first_unmapped == blocks_per_page) {
 			if (!bdev_write_page(bdev, blocks[0] << (blkbits - 9),
-								page, wbc))
+					     page, wbc))
 				goto out;
 		}
 		bio = mpage_alloc(bdev, blocks[0] << (blkbits - 9),
-				BIO_MAX_VECS, GFP_NOFS|__GFP_HIGH);
+				  BIO_MAX_VECS, GFP_NOFS | __GFP_HIGH);
 		if (bio == NULL)
 			goto confused;
 
@@ -637,8 +635,8 @@ alloc_new:
 	if (boundary || (first_unmapped != blocks_per_page)) {
 		bio = mpage_bio_submit(REQ_OP_WRITE, op_flags, bio);
 		if (boundary_block) {
-			write_boundary_block(boundary_bdev,
-					boundary_block, 1 << blkbits);
+			write_boundary_block(boundary_bdev, boundary_block,
+					     1 << blkbits);
 		}
 	} else {
 		mpd->last_block_in_bio = blocks[blocks_per_page - 1];
@@ -683,9 +681,8 @@ out:
  * WB_SYNC_ALL then we were called for data integrity and we must wait for
  * existing IO to complete.
  */
-int
-mpage_writepages(struct address_space *mapping,
-		struct writeback_control *wbc, get_block_t get_block)
+int mpage_writepages(struct address_space *mapping,
+		     struct writeback_control *wbc, get_block_t get_block)
 {
 	struct blk_plug plug;
 	int ret;
@@ -704,8 +701,8 @@ mpage_writepages(struct address_space *mapping,
 
 		ret = write_cache_pages(mapping, wbc, __mpage_writepage, &mpd);
 		if (mpd.bio) {
-			int op_flags = (wbc->sync_mode == WB_SYNC_ALL ?
-				  REQ_SYNC : 0);
+			int op_flags =
+				(wbc->sync_mode == WB_SYNC_ALL ? REQ_SYNC : 0);
 			mpage_bio_submit(REQ_OP_WRITE, op_flags, mpd.bio);
 		}
 	}
@@ -715,7 +712,7 @@ mpage_writepages(struct address_space *mapping,
 EXPORT_SYMBOL(mpage_writepages);
 
 int mpage_writepage(struct page *page, get_block_t get_block,
-	struct writeback_control *wbc)
+		    struct writeback_control *wbc)
 {
 	struct mpage_data mpd = {
 		.bio = NULL,
@@ -725,8 +722,7 @@ int mpage_writepage(struct page *page, get_block_t get_block,
 	};
 	int ret = __mpage_writepage(page, wbc, &mpd);
 	if (mpd.bio) {
-		int op_flags = (wbc->sync_mode == WB_SYNC_ALL ?
-			  REQ_SYNC : 0);
+		int op_flags = (wbc->sync_mode == WB_SYNC_ALL ? REQ_SYNC : 0);
 		mpage_bio_submit(REQ_OP_WRITE, op_flags, mpd.bio);
 	}
 	return ret;

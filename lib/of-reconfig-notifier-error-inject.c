@@ -10,14 +10,12 @@ module_param(priority, int, 0);
 MODULE_PARM_DESC(priority, "specify OF reconfig notifier priority");
 
 static struct notifier_err_inject reconfig_err_inject = {
-	.actions = {
-		{ NOTIFIER_ERR_INJECT_ACTION(OF_RECONFIG_ATTACH_NODE) },
-		{ NOTIFIER_ERR_INJECT_ACTION(OF_RECONFIG_DETACH_NODE) },
-		{ NOTIFIER_ERR_INJECT_ACTION(OF_RECONFIG_ADD_PROPERTY) },
-		{ NOTIFIER_ERR_INJECT_ACTION(OF_RECONFIG_REMOVE_PROPERTY) },
-		{ NOTIFIER_ERR_INJECT_ACTION(OF_RECONFIG_UPDATE_PROPERTY) },
-		{}
-	}
+	.actions = { { NOTIFIER_ERR_INJECT_ACTION(OF_RECONFIG_ATTACH_NODE) },
+		     { NOTIFIER_ERR_INJECT_ACTION(OF_RECONFIG_DETACH_NODE) },
+		     { NOTIFIER_ERR_INJECT_ACTION(OF_RECONFIG_ADD_PROPERTY) },
+		     { NOTIFIER_ERR_INJECT_ACTION(OF_RECONFIG_REMOVE_PROPERTY) },
+		     { NOTIFIER_ERR_INJECT_ACTION(OF_RECONFIG_UPDATE_PROPERTY) },
+		     {} }
 };
 
 static struct dentry *dir;
@@ -26,8 +24,8 @@ static int err_inject_init(void)
 {
 	int err;
 
-	dir = notifier_err_inject_init("OF-reconfig",
-		notifier_err_inject_dir, &reconfig_err_inject, priority);
+	dir = notifier_err_inject_init("OF-reconfig", notifier_err_inject_dir,
+				       &reconfig_err_inject, priority);
 	if (IS_ERR(dir))
 		return PTR_ERR(dir);
 

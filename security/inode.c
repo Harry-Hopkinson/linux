@@ -33,13 +33,13 @@ static void securityfs_free_inode(struct inode *inode)
 }
 
 static const struct super_operations securityfs_super_operations = {
-	.statfs		= simple_statfs,
-	.free_inode	= securityfs_free_inode,
+	.statfs = simple_statfs,
+	.free_inode = securityfs_free_inode,
 };
 
 static int securityfs_fill_super(struct super_block *sb, struct fs_context *fc)
 {
-	static const struct tree_descr files[] = {{""}};
+	static const struct tree_descr files[] = { { "" } };
 	int error;
 
 	error = simple_fill_super(sb, SECURITYFS_MAGIC, files);
@@ -57,7 +57,7 @@ static int securityfs_get_tree(struct fs_context *fc)
 }
 
 static const struct fs_context_operations securityfs_context_ops = {
-	.get_tree	= securityfs_get_tree,
+	.get_tree = securityfs_get_tree,
 };
 
 static int securityfs_init_fs_context(struct fs_context *fc)
@@ -67,10 +67,10 @@ static int securityfs_init_fs_context(struct fs_context *fc)
 }
 
 static struct file_system_type fs_type = {
-	.owner =	THIS_MODULE,
-	.name =		"securityfs",
+	.owner = THIS_MODULE,
+	.name = "securityfs",
 	.init_fs_context = securityfs_init_fs_context,
-	.kill_sb =	kill_litter_super,
+	.kill_sb = kill_litter_super,
 };
 
 /**
@@ -104,10 +104,10 @@ static struct file_system_type fs_type = {
  * If securityfs is not enabled in the kernel, the value %-ENODEV is
  * returned.
  */
-static struct dentry *securityfs_create_dentry(const char *name, umode_t mode,
-					struct dentry *parent, void *data,
-					const struct file_operations *fops,
-					const struct inode_operations *iops)
+static struct dentry *
+securityfs_create_dentry(const char *name, umode_t mode, struct dentry *parent,
+			 void *data, const struct file_operations *fops,
+			 const struct inode_operations *iops)
 {
 	struct dentry *dentry;
 	struct inode *dir, *inode;
@@ -116,7 +116,7 @@ static struct dentry *securityfs_create_dentry(const char *name, umode_t mode,
 	if (!(mode & S_IFMT))
 		mode = (mode & S_IALLUGO) | S_IFREG;
 
-	pr_debug("securityfs: creating file '%s'\n",name);
+	pr_debug("securityfs: creating file '%s'\n", name);
 
 	error = simple_pin_fs(&fs_type, &mount, &mount_count);
 	if (error)
@@ -270,8 +270,8 @@ struct dentry *securityfs_create_symlink(const char *name,
 		if (!link)
 			return ERR_PTR(-ENOMEM);
 	}
-	dent = securityfs_create_dentry(name, S_IFLNK | 0444, parent,
-					link, NULL, iops);
+	dent = securityfs_create_dentry(name, S_IFLNK | 0444, parent, link,
+					NULL, iops);
 	if (IS_ERR(dent))
 		kfree(link);
 
@@ -319,7 +319,7 @@ static ssize_t lsm_read(struct file *filp, char __user *buf, size_t count,
 			loff_t *ppos)
 {
 	return simple_read_from_buffer(buf, count, ppos, lsm_names,
-		strlen(lsm_names));
+				       strlen(lsm_names));
 }
 
 static const struct file_operations lsm_ops = {
@@ -342,8 +342,7 @@ static int __init securityfs_init(void)
 		return retval;
 	}
 #ifdef CONFIG_SECURITY
-	lsm_dentry = securityfs_create_file("lsm", 0444, NULL, NULL,
-						&lsm_ops);
+	lsm_dentry = securityfs_create_file("lsm", 0444, NULL, NULL, &lsm_ops);
 #endif
 	return 0;
 }

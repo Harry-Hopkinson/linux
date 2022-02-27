@@ -85,8 +85,8 @@ int blk_crypto_profile_init(struct blk_crypto_profile *profile,
 
 	/* Initialize keyslot management data. */
 
-	profile->slots = kvcalloc(num_slots, sizeof(profile->slots[0]),
-				  GFP_KERNEL);
+	profile->slots =
+		kvcalloc(num_slots, sizeof(profile->slots[0]), GFP_KERNEL);
 	if (!profile->slots)
 		return -ENOMEM;
 
@@ -153,9 +153,8 @@ int devm_blk_crypto_profile_init(struct device *dev,
 	if (err)
 		return err;
 
-	return devm_add_action_or_reset(dev,
-					blk_crypto_profile_destroy_callback,
-					profile);
+	return devm_add_action_or_reset(
+		dev, blk_crypto_profile_destroy_callback, profile);
 }
 EXPORT_SYMBOL_GPL(devm_blk_crypto_profile_init);
 
@@ -163,8 +162,8 @@ static inline struct hlist_head *
 blk_crypto_hash_bucket_for_key(struct blk_crypto_profile *profile,
 			       const struct blk_crypto_key *key)
 {
-	return &profile->slot_hashtable[
-			hash_ptr(key, profile->log_slot_ht_size)];
+	return &profile->slot_hashtable[hash_ptr(key,
+						 profile->log_slot_ht_size)];
 }
 
 static void
@@ -186,7 +185,7 @@ blk_crypto_find_keyslot(struct blk_crypto_profile *profile,
 		blk_crypto_hash_bucket_for_key(profile, key);
 	struct blk_crypto_keyslot *slotp;
 
-	hlist_for_each_entry(slotp, head, hash_node) {
+	hlist_for_each_entry (slotp, head, hash_node) {
 		if (slotp->key == key)
 			return slotp;
 	}

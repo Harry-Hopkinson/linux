@@ -12,8 +12,8 @@ struct prepend_buffer {
 	char *buf;
 	int len;
 };
-#define DECLARE_BUFFER(__name, __buf, __len) \
-	struct prepend_buffer __name = {.buf = __buf + __len, .len = __len}
+#define DECLARE_BUFFER(__name, __buf, __len)                                   \
+	struct prepend_buffer __name = { .buf = __buf + __len, .len = __len }
 
 static char *extract_string(struct prepend_buffer *p)
 {
@@ -119,9 +119,9 @@ static int __prepend_path(const struct dentry *dentry, const struct mount *mnt,
 			mnt_ns = READ_ONCE(mnt->mnt_ns);
 			/* open-coded is_mounted() to use local mnt_ns */
 			if (!IS_ERR_OR_NULL(mnt_ns) && !is_anon_ns(mnt_ns))
-				return 1;	// absolute root
+				return 1; // absolute root
 			else
-				return 2;	// detached or not attached yet
+				return 2; // detached or not attached yet
 		}
 
 		if (unlikely(dentry == parent))
@@ -152,8 +152,7 @@ static int __prepend_path(const struct dentry *dentry, const struct mount *mnt,
  * parent pointer references will keep the dentry chain alive as long as no
  * rename operation is performed.
  */
-static int prepend_path(const struct path *path,
-			const struct path *root,
+static int prepend_path(const struct path *path, const struct path *root,
 			struct prepend_buffer *p)
 {
 	unsigned seq, m_seq = 0;
@@ -211,9 +210,8 @@ restart:
  *
  * If the path is not reachable from the supplied root, return %NULL.
  */
-char *__d_path(const struct path *path,
-	       const struct path *root,
-	       char *buf, int buflen)
+char *__d_path(const struct path *path, const struct path *root, char *buf,
+	       int buflen)
 {
 	DECLARE_BUFFER(b, buf, buflen);
 
@@ -223,8 +221,7 @@ char *__d_path(const struct path *path,
 	return extract_string(&b);
 }
 
-char *d_absolute_path(const struct path *path,
-	       char *buf, int buflen)
+char *d_absolute_path(const struct path *path, char *buf, int buflen)
 {
 	struct path root = {};
 	DECLARE_BUFFER(b, buf, buflen);
@@ -298,7 +295,7 @@ EXPORT_SYMBOL(d_path);
  * Helper function for dentry_operations.d_dname() members
  */
 char *dynamic_dname(struct dentry *dentry, char *buffer, int buflen,
-			const char *fmt, ...)
+		    const char *fmt, ...)
 {
 	va_list args;
 	char temp[64];

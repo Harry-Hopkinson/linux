@@ -22,22 +22,20 @@
  * As there doesn't appear to be anything that can safely determine
  * their capability at compile-time, we just have to opt-out certain archs.
  */
-#if BITS_PER_LONG == 64 || (!(defined(CONFIG_ARM) && !defined(MMU)) && \
-			    !defined(CONFIG_M68K) &&		\
-			    !defined(CONFIG_MICROBLAZE) &&	\
-			    !defined(CONFIG_NIOS2) &&		\
-			    !defined(CONFIG_PPC32) &&		\
-			    !defined(CONFIG_SUPERH))
-# define TEST_U64
+#if BITS_PER_LONG == 64 ||                                                     \
+	(!(defined(CONFIG_ARM) && !defined(MMU)) && !defined(CONFIG_M68K) &&   \
+	 !defined(CONFIG_MICROBLAZE) && !defined(CONFIG_NIOS2) &&              \
+	 !defined(CONFIG_PPC32) && !defined(CONFIG_SUPERH))
+#define TEST_U64
 #endif
 
-#define test(condition, msg, ...)					\
-({									\
-	int cond = (condition);						\
-	if (cond)							\
-		pr_warn("[%d] " msg "\n", __LINE__, ##__VA_ARGS__);	\
-	cond;								\
-})
+#define test(condition, msg, ...)                                              \
+	({                                                                     \
+		int cond = (condition);                                        \
+		if (cond)                                                      \
+			pr_warn("[%d] " msg "\n", __LINE__, ##__VA_ARGS__);    \
+		cond;                                                          \
+	})
 
 static bool is_zeroed(void *from, size_t size)
 {
@@ -93,9 +91,10 @@ static int test_check_nonzero_user(char *kmem, char __user *umem, size_t size)
 			int retval = check_zeroed_user(umem + start, len);
 			int expected = is_zeroed(kmem + start, len);
 
-			ret |= test(retval != expected,
-				    "check_nonzero_user(=%d) != memchr_inv(=%d) mismatch (start=%zu, end=%zu)",
-				    retval, expected, start, end);
+			ret |= test(
+				retval != expected,
+				"check_nonzero_user(=%d) != memchr_inv(=%d) mismatch (start=%zu, end=%zu)",
+				retval, expected, start, end);
 		}
 	}
 
@@ -133,8 +132,9 @@ static int test_copy_struct_from_user(char *kmem, char __user *umem,
 	memset(kmem, 0x0, size);
 	ret |= test(copy_struct_from_user(kmem, ksize, umem, usize),
 		    "copy_struct_from_user(usize == ksize) failed");
-	ret |= test(memcmp(kmem, expected, ksize),
-		    "copy_struct_from_user(usize == ksize) gives unexpected copy");
+	ret |= test(
+		memcmp(kmem, expected, ksize),
+		"copy_struct_from_user(usize == ksize) gives unexpected copy");
 
 	/* Old userspace case -- (usize < ksize). */
 	ksize = size;
@@ -146,8 +146,9 @@ static int test_copy_struct_from_user(char *kmem, char __user *umem,
 	memset(kmem, 0x0, size);
 	ret |= test(copy_struct_from_user(kmem, ksize, umem, usize),
 		    "copy_struct_from_user(usize < ksize) failed");
-	ret |= test(memcmp(kmem, expected, ksize),
-		    "copy_struct_from_user(usize < ksize) gives unexpected copy");
+	ret |= test(
+		memcmp(kmem, expected, ksize),
+		"copy_struct_from_user(usize < ksize) gives unexpected copy");
 
 	/* New userspace (-E2BIG) case -- (usize > ksize). */
 	ksize = size / 2;
@@ -168,8 +169,9 @@ static int test_copy_struct_from_user(char *kmem, char __user *umem,
 	memset(kmem, 0x0, size);
 	ret |= test(copy_struct_from_user(kmem, ksize, umem, usize),
 		    "copy_struct_from_user(usize > ksize) failed");
-	ret |= test(memcmp(kmem, expected, ksize),
-		    "copy_struct_from_user(usize > ksize) gives unexpected copy");
+	ret |= test(
+		memcmp(kmem, expected, ksize),
+		"copy_struct_from_user(usize > ksize) gives unexpected copy");
 
 out_free:
 	kfree(expected);
@@ -219,24 +221,24 @@ static int __init test_user_copy_init(void)
 	ret |= test(memcmp(kmem, kmem + PAGE_SIZE, PAGE_SIZE),
 		    "legitimate usercopy failed to copy data");
 
-#define test_legit(size, check)						  \
-	do {								  \
-		val_##size = check;					  \
-		ret |= test(put_user(val_##size, (size __user *)usermem), \
-		    "legitimate put_user (" #size ") failed");		  \
-		val_##size = 0;						  \
-		ret |= test(get_user(val_##size, (size __user *)usermem), \
-		    "legitimate get_user (" #size ") failed");		  \
-		ret |= test(val_##size != check,			  \
-		    "legitimate get_user (" #size ") failed to do copy"); \
-		if (val_##size != check) {				  \
-			pr_info("0x%llx != 0x%llx\n",			  \
-				(unsigned long long)val_##size,		  \
-				(unsigned long long)check);		  \
-		}							  \
+#define test_legit(size, check)                                                \
+	do {                                                                   \
+		val_##size = check;                                            \
+		ret |= test(put_user(val_##size, (size __user *)usermem),      \
+			    "legitimate put_user (" #size ") failed");         \
+		val_##size = 0;                                                \
+		ret |= test(get_user(val_##size, (size __user *)usermem),      \
+			    "legitimate get_user (" #size ") failed");         \
+		ret |= test(val_##size != check, "legitimate get_user (" #size \
+						 ") failed to do copy");       \
+		if (val_##size != check) {                                     \
+			pr_info("0x%llx != 0x%llx\n",                          \
+				(unsigned long long)val_##size,                \
+				(unsigned long long)check);                    \
+		}                                                              \
 	} while (0)
 
-	test_legit(u8,  0x5a);
+	test_legit(u8, 0x5a);
 	test_legit(u16, 0x5a5b);
 	test_legit(u32, 0x5a5b5c5d);
 #ifdef TEST_U64
@@ -280,26 +282,26 @@ static int __init test_user_copy_init(void)
 	ret |= test(!copy_to_user((char __user *)kmem, kmem + PAGE_SIZE,
 				  PAGE_SIZE),
 		    "illegal all-kernel copy_to_user passed");
-	ret |= test(!copy_to_user((char __user *)kmem, bad_usermem,
-				  PAGE_SIZE),
+	ret |= test(!copy_to_user((char __user *)kmem, bad_usermem, PAGE_SIZE),
 		    "illegal reversed copy_to_user passed");
 
-#define test_illegal(size, check)					    \
-	do {								    \
-		val_##size = (check);					    \
-		ret |= test(!get_user(val_##size, (size __user *)kmem),	    \
-		    "illegal get_user (" #size ") passed");		    \
-		ret |= test(val_##size != (size)0,			    \
-		    "zeroing failure for illegal get_user (" #size ")");    \
-		if (val_##size != (size)0) {				    \
-			pr_info("0x%llx != 0\n",			    \
-				(unsigned long long)val_##size);	    \
-		}							    \
-		ret |= test(!put_user(val_##size, (size __user *)kmem),	    \
-		    "illegal put_user (" #size ") passed");		    \
+#define test_illegal(size, check)                                              \
+	do {                                                                   \
+		val_##size = (check);                                          \
+		ret |= test(!get_user(val_##size, (size __user *)kmem),        \
+			    "illegal get_user (" #size ") passed");            \
+		ret |= test(val_##size != (size)0,                             \
+			    "zeroing failure for illegal get_user (" #size     \
+			    ")");                                              \
+		if (val_##size != (size)0) {                                   \
+			pr_info("0x%llx != 0\n",                               \
+				(unsigned long long)val_##size);               \
+		}                                                              \
+		ret |= test(!put_user(val_##size, (size __user *)kmem),        \
+			    "illegal put_user (" #size ") passed");            \
 	} while (0)
 
-	test_illegal(u8,  0x5a);
+	test_illegal(u8, 0x5a);
 	test_illegal(u16, 0x5a5b);
 	test_illegal(u32, 0x5a5b5c5d);
 #ifdef TEST_U64

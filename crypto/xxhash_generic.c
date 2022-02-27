@@ -6,8 +6,8 @@
 #include <linux/xxhash.h>
 #include <asm/unaligned.h>
 
-#define XXHASH64_BLOCK_SIZE	32
-#define XXHASH64_DIGEST_SIZE	8
+#define XXHASH64_BLOCK_SIZE 32
+#define XXHASH64_DIGEST_SIZE 8
 
 struct xxhash64_tfm_ctx {
 	u64 seed;
@@ -18,7 +18,7 @@ struct xxhash64_desc_ctx {
 };
 
 static int xxhash64_setkey(struct crypto_shash *tfm, const u8 *key,
-			 unsigned int keylen)
+			   unsigned int keylen)
 {
 	struct xxhash64_tfm_ctx *tctx = crypto_shash_ctx(tfm);
 
@@ -39,7 +39,7 @@ static int xxhash64_init(struct shash_desc *desc)
 }
 
 static int xxhash64_update(struct shash_desc *desc, const u8 *data,
-			 unsigned int length)
+			   unsigned int length)
 {
 	struct xxhash64_desc_ctx *dctx = shash_desc_ctx(desc);
 
@@ -58,7 +58,7 @@ static int xxhash64_final(struct shash_desc *desc, u8 *out)
 }
 
 static int xxhash64_digest(struct shash_desc *desc, const u8 *data,
-			 unsigned int length, u8 *out)
+			   unsigned int length, u8 *out)
 {
 	struct xxhash64_tfm_ctx *tctx = crypto_shash_ctx(desc->tfm);
 
@@ -67,24 +67,23 @@ static int xxhash64_digest(struct shash_desc *desc, const u8 *data,
 	return 0;
 }
 
-static struct shash_alg alg = {
-	.digestsize	= XXHASH64_DIGEST_SIZE,
-	.setkey		= xxhash64_setkey,
-	.init		= xxhash64_init,
-	.update		= xxhash64_update,
-	.final		= xxhash64_final,
-	.digest		= xxhash64_digest,
-	.descsize	= sizeof(struct xxhash64_desc_ctx),
-	.base		= {
-		.cra_name	 = "xxhash64",
-		.cra_driver_name = "xxhash64-generic",
-		.cra_priority	 = 100,
-		.cra_flags	 = CRYPTO_ALG_OPTIONAL_KEY,
-		.cra_blocksize	 = XXHASH64_BLOCK_SIZE,
-		.cra_ctxsize	 = sizeof(struct xxhash64_tfm_ctx),
-		.cra_module	 = THIS_MODULE,
-	}
-};
+static struct shash_alg alg = { .digestsize = XXHASH64_DIGEST_SIZE,
+				.setkey = xxhash64_setkey,
+				.init = xxhash64_init,
+				.update = xxhash64_update,
+				.final = xxhash64_final,
+				.digest = xxhash64_digest,
+				.descsize = sizeof(struct xxhash64_desc_ctx),
+				.base = {
+					.cra_name = "xxhash64",
+					.cra_driver_name = "xxhash64-generic",
+					.cra_priority = 100,
+					.cra_flags = CRYPTO_ALG_OPTIONAL_KEY,
+					.cra_blocksize = XXHASH64_BLOCK_SIZE,
+					.cra_ctxsize =
+						sizeof(struct xxhash64_tfm_ctx),
+					.cra_module = THIS_MODULE,
+				} };
 
 static int __init xxhash_mod_init(void)
 {

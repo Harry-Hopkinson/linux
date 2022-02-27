@@ -56,29 +56,29 @@ enum {
 	 * Default setting, we'll scale up (to 75% of QD max) or down (min 1)
 	 * from here depending on device stats
 	 */
-	RWB_DEF_DEPTH	= 16,
+	RWB_DEF_DEPTH = 16,
 
 	/*
 	 * 100msec window
 	 */
-	RWB_WINDOW_NSEC		= 100 * 1000 * 1000ULL,
+	RWB_WINDOW_NSEC = 100 * 1000 * 1000ULL,
 
 	/*
 	 * Disregard stats, if we don't meet this minimum
 	 */
-	RWB_MIN_WRITE_SAMPLES	= 3,
+	RWB_MIN_WRITE_SAMPLES = 3,
 
 	/*
 	 * If we have this number of consecutive windows with not enough
 	 * information to scale up or down, scale up.
 	 */
-	RWB_UNKNOWN_BUMP	= 5,
+	RWB_UNKNOWN_BUMP = 5,
 };
 
 static inline bool rwb_enabled(struct rq_wb *rwb)
 {
 	return rwb && rwb->enable_state != WBT_STATE_OFF_DEFAULT &&
-		      rwb->wb_normal != 0;
+	       rwb->wb_normal != 0;
 }
 
 static void wb_timestamp(struct rq_wb *rwb, unsigned long *var)
@@ -291,7 +291,7 @@ static void rwb_trace_step(struct rq_wb *rwb, const char *msg)
 	struct rq_depth *rqd = &rwb->rq_depth;
 
 	trace_wbt_step(bdi, msg, rqd->scale_step, rwb->cur_win_nsec,
-			rwb->wb_background, rwb->wb_normal, rqd->max_depth);
+		       rwb->wb_background, rwb->wb_normal, rqd->max_depth);
 }
 
 static void calc_wb_limits(struct rq_wb *rwb)
@@ -337,8 +337,9 @@ static void rwb_arm_timer(struct rq_wb *rwb)
 		 * this for every window expiration, it's not a huge deal,
 		 * though.
 		 */
-		rwb->cur_win_nsec = div_u64(rwb->win_nsec << 4,
-					int_sqrt((rqd->scale_step + 1) << 8));
+		rwb->cur_win_nsec =
+			div_u64(rwb->win_nsec << 4,
+				int_sqrt((rqd->scale_step + 1) << 8));
 	} else {
 		/*
 		 * For step < 0, we don't want to increase/decrease the
@@ -440,16 +441,15 @@ void wbt_set_min_lat(struct request_queue *q, u64 val)
 	wbt_update_limits(RQWB(rqos));
 }
 
-
 static bool close_io(struct rq_wb *rwb)
 {
 	const unsigned long now = jiffies;
 
 	return time_before(now, rwb->last_issue + HZ / 10) ||
-		time_before(now, rwb->last_comp + HZ / 10);
+	       time_before(now, rwb->last_comp + HZ / 10);
 }
 
-#define REQ_HIPRIO	(REQ_SYNC | REQ_META | REQ_PRIO)
+#define REQ_HIPRIO (REQ_SYNC | REQ_META | REQ_PRIO)
 
 static inline unsigned int get_limit(struct rq_wb *rwb, unsigned long rw)
 {
@@ -790,14 +790,14 @@ static int wbt_background_show(void *data, struct seq_file *m)
 }
 
 static const struct blk_mq_debugfs_attr wbt_debugfs_attrs[] = {
-	{"curr_win_nsec", 0400, wbt_curr_win_nsec_show},
-	{"enabled", 0400, wbt_enabled_show},
-	{"id", 0400, wbt_id_show},
-	{"inflight", 0400, wbt_inflight_show},
-	{"min_lat_nsec", 0400, wbt_min_lat_nsec_show},
-	{"unknown_cnt", 0400, wbt_unknown_cnt_show},
-	{"wb_normal", 0400, wbt_normal_show},
-	{"wb_background", 0400, wbt_background_show},
+	{ "curr_win_nsec", 0400, wbt_curr_win_nsec_show },
+	{ "enabled", 0400, wbt_enabled_show },
+	{ "id", 0400, wbt_id_show },
+	{ "inflight", 0400, wbt_inflight_show },
+	{ "min_lat_nsec", 0400, wbt_min_lat_nsec_show },
+	{ "unknown_cnt", 0400, wbt_unknown_cnt_show },
+	{ "wb_normal", 0400, wbt_normal_show },
+	{ "wb_background", 0400, wbt_background_show },
 	{},
 };
 #endif

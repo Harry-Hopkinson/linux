@@ -5,9 +5,10 @@
 #include <linux/export.h>
 #include <asm/syscall.h>
 
-static int collect_syscall(struct task_struct *target, struct syscall_info *info)
+static int collect_syscall(struct task_struct *target,
+			   struct syscall_info *info)
 {
-	unsigned long args[6] = { };
+	unsigned long args[6] = {};
 	struct pt_regs *regs;
 
 	if (!try_get_task_stack(target)) {
@@ -79,8 +80,7 @@ int task_current_syscall(struct task_struct *target, struct syscall_info *info)
 		return -EAGAIN;
 
 	ncsw = wait_task_inactive(target, state);
-	if (unlikely(!ncsw) ||
-	    unlikely(collect_syscall(target, info)) ||
+	if (unlikely(!ncsw) || unlikely(collect_syscall(target, info)) ||
 	    unlikely(wait_task_inactive(target, state) != ncsw))
 		return -EAGAIN;
 

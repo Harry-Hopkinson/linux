@@ -40,8 +40,8 @@ static int setkey_unaligned(struct crypto_aead *tfm, const u8 *key,
 	return ret;
 }
 
-int crypto_aead_setkey(struct crypto_aead *tfm,
-		       const u8 *key, unsigned int keylen)
+int crypto_aead_setkey(struct crypto_aead *tfm, const u8 *key,
+		       unsigned int keylen)
 {
 	unsigned long alignmask = crypto_aead_alignmask(tfm);
 	int err;
@@ -166,15 +166,15 @@ static int crypto_aead_report(struct sk_buff *skb, struct crypto_alg *alg)
 }
 #endif
 
-static void crypto_aead_show(struct seq_file *m, struct crypto_alg *alg)
-	__maybe_unused;
+static void crypto_aead_show(struct seq_file *m,
+			     struct crypto_alg *alg) __maybe_unused;
 static void crypto_aead_show(struct seq_file *m, struct crypto_alg *alg)
 {
 	struct aead_alg *aead = container_of(alg, struct aead_alg, base);
 
 	seq_printf(m, "type         : aead\n");
-	seq_printf(m, "async        : %s\n", alg->cra_flags & CRYPTO_ALG_ASYNC ?
-					     "yes" : "no");
+	seq_printf(m, "async        : %s\n",
+		   alg->cra_flags & CRYPTO_ALG_ASYNC ? "yes" : "no");
 	seq_printf(m, "blocksize    : %u\n", alg->cra_blocksize);
 	seq_printf(m, "ivsize       : %u\n", aead->ivsize);
 	seq_printf(m, "maxauthsize  : %u\n", aead->maxauthsize);
@@ -203,8 +203,8 @@ static const struct crypto_type crypto_aead_type = {
 };
 
 int crypto_grab_aead(struct crypto_aead_spawn *spawn,
-		     struct crypto_instance *inst,
-		     const char *name, u32 type, u32 mask)
+		     struct crypto_instance *inst, const char *name, u32 type,
+		     u32 mask)
 {
 	spawn->base.frontend = &crypto_aead_type;
 	return crypto_grab_spawn(&spawn->base, inst, name, type, mask);
@@ -221,8 +221,7 @@ static int aead_prepare_alg(struct aead_alg *alg)
 {
 	struct crypto_alg *base = &alg->base;
 
-	if (max3(alg->maxauthsize, alg->ivsize, alg->chunksize) >
-	    PAGE_SIZE / 8)
+	if (max3(alg->maxauthsize, alg->ivsize, alg->chunksize) > PAGE_SIZE / 8)
 		return -EINVAL;
 
 	if (!alg->chunksize)

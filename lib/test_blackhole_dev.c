@@ -19,9 +19,9 @@
 
 #include <net/dst.h>
 
-#define SKB_SIZE  256
-#define HEAD_SIZE (14+40+8)	/* Ether + IPv6 + UDP */
-#define TAIL_SIZE 32		/* random tail-room */
+#define SKB_SIZE 256
+#define HEAD_SIZE (14 + 40 + 8) /* Ether + IPv6 + UDP */
+#define TAIL_SIZE 32 /* random tail-room */
 
 #define UDP_PORT 1234
 

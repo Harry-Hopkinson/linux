@@ -53,9 +53,9 @@
 #define xxh_rotl64(x, r) ((x << r) | (x >> (64 - r)))
 
 #ifdef __LITTLE_ENDIAN
-# define XXH_CPU_LITTLE_ENDIAN 1
+#define XXH_CPU_LITTLE_ENDIAN 1
 #else
-# define XXH_CPU_LITTLE_ENDIAN 0
+#define XXH_CPU_LITTLE_ENDIAN 0
 #endif
 
 /*-*************************************
@@ -64,14 +64,14 @@
 static const uint32_t PRIME32_1 = 2654435761U;
 static const uint32_t PRIME32_2 = 2246822519U;
 static const uint32_t PRIME32_3 = 3266489917U;
-static const uint32_t PRIME32_4 =  668265263U;
-static const uint32_t PRIME32_5 =  374761393U;
+static const uint32_t PRIME32_4 = 668265263U;
+static const uint32_t PRIME32_5 = 374761393U;
 
 static const uint64_t PRIME64_1 = 11400714785074694791ULL;
 static const uint64_t PRIME64_2 = 14029467366897019727ULL;
-static const uint64_t PRIME64_3 =  1609587929392839161ULL;
-static const uint64_t PRIME64_4 =  9650029242287828579ULL;
-static const uint64_t PRIME64_5 =  2870177450012600261ULL;
+static const uint64_t PRIME64_3 = 1609587929392839161ULL;
+static const uint64_t PRIME64_4 = 9650029242287828579ULL;
+static const uint64_t PRIME64_5 = 2870177450012600261ULL;
 
 /*-**************************
  *  Utils
@@ -124,7 +124,7 @@ uint32_t xxh32(const void *input, const size_t len, const uint32_t seed)
 		} while (p <= limit);
 
 		h32 = xxh_rotl32(v1, 1) + xxh_rotl32(v2, 7) +
-			xxh_rotl32(v3, 12) + xxh_rotl32(v4, 18);
+		      xxh_rotl32(v3, 12) + xxh_rotl32(v4, 18);
 	} else {
 		h32 = seed + PRIME32_5;
 	}
@@ -194,14 +194,14 @@ uint64_t xxh64(const void *input, const size_t len, const uint64_t seed)
 		} while (p <= limit);
 
 		h64 = xxh_rotl64(v1, 1) + xxh_rotl64(v2, 7) +
-			xxh_rotl64(v3, 12) + xxh_rotl64(v4, 18);
+		      xxh_rotl64(v3, 12) + xxh_rotl64(v4, 18);
 		h64 = xxh64_merge_round(h64, v1);
 		h64 = xxh64_merge_round(h64, v2);
 		h64 = xxh64_merge_round(h64, v3);
 		h64 = xxh64_merge_round(h64, v4);
 
 	} else {
-		h64  = seed + PRIME64_5;
+		h64 = seed + PRIME64_5;
 	}
 
 	h64 += (uint64_t)len;
@@ -288,7 +288,7 @@ int xxh32_update(struct xxh32_state *state, const void *input, const size_t len)
 		const uint32_t *p32 = state->mem32;
 
 		memcpy((uint8_t *)(state->mem32) + state->memsize, input,
-			16 - state->memsize);
+		       16 - state->memsize);
 
 		state->v1 = xxh32_round(state->v1, get_unaligned_le32(p32));
 		p32++;
@@ -299,7 +299,7 @@ int xxh32_update(struct xxh32_state *state, const void *input, const size_t len)
 		state->v4 = xxh32_round(state->v4, get_unaligned_le32(p32));
 		p32++;
 
-		p += 16-state->memsize;
+		p += 16 - state->memsize;
 		state->memsize = 0;
 	}
 
@@ -328,8 +328,8 @@ int xxh32_update(struct xxh32_state *state, const void *input, const size_t len)
 	}
 
 	if (p < b_end) {
-		memcpy(state->mem32, p, (size_t)(b_end-p));
-		state->memsize = (uint32_t)(b_end-p);
+		memcpy(state->mem32, p, (size_t)(b_end - p));
+		state->memsize = (uint32_t)(b_end - p);
 	}
 
 	return 0;
@@ -339,13 +339,13 @@ EXPORT_SYMBOL(xxh32_update);
 uint32_t xxh32_digest(const struct xxh32_state *state)
 {
 	const uint8_t *p = (const uint8_t *)state->mem32;
-	const uint8_t *const b_end = (const uint8_t *)(state->mem32) +
-		state->memsize;
+	const uint8_t *const b_end =
+		(const uint8_t *)(state->mem32) + state->memsize;
 	uint32_t h32;
 
 	if (state->large_len) {
 		h32 = xxh_rotl32(state->v1, 1) + xxh_rotl32(state->v2, 7) +
-			xxh_rotl32(state->v3, 12) + xxh_rotl32(state->v4, 18);
+		      xxh_rotl32(state->v3, 12) + xxh_rotl32(state->v4, 18);
 	} else {
 		h32 = state->v3 /* == seed */ + PRIME32_5;
 	}
@@ -394,7 +394,7 @@ int xxh64_update(struct xxh64_state *state, const void *input, const size_t len)
 		uint64_t *p64 = state->mem64;
 
 		memcpy(((uint8_t *)p64) + state->memsize, input,
-			32 - state->memsize);
+		       32 - state->memsize);
 
 		state->v1 = xxh64_round(state->v1, get_unaligned_le64(p64));
 		p64++;
@@ -433,7 +433,7 @@ int xxh64_update(struct xxh64_state *state, const void *input, const size_t len)
 	}
 
 	if (p < b_end) {
-		memcpy(state->mem64, p, (size_t)(b_end-p));
+		memcpy(state->mem64, p, (size_t)(b_end - p));
 		state->memsize = (uint32_t)(b_end - p);
 	}
 
@@ -444,8 +444,8 @@ EXPORT_SYMBOL(xxh64_update);
 uint64_t xxh64_digest(const struct xxh64_state *state)
 {
 	const uint8_t *p = (const uint8_t *)state->mem64;
-	const uint8_t *const b_end = (const uint8_t *)state->mem64 +
-		state->memsize;
+	const uint8_t *const b_end =
+		(const uint8_t *)state->mem64 + state->memsize;
 	uint64_t h64;
 
 	if (state->total_len >= 32) {
@@ -455,13 +455,13 @@ uint64_t xxh64_digest(const struct xxh64_state *state)
 		const uint64_t v4 = state->v4;
 
 		h64 = xxh_rotl64(v1, 1) + xxh_rotl64(v2, 7) +
-			xxh_rotl64(v3, 12) + xxh_rotl64(v4, 18);
+		      xxh_rotl64(v3, 12) + xxh_rotl64(v4, 18);
 		h64 = xxh64_merge_round(h64, v1);
 		h64 = xxh64_merge_round(h64, v2);
 		h64 = xxh64_merge_round(h64, v3);
 		h64 = xxh64_merge_round(h64, v4);
 	} else {
-		h64  = state->v3 + PRIME64_5;
+		h64 = state->v3 + PRIME64_5;
 	}
 
 	h64 += (uint64_t)state->total_len;

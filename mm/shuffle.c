@@ -18,7 +18,7 @@ static int shuffle_show(char *buffer, const struct kernel_param *kp)
 }
 
 static __meminit int shuffle_store(const char *val,
-		const struct kernel_param *kp)
+				   const struct kernel_param *kp)
 {
 	int rc = param_set_bool(val, kp);
 
@@ -34,8 +34,8 @@ module_param_call(shuffle, shuffle_store, shuffle_show, &shuffle_param, 0400);
  * For two pages to be swapped in the shuffle, they must be free (on a
  * 'free_area' lru), have the same order, and have the same migratetype.
  */
-static struct page * __meminit shuffle_valid_page(struct zone *zone,
-						  unsigned long pfn, int order)
+static struct page *__meminit shuffle_valid_page(struct zone *zone,
+						 unsigned long pfn, int order)
 {
 	struct page *page = pfn_to_online_page(pfn);
 
@@ -111,8 +111,8 @@ void __meminit __shuffle_zone(struct zone *z)
 			 * in the zone.
 			 */
 			j = z->zone_start_pfn +
-				ALIGN_DOWN(get_random_long() % z->spanned_pages,
-						order_pages);
+			    ALIGN_DOWN(get_random_long() % z->spanned_pages,
+				       order_pages);
 			page_j = shuffle_valid_page(z, j, order);
 			if (page_j && page_j != page_i)
 				break;
@@ -129,7 +129,8 @@ void __meminit __shuffle_zone(struct zone *z)
 		 */
 		migratetype = get_pageblock_migratetype(page_i);
 		if (get_pageblock_migratetype(page_j) != migratetype) {
-			pr_debug("%s: migratetype mismatch %#lx\n", __func__, i);
+			pr_debug("%s: migratetype mismatch %#lx\n", __func__,
+				 i);
 			continue;
 		}
 

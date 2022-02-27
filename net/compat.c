@@ -33,10 +33,9 @@
 #include <linux/uaccess.h>
 #include <net/compat.h>
 
-int __get_compat_msghdr(struct msghdr *kmsg,
-			struct compat_msghdr __user *umsg,
-			struct sockaddr __user **save_addr,
-			compat_uptr_t *ptr, compat_size_t *len)
+int __get_compat_msghdr(struct msghdr *kmsg, struct compat_msghdr __user *umsg,
+			struct sockaddr __user **save_addr, compat_uptr_t *ptr,
+			compat_size_t *len)
 {
 	struct compat_msghdr msg;
 	ssize_t err;
@@ -85,10 +84,8 @@ int __get_compat_msghdr(struct msghdr *kmsg,
 	return 0;
 }
 
-int get_compat_msghdr(struct msghdr *kmsg,
-		      struct compat_msghdr __user *umsg,
-		      struct sockaddr __user **save_addr,
-		      struct iovec **iov)
+int get_compat_msghdr(struct msghdr *kmsg, struct compat_msghdr __user *umsg,
+		      struct sockaddr __user **save_addr, struct iovec **iov)
 {
 	compat_uptr_t ptr;
 	compat_size_t len;
@@ -104,32 +101,33 @@ int get_compat_msghdr(struct msghdr *kmsg,
 }
 
 /* Bleech... */
-#define CMSG_COMPAT_ALIGN(len)	ALIGN((len), sizeof(s32))
+#define CMSG_COMPAT_ALIGN(len) ALIGN((len), sizeof(s32))
 
-#define CMSG_COMPAT_DATA(cmsg)				\
+#define CMSG_COMPAT_DATA(cmsg)                                                 \
 	((void __user *)((char __user *)(cmsg) + sizeof(struct compat_cmsghdr)))
-#define CMSG_COMPAT_SPACE(len)				\
+#define CMSG_COMPAT_SPACE(len)                                                 \
 	(sizeof(struct compat_cmsghdr) + CMSG_COMPAT_ALIGN(len))
-#define CMSG_COMPAT_LEN(len)				\
-	(sizeof(struct compat_cmsghdr) + (len))
+#define CMSG_COMPAT_LEN(len) (sizeof(struct compat_cmsghdr) + (len))
 
-#define CMSG_COMPAT_FIRSTHDR(msg)			\
-	(((msg)->msg_controllen) >= sizeof(struct compat_cmsghdr) ?	\
-	 (struct compat_cmsghdr __user *)((msg)->msg_control) :		\
-	 (struct compat_cmsghdr __user *)NULL)
+#define CMSG_COMPAT_FIRSTHDR(msg)                                              \
+	(((msg)->msg_controllen) >= sizeof(struct compat_cmsghdr) ?            \
+		 (struct compat_cmsghdr __user *)((msg)->msg_control) :        \
+		 (struct compat_cmsghdr __user *)NULL)
 
-#define CMSG_COMPAT_OK(ucmlen, ucmsg, mhdr) \
-	((ucmlen) >= sizeof(struct compat_cmsghdr) && \
-	 (ucmlen) <= (unsigned long) \
-	 ((mhdr)->msg_controllen - \
-	  ((char __user *)(ucmsg) - (char __user *)(mhdr)->msg_control_user)))
+#define CMSG_COMPAT_OK(ucmlen, ucmsg, mhdr)                                    \
+	((ucmlen) >= sizeof(struct compat_cmsghdr) &&                          \
+	 (ucmlen) <=                                                           \
+		 (unsigned long)((mhdr)->msg_controllen -                      \
+				 ((char __user *)(ucmsg) -                     \
+				  (char __user *)(mhdr)->msg_control_user)))
 
-static inline struct compat_cmsghdr __user *cmsg_compat_nxthdr(struct msghdr *msg,
-		struct compat_cmsghdr __user *cmsg, int cmsg_len)
+static inline struct compat_cmsghdr __user *
+cmsg_compat_nxthdr(struct msghdr *msg, struct compat_cmsghdr __user *cmsg,
+		   int cmsg_len)
 {
 	char __user *ptr = (char __user *)cmsg + CMSG_COMPAT_ALIGN(cmsg_len);
 	if ((unsigned long)(ptr + 1 - (char __user *)msg->msg_control) >
-			msg->msg_controllen)
+	    msg->msg_controllen)
 		return NULL;
 	return (struct compat_cmsghdr __user *)ptr;
 }
@@ -139,7 +137,7 @@ static inline struct compat_cmsghdr __user *cmsg_compat_nxthdr(struct msghdr *ms
  * 32-bit apps.  -DaveM
  */
 int cmsghdr_from_user_compat_to_kern(struct msghdr *kmsg, struct sock *sk,
-			       unsigned char *stackbuf, int stackbuf_size)
+				     unsigned char *stackbuf, int stackbuf_size)
 {
 	struct compat_cmsghdr __user *ucmsg;
 	struct cmsghdr *kcmsg, *kcmsg_base;
@@ -188,15 +186,16 @@ int cmsghdr_from_user_compat_to_kern(struct msghdr *kmsg, struct sock *sk,
 			goto Efault;
 		if (!CMSG_COMPAT_OK(cmsg.cmsg_len, ucmsg, kmsg))
 			goto Einval;
-		tmp = ((cmsg.cmsg_len - sizeof(*ucmsg)) + sizeof(struct cmsghdr));
-		if ((char *)kcmsg_base + kcmlen - (char *)kcmsg < CMSG_ALIGN(tmp))
+		tmp = ((cmsg.cmsg_len - sizeof(*ucmsg)) +
+		       sizeof(struct cmsghdr));
+		if ((char *)kcmsg_base + kcmlen - (char *)kcmsg <
+		    CMSG_ALIGN(tmp))
 			goto Einval;
 		kcmsg->cmsg_len = tmp;
 		kcmsg->cmsg_level = cmsg.cmsg_level;
 		kcmsg->cmsg_type = cmsg.cmsg_type;
 		tmp = CMSG_ALIGN(tmp);
-		if (copy_from_user(CMSG_DATA(kcmsg),
-				   CMSG_COMPAT_DATA(ucmsg),
+		if (copy_from_user(CMSG_DATA(kcmsg), CMSG_COMPAT_DATA(ucmsg),
 				   (cmsg.cmsg_len - sizeof(*ucmsg))))
 			goto Efault;
 
@@ -225,9 +224,11 @@ Efault:
 	return err;
 }
 
-int put_cmsg_compat(struct msghdr *kmsg, int level, int type, int len, void *data)
+int put_cmsg_compat(struct msghdr *kmsg, int level, int type, int len,
+		    void *data)
 {
-	struct compat_cmsghdr __user *cm = (struct compat_cmsghdr __user *) kmsg->msg_control;
+	struct compat_cmsghdr __user *cm =
+		(struct compat_cmsghdr __user *)kmsg->msg_control;
 	struct compat_cmsghdr cmhdr;
 	struct old_timeval32 ctv;
 	struct old_timespec32 cts[3];
@@ -240,14 +241,15 @@ int put_cmsg_compat(struct msghdr *kmsg, int level, int type, int len, void *dat
 
 	if (!COMPAT_USE_64BIT_TIME) {
 		if (level == SOL_SOCKET && type == SO_TIMESTAMP_OLD) {
-			struct __kernel_old_timeval *tv = (struct __kernel_old_timeval *)data;
+			struct __kernel_old_timeval *tv =
+				(struct __kernel_old_timeval *)data;
 			ctv.tv_sec = tv->tv_sec;
 			ctv.tv_usec = tv->tv_usec;
 			data = &ctv;
 			len = sizeof(ctv);
 		}
-		if (level == SOL_SOCKET &&
-		    (type == SO_TIMESTAMPNS_OLD || type == SO_TIMESTAMPING_OLD)) {
+		if (level == SOL_SOCKET && (type == SO_TIMESTAMPNS_OLD ||
+					    type == SO_TIMESTAMPING_OLD)) {
 			int count = type == SO_TIMESTAMPNS_OLD ? 1 : 3;
 			int i;
 			struct __kernel_old_timespec *ts = data;
@@ -271,7 +273,8 @@ int put_cmsg_compat(struct msghdr *kmsg, int level, int type, int len, void *dat
 
 	if (copy_to_user(cm, &cmhdr, sizeof cmhdr))
 		return -EFAULT;
-	if (copy_to_user(CMSG_COMPAT_DATA(cm), data, cmlen - sizeof(struct compat_cmsghdr)))
+	if (copy_to_user(CMSG_COMPAT_DATA(cm), data,
+			 cmlen - sizeof(struct compat_cmsghdr)))
 		return -EFAULT;
 	cmlen = CMSG_COMPAT_SPACE(len);
 	if (kmsg->msg_controllen < cmlen)
@@ -285,14 +288,16 @@ static int scm_max_fds_compat(struct msghdr *msg)
 {
 	if (msg->msg_controllen <= sizeof(struct compat_cmsghdr))
 		return 0;
-	return (msg->msg_controllen - sizeof(struct compat_cmsghdr)) / sizeof(int);
+	return (msg->msg_controllen - sizeof(struct compat_cmsghdr)) /
+	       sizeof(int);
 }
 
 void scm_detach_fds_compat(struct msghdr *msg, struct scm_cookie *scm)
 {
 	struct compat_cmsghdr __user *cm =
 		(struct compat_cmsghdr __user *)msg->msg_control;
-	unsigned int o_flags = (msg->msg_flags & MSG_CMSG_CLOEXEC) ? O_CLOEXEC : 0;
+	unsigned int o_flags =
+		(msg->msg_flags & MSG_CMSG_CLOEXEC) ? O_CLOEXEC : 0;
 	int fdmax = min_t(int, scm_max_fds_compat(msg), scm->fp->count);
 	int __user *cmsg_data = CMSG_COMPAT_DATA(cm);
 	int err = 0, i;
@@ -332,12 +337,10 @@ void scm_detach_fds_compat(struct msghdr *msg, struct scm_cookie *scm)
 
 /* Argument list sizes for compat_sys_socketcall */
 #define AL(x) ((x) * sizeof(u32))
-static unsigned char nas[21] = {
-	AL(0), AL(3), AL(3), AL(3), AL(2), AL(3),
-	AL(3), AL(3), AL(4), AL(4), AL(4), AL(6),
-	AL(6), AL(2), AL(5), AL(5), AL(3), AL(3),
-	AL(4), AL(5), AL(4)
-};
+static unsigned char nas[21] = { AL(0), AL(3), AL(3), AL(3), AL(2), AL(3),
+				 AL(3), AL(3), AL(4), AL(4), AL(4), AL(6),
+				 AL(6), AL(2), AL(5), AL(5), AL(3), AL(3),
+				 AL(4), AL(5), AL(4) };
 #undef AL
 
 static inline long __compat_sys_sendmsg(int fd,
@@ -391,20 +394,21 @@ static inline long __compat_sys_recvfrom(int fd, void __user *buf,
 			      addrlen);
 }
 
-COMPAT_SYSCALL_DEFINE4(recv, int, fd, void __user *, buf, compat_size_t, len, unsigned int, flags)
+COMPAT_SYSCALL_DEFINE4(recv, int, fd, void __user *, buf, compat_size_t, len,
+		       unsigned int, flags)
 {
 	return __compat_sys_recvfrom(fd, buf, len, flags, NULL, NULL);
 }
 
-COMPAT_SYSCALL_DEFINE6(recvfrom, int, fd, void __user *, buf, compat_size_t, len,
-		       unsigned int, flags, struct sockaddr __user *, addr,
+COMPAT_SYSCALL_DEFINE6(recvfrom, int, fd, void __user *, buf, compat_size_t,
+		       len, unsigned int, flags, struct sockaddr __user *, addr,
 		       int __user *, addrlen)
 {
 	return __compat_sys_recvfrom(fd, buf, len, flags, addr, addrlen);
 }
 
-COMPAT_SYSCALL_DEFINE5(recvmmsg_time64, int, fd, struct compat_mmsghdr __user *, mmsg,
-		       unsigned int, vlen, unsigned int, flags,
+COMPAT_SYSCALL_DEFINE5(recvmmsg_time64, int, fd, struct compat_mmsghdr __user *,
+		       mmsg, unsigned int, vlen, unsigned int, flags,
 		       struct __kernel_timespec __user *, timeout)
 {
 	return __sys_recvmmsg(fd, (struct mmsghdr __user *)mmsg, vlen,
@@ -412,8 +416,8 @@ COMPAT_SYSCALL_DEFINE5(recvmmsg_time64, int, fd, struct compat_mmsghdr __user *,
 }
 
 #ifdef CONFIG_COMPAT_32BIT_TIME
-COMPAT_SYSCALL_DEFINE5(recvmmsg_time32, int, fd, struct compat_mmsghdr __user *, mmsg,
-		       unsigned int, vlen, unsigned int, flags,
+COMPAT_SYSCALL_DEFINE5(recvmmsg_time32, int, fd, struct compat_mmsghdr __user *,
+		       mmsg, unsigned int, vlen, unsigned int, flags,
 		       struct old_timespec32 __user *, timeout)
 {
 	return __sys_recvmmsg(fd, (struct mmsghdr __user *)mmsg, vlen,
@@ -482,8 +486,7 @@ COMPAT_SYSCALL_DEFINE2(socketcall, int, call, u32 __user *, args)
 		break;
 	case SYS_RECVFROM:
 		ret = __compat_sys_recvfrom(a0, compat_ptr(a1), a[2], a[3],
-					    compat_ptr(a[4]),
-					    compat_ptr(a[5]));
+					    compat_ptr(a[4]), compat_ptr(a[5]));
 		break;
 	case SYS_SHUTDOWN:
 		ret = __sys_shutdown(a0, a1);

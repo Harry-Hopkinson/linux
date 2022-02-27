@@ -22,7 +22,7 @@ static DEFINE_STATIC_KEY_FALSE(stack_erasing_bypass);
 
 #ifdef CONFIG_SYSCTL
 static int stack_erasing_sysctl(struct ctl_table *table, int write,
-			void __user *buffer, size_t *lenp, loff_t *ppos)
+				void __user *buffer, size_t *lenp, loff_t *ppos)
 {
 	int ret = 0;
 	int state = !static_branch_unlikely(&stack_erasing_bypass);
@@ -41,18 +41,18 @@ static int stack_erasing_sysctl(struct ctl_table *table, int write,
 		static_branch_enable(&stack_erasing_bypass);
 
 	pr_warn("stackleak: kernel stack erasing is %s\n",
-					state ? "enabled" : "disabled");
+		state ? "enabled" : "disabled");
 	return ret;
 }
 static struct ctl_table stackleak_sysctls[] = {
 	{
-		.procname	= "stack_erasing",
-		.data		= NULL,
-		.maxlen		= sizeof(int),
-		.mode		= 0600,
-		.proc_handler	= stack_erasing_sysctl,
-		.extra1		= SYSCTL_ZERO,
-		.extra2		= SYSCTL_ONE,
+		.procname = "stack_erasing",
+		.data = NULL,
+		.maxlen = sizeof(int),
+		.mode = 0600,
+		.proc_handler = stack_erasing_sysctl,
+		.extra1 = SYSCTL_ZERO,
+		.extra2 = SYSCTL_ONE,
 	},
 	{}
 };
@@ -65,9 +65,9 @@ static int __init stackleak_sysctls_init(void)
 late_initcall(stackleak_sysctls_init);
 #endif /* CONFIG_SYSCTL */
 
-#define skip_erasing()	static_branch_unlikely(&stack_erasing_bypass)
+#define skip_erasing() static_branch_unlikely(&stack_erasing_bypass)
 #else
-#define skip_erasing()	false
+#define skip_erasing() false
 #endif /* CONFIG_STACKLEAK_RUNTIME_DISABLE */
 
 asmlinkage void noinstr stackleak_erase(void)
@@ -76,7 +76,8 @@ asmlinkage void noinstr stackleak_erase(void)
 	unsigned long kstack_ptr = current->lowest_stack;
 	unsigned long boundary = (unsigned long)end_of_stack(current);
 	unsigned int poison_count = 0;
-	const unsigned int depth = STACKLEAK_SEARCH_DEPTH / sizeof(unsigned long);
+	const unsigned int depth =
+		STACKLEAK_SEARCH_DEPTH / sizeof(unsigned long);
 
 	if (skip_erasing())
 		return;
@@ -122,7 +123,7 @@ asmlinkage void noinstr stackleak_erase(void)
 	}
 
 	/* Reset the 'lowest_stack' value for the next syscall */
-	current->lowest_stack = current_top_of_stack() - THREAD_SIZE/64;
+	current->lowest_stack = current_top_of_stack() - THREAD_SIZE / 64;
 }
 
 void __used __no_caller_saved_registers noinstr stackleak_track_stack(void)
@@ -140,7 +141,7 @@ void __used __no_caller_saved_registers noinstr stackleak_track_stack(void)
 	sp = ALIGN(sp, sizeof(unsigned long));
 	if (sp < current->lowest_stack &&
 	    sp >= (unsigned long)task_stack_page(current) +
-						sizeof(unsigned long)) {
+			    sizeof(unsigned long)) {
 		current->lowest_stack = sp;
 	}
 }

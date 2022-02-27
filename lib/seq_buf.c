@@ -61,7 +61,8 @@ int seq_buf_vprintf(struct seq_buf *s, const char *fmt, va_list args)
 	WARN_ON(s->size == 0);
 
 	if (s->len < s->size) {
-		len = vsnprintf(s->buffer + s->len, s->size - s->len, fmt, args);
+		len = vsnprintf(s->buffer + s->len, s->size - s->len, fmt,
+				args);
 		if (s->len + len < s->size) {
 			s->len += len;
 			return 0;
@@ -204,8 +205,8 @@ int seq_buf_putmem(struct seq_buf *s, const void *mem, unsigned int len)
 	return -1;
 }
 
-#define MAX_MEMHEX_BYTES	8U
-#define HEX_CHARS		(MAX_MEMHEX_BYTES*2 + 1)
+#define MAX_MEMHEX_BYTES 8U
+#define HEX_CHARS (MAX_MEMHEX_BYTES * 2 + 1)
 
 /**
  * seq_buf_putmem_hex - write raw memory into the buffer in ASCII hex
@@ -219,8 +220,7 @@ int seq_buf_putmem(struct seq_buf *s, const void *mem, unsigned int len)
  *
  * Returns zero on success, -1 on overflow
  */
-int seq_buf_putmem_hex(struct seq_buf *s, const void *mem,
-		       unsigned int len)
+int seq_buf_putmem_hex(struct seq_buf *s, const void *mem, unsigned int len)
 {
 	unsigned char hex[HEX_CHARS];
 	const unsigned char *data = mem;
@@ -236,12 +236,12 @@ int seq_buf_putmem_hex(struct seq_buf *s, const void *mem,
 #ifdef __BIG_ENDIAN
 		for (i = 0, j = 0; i < start_len; i++) {
 #else
-		for (i = start_len-1, j = 0; i >= 0; i--) {
+		for (i = start_len - 1, j = 0; i >= 0; i--) {
 #endif
 			hex[j++] = hex_asc_hi(data[i]);
 			hex[j++] = hex_asc_lo(data[i]);
 		}
-		if (WARN_ON_ONCE(j == 0 || j/2 > len))
+		if (WARN_ON_ONCE(j == 0 || j / 2 > len))
 			break;
 
 		/* j increments twice per loop */
@@ -359,8 +359,8 @@ int seq_buf_to_user(struct seq_buf *s, char __user *ubuf, int cnt)
  * Returns zero on success, -1 on overflow
  */
 int seq_buf_hex_dump(struct seq_buf *s, const char *prefix_str, int prefix_type,
-		     int rowsize, int groupsize,
-		     const void *buf, size_t len, bool ascii)
+		     int rowsize, int groupsize, const void *buf, size_t len,
+		     bool ascii)
 {
 	const u8 *ptr = buf;
 	int i, linelen, remaining = len;
@@ -379,12 +379,12 @@ int seq_buf_hex_dump(struct seq_buf *s, const char *prefix_str, int prefix_type,
 
 		switch (prefix_type) {
 		case DUMP_PREFIX_ADDRESS:
-			ret = seq_buf_printf(s, "%s%p: %s\n",
-			       prefix_str, ptr + i, linebuf);
+			ret = seq_buf_printf(s, "%s%p: %s\n", prefix_str,
+					     ptr + i, linebuf);
 			break;
 		case DUMP_PREFIX_OFFSET:
-			ret = seq_buf_printf(s, "%s%.8x: %s\n",
-					     prefix_str, i, linebuf);
+			ret = seq_buf_printf(s, "%s%.8x: %s\n", prefix_str, i,
+					     linebuf);
 			break;
 		default:
 			ret = seq_buf_printf(s, "%s%s\n", prefix_str, linebuf);

@@ -168,7 +168,7 @@
  * (last) level. So this type of HugeTLB page can be optimized only when its
  * size of the struct page structs is greater than 2 pages.
  */
-#define pr_fmt(fmt)	"HugeTLB: " fmt
+#define pr_fmt(fmt) "HugeTLB: " fmt
 
 #include "hugetlb_vmemmap.h"
 
@@ -179,10 +179,11 @@
  * pages of tail page structures to the first tail page struct, and then free
  * these page frames. Therefore, we need to reserve two pages as vmemmap areas.
  */
-#define RESERVE_VMEMMAP_NR		2U
-#define RESERVE_VMEMMAP_SIZE		(RESERVE_VMEMMAP_NR << PAGE_SHIFT)
+#define RESERVE_VMEMMAP_NR 2U
+#define RESERVE_VMEMMAP_SIZE (RESERVE_VMEMMAP_NR << PAGE_SHIFT)
 
-bool hugetlb_free_vmemmap_enabled = IS_ENABLED(CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON);
+bool hugetlb_free_vmemmap_enabled =
+	IS_ENABLED(CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON);
 
 static int __init early_hugetlb_free_vmemmap_param(char *buf)
 {

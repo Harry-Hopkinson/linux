@@ -32,8 +32,8 @@
  * Define mode and flag masks to allow validation of the system call
  * parameters.
  */
-#define SECRETMEM_MODE_MASK	(0x0)
-#define SECRETMEM_FLAGS_MASK	SECRETMEM_MODE_MASK
+#define SECRETMEM_MODE_MASK (0x0)
+#define SECRETMEM_FLAGS_MASK SECRETMEM_MODE_MASK
 
 static bool secretmem_enable __ro_after_init;
 module_param_named(enable, secretmem_enable, bool, 0400);
@@ -129,8 +129,8 @@ bool vma_is_secretmem(struct vm_area_struct *vma)
 }
 
 static const struct file_operations secretmem_fops = {
-	.release	= secretmem_release,
-	.mmap		= secretmem_mmap,
+	.release = secretmem_release,
+	.mmap = secretmem_mmap,
 };
 
 static bool secretmem_isolate_page(struct page *page, isolate_mode_t mode)
@@ -152,10 +152,10 @@ static void secretmem_freepage(struct page *page)
 }
 
 const struct address_space_operations secretmem_aops = {
-	.set_page_dirty	= __set_page_dirty_no_writeback,
-	.freepage	= secretmem_freepage,
-	.migratepage	= secretmem_migratepage,
-	.isolate_page	= secretmem_isolate_page,
+	.set_page_dirty = __set_page_dirty_no_writeback,
+	.freepage = secretmem_freepage,
+	.migratepage = secretmem_migratepage,
+	.isolate_page = secretmem_isolate_page,
 };
 
 static struct vfsmount *secretmem_mnt;
@@ -169,8 +169,8 @@ static struct file *secretmem_file_create(unsigned long flags)
 	if (IS_ERR(inode))
 		return ERR_CAST(inode);
 
-	file = alloc_file_pseudo(inode, secretmem_mnt, "secretmem",
-				 O_RDWR, &secretmem_fops);
+	file = alloc_file_pseudo(inode, secretmem_mnt, "secretmem", O_RDWR,
+				 &secretmem_fops);
 	if (IS_ERR(file))
 		goto err_free_inode;
 
@@ -233,9 +233,9 @@ static int secretmem_init_fs_context(struct fs_context *fc)
 }
 
 static struct file_system_type secretmem_fs = {
-	.name		= "secretmem",
+	.name = "secretmem",
 	.init_fs_context = secretmem_init_fs_context,
-	.kill_sb	= kill_anon_super,
+	.kill_sb = kill_anon_super,
 };
 
 static int secretmem_init(void)

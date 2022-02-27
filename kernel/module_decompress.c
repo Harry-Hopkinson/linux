@@ -52,8 +52,8 @@ static struct page *module_get_next_page(struct load_info *info)
 
 #ifdef CONFIG_MODULE_COMPRESS_GZIP
 #include <linux/zlib.h>
-#define MODULE_COMPRESSION	gzip
-#define MODULE_DECOMPRESS_FN	module_gzip_decompress
+#define MODULE_COMPRESSION gzip
+#define MODULE_DECOMPRESS_FN module_gzip_decompress
 
 /*
  * Calculate length of the header which consists of signature, header
@@ -82,8 +82,8 @@ static size_t module_gzip_header_len(const u8 *buf, size_t size)
 	return len;
 }
 
-static ssize_t module_gzip_decompress(struct load_info *info,
-				      const void *buf, size_t size)
+static ssize_t module_gzip_decompress(struct load_info *info, const void *buf,
+				      size_t size)
 {
 	struct z_stream_s s = { 0 };
 	size_t new_size = 0;
@@ -142,11 +142,11 @@ out:
 }
 #elif CONFIG_MODULE_COMPRESS_XZ
 #include <linux/xz.h>
-#define MODULE_COMPRESSION	xz
-#define MODULE_DECOMPRESS_FN	module_xz_decompress
+#define MODULE_COMPRESSION xz
+#define MODULE_DECOMPRESS_FN module_xz_decompress
 
-static ssize_t module_xz_decompress(struct load_info *info,
-				    const void *buf, size_t size)
+static ssize_t module_xz_decompress(struct load_info *info, const void *buf,
+				    size_t size)
 {
 	static const u8 signature[] = { 0xfd, '7', 'z', 'X', 'Z', 0 };
 	struct xz_dec *xz_dec;
@@ -193,7 +193,7 @@ static ssize_t module_xz_decompress(struct load_info *info,
 
 	retval = new_size;
 
- out:
+out:
 	xz_dec_end(xz_dec);
 	return retval;
 }

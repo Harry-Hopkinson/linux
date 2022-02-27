@@ -18,7 +18,7 @@
 
 #define CRC64_ECMA182_POLY 0x42F0E1EBA9EA3693ULL
 
-static uint64_t crc64_table[256] = {0};
+static uint64_t crc64_table[256] = { 0 };
 
 static void generate_crc64_table(void)
 {

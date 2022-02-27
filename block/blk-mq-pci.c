@@ -24,7 +24,7 @@
  * vector.
  */
 int blk_mq_pci_map_queues(struct blk_mq_queue_map *qmap, struct pci_dev *pdev,
-			    int offset)
+			  int offset)
 {
 	const struct cpumask *mask;
 	unsigned int queue, cpu;
@@ -34,7 +34,7 @@ int blk_mq_pci_map_queues(struct blk_mq_queue_map *qmap, struct pci_dev *pdev,
 		if (!mask)
 			goto fallback;
 
-		for_each_cpu(cpu, mask)
+		for_each_cpu (cpu, mask)
 			qmap->mq_map[cpu] = qmap->queue_offset + queue;
 	}
 

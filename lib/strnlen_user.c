@@ -20,7 +20,8 @@
  * if it fits in a aligned 'long'. The caller needs to check
  * the return value against "> max".
  */
-static inline long do_strnlen_user(const char __user *src, unsigned long count, unsigned long max)
+static inline long do_strnlen_user(const char __user *src, unsigned long count,
+				   unsigned long max)
 {
 	const struct word_at_a_time constants = WORD_AT_A_TIME_CONSTANTS;
 	unsigned long align, res = 0;
@@ -49,7 +50,7 @@ static inline long do_strnlen_user(const char __user *src, unsigned long count, 
 		if (unlikely(max <= sizeof(unsigned long)))
 			break;
 		max -= sizeof(unsigned long);
-		unsafe_get_user(c, (unsigned long __user *)(src+res), efault);
+		unsafe_get_user(c, (unsigned long __user *)(src + res), efault);
 	}
 	res -= align;
 
@@ -58,7 +59,7 @@ static inline long do_strnlen_user(const char __user *src, unsigned long count, 
 	 * too? If so, return the marker for "too long".
 	 */
 	if (res >= count)
-		return count+1;
+		return count + 1;
 
 	/*
 	 * Nope: we hit the address space limit, and we still had more

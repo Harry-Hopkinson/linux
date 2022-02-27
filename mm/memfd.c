@@ -25,8 +25,8 @@
  * so reuse a tag which we firmly believe is never set or cleared on tmpfs
  * or hugetlbfs because they are memory only filesystems.
  */
-#define MEMFD_TAG_PINNED        PAGECACHE_TAG_TOWRITE
-#define LAST_SCAN               4       /* about 150ms max */
+#define MEMFD_TAG_PINNED PAGECACHE_TAG_TOWRITE
+#define LAST_SCAN 4 /* about 150ms max */
 
 static void memfd_tag_pins(struct xa_state *xas)
 {
@@ -36,7 +36,7 @@ static void memfd_tag_pins(struct xa_state *xas)
 	lru_add_drain();
 
 	xas_lock_irq(xas);
-	xas_for_each(xas, page, ULONG_MAX) {
+	xas_for_each (xas, page, ULONG_MAX) {
 		if (xa_is_value(page))
 			continue;
 		page = find_subpage(page, xas->xa_index);
@@ -85,7 +85,7 @@ static int memfd_wait_for_pins(struct address_space *mapping)
 
 		xas_set(&xas, 0);
 		xas_lock_irq(&xas);
-		xas_for_each_marked(&xas, page, ULONG_MAX, MEMFD_TAG_PINNED) {
+		xas_for_each_marked (&xas, page, ULONG_MAX, MEMFD_TAG_PINNED) {
 			bool clear = true;
 			if (xa_is_value(page))
 				continue;
@@ -130,11 +130,9 @@ static unsigned int *memfd_file_seals_ptr(struct file *file)
 	return NULL;
 }
 
-#define F_ALL_SEALS (F_SEAL_SEAL | \
-		     F_SEAL_SHRINK | \
-		     F_SEAL_GROW | \
-		     F_SEAL_WRITE | \
-		     F_SEAL_FUTURE_WRITE)
+#define F_ALL_SEALS                                                            \
+	(F_SEAL_SEAL | F_SEAL_SHRINK | F_SEAL_GROW | F_SEAL_WRITE |            \
+	 F_SEAL_FUTURE_WRITE)
 
 static int memfd_add_seals(struct file *file, unsigned int seals)
 {
@@ -247,9 +245,7 @@ long memfd_fcntl(struct file *file, unsigned int cmd, unsigned long arg)
 
 #define MFD_ALL_FLAGS (MFD_CLOEXEC | MFD_ALLOW_SEALING | MFD_HUGETLB)
 
-SYSCALL_DEFINE2(memfd_create,
-		const char __user *, uname,
-		unsigned int, flags)
+SYSCALL_DEFINE2(memfd_create, const char __user *, uname, unsigned int, flags)
 {
 	unsigned int *file_seals;
 	struct file *file;
@@ -263,7 +259,7 @@ SYSCALL_DEFINE2(memfd_create,
 	} else {
 		/* Allow huge page size encoding in flags. */
 		if (flags & ~(unsigned int)(MFD_ALL_FLAGS |
-				(MFD_HUGE_MASK << MFD_HUGE_SHIFT)))
+					    (MFD_HUGE_MASK << MFD_HUGE_SHIFT)))
 			return -EINVAL;
 	}
 
@@ -297,10 +293,9 @@ SYSCALL_DEFINE2(memfd_create,
 	}
 
 	if (flags & MFD_HUGETLB) {
-		file = hugetlb_file_setup(name, 0, VM_NORESERVE,
-					HUGETLB_ANONHUGE_INODE,
-					(flags >> MFD_HUGE_SHIFT) &
-					MFD_HUGE_MASK);
+		file = hugetlb_file_setup(
+			name, 0, VM_NORESERVE, HUGETLB_ANONHUGE_INODE,
+			(flags >> MFD_HUGE_SHIFT) & MFD_HUGE_MASK);
 	} else
 		file = shmem_file_setup(name, 0, VM_NORESERVE);
 	if (IS_ERR(file)) {

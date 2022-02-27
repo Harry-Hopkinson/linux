@@ -36,11 +36,10 @@
 #include <linux/slab.h>
 #include <linux/device.h>
 
-#define TEST_START_NUM_THREADS	50
-#define TEST_START_DRIVER	"test_module"
-#define TEST_START_TEST_FS	"xfs"
-#define TEST_START_TEST_CASE	TEST_KMOD_DRIVER
-
+#define TEST_START_NUM_THREADS 50
+#define TEST_START_DRIVER "test_module"
+#define TEST_START_TEST_FS "xfs"
+#define TEST_START_TEST_CASE TEST_KMOD_DRIVER
 
 static bool force_init_test = false;
 module_param(force_init_test, bool_enable_only, 0644);
@@ -161,7 +160,8 @@ static struct miscdevice *dev_to_misc_dev(struct device *dev)
 	return dev_get_drvdata(dev);
 }
 
-static struct kmod_test_device *misc_dev_to_test_dev(struct miscdevice *misc_dev)
+static struct kmod_test_device *
+misc_dev_to_test_dev(struct miscdevice *misc_dev)
 {
 	return container_of(misc_dev, struct kmod_test_device, misc_dev);
 }
@@ -260,8 +260,7 @@ static int tally_work_test(struct kmod_test_device_info *info)
 		 */
 		if (info->ret_sync != 0)
 			err_ret = info->ret_sync;
-		dev_info(test_dev->dev,
-			 "Sync thread %d return status: %d\n",
+		dev_info(test_dev->dev, "Sync thread %d return status: %d\n",
 			 info->thread_idx, info->ret_sync);
 		break;
 	case TEST_KMOD_FS_TYPE:
@@ -269,8 +268,8 @@ static int tally_work_test(struct kmod_test_device_info *info)
 		if (!info->fs_sync)
 			err_ret = -EINVAL;
 		dev_info(test_dev->dev, "Sync thread %u fs: %s\n",
-			 info->thread_idx, info->fs_sync ? config->test_fs :
-			 "NULL");
+			 info->thread_idx,
+			 info->fs_sync ? config->test_fs : "NULL");
 		break;
 	default:
 		BUG();
@@ -300,7 +299,7 @@ static void tally_up_work(struct kmod_test_device *test_dev)
 
 	dev_info(test_dev->dev, "Results:\n");
 
-	for (idx=0; idx < config->num_threads; idx++) {
+	for (idx = 0; idx < config->num_threads; idx++) {
 		info = &test_dev->info[idx];
 		ret = tally_work_test(info);
 		if (ret)
@@ -325,8 +324,8 @@ static int try_one_request(struct kmod_test_device *test_dev, unsigned int idx)
 
 	info->thread_idx = idx;
 	info->test_dev = test_dev;
-	info->task_sync = kthread_run(run_request, info, "%s-%u",
-				      KBUILD_MODNAME, idx);
+	info->task_sync =
+		kthread_run(run_request, info, "%s-%u", KBUILD_MODNAME, idx);
 
 	if (!info->task_sync || IS_ERR(info->task_sync)) {
 		test_dev->test_is_oom = true;
@@ -357,7 +356,7 @@ static void test_dev_kmod_stop_tests(struct kmod_test_device *test_dev)
 
 	mutex_lock(&test_dev->thread_mutex);
 
-	for (i=0; i < config->num_threads; i++) {
+	for (i = 0; i < config->num_threads; i++) {
 		info = &test_dev->info[i];
 		if (info->task_sync && !IS_ERR(info->task_sync)) {
 			dev_info(test_dev->dev,
@@ -392,7 +391,7 @@ static int try_requests(struct kmod_test_device *test_dev)
 	int ret;
 	bool any_error = false;
 
-	for (idx=0; idx < config->num_threads; idx++) {
+	for (idx = 0; idx < config->num_threads; idx++) {
 		if (test_dev->test_is_oom) {
 			any_error = true;
 			break;
@@ -413,8 +412,9 @@ static int try_requests(struct kmod_test_device *test_dev)
 		tally_up_work(test_dev);
 	} else {
 		test_dev->test_is_oom = true;
-		dev_info(test_dev->dev,
-			 "At least one thread failed to start, stop all work\n");
+		dev_info(
+			test_dev->dev,
+			"At least one thread failed to start, stop all work\n");
 		test_dev_kmod_stop_tests(test_dev);
 		return -ENOMEM;
 	}
@@ -427,8 +427,7 @@ static int run_test_driver(struct kmod_test_device *test_dev)
 	struct test_config *config = &test_dev->config;
 
 	dev_info(test_dev->dev, "Test case: %s (%u)\n",
-		 test_case_str(config->test_case),
-		 config->test_case);
+		 test_case_str(config->test_case), config->test_case);
 	dev_info(test_dev->dev, "Test driver to load: %s\n",
 		 config->test_driver);
 	dev_info(test_dev->dev, "Number of threads to run: %u\n",
@@ -444,8 +443,7 @@ static int run_test_fs_type(struct kmod_test_device *test_dev)
 	struct test_config *config = &test_dev->config;
 
 	dev_info(test_dev->dev, "Test case: %s (%u)\n",
-		 test_case_str(config->test_case),
-		 config->test_case);
+		 test_case_str(config->test_case), config->test_case);
 	dev_info(test_dev->dev, "Test filesystem to load: %s\n",
 		 config->test_fs);
 	dev_info(test_dev->dev, "Number of threads to run: %u\n",
@@ -456,8 +454,7 @@ static int run_test_fs_type(struct kmod_test_device *test_dev)
 	return try_requests(test_dev);
 }
 
-static ssize_t config_show(struct device *dev,
-			   struct device_attribute *attr,
+static ssize_t config_show(struct device *dev, struct device_attribute *attr,
 			   char *buf)
 {
 	struct kmod_test_device *test_dev = dev_to_test_dev(dev);
@@ -470,30 +467,23 @@ static ssize_t config_show(struct device *dev,
 			"Custom trigger configuration for: %s\n",
 			dev_name(dev));
 
-	len += snprintf(buf+len, PAGE_SIZE - len,
-			"Number of threads:\t%u\n",
+	len += snprintf(buf + len, PAGE_SIZE - len, "Number of threads:\t%u\n",
 			config->num_threads);
 
-	len += snprintf(buf+len, PAGE_SIZE - len,
-			"Test_case:\t%s (%u)\n",
-			test_case_str(config->test_case),
-			config->test_case);
+	len += snprintf(buf + len, PAGE_SIZE - len, "Test_case:\t%s (%u)\n",
+			test_case_str(config->test_case), config->test_case);
 
 	if (config->test_driver)
-		len += snprintf(buf+len, PAGE_SIZE - len,
-				"driver:\t%s\n",
+		len += snprintf(buf + len, PAGE_SIZE - len, "driver:\t%s\n",
 				config->test_driver);
 	else
-		len += snprintf(buf+len, PAGE_SIZE - len,
-				"driver:\tEMPTY\n");
+		len += snprintf(buf + len, PAGE_SIZE - len, "driver:\tEMPTY\n");
 
 	if (config->test_fs)
-		len += snprintf(buf+len, PAGE_SIZE - len,
-				"fs:\t%s\n",
+		len += snprintf(buf + len, PAGE_SIZE - len, "fs:\t%s\n",
 				config->test_fs);
 	else
-		len += snprintf(buf+len, PAGE_SIZE - len,
-				"fs:\tEMPTY\n");
+		len += snprintf(buf + len, PAGE_SIZE - len, "fs:\tEMPTY\n");
 
 	mutex_unlock(&test_dev->config_mutex);
 
@@ -517,8 +507,7 @@ static int __trigger_config_run(struct kmod_test_device *test_dev)
 	case TEST_KMOD_FS_TYPE:
 		return run_test_fs_type(test_dev);
 	default:
-		dev_warn(test_dev->dev,
-			 "Invalid test case requested: %u\n",
+		dev_warn(test_dev->dev, "Invalid test case requested: %u\n",
 			 config->test_case);
 		return -EINVAL;
 	}
@@ -560,10 +549,9 @@ out:
 	return ret;
 }
 
-static ssize_t
-trigger_config_store(struct device *dev,
-		     struct device_attribute *attr,
-		     const char *buf, size_t count)
+static ssize_t trigger_config_store(struct device *dev,
+				    struct device_attribute *attr,
+				    const char *buf, size_t count)
 {
 	struct kmod_test_device *test_dev = dev_to_test_dev(dev);
 	int ret;
@@ -610,12 +598,10 @@ static int __kstrncpy(char **dst, const char *name, size_t count, gfp_t gfp)
 }
 
 static int config_copy_test_driver_name(struct test_config *config,
-				    const char *name,
-				    size_t count)
+					const char *name, size_t count)
 {
 	return __kstrncpy(&config->test_driver, name, count, GFP_KERNEL);
 }
-
 
 static int config_copy_test_fs(struct test_config *config, const char *name,
 			       size_t count)
@@ -671,8 +657,7 @@ static ssize_t config_test_driver_store(struct device *dev,
 /*
  * As per sysfs_kf_seq_show() the buf is max PAGE_SIZE.
  */
-static ssize_t config_test_show_str(struct mutex *config_mutex,
-				    char *dst,
+static ssize_t config_test_show_str(struct mutex *config_mutex, char *dst,
 				    char *src)
 {
 	int len;
@@ -685,8 +670,7 @@ static ssize_t config_test_show_str(struct mutex *config_mutex,
 }
 
 static ssize_t config_test_driver_show(struct device *dev,
-					struct device_attribute *attr,
-					char *buf)
+				       struct device_attribute *attr, char *buf)
 {
 	struct kmod_test_device *test_dev = dev_to_test_dev(dev);
 	struct test_config *config = &test_dev->config;
@@ -716,8 +700,7 @@ static ssize_t config_test_fs_store(struct device *dev,
 }
 
 static ssize_t config_test_fs_show(struct device *dev,
-				   struct device_attribute *attr,
-				   char *buf)
+				   struct device_attribute *attr, char *buf)
 {
 	struct kmod_test_device *test_dev = dev_to_test_dev(dev);
 	struct test_config *config = &test_dev->config;
@@ -746,8 +729,8 @@ static int trigger_config_run_type(struct kmod_test_device *test_dev,
 	case TEST_KMOD_FS_TYPE:
 		kfree_const(config->test_fs);
 		config->test_fs = NULL;
-		copied = config_copy_test_fs(config, test_str,
-					     strlen(test_str));
+		copied =
+			config_copy_test_fs(config, test_str, strlen(test_str));
 		break;
 	default:
 		mutex_unlock(&test_dev->config_mutex);
@@ -779,9 +762,8 @@ static int kmod_config_sync_info(struct kmod_test_device *test_dev)
 	struct test_config *config = &test_dev->config;
 
 	free_test_dev_info(test_dev);
-	test_dev->info =
-		vzalloc(array_size(sizeof(struct kmod_test_device_info),
-				   config->num_threads));
+	test_dev->info = vzalloc(array_size(
+		sizeof(struct kmod_test_device_info), config->num_threads));
 	if (!test_dev->info)
 		return -ENOMEM;
 
@@ -842,8 +824,7 @@ err_out:
 	return ret;
 }
 
-static ssize_t reset_store(struct device *dev,
-			   struct device_attribute *attr,
+static ssize_t reset_store(struct device *dev, struct device_attribute *attr,
 			   const char *buf, size_t count)
 {
 	struct kmod_test_device *test_dev = dev_to_test_dev(dev);
@@ -855,8 +836,9 @@ static ssize_t reset_store(struct device *dev,
 	ret = __kmod_config_init(test_dev);
 	if (ret < 0) {
 		ret = -ENOMEM;
-		dev_err(dev, "could not alloc settings for config trigger: %d\n",
-		       ret);
+		dev_err(dev,
+			"could not alloc settings for config trigger: %d\n",
+			ret);
 		goto out;
 	}
 
@@ -871,10 +853,10 @@ out:
 }
 static DEVICE_ATTR_WO(reset);
 
-static int test_dev_config_update_uint_sync(struct kmod_test_device *test_dev,
-					    const char *buf, size_t size,
-					    unsigned int *config,
-					    int (*test_sync)(struct kmod_test_device *test_dev))
+static int test_dev_config_update_uint_sync(
+	struct kmod_test_device *test_dev, const char *buf, size_t size,
+	unsigned int *config,
+	int (*test_sync)(struct kmod_test_device *test_dev))
 {
 	int ret;
 	unsigned int val;
@@ -908,8 +890,7 @@ static int test_dev_config_update_uint_sync(struct kmod_test_device *test_dev,
 static int test_dev_config_update_uint_range(struct kmod_test_device *test_dev,
 					     const char *buf, size_t size,
 					     unsigned int *config,
-					     unsigned int min,
-					     unsigned int max)
+					     unsigned int min, unsigned int max)
 {
 	unsigned int val;
 	int ret;
@@ -930,8 +911,7 @@ static int test_dev_config_update_uint_range(struct kmod_test_device *test_dev,
 }
 
 static int test_dev_config_update_int(struct kmod_test_device *test_dev,
-				      const char *buf, size_t size,
-				      int *config)
+				      const char *buf, size_t size, int *config)
 {
 	int val;
 	int ret;
@@ -948,8 +928,7 @@ static int test_dev_config_update_int(struct kmod_test_device *test_dev,
 }
 
 static ssize_t test_dev_config_show_int(struct kmod_test_device *test_dev,
-					char *buf,
-					int config)
+					char *buf, int config)
 {
 	int val;
 
@@ -961,8 +940,7 @@ static ssize_t test_dev_config_show_int(struct kmod_test_device *test_dev,
 }
 
 static ssize_t test_dev_config_show_uint(struct kmod_test_device *test_dev,
-					 char *buf,
-					 unsigned int config)
+					 char *buf, unsigned int config)
 {
 	unsigned int val;
 
@@ -974,8 +952,8 @@ static ssize_t test_dev_config_show_uint(struct kmod_test_device *test_dev,
 }
 
 static ssize_t test_result_store(struct device *dev,
-				 struct device_attribute *attr,
-				 const char *buf, size_t count)
+				 struct device_attribute *attr, const char *buf,
+				 size_t count)
 {
 	struct kmod_test_device *test_dev = dev_to_test_dev(dev);
 	struct test_config *config = &test_dev->config;
@@ -997,8 +975,7 @@ static ssize_t config_num_threads_store(struct device *dev,
 }
 
 static ssize_t config_num_threads_show(struct device *dev,
-				       struct device_attribute *attr,
-				       char *buf)
+				       struct device_attribute *attr, char *buf)
 {
 	struct kmod_test_device *test_dev = dev_to_test_dev(dev);
 	struct test_config *config = &test_dev->config;
@@ -1021,8 +998,7 @@ static ssize_t config_test_case_store(struct device *dev,
 }
 
 static ssize_t config_test_case_show(struct device *dev,
-				     struct device_attribute *attr,
-				     char *buf)
+				     struct device_attribute *attr, char *buf)
 {
 	struct kmod_test_device *test_dev = dev_to_test_dev(dev);
 	struct test_config *config = &test_dev->config;
@@ -1032,8 +1008,7 @@ static ssize_t config_test_case_show(struct device *dev,
 static DEVICE_ATTR_RW(config_test_case);
 
 static ssize_t test_result_show(struct device *dev,
-				struct device_attribute *attr,
-				char *buf)
+				struct device_attribute *attr, char *buf)
 {
 	struct kmod_test_device *test_dev = dev_to_test_dev(dev);
 	struct test_config *config = &test_dev->config;
@@ -1042,7 +1017,7 @@ static ssize_t test_result_show(struct device *dev,
 }
 static DEVICE_ATTR_RW(test_result);
 
-#define TEST_KMOD_DEV_ATTR(name)		&dev_attr_##name.attr
+#define TEST_KMOD_DEV_ATTR(name) &dev_attr_##name.attr
 
 static struct attribute *test_dev_attrs[] = {
 	TEST_KMOD_DEV_ATTR(trigger_config),
@@ -1162,7 +1137,6 @@ out:
 	mutex_unlock(&reg_dev_mutex);
 
 	return test_dev;
-
 }
 
 static int __init test_kmod_init(void)
@@ -1184,12 +1158,12 @@ static int __init test_kmod_init(void)
 	 * lowering the init level for more fun.
 	 */
 	if (force_init_test) {
-		ret = trigger_config_run_type(test_dev,
-					      TEST_KMOD_DRIVER, "tun");
+		ret = trigger_config_run_type(test_dev, TEST_KMOD_DRIVER,
+					      "tun");
 		if (WARN_ON(ret))
 			return ret;
-		ret = trigger_config_run_type(test_dev,
-					      TEST_KMOD_FS_TYPE, "btrfs");
+		ret = trigger_config_run_type(test_dev, TEST_KMOD_FS_TYPE,
+					      "btrfs");
 		if (WARN_ON(ret))
 			return ret;
 	}
@@ -1198,8 +1172,7 @@ static int __init test_kmod_init(void)
 }
 late_initcall(test_kmod_init);
 
-static
-void unregister_test_dev_kmod(struct kmod_test_device *test_dev)
+static void unregister_test_dev_kmod(struct kmod_test_device *test_dev)
 {
 	mutex_lock(&test_dev->trigger_mutex);
 	mutex_lock(&test_dev->config_mutex);
@@ -1220,7 +1193,7 @@ static void __exit test_kmod_exit(void)
 	struct kmod_test_device *test_dev, *tmp;
 
 	mutex_lock(&reg_dev_mutex);
-	list_for_each_entry_safe(test_dev, tmp, &reg_test_devs, list) {
+	list_for_each_entry_safe (test_dev, tmp, &reg_test_devs, list) {
 		list_del(&test_dev->list);
 		unregister_test_dev_kmod(test_dev);
 	}

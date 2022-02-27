@@ -73,10 +73,10 @@ EXPORT_SYMBOL_GPL(stack_trace_snprint);
 #ifdef CONFIG_ARCH_STACKWALK
 
 struct stacktrace_cookie {
-	unsigned long	*store;
-	unsigned int	size;
-	unsigned int	skip;
-	unsigned int	len;
+	unsigned long *store;
+	unsigned int size;
+	unsigned int skip;
+	unsigned int len;
 };
 
 static bool stack_trace_consume_entry(void *cookie, unsigned long addr)
@@ -114,9 +114,9 @@ unsigned int stack_trace_save(unsigned long *store, unsigned int size,
 {
 	stack_trace_consume_fn consume_entry = stack_trace_consume_entry;
 	struct stacktrace_cookie c = {
-		.store	= store,
-		.size	= size,
-		.skip	= skipnr + 1,
+		.store = store,
+		.size = size,
+		.skip = skipnr + 1,
 	};
 
 	arch_stack_walk(consume_entry, &c, current, NULL);
@@ -136,12 +136,13 @@ EXPORT_SYMBOL_GPL(stack_trace_save);
 unsigned int stack_trace_save_tsk(struct task_struct *tsk, unsigned long *store,
 				  unsigned int size, unsigned int skipnr)
 {
-	stack_trace_consume_fn consume_entry = stack_trace_consume_entry_nosched;
+	stack_trace_consume_fn consume_entry =
+		stack_trace_consume_entry_nosched;
 	struct stacktrace_cookie c = {
-		.store	= store,
-		.size	= size,
+		.store = store,
+		.size = size,
 		/* skip this function if they are tracing us */
-		.skip	= skipnr + (current == tsk),
+		.skip = skipnr + (current == tsk),
 	};
 
 	if (!try_get_task_stack(tsk))
@@ -166,9 +167,9 @@ unsigned int stack_trace_save_regs(struct pt_regs *regs, unsigned long *store,
 {
 	stack_trace_consume_fn consume_entry = stack_trace_consume_entry;
 	struct stacktrace_cookie c = {
-		.store	= store,
-		.size	= size,
-		.skip	= skipnr,
+		.store = store,
+		.size = size,
+		.skip = skipnr,
 	};
 
 	arch_stack_walk(consume_entry, &c, current, regs);
@@ -193,8 +194,8 @@ int stack_trace_save_tsk_reliable(struct task_struct *tsk, unsigned long *store,
 {
 	stack_trace_consume_fn consume_entry = stack_trace_consume_entry;
 	struct stacktrace_cookie c = {
-		.store	= store,
-		.size	= size,
+		.store = store,
+		.size = size,
 	};
 	int ret;
 
@@ -223,8 +224,8 @@ unsigned int stack_trace_save_user(unsigned long *store, unsigned int size)
 {
 	stack_trace_consume_fn consume_entry = stack_trace_consume_entry;
 	struct stacktrace_cookie c = {
-		.store	= store,
-		.size	= size,
+		.store = store,
+		.size = size,
 	};
 	mm_segment_t fs;
 
@@ -247,16 +248,17 @@ unsigned int stack_trace_save_user(unsigned long *store, unsigned int size)
  * get these weak aliases and once-per-bootup warnings
  * (whenever this facility is utilized - for example by procfs):
  */
-__weak void
-save_stack_trace_tsk(struct task_struct *tsk, struct stack_trace *trace)
+__weak void save_stack_trace_tsk(struct task_struct *tsk,
+				 struct stack_trace *trace)
 {
 	WARN_ONCE(1, KERN_INFO "save_stack_trace_tsk() not implemented yet.\n");
 }
 
-__weak void
-save_stack_trace_regs(struct pt_regs *regs, struct stack_trace *trace)
+__weak void save_stack_trace_regs(struct pt_regs *regs,
+				  struct stack_trace *trace)
 {
-	WARN_ONCE(1, KERN_INFO "save_stack_trace_regs() not implemented yet.\n");
+	WARN_ONCE(1,
+		  KERN_INFO "save_stack_trace_regs() not implemented yet.\n");
 }
 
 /**
@@ -271,9 +273,9 @@ unsigned int stack_trace_save(unsigned long *store, unsigned int size,
 			      unsigned int skipnr)
 {
 	struct stack_trace trace = {
-		.entries	= store,
-		.max_entries	= size,
-		.skip		= skipnr + 1,
+		.entries = store,
+		.max_entries = size,
+		.skip = skipnr + 1,
 	};
 
 	save_stack_trace(&trace);
@@ -295,10 +297,10 @@ unsigned int stack_trace_save_tsk(struct task_struct *task,
 				  unsigned int skipnr)
 {
 	struct stack_trace trace = {
-		.entries	= store,
-		.max_entries	= size,
+		.entries = store,
+		.max_entries = size,
 		/* skip this function if they are tracing us */
-		.skip	= skipnr + (current == task),
+		.skip = skipnr + (current == task),
 	};
 
 	save_stack_trace_tsk(task, &trace);
@@ -318,9 +320,9 @@ unsigned int stack_trace_save_regs(struct pt_regs *regs, unsigned long *store,
 				   unsigned int size, unsigned int skipnr)
 {
 	struct stack_trace trace = {
-		.entries	= store,
-		.max_entries	= size,
-		.skip		= skipnr,
+		.entries = store,
+		.max_entries = size,
+		.skip = skipnr,
 	};
 
 	save_stack_trace_regs(regs, &trace);
@@ -344,8 +346,8 @@ int stack_trace_save_tsk_reliable(struct task_struct *tsk, unsigned long *store,
 				  unsigned int size)
 {
 	struct stack_trace trace = {
-		.entries	= store,
-		.max_entries	= size,
+		.entries = store,
+		.max_entries = size,
 	};
 	int ret = save_stack_trace_tsk_reliable(tsk, &trace);
 
@@ -364,8 +366,8 @@ int stack_trace_save_tsk_reliable(struct task_struct *tsk, unsigned long *store,
 unsigned int stack_trace_save_user(unsigned long *store, unsigned int size)
 {
 	struct stack_trace trace = {
-		.entries	= store,
-		.max_entries	= size,
+		.entries = store,
+		.max_entries = size,
 	};
 
 	save_stack_trace_user(&trace);
@@ -379,8 +381,8 @@ static inline bool in_irqentry_text(unsigned long ptr)
 {
 	return (ptr >= (unsigned long)&__irqentry_text_start &&
 		ptr < (unsigned long)&__irqentry_text_end) ||
-		(ptr >= (unsigned long)&__softirqentry_text_start &&
-		 ptr < (unsigned long)&__softirqentry_text_end);
+	       (ptr >= (unsigned long)&__softirqentry_text_start &&
+		ptr < (unsigned long)&__softirqentry_text_end);
 }
 
 /**

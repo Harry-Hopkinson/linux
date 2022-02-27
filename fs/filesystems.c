@@ -50,8 +50,7 @@ static struct file_system_type **find_filesystem(const char *name, unsigned len)
 {
 	struct file_system_type **p;
 	for (p = &file_systems; *p; p = &(*p)->next)
-		if (strncmp((*p)->name, name, len) == 0 &&
-		    !(*p)->name[len])
+		if (strncmp((*p)->name, name, len) == 0 && !(*p)->name[len])
 			break;
 	return p;
 }
@@ -68,11 +67,11 @@ static struct file_system_type **find_filesystem(const char *name, unsigned len)
  *	structures and must not be freed until the file system has been
  *	unregistered.
  */
- 
-int register_filesystem(struct file_system_type * fs)
+
+int register_filesystem(struct file_system_type *fs)
 {
 	int res = 0;
-	struct file_system_type ** p;
+	struct file_system_type **p;
 
 	if (fs->parameters &&
 	    !fs_validate_description(fs->name, fs->parameters))
@@ -104,10 +103,10 @@ EXPORT_SYMBOL(register_filesystem);
  *	Once this function has returned the &struct file_system_type structure
  *	may be freed or reused.
  */
- 
-int unregister_filesystem(struct file_system_type * fs)
+
+int unregister_filesystem(struct file_system_type *fs)
 {
-	struct file_system_type ** tmp;
+	struct file_system_type **tmp;
 
 	write_lock(&file_systems_lock);
 	tmp = &file_systems;
@@ -129,9 +128,9 @@ int unregister_filesystem(struct file_system_type * fs)
 EXPORT_SYMBOL(unregister_filesystem);
 
 #ifdef CONFIG_SYSFS_SYSCALL
-static int fs_index(const char __user * __name)
+static int fs_index(const char __user *__name)
 {
-	struct file_system_type * tmp;
+	struct file_system_type *tmp;
 	struct filename *name;
 	int err, index;
 
@@ -142,7 +141,7 @@ static int fs_index(const char __user * __name)
 
 	err = -EINVAL;
 	read_lock(&file_systems_lock);
-	for (tmp=file_systems, index=0 ; tmp ; tmp=tmp->next, index++) {
+	for (tmp = file_systems, index = 0; tmp; tmp = tmp->next, index++) {
 		if (strcmp(tmp->name, name->name) == 0) {
 			err = index;
 			break;
@@ -153,9 +152,9 @@ static int fs_index(const char __user * __name)
 	return err;
 }
 
-static int fs_name(unsigned int index, char __user * buf)
+static int fs_name(unsigned int index, char __user *buf)
 {
-	struct file_system_type * tmp;
+	struct file_system_type *tmp;
 	int len, res;
 
 	read_lock(&file_systems_lock);
@@ -175,11 +174,11 @@ static int fs_name(unsigned int index, char __user * buf)
 
 static int fs_maxindex(void)
 {
-	struct file_system_type * tmp;
+	struct file_system_type *tmp;
 	int index;
 
 	read_lock(&file_systems_lock);
-	for (tmp = file_systems, index = 0 ; tmp ; tmp = tmp->next, index++)
+	for (tmp = file_systems, index = 0; tmp; tmp = tmp->next, index++)
 		;
 	read_unlock(&file_systems_lock);
 	return index;
@@ -193,17 +192,17 @@ SYSCALL_DEFINE3(sysfs, int, option, unsigned long, arg1, unsigned long, arg2)
 	int retval = -EINVAL;
 
 	switch (option) {
-		case 1:
-			retval = fs_index((const char __user *) arg1);
-			break;
+	case 1:
+		retval = fs_index((const char __user *)arg1);
+		break;
 
-		case 2:
-			retval = fs_name(arg1, (char __user *) arg2);
-			break;
+	case 2:
+		retval = fs_name(arg1, (char __user *)arg2);
+		break;
 
-		case 3:
-			retval = fs_maxindex();
-			break;
+	case 3:
+		retval = fs_maxindex();
+		break;
 	}
 	return retval;
 }
@@ -236,14 +235,14 @@ int __init list_bdev_fs_names(char *buf, size_t size)
 #ifdef CONFIG_PROC_FS
 static int filesystems_proc_show(struct seq_file *m, void *v)
 {
-	struct file_system_type * tmp;
+	struct file_system_type *tmp;
 
 	read_lock(&file_systems_lock);
 	tmp = file_systems;
 	while (tmp) {
 		seq_printf(m, "%s\t%s\n",
-			(tmp->fs_flags & FS_REQUIRES_DEV) ? "" : "nodev",
-			tmp->name);
+			   (tmp->fs_flags & FS_REQUIRES_DEV) ? "" : "nodev",
+			   tmp->name);
 		tmp = tmp->next;
 	}
 	read_unlock(&file_systems_lock);
@@ -280,8 +279,9 @@ struct file_system_type *get_fs_type(const char *name)
 	if (!fs && (request_module("fs-%.*s", len, name) == 0)) {
 		fs = __get_fs_type(name, len);
 		if (!fs)
-			pr_warn_once("request_module fs-%.*s succeeded, but still no fs?\n",
-				     len, name);
+			pr_warn_once(
+				"request_module fs-%.*s succeeded, but still no fs?\n",
+				len, name);
 	}
 
 	if (dot && fs && !(fs->fs_flags & FS_HAS_SUBTYPE)) {

@@ -75,78 +75,71 @@
 #include <linux/bch.h>
 
 #if defined(CONFIG_BCH_CONST_PARAMS)
-#define GF_M(_p)               (CONFIG_BCH_CONST_M)
-#define GF_T(_p)               (CONFIG_BCH_CONST_T)
-#define GF_N(_p)               ((1 << (CONFIG_BCH_CONST_M))-1)
-#define BCH_MAX_M              (CONFIG_BCH_CONST_M)
-#define BCH_MAX_T	       (CONFIG_BCH_CONST_T)
+#define GF_M(_p) (CONFIG_BCH_CONST_M)
+#define GF_T(_p) (CONFIG_BCH_CONST_T)
+#define GF_N(_p) ((1 << (CONFIG_BCH_CONST_M)) - 1)
+#define BCH_MAX_M (CONFIG_BCH_CONST_M)
+#define BCH_MAX_T (CONFIG_BCH_CONST_T)
 #else
-#define GF_M(_p)               ((_p)->m)
-#define GF_T(_p)               ((_p)->t)
-#define GF_N(_p)               ((_p)->n)
-#define BCH_MAX_M              15 /* 2KB */
-#define BCH_MAX_T              64 /* 64 bit correction */
+#define GF_M(_p) ((_p)->m)
+#define GF_T(_p) ((_p)->t)
+#define GF_N(_p) ((_p)->n)
+#define BCH_MAX_M 15 /* 2KB */
+#define BCH_MAX_T 64 /* 64 bit correction */
 #endif
 
-#define BCH_ECC_WORDS(_p)      DIV_ROUND_UP(GF_M(_p)*GF_T(_p), 32)
-#define BCH_ECC_BYTES(_p)      DIV_ROUND_UP(GF_M(_p)*GF_T(_p), 8)
+#define BCH_ECC_WORDS(_p) DIV_ROUND_UP(GF_M(_p) * GF_T(_p), 32)
+#define BCH_ECC_BYTES(_p) DIV_ROUND_UP(GF_M(_p) * GF_T(_p), 8)
 
-#define BCH_ECC_MAX_WORDS      DIV_ROUND_UP(BCH_MAX_M * BCH_MAX_T, 32)
+#define BCH_ECC_MAX_WORDS DIV_ROUND_UP(BCH_MAX_M *BCH_MAX_T, 32)
 
 #ifndef dbg
-#define dbg(_fmt, args...)     do {} while (0)
+#define dbg(_fmt, args...)                                                     \
+	do {                                                                   \
+	} while (0)
 #endif
 
 /*
  * represent a polynomial over GF(2^m)
  */
 struct gf_poly {
-	unsigned int deg;    /* polynomial degree */
-	unsigned int c[];   /* polynomial terms */
+	unsigned int deg; /* polynomial degree */
+	unsigned int c[]; /* polynomial terms */
 };
 
 /* given its degree, compute a polynomial size in bytes */
-#define GF_POLY_SZ(_d) (sizeof(struct gf_poly)+((_d)+1)*sizeof(unsigned int))
+#define GF_POLY_SZ(_d)                                                         \
+	(sizeof(struct gf_poly) + ((_d) + 1) * sizeof(unsigned int))
 
 /* polynomial of degree 1 */
 struct gf_poly_deg1 {
 	struct gf_poly poly;
-	unsigned int   c[2];
+	unsigned int c[2];
 };
 
 static u8 swap_bits_table[] = {
-	0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0,
-	0x10, 0x90, 0x50, 0xd0, 0x30, 0xb0, 0x70, 0xf0,
-	0x08, 0x88, 0x48, 0xc8, 0x28, 0xa8, 0x68, 0xe8,
-	0x18, 0x98, 0x58, 0xd8, 0x38, 0xb8, 0x78, 0xf8,
-	0x04, 0x84, 0x44, 0xc4, 0x24, 0xa4, 0x64, 0xe4,
-	0x14, 0x94, 0x54, 0xd4, 0x34, 0xb4, 0x74, 0xf4,
-	0x0c, 0x8c, 0x4c, 0xcc, 0x2c, 0xac, 0x6c, 0xec,
-	0x1c, 0x9c, 0x5c, 0xdc, 0x3c, 0xbc, 0x7c, 0xfc,
-	0x02, 0x82, 0x42, 0xc2, 0x22, 0xa2, 0x62, 0xe2,
-	0x12, 0x92, 0x52, 0xd2, 0x32, 0xb2, 0x72, 0xf2,
-	0x0a, 0x8a, 0x4a, 0xca, 0x2a, 0xaa, 0x6a, 0xea,
-	0x1a, 0x9a, 0x5a, 0xda, 0x3a, 0xba, 0x7a, 0xfa,
-	0x06, 0x86, 0x46, 0xc6, 0x26, 0xa6, 0x66, 0xe6,
-	0x16, 0x96, 0x56, 0xd6, 0x36, 0xb6, 0x76, 0xf6,
-	0x0e, 0x8e, 0x4e, 0xce, 0x2e, 0xae, 0x6e, 0xee,
-	0x1e, 0x9e, 0x5e, 0xde, 0x3e, 0xbe, 0x7e, 0xfe,
-	0x01, 0x81, 0x41, 0xc1, 0x21, 0xa1, 0x61, 0xe1,
-	0x11, 0x91, 0x51, 0xd1, 0x31, 0xb1, 0x71, 0xf1,
-	0x09, 0x89, 0x49, 0xc9, 0x29, 0xa9, 0x69, 0xe9,
-	0x19, 0x99, 0x59, 0xd9, 0x39, 0xb9, 0x79, 0xf9,
-	0x05, 0x85, 0x45, 0xc5, 0x25, 0xa5, 0x65, 0xe5,
-	0x15, 0x95, 0x55, 0xd5, 0x35, 0xb5, 0x75, 0xf5,
-	0x0d, 0x8d, 0x4d, 0xcd, 0x2d, 0xad, 0x6d, 0xed,
-	0x1d, 0x9d, 0x5d, 0xdd, 0x3d, 0xbd, 0x7d, 0xfd,
-	0x03, 0x83, 0x43, 0xc3, 0x23, 0xa3, 0x63, 0xe3,
-	0x13, 0x93, 0x53, 0xd3, 0x33, 0xb3, 0x73, 0xf3,
-	0x0b, 0x8b, 0x4b, 0xcb, 0x2b, 0xab, 0x6b, 0xeb,
-	0x1b, 0x9b, 0x5b, 0xdb, 0x3b, 0xbb, 0x7b, 0xfb,
-	0x07, 0x87, 0x47, 0xc7, 0x27, 0xa7, 0x67, 0xe7,
-	0x17, 0x97, 0x57, 0xd7, 0x37, 0xb7, 0x77, 0xf7,
-	0x0f, 0x8f, 0x4f, 0xcf, 0x2f, 0xaf, 0x6f, 0xef,
-	0x1f, 0x9f, 0x5f, 0xdf, 0x3f, 0xbf, 0x7f, 0xff,
+	0x00, 0x80, 0x40, 0xc0, 0x20, 0xa0, 0x60, 0xe0, 0x10, 0x90, 0x50, 0xd0,
+	0x30, 0xb0, 0x70, 0xf0, 0x08, 0x88, 0x48, 0xc8, 0x28, 0xa8, 0x68, 0xe8,
+	0x18, 0x98, 0x58, 0xd8, 0x38, 0xb8, 0x78, 0xf8, 0x04, 0x84, 0x44, 0xc4,
+	0x24, 0xa4, 0x64, 0xe4, 0x14, 0x94, 0x54, 0xd4, 0x34, 0xb4, 0x74, 0xf4,
+	0x0c, 0x8c, 0x4c, 0xcc, 0x2c, 0xac, 0x6c, 0xec, 0x1c, 0x9c, 0x5c, 0xdc,
+	0x3c, 0xbc, 0x7c, 0xfc, 0x02, 0x82, 0x42, 0xc2, 0x22, 0xa2, 0x62, 0xe2,
+	0x12, 0x92, 0x52, 0xd2, 0x32, 0xb2, 0x72, 0xf2, 0x0a, 0x8a, 0x4a, 0xca,
+	0x2a, 0xaa, 0x6a, 0xea, 0x1a, 0x9a, 0x5a, 0xda, 0x3a, 0xba, 0x7a, 0xfa,
+	0x06, 0x86, 0x46, 0xc6, 0x26, 0xa6, 0x66, 0xe6, 0x16, 0x96, 0x56, 0xd6,
+	0x36, 0xb6, 0x76, 0xf6, 0x0e, 0x8e, 0x4e, 0xce, 0x2e, 0xae, 0x6e, 0xee,
+	0x1e, 0x9e, 0x5e, 0xde, 0x3e, 0xbe, 0x7e, 0xfe, 0x01, 0x81, 0x41, 0xc1,
+	0x21, 0xa1, 0x61, 0xe1, 0x11, 0x91, 0x51, 0xd1, 0x31, 0xb1, 0x71, 0xf1,
+	0x09, 0x89, 0x49, 0xc9, 0x29, 0xa9, 0x69, 0xe9, 0x19, 0x99, 0x59, 0xd9,
+	0x39, 0xb9, 0x79, 0xf9, 0x05, 0x85, 0x45, 0xc5, 0x25, 0xa5, 0x65, 0xe5,
+	0x15, 0x95, 0x55, 0xd5, 0x35, 0xb5, 0x75, 0xf5, 0x0d, 0x8d, 0x4d, 0xcd,
+	0x2d, 0xad, 0x6d, 0xed, 0x1d, 0x9d, 0x5d, 0xdd, 0x3d, 0xbd, 0x7d, 0xfd,
+	0x03, 0x83, 0x43, 0xc3, 0x23, 0xa3, 0x63, 0xe3, 0x13, 0x93, 0x53, 0xd3,
+	0x33, 0xb3, 0x73, 0xf3, 0x0b, 0x8b, 0x4b, 0xcb, 0x2b, 0xab, 0x6b, 0xeb,
+	0x1b, 0x9b, 0x5b, 0xdb, 0x3b, 0xbb, 0x7b, 0xfb, 0x07, 0x87, 0x47, 0xc7,
+	0x27, 0xa7, 0x67, 0xe7, 0x17, 0x97, 0x57, 0xd7, 0x37, 0xb7, 0x77, 0xf7,
+	0x0f, 0x8f, 0x4f, 0xcf, 0x2f, 0xaf, 0x6f, 0xef, 0x1f, 0x9f, 0x5f, 0xdf,
+	0x3f, 0xbf, 0x7f, 0xff,
 };
 
 static u8 swap_bits(struct bch_control *bch, u8 in)
@@ -166,17 +159,17 @@ static void bch_encode_unaligned(struct bch_control *bch,
 {
 	int i;
 	const uint32_t *p;
-	const int l = BCH_ECC_WORDS(bch)-1;
+	const int l = BCH_ECC_WORDS(bch) - 1;
 
 	while (len--) {
 		u8 tmp = swap_bits(bch, *data++);
 
-		p = bch->mod8_tab + (l+1)*(((ecc[0] >> 24)^(tmp)) & 0xff);
+		p = bch->mod8_tab + (l + 1) * (((ecc[0] >> 24) ^ (tmp)) & 0xff);
 
 		for (i = 0; i < l; i++)
-			ecc[i] = ((ecc[i] << 8)|(ecc[i+1] >> 24))^(*p++);
+			ecc[i] = ((ecc[i] << 8) | (ecc[i + 1] >> 24)) ^ (*p++);
 
-		ecc[l] = (ecc[l] << 8)^(*p);
+		ecc[l] = (ecc[l] << 8) ^ (*p);
 	}
 }
 
@@ -186,20 +179,20 @@ static void bch_encode_unaligned(struct bch_control *bch,
 static void load_ecc8(struct bch_control *bch, uint32_t *dst,
 		      const uint8_t *src)
 {
-	uint8_t pad[4] = {0, 0, 0, 0};
-	unsigned int i, nwords = BCH_ECC_WORDS(bch)-1;
+	uint8_t pad[4] = { 0, 0, 0, 0 };
+	unsigned int i, nwords = BCH_ECC_WORDS(bch) - 1;
 
 	for (i = 0; i < nwords; i++, src += 4)
 		dst[i] = ((u32)swap_bits(bch, src[0]) << 24) |
-			((u32)swap_bits(bch, src[1]) << 16) |
-			((u32)swap_bits(bch, src[2]) << 8) |
-			swap_bits(bch, src[3]);
+			 ((u32)swap_bits(bch, src[1]) << 16) |
+			 ((u32)swap_bits(bch, src[2]) << 8) |
+			 swap_bits(bch, src[3]);
 
-	memcpy(pad, src, BCH_ECC_BYTES(bch)-4*nwords);
+	memcpy(pad, src, BCH_ECC_BYTES(bch) - 4 * nwords);
 	dst[nwords] = ((u32)swap_bits(bch, pad[0]) << 24) |
-		((u32)swap_bits(bch, pad[1]) << 16) |
-		((u32)swap_bits(bch, pad[2]) << 8) |
-		swap_bits(bch, pad[3]);
+		      ((u32)swap_bits(bch, pad[1]) << 16) |
+		      ((u32)swap_bits(bch, pad[2]) << 8) |
+		      swap_bits(bch, pad[3]);
 }
 
 /*
@@ -209,7 +202,7 @@ static void store_ecc8(struct bch_control *bch, uint8_t *dst,
 		       const uint32_t *src)
 {
 	uint8_t pad[4];
-	unsigned int i, nwords = BCH_ECC_WORDS(bch)-1;
+	unsigned int i, nwords = BCH_ECC_WORDS(bch) - 1;
 
 	for (i = 0; i < nwords; i++) {
 		*dst++ = swap_bits(bch, src[i] >> 24);
@@ -221,7 +214,7 @@ static void store_ecc8(struct bch_control *bch, uint8_t *dst,
 	pad[1] = swap_bits(bch, src[nwords] >> 16);
 	pad[2] = swap_bits(bch, src[nwords] >> 8);
 	pad[3] = swap_bits(bch, src[nwords]);
-	memcpy(dst, pad, BCH_ECC_BYTES(bch)-4*nwords);
+	memcpy(dst, pad, BCH_ECC_BYTES(bch) - 4 * nwords);
 }
 
 /**
@@ -238,18 +231,18 @@ static void store_ecc8(struct bch_control *bch, uint8_t *dst,
  * The exact number of computed ecc parity bits is given by member @ecc_bits of
  * @bch; it may be less than m*t for large values of t.
  */
-void bch_encode(struct bch_control *bch, const uint8_t *data,
-		unsigned int len, uint8_t *ecc)
+void bch_encode(struct bch_control *bch, const uint8_t *data, unsigned int len,
+		uint8_t *ecc)
 {
-	const unsigned int l = BCH_ECC_WORDS(bch)-1;
+	const unsigned int l = BCH_ECC_WORDS(bch) - 1;
 	unsigned int i, mlen;
 	unsigned long m;
 	uint32_t w, r[BCH_ECC_MAX_WORDS];
 	const size_t r_bytes = BCH_ECC_WORDS(bch) * sizeof(*r);
-	const uint32_t * const tab0 = bch->mod8_tab;
-	const uint32_t * const tab1 = tab0 + 256*(l+1);
-	const uint32_t * const tab2 = tab1 + 256*(l+1);
-	const uint32_t * const tab3 = tab2 + 256*(l+1);
+	const uint32_t *const tab0 = bch->mod8_tab;
+	const uint32_t *const tab1 = tab0 + 256 * (l + 1);
+	const uint32_t *const tab2 = tab1 + 256 * (l + 1);
+	const uint32_t *const tab3 = tab2 + 256 * (l + 1);
 	const uint32_t *pdata, *p0, *p1, *p2, *p3;
 
 	if (WARN_ON(r_bytes > sizeof(r)))
@@ -265,17 +258,17 @@ void bch_encode(struct bch_control *bch, const uint8_t *data,
 	/* process first unaligned data bytes */
 	m = ((unsigned long)data) & 3;
 	if (m) {
-		mlen = (len < (4-m)) ? len : 4-m;
+		mlen = (len < (4 - m)) ? len : 4 - m;
 		bch_encode_unaligned(bch, data, mlen, bch->ecc_buf);
 		data += mlen;
-		len  -= mlen;
+		len -= mlen;
 	}
 
 	/* process 32-bit aligned data words */
 	pdata = (uint32_t *)data;
-	mlen  = len/4;
-	data += 4*mlen;
-	len  -= 4*mlen;
+	mlen = len / 4;
+	data += 4 * mlen;
+	len -= 4 * mlen;
 	memcpy(r, bch->ecc_buf, r_bytes);
 
 	/*
@@ -298,15 +291,15 @@ void bch_encode(struct bch_control *bch, const uint8_t *data,
 			    ((u32)swap_bits(bch, w >> 16) << 16) |
 			    ((u32)swap_bits(bch, w >> 24) << 24);
 		w ^= r[0];
-		p0 = tab0 + (l+1)*((w >>  0) & 0xff);
-		p1 = tab1 + (l+1)*((w >>  8) & 0xff);
-		p2 = tab2 + (l+1)*((w >> 16) & 0xff);
-		p3 = tab3 + (l+1)*((w >> 24) & 0xff);
+		p0 = tab0 + (l + 1) * ((w >> 0) & 0xff);
+		p1 = tab1 + (l + 1) * ((w >> 8) & 0xff);
+		p2 = tab2 + (l + 1) * ((w >> 16) & 0xff);
+		p3 = tab3 + (l + 1) * ((w >> 24) & 0xff);
 
 		for (i = 0; i < l; i++)
-			r[i] = r[i+1]^p0[i]^p1[i]^p2[i]^p3[i];
+			r[i] = r[i + 1] ^ p0[i] ^ p1[i] ^ p2[i] ^ p3[i];
 
-		r[l] = p0[l]^p1[l]^p2[l]^p3[l];
+		r[l] = p0[l] ^ p1[l] ^ p2[l] ^ p3[l];
 	}
 	memcpy(bch->ecc_buf, r, r_bytes);
 
@@ -336,13 +329,13 @@ static inline int modulo(struct bch_control *bch, unsigned int v)
 static inline int mod_s(struct bch_control *bch, unsigned int v)
 {
 	const unsigned int n = GF_N(bch);
-	return (v < n) ? v : v-n;
+	return (v < n) ? v : v - n;
 }
 
 static inline int deg(unsigned int poly)
 {
 	/* polynomial degree is the most-significant bit index */
-	return fls(poly)-1;
+	return fls(poly) - 1;
 }
 
 static inline int parity(unsigned int x)
@@ -362,25 +355,27 @@ static inline int parity(unsigned int x)
 static inline unsigned int gf_mul(struct bch_control *bch, unsigned int a,
 				  unsigned int b)
 {
-	return (a && b) ? bch->a_pow_tab[mod_s(bch, bch->a_log_tab[a]+
-					       bch->a_log_tab[b])] : 0;
+	return (a && b) ? bch->a_pow_tab[mod_s(
+				  bch, bch->a_log_tab[a] + bch->a_log_tab[b])] :
+			  0;
 }
 
 static inline unsigned int gf_sqr(struct bch_control *bch, unsigned int a)
 {
-	return a ? bch->a_pow_tab[mod_s(bch, 2*bch->a_log_tab[a])] : 0;
+	return a ? bch->a_pow_tab[mod_s(bch, 2 * bch->a_log_tab[a])] : 0;
 }
 
 static inline unsigned int gf_div(struct bch_control *bch, unsigned int a,
 				  unsigned int b)
 {
-	return a ? bch->a_pow_tab[mod_s(bch, bch->a_log_tab[a]+
-					GF_N(bch)-bch->a_log_tab[b])] : 0;
+	return a ? bch->a_pow_tab[mod_s(bch, bch->a_log_tab[a] + GF_N(bch) -
+						     bch->a_log_tab[b])] :
+		   0;
 }
 
 static inline unsigned int gf_inv(struct bch_control *bch, unsigned int a)
 {
-	return bch->a_pow_tab[GF_N(bch)-bch->a_log_tab[a]];
+	return bch->a_pow_tab[GF_N(bch) - bch->a_log_tab[a]];
 }
 
 static inline unsigned int a_pow(struct bch_control *bch, int i)
@@ -395,7 +390,7 @@ static inline int a_log(struct bch_control *bch, unsigned int x)
 
 static inline int a_ilog(struct bch_control *bch, unsigned int x)
 {
-	return mod_s(bch, GF_N(bch)-bch->a_log_tab[x]);
+	return mod_s(bch, GF_N(bch) - bch->a_log_tab[x]);
 }
 
 /*
@@ -414,8 +409,8 @@ static void compute_syndromes(struct bch_control *bch, uint32_t *ecc,
 	/* make sure extra bits in last ecc word are cleared */
 	m = ((unsigned int)s) & 31;
 	if (m)
-		ecc[s/32] &= ~((1u << (32-m))-1);
-	memset(syn, 0, 2*t*sizeof(*syn));
+		ecc[s / 32] &= ~((1u << (32 - m)) - 1);
+	memset(syn, 0, 2 * t * sizeof(*syn));
 
 	/* compute v(a^j) for j=1 .. 2t-1 */
 	do {
@@ -423,8 +418,8 @@ static void compute_syndromes(struct bch_control *bch, uint32_t *ecc,
 		s -= 32;
 		while (poly) {
 			i = deg(poly);
-			for (j = 0; j < 2*t; j += 2)
-				syn[j] ^= a_pow(bch, (j+1)*(i+s));
+			for (j = 0; j < 2 * t; j += 2)
+				syn[j] ^= a_pow(bch, (j + 1) * (i + s));
 
 			poly ^= (1 << i);
 		}
@@ -432,7 +427,7 @@ static void compute_syndromes(struct bch_control *bch, uint32_t *ecc,
 
 	/* v(a^(2j)) = v(a^j)^2 */
 	for (j = 0; j < t; j++)
-		syn[2*j+1] = gf_sqr(bch, syn[j]);
+		syn[2 * j + 1] = gf_sqr(bch, syn[j]);
 }
 
 static void gf_poly_copy(struct gf_poly *dst, struct gf_poly *src)
@@ -451,8 +446,8 @@ static int compute_error_locator_polynomial(struct bch_control *bch,
 	struct gf_poly *elp_copy = bch->poly_2t[1];
 	int k, pp = -1;
 
-	memset(pelp, 0, GF_POLY_SZ(2*t));
-	memset(elp, 0, GF_POLY_SZ(2*t));
+	memset(pelp, 0, GF_POLY_SZ(2 * t));
+	memset(elp, 0, GF_POLY_SZ(2 * t));
 
 	pelp->deg = 0;
 	pelp->c[0] = 1;
@@ -462,30 +457,30 @@ static int compute_error_locator_polynomial(struct bch_control *bch,
 	/* use simplified binary Berlekamp-Massey algorithm */
 	for (i = 0; (i < t) && (elp->deg <= t); i++) {
 		if (d) {
-			k = 2*i-pp;
+			k = 2 * i - pp;
 			gf_poly_copy(elp_copy, elp);
 			/* e[i+1](X) = e[i](X)+di*dp^-1*X^2(i-p)*e[p](X) */
-			tmp = a_log(bch, d)+n-a_log(bch, pd);
+			tmp = a_log(bch, d) + n - a_log(bch, pd);
 			for (j = 0; j <= pelp->deg; j++) {
 				if (pelp->c[j]) {
 					l = a_log(bch, pelp->c[j]);
-					elp->c[j+k] ^= a_pow(bch, tmp+l);
+					elp->c[j + k] ^= a_pow(bch, tmp + l);
 				}
 			}
 			/* compute l[i+1] = max(l[i]->c[l[p]+2*(i-p]) */
-			tmp = pelp->deg+k;
+			tmp = pelp->deg + k;
 			if (tmp > elp->deg) {
 				elp->deg = tmp;
 				gf_poly_copy(pelp, elp_copy);
 				pd = d;
-				pp = 2*i;
+				pp = 2 * i;
 			}
 		}
 		/* di+1 = S(2i+3)+elp[i+1].1*S(2i+2)+...+elp[i+1].lS(2i+3-l) */
-		if (i < t-1) {
-			d = syn[2*i+2];
+		if (i < t - 1) {
+			d = syn[2 * i + 2];
 			for (j = 1; j <= elp->deg; j++)
-				d ^= gf_mul(bch, elp->c[j], syn[2*i+2-j]);
+				d ^= gf_mul(bch, elp->c[j], syn[2 * i + 2 - j]);
 		}
 	}
 	dbg("elp=%s\n", gf_poly_str(elp));
@@ -509,7 +504,7 @@ static int solve_linear_system(struct bch_control *bch, unsigned int *rows,
 	/* Gaussian elimination */
 	for (c = 0; c < m; c++) {
 		rem = 0;
-		p = c-k;
+		p = c - k;
 		/* find suitable row for elimination */
 		for (r = p; r < m; r++) {
 			if (rows[r] & mask) {
@@ -518,7 +513,7 @@ static int solve_linear_system(struct bch_control *bch, unsigned int *rows,
 					rows[r] = rows[p];
 					rows[p] = tmp;
 				}
-				rem = r+1;
+				rem = r + 1;
 				break;
 			}
 		}
@@ -538,13 +533,13 @@ static int solve_linear_system(struct bch_control *bch, unsigned int *rows,
 	/* rewrite system, inserting fake parameter rows */
 	if (k > 0) {
 		p = k;
-		for (r = m-1; r >= 0; r--) {
-			if ((r > m-1-k) && rows[r])
+		for (r = m - 1; r >= 0; r--) {
+			if ((r > m - 1 - k) && rows[r])
 				/* system has no solution */
 				return 0;
 
-			rows[r] = (p && (r == param[p-1])) ?
-				p--, 1u << (m-r) : rows[r-p];
+			rows[r] = (p && (r == param[p - 1])) ? p--,
+			1u << (m - r) : rows[r - p];
 		}
 	}
 
@@ -555,13 +550,13 @@ static int solve_linear_system(struct bch_control *bch, unsigned int *rows,
 	for (p = 0; p < nsol; p++) {
 		/* set parameters for p-th solution */
 		for (c = 0; c < k; c++)
-			rows[param[c]] = (rows[param[c]] & ~1)|((p >> c) & 1);
+			rows[param[c]] = (rows[param[c]] & ~1) | ((p >> c) & 1);
 
 		/* compute unique solution */
 		tmp = 0;
-		for (r = m-1; r >= 0; r--) {
-			mask = rows[r] & (tmp|1);
-			tmp |= parity(mask) << (m-r);
+		for (r = m - 1; r >= 0; r--) {
+			mask = rows[r] & (tmp | 1);
+			tmp |= parity(mask) << (m - r);
 		}
 		sol[p] = tmp >> 1;
 	}
@@ -578,7 +573,10 @@ static int find_affine4_roots(struct bch_control *bch, unsigned int a,
 {
 	int i, j, k;
 	const int m = GF_M(bch);
-	unsigned int mask = 0xff, t, rows[16] = {0,};
+	unsigned int mask = 0xff, t,
+		     rows[16] = {
+			     0,
+		     };
 
 	j = a_log(bch, b);
 	k = a_log(bch, a);
@@ -586,9 +584,9 @@ static int find_affine4_roots(struct bch_control *bch, unsigned int a,
 
 	/* build linear system to solve X^4+aX^2+bX+c = 0 */
 	for (i = 0; i < m; i++) {
-		rows[i+1] = bch->a_pow_tab[4*i]^
-			(a ? bch->a_pow_tab[mod_s(bch, k)] : 0)^
-			(b ? bch->a_pow_tab[mod_s(bch, j)] : 0);
+		rows[i + 1] = bch->a_pow_tab[4 * i] ^
+			      (a ? bch->a_pow_tab[mod_s(bch, k)] : 0) ^
+			      (b ? bch->a_pow_tab[mod_s(bch, j)] : 0);
 		j++;
 		k += 2;
 	}
@@ -597,10 +595,10 @@ static int find_affine4_roots(struct bch_control *bch, unsigned int a,
 	 * warning: this code assumes m < 16
 	 */
 	for (j = 8; j != 0; j >>= 1, mask ^= (mask << j)) {
-		for (k = 0; k < 16; k = (k+j+1) & ~j) {
-			t = ((rows[k] >> j)^rows[k+j]) & mask;
+		for (k = 0; k < 16; k = (k + j + 1) & ~j) {
+			t = ((rows[k] >> j) ^ rows[k + j]) & mask;
 			rows[k] ^= (t << j);
-			rows[k+j] ^= t;
+			rows[k + j] ^= t;
 		}
 	}
 	return solve_linear_system(bch, rows, roots, 4);
@@ -616,8 +614,8 @@ static int find_poly_deg1_roots(struct bch_control *bch, struct gf_poly *poly,
 
 	if (poly->c[0])
 		/* poly[X] = bX+c with c!=0, root=c/b */
-		roots[n++] = mod_s(bch, GF_N(bch)-bch->a_log_tab[poly->c[0]]+
-				   bch->a_log_tab[poly->c[1]]);
+		roots[n++] = mod_s(bch, GF_N(bch) - bch->a_log_tab[poly->c[0]] +
+						bch->a_log_tab[poly->c[1]]);
 	return n;
 }
 
@@ -631,13 +629,12 @@ static int find_poly_deg2_roots(struct bch_control *bch, struct gf_poly *poly,
 	unsigned int u, v, r;
 
 	if (poly->c[0] && poly->c[1]) {
-
 		l0 = bch->a_log_tab[poly->c[0]];
 		l1 = bch->a_log_tab[poly->c[1]];
 		l2 = bch->a_log_tab[poly->c[2]];
 
 		/* using z=a/bX, transform aX^2+bX+c into z^2+z+u (u=ac/b^2) */
-		u = a_pow(bch, l0+l2+2*(GF_N(bch)-l1));
+		u = a_pow(bch, l0 + l2 + 2 * (GF_N(bch) - l1));
 		/*
 		 * let u = sum(li.a^i) i=0..m-1; then compute r = sum(li.xi):
 		 * r^2+r = sum(li.(xi^2+xi)) = sum(li.(a^i+Tr(a^i).a^k)) =
@@ -652,12 +649,14 @@ static int find_poly_deg2_roots(struct bch_control *bch, struct gf_poly *poly,
 			v ^= (1 << i);
 		}
 		/* verify root */
-		if ((gf_sqr(bch, r)^r) == u) {
+		if ((gf_sqr(bch, r) ^ r) == u) {
 			/* reverse z=a/bX transformation and compute log(1/r) */
-			roots[n++] = modulo(bch, 2*GF_N(bch)-l1-
-					    bch->a_log_tab[r]+l2);
-			roots[n++] = modulo(bch, 2*GF_N(bch)-l1-
-					    bch->a_log_tab[r^1]+l2);
+			roots[n++] =
+				modulo(bch, 2 * GF_N(bch) - l1 -
+						    bch->a_log_tab[r] + l2);
+			roots[n++] =
+				modulo(bch, 2 * GF_N(bch) - l1 -
+						    bch->a_log_tab[r ^ 1] + l2);
 		}
 	}
 	return n;
@@ -680,9 +679,9 @@ static int find_poly_deg3_roots(struct bch_control *bch, struct gf_poly *poly,
 		a2 = gf_div(bch, poly->c[2], e3);
 
 		/* (X+a2)(X^3+a2X^2+b2X+c2) = X^4+aX^2+bX+c (affine) */
-		c = gf_mul(bch, a2, c2);           /* c = a2c2      */
-		b = gf_mul(bch, a2, b2)^c2;        /* b = a2b2 + c2 */
-		a = gf_sqr(bch, a2)^b2;            /* a = a2^2 + b2 */
+		c = gf_mul(bch, a2, c2); /* c = a2c2      */
+		b = gf_mul(bch, a2, b2) ^ c2; /* b = a2b2 + c2 */
+		a = gf_sqr(bch, a2) ^ b2; /* a = a2^2 + b2 */
 
 		/* find the 4 roots of this affine polynomial */
 		if (find_affine4_roots(bch, a, b, c, tmp) == 4) {
@@ -723,7 +722,7 @@ static int find_poly_deg4_roots(struct bch_control *bch, struct gf_poly *poly,
 			f = gf_div(bch, c, a);
 			l = a_log(bch, f);
 			l += (l & 1) ? GF_N(bch) : 0;
-			e = a_pow(bch, l/2);
+			e = a_pow(bch, l / 2);
 			/*
 			 * use transformation z=X+e:
 			 * z^4+e^4 + a(z^3+ez^2+e^2z+e^3) + b(z^2+e^2) +cz+ce+d
@@ -731,8 +730,8 @@ static int find_poly_deg4_roots(struct bch_control *bch, struct gf_poly *poly,
 			 * z^4 + az^3 + (ae+b)z^2 + e^4+be^2+d
 			 * z^4 + az^3 +     b'z^2 + d'
 			 */
-			d = a_pow(bch, 2*l)^gf_mul(bch, b, f)^d;
-			b = gf_mul(bch, a, e)^b;
+			d = a_pow(bch, 2 * l) ^ gf_mul(bch, b, f) ^ d;
+			b = gf_mul(bch, a, e) ^ b;
 		}
 		/* now, use Y=1/X to get Y^4 + b/dY^2 + a/dY + 1/d */
 		if (d == 0)
@@ -753,7 +752,7 @@ static int find_poly_deg4_roots(struct bch_control *bch, struct gf_poly *poly,
 		for (i = 0; i < 4; i++) {
 			/* post-process roots (reverse transformations) */
 			f = a ? gf_inv(bch, roots[i]) : roots[i];
-			roots[i] = a_ilog(bch, f^e);
+			roots[i] = a_ilog(bch, f ^ e);
 		}
 		n = 4;
 	}
@@ -763,14 +762,14 @@ static int find_poly_deg4_roots(struct bch_control *bch, struct gf_poly *poly,
 /*
  * build monic, log-based representation of a polynomial
  */
-static void gf_poly_logrep(struct bch_control *bch,
-			   const struct gf_poly *a, int *rep)
+static void gf_poly_logrep(struct bch_control *bch, const struct gf_poly *a,
+			   int *rep)
 {
-	int i, d = a->deg, l = GF_N(bch)-a_log(bch, a->c[a->deg]);
+	int i, d = a->deg, l = GF_N(bch) - a_log(bch, a->c[a->deg]);
 
 	/* represent 0 values with -1; warning, rep[d] is not set to 1 */
 	for (i = 0; i < d; i++)
-		rep[i] = a->c[i] ? mod_s(bch, a_log(bch, a->c[i])+l) : -1;
+		rep[i] = a->c[i] ? mod_s(bch, a_log(bch, a->c[i]) + l) : -1;
 }
 
 /*
@@ -795,16 +794,16 @@ static void gf_poly_mod(struct bch_control *bch, struct gf_poly *a,
 	for (j = a->deg; j >= d; j--) {
 		if (c[j]) {
 			la = a_log(bch, c[j]);
-			p = j-d;
+			p = j - d;
 			for (i = 0; i < d; i++, p++) {
 				m = rep[i];
 				if (m >= 0)
 					c[p] ^= bch->a_pow_tab[mod_s(bch,
-								     m+la)];
+								     m + la)];
 			}
 		}
 	}
-	a->deg = d-1;
+	a->deg = d - 1;
 	while (!c[a->deg] && a->deg)
 		a->deg--;
 }
@@ -816,11 +815,12 @@ static void gf_poly_div(struct bch_control *bch, struct gf_poly *a,
 			const struct gf_poly *b, struct gf_poly *q)
 {
 	if (a->deg >= b->deg) {
-		q->deg = a->deg-b->deg;
+		q->deg = a->deg - b->deg;
 		/* compute a mod b (modifies a) */
 		gf_poly_mod(bch, a, b, NULL);
 		/* quotient is stored in upper part of polynomial a */
-		memcpy(q->c, &a->c[b->deg], (1+q->deg)*sizeof(unsigned int));
+		memcpy(q->c, &a->c[b->deg],
+		       (1 + q->deg) * sizeof(unsigned int));
 	} else {
 		q->deg = 0;
 		q->c[0] = 0;
@@ -881,13 +881,13 @@ static void compute_trace_bk_mod(struct bch_control *bch, int k,
 		/* add a^(k*2^i)(z^(2^i) mod f) and compute (z^(2^i) mod f)^2 */
 		for (j = z->deg; j >= 0; j--) {
 			out->c[j] ^= z->c[j];
-			z->c[2*j] = gf_sqr(bch, z->c[j]);
-			z->c[2*j+1] = 0;
+			z->c[2 * j] = gf_sqr(bch, z->c[j]);
+			z->c[2 * j + 1] = 0;
 		}
 		if (z->deg > out->deg)
 			out->deg = z->deg;
 
-		if (i < m-1) {
+		if (i < m - 1) {
 			z->deg *= 2;
 			/* z^(2(i+1)) mod f = (z^(2^i) mod f)^2 mod f */
 			gf_poly_mod(bch, z, f, bch->cache);
@@ -906,9 +906,9 @@ static void factor_polynomial(struct bch_control *bch, int k, struct gf_poly *f,
 			      struct gf_poly **g, struct gf_poly **h)
 {
 	struct gf_poly *f2 = bch->poly_2t[0];
-	struct gf_poly *q  = bch->poly_2t[1];
+	struct gf_poly *q = bch->poly_2t[1];
 	struct gf_poly *tk = bch->poly_2t[2];
-	struct gf_poly *z  = bch->poly_2t[3];
+	struct gf_poly *z = bch->poly_2t[3];
 	struct gf_poly *gcd;
 
 	dbg("factoring %s...\n", gf_poly_str(f));
@@ -964,9 +964,10 @@ static int find_poly_roots(struct bch_control *bch, unsigned int k,
 		if (poly->deg && (k <= GF_M(bch))) {
 			factor_polynomial(bch, k, poly, &f1, &f2);
 			if (f1)
-				cnt += find_poly_roots(bch, k+1, f1, roots);
+				cnt += find_poly_roots(bch, k + 1, f1, roots);
 			if (f2)
-				cnt += find_poly_roots(bch, k+1, f2, roots+cnt);
+				cnt += find_poly_roots(bch, k + 1, f2,
+						       roots + cnt);
 		}
 		break;
 	}
@@ -983,22 +984,22 @@ static int chien_search(struct bch_control *bch, unsigned int len,
 {
 	int m;
 	unsigned int i, j, syn, syn0, count = 0;
-	const unsigned int k = 8*len+bch->ecc_bits;
+	const unsigned int k = 8 * len + bch->ecc_bits;
 
 	/* use a log-based representation of polynomial */
 	gf_poly_logrep(bch, p, bch->cache);
 	bch->cache[p->deg] = 0;
 	syn0 = gf_div(bch, p->c[0], p->c[p->deg]);
 
-	for (i = GF_N(bch)-k+1; i <= GF_N(bch); i++) {
+	for (i = GF_N(bch) - k + 1; i <= GF_N(bch); i++) {
 		/* compute elp(a^i) */
 		for (j = 1, syn = syn0; j <= p->deg; j++) {
 			m = bch->cache[j];
 			if (m >= 0)
-				syn ^= a_pow(bch, m+j*i);
+				syn ^= a_pow(bch, m + j * i);
 		}
 		if (syn == 0) {
-			roots[count++] = GF_N(bch)-i;
+			roots[count++] = GF_N(bch) - i;
 			if (count == p->deg)
 				break;
 		}
@@ -1060,7 +1061,7 @@ int bch_decode(struct bch_control *bch, const uint8_t *data, unsigned int len,
 	uint32_t sum;
 
 	/* sanity check: make sure data length can be handled */
-	if (8*len > (bch->n-bch->ecc_bits))
+	if (8 * len > (bch->n - bch->ecc_bits))
 		return -EINVAL;
 
 	/* if caller does not provide syndromes, compute them */
@@ -1098,16 +1099,16 @@ int bch_decode(struct bch_control *bch, const uint8_t *data, unsigned int len,
 	}
 	if (err > 0) {
 		/* post-process raw error locations for easier correction */
-		nbits = (len*8)+bch->ecc_bits;
+		nbits = (len * 8) + bch->ecc_bits;
 		for (i = 0; i < err; i++) {
 			if (errloc[i] >= nbits) {
 				err = -1;
 				break;
 			}
-			errloc[i] = nbits-1-errloc[i];
+			errloc[i] = nbits - 1 - errloc[i];
 			if (!bch->swap_bits)
 				errloc[i] = (errloc[i] & ~7) |
-					    (7-(errloc[i] & 7));
+					    (7 - (errloc[i] & 7));
 		}
 	}
 	return (err >= 0) ? err : -EBADMSG;
@@ -1150,26 +1151,27 @@ static void build_mod8_tables(struct bch_control *bch, const uint32_t *g)
 	int i, j, b, d;
 	uint32_t data, hi, lo, *tab;
 	const int l = BCH_ECC_WORDS(bch);
-	const int plen = DIV_ROUND_UP(bch->ecc_bits+1, 32);
+	const int plen = DIV_ROUND_UP(bch->ecc_bits + 1, 32);
 	const int ecclen = DIV_ROUND_UP(bch->ecc_bits, 32);
 
-	memset(bch->mod8_tab, 0, 4*256*l*sizeof(*bch->mod8_tab));
+	memset(bch->mod8_tab, 0, 4 * 256 * l * sizeof(*bch->mod8_tab));
 
 	for (i = 0; i < 256; i++) {
 		/* p(X)=i is a small polynomial of weight <= 8 */
 		for (b = 0; b < 4; b++) {
 			/* we want to compute (p(X).X^(8*b+deg(g))) mod g(X) */
-			tab = bch->mod8_tab + (b*256+i)*l;
-			data = i << (8*b);
+			tab = bch->mod8_tab + (b * 256 + i) * l;
+			data = i << (8 * b);
 			while (data) {
 				d = deg(data);
 				/* subtract X^d.g(X) from p(X).X^(8*b+deg(g)) */
-				data ^= g[0] >> (31-d);
+				data ^= g[0] >> (31 - d);
 				for (j = 0; j < ecclen; j++) {
-					hi = (d < 31) ? g[j] << (d+1) : 0;
-					lo = (j+1 < plen) ?
-						g[j+1] >> (31-d) : 0;
-					tab[j] ^= hi|lo;
+					hi = (d < 31) ? g[j] << (d + 1) : 0;
+					lo = (j + 1 < plen) ?
+						     g[j + 1] >> (31 - d) :
+						     0;
+					tab[j] ^= hi | lo;
 				}
 			}
 		}
@@ -1188,7 +1190,7 @@ static int build_deg2_base(struct bch_control *bch)
 	/* find k s.t. Tr(a^k) = 1 and 0 <= k < m */
 	for (i = 0; i < m; i++) {
 		for (j = 0, sum = 0; j < m; j++)
-			sum ^= a_pow(bch, i*(1 << j));
+			sum ^= a_pow(bch, i * (1 << j));
 
 		if (sum) {
 			ak = bch->a_pow_tab[i];
@@ -1200,7 +1202,7 @@ static int build_deg2_base(struct bch_control *bch)
 	memset(xi, 0, sizeof(xi));
 
 	for (x = 0; (x <= GF_N(bch)) && remaining; x++) {
-		y = gf_sqr(bch, x)^x;
+		y = gf_sqr(bch, x) ^ x;
 		for (i = 0; i < 2; i++) {
 			r = a_log(bch, y);
 			if (y && (r < m) && !xi[r]) {
@@ -1239,9 +1241,10 @@ static uint32_t *compute_generator_polynomial(struct bch_control *bch)
 	struct gf_poly *g;
 	uint32_t *genpoly;
 
-	g = bch_alloc(GF_POLY_SZ(m*t), &err);
-	roots = bch_alloc((bch->n+1)*sizeof(*roots), &err);
-	genpoly = bch_alloc(DIV_ROUND_UP(m*t+1, 32)*sizeof(*genpoly), &err);
+	g = bch_alloc(GF_POLY_SZ(m * t), &err);
+	roots = bch_alloc((bch->n + 1) * sizeof(*roots), &err);
+	genpoly =
+		bch_alloc(DIV_ROUND_UP(m * t + 1, 32) * sizeof(*genpoly), &err);
 
 	if (err) {
 		kfree(genpoly);
@@ -1250,11 +1253,11 @@ static uint32_t *compute_generator_polynomial(struct bch_control *bch)
 	}
 
 	/* enumerate all roots of g(X) */
-	memset(roots , 0, (bch->n+1)*sizeof(*roots));
+	memset(roots, 0, (bch->n + 1) * sizeof(*roots));
 	for (i = 0; i < t; i++) {
-		for (j = 0, r = 2*i+1; j < m; j++) {
+		for (j = 0, r = 2 * i + 1; j < m; j++) {
 			roots[r] = 1;
-			r = mod_s(bch, 2*r);
+			r = mod_s(bch, 2 * r);
 		}
 	}
 	/* build generator polynomial g(X) */
@@ -1264,23 +1267,23 @@ static uint32_t *compute_generator_polynomial(struct bch_control *bch)
 		if (roots[i]) {
 			/* multiply g(X) by (X+root) */
 			r = bch->a_pow_tab[i];
-			g->c[g->deg+1] = 1;
+			g->c[g->deg + 1] = 1;
 			for (j = g->deg; j > 0; j--)
-				g->c[j] = gf_mul(bch, g->c[j], r)^g->c[j-1];
+				g->c[j] = gf_mul(bch, g->c[j], r) ^ g->c[j - 1];
 
 			g->c[0] = gf_mul(bch, g->c[0], r);
 			g->deg++;
 		}
 	}
 	/* store left-justified binary representation of g(X) */
-	n = g->deg+1;
+	n = g->deg + 1;
 	i = 0;
 
 	while (n > 0) {
 		nbits = (n > 32) ? 32 : n;
 		for (j = 0, word = 0; j < nbits; j++) {
-			if (g->c[n-1-j])
-				word |= 1u << (31-j);
+			if (g->c[n - 1 - j])
+				word |= 1u << (31 - j);
 		}
 		genpoly[i++] = word;
 		n -= nbits;
@@ -1328,14 +1331,14 @@ struct bch_control *bch_init(int m, int t, unsigned int prim_poly,
 
 	/* default primitive polynomials */
 	static const unsigned int prim_poly_tab[] = {
-		0x25, 0x43, 0x83, 0x11d, 0x211, 0x409, 0x805, 0x1053, 0x201b,
-		0x402b, 0x8003,
+		0x25,  0x43,   0x83,   0x11d,  0x211,  0x409,
+		0x805, 0x1053, 0x201b, 0x402b, 0x8003,
 	};
 
 #if defined(CONFIG_BCH_CONST_PARAMS)
 	if ((m != (CONFIG_BCH_CONST_M)) || (t != (CONFIG_BCH_CONST_T))) {
 		printk(KERN_ERR "bch encoder/decoder was configured to support "
-		       "parameters m=%d, t=%d only!\n",
+				"parameters m=%d, t=%d only!\n",
 		       CONFIG_BCH_CONST_M, CONFIG_BCH_CONST_T);
 		goto fail;
 	}
@@ -1356,13 +1359,13 @@ struct bch_control *bch_init(int m, int t, unsigned int prim_poly,
 		goto fail;
 
 	/* sanity checks */
-	if ((t < 1) || (m*t >= ((1 << m)-1)))
+	if ((t < 1) || (m * t >= ((1 << m) - 1)))
 		/* invalid t value */
 		goto fail;
 
 	/* select a primitive polynomial for generating GF(2^m) */
 	if (prim_poly == 0)
-		prim_poly = prim_poly_tab[m-min_m];
+		prim_poly = prim_poly_tab[m - min_m];
 
 	bch = kzalloc(sizeof(*bch), GFP_KERNEL);
 	if (bch == NULL)
@@ -1370,22 +1373,24 @@ struct bch_control *bch_init(int m, int t, unsigned int prim_poly,
 
 	bch->m = m;
 	bch->t = t;
-	bch->n = (1 << m)-1;
-	words  = DIV_ROUND_UP(m*t, 32);
-	bch->ecc_bytes = DIV_ROUND_UP(m*t, 8);
-	bch->a_pow_tab = bch_alloc((1+bch->n)*sizeof(*bch->a_pow_tab), &err);
-	bch->a_log_tab = bch_alloc((1+bch->n)*sizeof(*bch->a_log_tab), &err);
-	bch->mod8_tab  = bch_alloc(words*1024*sizeof(*bch->mod8_tab), &err);
-	bch->ecc_buf   = bch_alloc(words*sizeof(*bch->ecc_buf), &err);
-	bch->ecc_buf2  = bch_alloc(words*sizeof(*bch->ecc_buf2), &err);
-	bch->xi_tab    = bch_alloc(m*sizeof(*bch->xi_tab), &err);
-	bch->syn       = bch_alloc(2*t*sizeof(*bch->syn), &err);
-	bch->cache     = bch_alloc(2*t*sizeof(*bch->cache), &err);
-	bch->elp       = bch_alloc((t+1)*sizeof(struct gf_poly_deg1), &err);
+	bch->n = (1 << m) - 1;
+	words = DIV_ROUND_UP(m * t, 32);
+	bch->ecc_bytes = DIV_ROUND_UP(m * t, 8);
+	bch->a_pow_tab =
+		bch_alloc((1 + bch->n) * sizeof(*bch->a_pow_tab), &err);
+	bch->a_log_tab =
+		bch_alloc((1 + bch->n) * sizeof(*bch->a_log_tab), &err);
+	bch->mod8_tab = bch_alloc(words * 1024 * sizeof(*bch->mod8_tab), &err);
+	bch->ecc_buf = bch_alloc(words * sizeof(*bch->ecc_buf), &err);
+	bch->ecc_buf2 = bch_alloc(words * sizeof(*bch->ecc_buf2), &err);
+	bch->xi_tab = bch_alloc(m * sizeof(*bch->xi_tab), &err);
+	bch->syn = bch_alloc(2 * t * sizeof(*bch->syn), &err);
+	bch->cache = bch_alloc(2 * t * sizeof(*bch->cache), &err);
+	bch->elp = bch_alloc((t + 1) * sizeof(struct gf_poly_deg1), &err);
 	bch->swap_bits = swap_bits;
 
 	for (i = 0; i < ARRAY_SIZE(bch->poly_2t); i++)
-		bch->poly_2t[i] = bch_alloc(GF_POLY_SZ(2*t), &err);
+		bch->poly_2t[i] = bch_alloc(GF_POLY_SZ(2 * t), &err);
 
 	if (err)
 		goto fail;

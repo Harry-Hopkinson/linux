@@ -80,22 +80,22 @@ static inline unsigned long *node_marks(struct xa_node *node, xa_mark_t mark)
 	return node->marks[(__force unsigned)mark];
 }
 
-static inline bool node_get_mark(struct xa_node *node,
-		unsigned int offset, xa_mark_t mark)
+static inline bool node_get_mark(struct xa_node *node, unsigned int offset,
+				 xa_mark_t mark)
 {
 	return test_bit(offset, node_marks(node, mark));
 }
 
 /* returns true if the bit was set */
 static inline bool node_set_mark(struct xa_node *node, unsigned int offset,
-				xa_mark_t mark)
+				 xa_mark_t mark)
 {
 	return __test_and_set_bit(offset, node_marks(node, mark));
 }
 
 /* returns true if the bit was set */
 static inline bool node_clear_mark(struct xa_node *node, unsigned int offset,
-				xa_mark_t mark)
+				   xa_mark_t mark)
 {
 	return __test_and_clear_bit(offset, node_marks(node, mark));
 }
@@ -110,9 +110,10 @@ static inline void node_mark_all(struct xa_node *node, xa_mark_t mark)
 	bitmap_fill(node_marks(node, mark), XA_CHUNK_SIZE);
 }
 
-#define mark_inc(mark) do { \
-	mark = (__force xa_mark_t)((__force unsigned)(mark) + 1); \
-} while (0)
+#define mark_inc(mark)                                                         \
+	do {                                                                   \
+		mark = (__force xa_mark_t)((__force unsigned)(mark) + 1);      \
+	} while (0)
 
 /*
  * xas_squash_marks() - Merge all marks to the first entry
@@ -249,7 +250,7 @@ EXPORT_SYMBOL_GPL(xas_load);
 extern struct kmem_cache *radix_tree_node_cachep;
 extern void radix_tree_node_rcu_free(struct rcu_head *head);
 
-#define XA_RCU_FREE	((struct xarray *)1)
+#define XA_RCU_FREE ((struct xarray *)1)
 
 static void xa_node_free(struct xa_node *node)
 {
@@ -306,7 +307,8 @@ bool xas_nomem(struct xa_state *xas, gfp_t gfp)
 	if (!xas->xa_alloc)
 		return false;
 	xas->xa_alloc->parent = NULL;
-	XA_NODE_BUG_ON(xas->xa_alloc, !list_empty(&xas->xa_alloc->private_list));
+	XA_NODE_BUG_ON(xas->xa_alloc,
+		       !list_empty(&xas->xa_alloc->private_list));
 	xas->xa_node = XAS_RESTART;
 	return true;
 }
@@ -342,7 +344,8 @@ static bool __xas_nomem(struct xa_state *xas, gfp_t gfp)
 	if (!xas->xa_alloc)
 		return false;
 	xas->xa_alloc->parent = NULL;
-	XA_NODE_BUG_ON(xas->xa_alloc, !list_empty(&xas->xa_alloc->private_list));
+	XA_NODE_BUG_ON(xas->xa_alloc,
+		       !list_empty(&xas->xa_alloc->private_list));
 	xas->xa_node = XAS_RESTART;
 	return true;
 }
@@ -741,8 +744,8 @@ success:
 }
 EXPORT_SYMBOL_GPL(xas_create_range);
 
-static void update_node(struct xa_state *xas, struct xa_node *node,
-		int count, int values)
+static void update_node(struct xa_state *xas, struct xa_node *node, int count,
+			int values)
 {
 	if (!node || (!count && !values))
 		return;
@@ -967,7 +970,7 @@ static unsigned int node_get_marks(struct xa_node *node, unsigned int offset)
 }
 
 static void node_set_marks(struct xa_node *node, unsigned int offset,
-			struct xa_node *child, unsigned int marks)
+			   struct xa_node *child, unsigned int marks)
 {
 	xa_mark_t mark = XA_MARK_0;
 
@@ -998,7 +1001,7 @@ static void node_set_marks(struct xa_node *node, unsigned int offset,
  * Context: May sleep if @gfp flags permit.
  */
 void xas_split_alloc(struct xa_state *xas, void *entry, unsigned int order,
-		gfp_t gfp)
+		     gfp_t gfp)
 {
 	unsigned int sibs = (1 << (order % XA_CHUNK_SHIFT)) - 1;
 	unsigned int mask = xas->xa_sibs;
@@ -1071,12 +1074,12 @@ void xas_split(struct xa_state *xas, void *entry, unsigned int order)
 			child->shift = node->shift - XA_CHUNK_SHIFT;
 			child->offset = offset;
 			child->count = XA_CHUNK_SIZE;
-			child->nr_values = xa_is_value(entry) ?
-					XA_CHUNK_SIZE : 0;
+			child->nr_values =
+				xa_is_value(entry) ? XA_CHUNK_SIZE : 0;
 			RCU_INIT_POINTER(child->parent, node);
 			node_set_marks(node, offset, child, marks);
 			rcu_assign_pointer(node->slots[offset],
-					xa_mk_node(child));
+					   xa_mk_node(child));
 			if (xa_is_value(curr))
 				values--;
 		} else {
@@ -1086,9 +1089,9 @@ void xas_split(struct xa_state *xas, void *entry, unsigned int order)
 			rcu_assign_pointer(node->slots[canon], entry);
 			while (offset > canon)
 				rcu_assign_pointer(node->slots[offset--],
-						xa_mk_sibling(canon));
+						   xa_mk_sibling(canon));
 			values += (xa_is_value(entry) - xa_is_value(curr)) *
-					(xas->xa_sibs + 1);
+				  (xas->xa_sibs + 1);
 		}
 	} while (offset-- > xas->xa_offset);
 
@@ -1246,7 +1249,7 @@ void *xas_find(struct xa_state *xas, unsigned long max)
 		if (entry || xas_not_node(xas->xa_node))
 			return entry;
 	} else if (!xas->xa_node->shift &&
-		    xas->xa_offset != (xas->xa_index & XA_CHUNK_MASK)) {
+		   xas->xa_offset != (xas->xa_index & XA_CHUNK_MASK)) {
 		xas->xa_offset = ((xas->xa_index - 1) & XA_CHUNK_MASK) + 1;
 	}
 
@@ -1595,8 +1598,8 @@ EXPORT_SYMBOL(xa_store);
  * release and reacquire xa_lock if @gfp flags permit.
  * Return: The old entry at this index or xa_err() if an error happened.
  */
-void *__xa_cmpxchg(struct xarray *xa, unsigned long index,
-			void *old, void *entry, gfp_t gfp)
+void *__xa_cmpxchg(struct xarray *xa, unsigned long index, void *old,
+		   void *entry, gfp_t gfp)
 {
 	XA_STATE(xas, xa, index);
 	void *curr;
@@ -1660,7 +1663,7 @@ EXPORT_SYMBOL(__xa_insert);
 
 #ifdef CONFIG_XARRAY_MULTI
 static void xas_set_range(struct xa_state *xas, unsigned long first,
-		unsigned long last)
+			  unsigned long last)
 {
 	unsigned int shift = 0;
 	unsigned long sibs = last - first;
@@ -1708,8 +1711,8 @@ static void xas_set_range(struct xa_state *xas, unsigned long first,
  * Return: %NULL on success, xa_err(-EINVAL) if @entry cannot be stored in
  * an XArray, or xa_err(-ENOMEM) if memory allocation failed.
  */
-void *xa_store_range(struct xarray *xa, unsigned long first,
-		unsigned long last, void *entry, gfp_t gfp)
+void *xa_store_range(struct xarray *xa, unsigned long first, unsigned long last,
+		     void *entry, gfp_t gfp)
 {
 	XA_STATE(xas, xa, 0);
 
@@ -1736,7 +1739,7 @@ void *xa_store_range(struct xarray *xa, unsigned long first,
 				goto unlock;
 			first += xas_size(&xas);
 		} while (first <= last);
-unlock:
+	unlock:
 		xas_unlock(&xas);
 	} while (xas_nomem(&xas, gfp));
 
@@ -1802,8 +1805,8 @@ EXPORT_SYMBOL(xa_get_order);
  * Return: 0 on success, -ENOMEM if memory could not be allocated or
  * -EBUSY if there are no free entries in @limit.
  */
-int __xa_alloc(struct xarray *xa, u32 *id, void *entry,
-		struct xa_limit limit, gfp_t gfp)
+int __xa_alloc(struct xarray *xa, u32 *id, void *entry, struct xa_limit limit,
+	       gfp_t gfp)
 {
 	XA_STATE(xas, xa, 0);
 
@@ -1852,7 +1855,7 @@ EXPORT_SYMBOL(__xa_alloc);
  * allocated or -EBUSY if there are no free entries in @limit.
  */
 int __xa_alloc_cyclic(struct xarray *xa, u32 *id, void *entry,
-		struct xa_limit limit, u32 *next, gfp_t gfp)
+		      struct xa_limit limit, u32 *next, gfp_t gfp)
 {
 	u32 min = limit.min;
 	int ret;
@@ -1944,7 +1947,7 @@ bool xa_get_mark(struct xarray *xa, unsigned long index, xa_mark_t mark)
 	}
 	rcu_read_unlock();
 	return false;
- found:
+found:
 	rcu_read_unlock();
 	return true;
 }
@@ -2003,8 +2006,8 @@ EXPORT_SYMBOL(xa_clear_mark);
  * Context: Any context.  Takes and releases the RCU lock.
  * Return: The entry, if found, otherwise %NULL.
  */
-void *xa_find(struct xarray *xa, unsigned long *indexp,
-			unsigned long max, xa_mark_t filter)
+void *xa_find(struct xarray *xa, unsigned long *indexp, unsigned long max,
+	      xa_mark_t filter)
 {
 	XA_STATE(xas, xa, *indexp);
 	void *entry;
@@ -2033,7 +2036,7 @@ static bool xas_sibling(struct xa_state *xas)
 		return false;
 	mask = (XA_CHUNK_SIZE << node->shift) - 1;
 	return (xas->xa_index & mask) >
-		((unsigned long)xas->xa_offset << node->shift);
+	       ((unsigned long)xas->xa_offset << node->shift);
 }
 
 /**
@@ -2053,8 +2056,8 @@ static bool xas_sibling(struct xa_state *xas)
  * Context: Any context.  Takes and releases the RCU lock.
  * Return: The pointer, if found, otherwise %NULL.
  */
-void *xa_find_after(struct xarray *xa, unsigned long *indexp,
-			unsigned long max, xa_mark_t filter)
+void *xa_find_after(struct xarray *xa, unsigned long *indexp, unsigned long max,
+		    xa_mark_t filter)
 {
 	XA_STATE(xas, xa, *indexp + 1);
 	void *entry;
@@ -2085,13 +2088,13 @@ void *xa_find_after(struct xarray *xa, unsigned long *indexp,
 EXPORT_SYMBOL(xa_find_after);
 
 static unsigned int xas_extract_present(struct xa_state *xas, void **dst,
-			unsigned long max, unsigned int n)
+					unsigned long max, unsigned int n)
 {
 	void *entry;
 	unsigned int i = 0;
 
 	rcu_read_lock();
-	xas_for_each(xas, entry, max) {
+	xas_for_each (xas, entry, max) {
 		if (xas_retry(xas, entry))
 			continue;
 		dst[i++] = entry;
@@ -2104,13 +2107,14 @@ static unsigned int xas_extract_present(struct xa_state *xas, void **dst,
 }
 
 static unsigned int xas_extract_marked(struct xa_state *xas, void **dst,
-			unsigned long max, unsigned int n, xa_mark_t mark)
+				       unsigned long max, unsigned int n,
+				       xa_mark_t mark)
 {
 	void *entry;
 	unsigned int i = 0;
 
 	rcu_read_lock();
-	xas_for_each_marked(xas, entry, max, mark) {
+	xas_for_each_marked (xas, entry, max, mark) {
 		if (xas_retry(xas, entry))
 			continue;
 		dst[i++] = entry;
@@ -2175,8 +2179,8 @@ void xa_delete_node(struct xa_node *node, xa_update_node_t update)
 {
 	struct xa_state xas = {
 		.xa = node->array,
-		.xa_index = (unsigned long)node->offset <<
-				(node->shift + XA_CHUNK_SHIFT),
+		.xa_index = (unsigned long)node->offset
+			    << (node->shift + XA_CHUNK_SHIFT),
 		.xa_shift = node->shift + XA_CHUNK_SHIFT,
 		.xa_offset = node->offset,
 		.xa_node = xa_parent_locked(node->array, node),
@@ -2185,7 +2189,7 @@ void xa_delete_node(struct xa_node *node, xa_update_node_t update)
 
 	xas_store(&xas, NULL);
 }
-EXPORT_SYMBOL_GPL(xa_delete_node);	/* For the benefit of the test suite */
+EXPORT_SYMBOL_GPL(xa_delete_node); /* For the benefit of the test suite */
 
 /**
  * xa_destroy() - Free all internal data structures.
@@ -2266,11 +2270,12 @@ void xa_dump_entry(const void *entry, unsigned long index, unsigned long shift)
 			xa_dump_node(node);
 			for (i = 0; i < XA_CHUNK_SIZE; i++)
 				xa_dump_entry(node->slots[i],
-				      index + (i << node->shift), node->shift);
+					      index + (i << node->shift),
+					      node->shift);
 		}
 	} else if (xa_is_value(entry))
 		pr_cont("value %ld (0x%lx) [%px]\n", xa_to_value(entry),
-						xa_to_value(entry), entry);
+			xa_to_value(entry), entry);
 	else if (!xa_is_internal(entry))
 		pr_cont("%px\n", entry);
 	else if (xa_is_retry(entry))
@@ -2289,8 +2294,8 @@ void xa_dump(const struct xarray *xa)
 	unsigned int shift = 0;
 
 	pr_info("xarray: %px head %px flags %x marks %d %d %d\n", xa, entry,
-			xa->xa_flags, xa_marked(xa, XA_MARK_0),
-			xa_marked(xa, XA_MARK_1), xa_marked(xa, XA_MARK_2));
+		xa->xa_flags, xa_marked(xa, XA_MARK_0),
+		xa_marked(xa, XA_MARK_1), xa_marked(xa, XA_MARK_2));
 	if (xa_is_node(entry))
 		shift = xa_to_node(entry)->shift + XA_CHUNK_SHIFT;
 	xa_dump_entry(entry, 0, shift);

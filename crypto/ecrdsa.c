@@ -79,7 +79,7 @@ static int ecrdsa_verify(struct akcipher_request *req)
 	u64 _r[ECRDSA_MAX_DIGITS]; /* -r */
 	u64 s[ECRDSA_MAX_DIGITS]; /* second part of sig (s) */
 	u64 e[ECRDSA_MAX_DIGITS]; /* h \mod q */
-	u64 *v = e;		  /* e^{-1} \mod q */
+	u64 *v = e; /* e^{-1} \mod q */
 	u64 z1[ECRDSA_MAX_DIGITS];
 	u64 *z2 = _r;
 	struct ecc_point cc = ECC_POINT_INIT(s, e, ndigits); /* reuse s, e */
@@ -89,10 +89,7 @@ static int ecrdsa_verify(struct akcipher_request *req)
 	 * same length (256 or 512 bits), public key and signature should be
 	 * twice bigger.
 	 */
-	if (!ctx->curve ||
-	    !ctx->digest ||
-	    !req->src ||
-	    !ctx->pub_key.x ||
+	if (!ctx->curve || !ctx->digest || !req->src || !ctx->pub_key.x ||
 	    req->dst_len != ctx->digest_len ||
 	    req->dst_len != ctx->curve->g.ndigits * sizeof(u64) ||
 	    ctx->pub_key.ndigits != ctx->curve->g.ndigits ||
@@ -114,8 +111,7 @@ static int ecrdsa_verify(struct akcipher_request *req)
 	/* Step 1: verify that 0 < r < q, 0 < s < q */
 	if (vli_is_zero(r, ndigits) ||
 	    vli_cmp(r, ctx->curve->n, ndigits) == 1 ||
-	    vli_is_zero(s, ndigits) ||
-	    vli_cmp(s, ctx->curve->n, ndigits) == 1)
+	    vli_is_zero(s, ndigits) || vli_cmp(s, ctx->curve->n, ndigits) == 1)
 		return -EKEYREJECTED;
 
 	/* Step 2: calculate hash (h) of the message (passed as input) */
@@ -202,17 +198,17 @@ static int ecrdsa_set_pub_key(struct crypto_akcipher *tfm, const void *key,
 		return err;
 
 	/* Key parameters is in the key after keylen. */
-	params = ecrdsa_unpack_u32(&paramlen,
-			  ecrdsa_unpack_u32(&algo, (u8 *)key + keylen));
+	params = ecrdsa_unpack_u32(
+		&paramlen, ecrdsa_unpack_u32(&algo, (u8 *)key + keylen));
 
 	if (algo == OID_gost2012PKey256) {
-		ctx->digest	= "streebog256";
-		ctx->digest_oid	= OID_gost2012Digest256;
-		ctx->digest_len	= 256 / 8;
+		ctx->digest = "streebog256";
+		ctx->digest_oid = OID_gost2012Digest256;
+		ctx->digest_len = 256 / 8;
 	} else if (algo == OID_gost2012PKey512) {
-		ctx->digest	= "streebog512";
-		ctx->digest_oid	= OID_gost2012Digest512;
-		ctx->digest_len	= 512 / 8;
+		ctx->digest = "streebog512";
+		ctx->digest_oid = OID_gost2012Digest512;
+		ctx->digest_len = 512 / 8;
 	} else
 		return -ENOPKG;
 	ctx->algo_oid = algo;
@@ -232,8 +228,7 @@ static int ecrdsa_set_pub_key(struct crypto_akcipher *tfm, const void *key,
 	 * Key is two 256- or 512-bit coordinates which should match
 	 * curve size.
 	 */
-	if ((ctx->key_len != (2 * 256 / 8) &&
-	     ctx->key_len != (2 * 512 / 8)) ||
+	if ((ctx->key_len != (2 * 256 / 8) && ctx->key_len != (2 * 512 / 8)) ||
 	    ctx->key_len != ctx->curve->g.ndigits * sizeof(u64) * 2)
 		return -ENOPKG;
 

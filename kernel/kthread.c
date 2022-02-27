@@ -30,13 +30,11 @@
 #include <linux/sched/isolation.h>
 #include <trace/events/sched.h>
 
-
 static DEFINE_SPINLOCK(kthread_create_lock);
 static LIST_HEAD(kthread_create_list);
 struct task_struct *kthreadd_task;
 
-struct kthread_create_info
-{
+struct kthread_create_info {
 	/* Information passed to kthread() from kthreadd. */
 	int (*threadfn)(void *data);
 	void *data;
@@ -411,16 +409,14 @@ static void create_kthread(struct kthread_create_info *create)
 	}
 }
 
-static __printf(4, 0)
-struct task_struct *__kthread_create_on_node(int (*threadfn)(void *data),
-						    void *data, int node,
-						    const char namefmt[],
-						    va_list args)
+static __printf(4, 0) struct task_struct *__kthread_create_on_node(
+	int (*threadfn)(void *data), void *data, int node, const char namefmt[],
+	va_list args)
 {
 	DECLARE_COMPLETION_ONSTACK(done);
 	struct task_struct *task;
-	struct kthread_create_info *create = kmalloc(sizeof(*create),
-						     GFP_KERNEL);
+	struct kthread_create_info *create =
+		kmalloc(sizeof(*create), GFP_KERNEL);
 
 	if (!create)
 		return ERR_PTR(-ENOMEM);
@@ -470,7 +466,8 @@ struct task_struct *__kthread_create_on_node(int (*threadfn)(void *data),
 			struct kthread *kthread = to_kthread(task);
 
 			/* leave it truncated when out of memory. */
-			kthread->full_name = kvasprintf(GFP_KERNEL, namefmt, args);
+			kthread->full_name =
+				kvasprintf(GFP_KERNEL, namefmt, args);
 		}
 		set_task_comm(task, name);
 	}
@@ -503,8 +500,7 @@ struct task_struct *__kthread_create_on_node(int (*threadfn)(void *data),
  */
 struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
 					   void *data, int node,
-					   const char namefmt[],
-					   ...)
+					   const char namefmt[], ...)
 {
 	struct task_struct *task;
 	va_list args;
@@ -517,7 +513,8 @@ struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
 }
 EXPORT_SYMBOL(kthread_create_on_node);
 
-static void __kthread_bind_mask(struct task_struct *p, const struct cpumask *mask, unsigned int state)
+static void __kthread_bind_mask(struct task_struct *p,
+				const struct cpumask *mask, unsigned int state)
 {
 	unsigned long flags;
 
@@ -533,7 +530,8 @@ static void __kthread_bind_mask(struct task_struct *p, const struct cpumask *mas
 	raw_spin_unlock_irqrestore(&p->pi_lock, flags);
 }
 
-static void __kthread_bind(struct task_struct *p, unsigned int cpu, unsigned int state)
+static void __kthread_bind(struct task_struct *p, unsigned int cpu,
+			   unsigned int state)
 {
 	__kthread_bind_mask(p, cpumask_of(cpu), state);
 }
@@ -753,9 +751,8 @@ int kthreadd(void *unused)
 	return 0;
 }
 
-void __kthread_init_worker(struct kthread_worker *worker,
-				const char *name,
-				struct lock_class_key *key)
+void __kthread_init_worker(struct kthread_worker *worker, const char *name,
+			   struct lock_class_key *key)
 {
 	memset(worker, 0, sizeof(struct kthread_worker));
 	raw_spin_lock_init(&worker->lock);
@@ -796,7 +793,7 @@ int kthread_worker_fn(void *worker_ptr)
 		set_freezable();
 
 repeat:
-	set_current_state(TASK_INTERRUPTIBLE);	/* mb paired w/ kthread_stop */
+	set_current_state(TASK_INTERRUPTIBLE); /* mb paired w/ kthread_stop */
 
 	if (kthread_should_stop()) {
 		__set_current_state(TASK_RUNNING);
@@ -809,8 +806,8 @@ repeat:
 	work = NULL;
 	raw_spin_lock_irq(&worker->lock);
 	if (!list_empty(&worker->work_list)) {
-		work = list_first_entry(&worker->work_list,
-					struct kthread_work, node);
+		work = list_first_entry(&worker->work_list, struct kthread_work,
+					node);
 		list_del_init(&work->node);
 	}
 	worker->current_work = work;
@@ -835,9 +832,8 @@ repeat:
 }
 EXPORT_SYMBOL_GPL(kthread_worker_fn);
 
-static __printf(3, 0) struct kthread_worker *
-__kthread_create_worker(int cpu, unsigned int flags,
-			const char namefmt[], va_list args)
+static __printf(3, 0) struct kthread_worker *__kthread_create_worker(
+	int cpu, unsigned int flags, const char namefmt[], va_list args)
 {
 	struct kthread_worker *worker;
 	struct task_struct *task;
@@ -852,8 +848,8 @@ __kthread_create_worker(int cpu, unsigned int flags,
 	if (cpu >= 0)
 		node = cpu_to_node(cpu);
 
-	task = __kthread_create_on_node(kthread_worker_fn, worker,
-						node, namefmt, args);
+	task = __kthread_create_on_node(kthread_worker_fn, worker, node,
+					namefmt, args);
 	if (IS_ERR(task))
 		goto fail_task;
 
@@ -879,8 +875,8 @@ fail_task:
  * when the needed structures could not get allocated, and ERR_PTR(-EINTR)
  * when the worker was SIGKILLed.
  */
-struct kthread_worker *
-kthread_create_worker(unsigned int flags, const char namefmt[], ...)
+struct kthread_worker *kthread_create_worker(unsigned int flags,
+					     const char namefmt[], ...)
 {
 	struct kthread_worker *worker;
 	va_list args;
@@ -928,9 +924,8 @@ EXPORT_SYMBOL(kthread_create_worker);
  * when the needed structures could not get allocated, and ERR_PTR(-EINTR)
  * when the worker was SIGKILLed.
  */
-struct kthread_worker *
-kthread_create_worker_on_cpu(int cpu, unsigned int flags,
-			     const char namefmt[], ...)
+struct kthread_worker *kthread_create_worker_on_cpu(int cpu, unsigned int flags,
+						    const char namefmt[], ...)
 {
 	struct kthread_worker *worker;
 	va_list args;
@@ -1110,8 +1105,8 @@ bool kthread_queue_delayed_work(struct kthread_worker *worker,
 EXPORT_SYMBOL_GPL(kthread_queue_delayed_work);
 
 struct kthread_flush_work {
-	struct kthread_work	work;
-	struct completion	done;
+	struct kthread_work work;
+	struct completion done;
 };
 
 static void kthread_flush_work_fn(struct kthread_work *work)

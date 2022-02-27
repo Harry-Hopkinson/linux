@@ -24,11 +24,11 @@ static int __init prompt_ramdisk(char *str)
 }
 __setup("prompt_ramdisk=", prompt_ramdisk);
 
-int __initdata rd_image_start;		/* starting block # of image */
+int __initdata rd_image_start; /* starting block # of image */
 
 static int __init ramdisk_start_setup(char *str)
 {
-	rd_image_start = simple_strtol(str,NULL,0);
+	rd_image_start = simple_strtol(str, NULL, 0);
 	return 1;
 }
 __setup("ramdisk_start=", ramdisk_start_setup);
@@ -54,9 +54,8 @@ static int __init crd_load(decompress_fn deco);
  *	lzo
  *	lz4
  */
-static int __init
-identify_ramdisk_image(struct file *file, loff_t pos,
-		decompress_fn *decompressor)
+static int __init identify_ramdisk_image(struct file *file, loff_t pos,
+					 decompress_fn *decompressor)
 {
 	const int size = 512;
 	struct minix_super_block *minixsb;
@@ -73,10 +72,10 @@ identify_ramdisk_image(struct file *file, loff_t pos,
 	if (!buf)
 		return -ENOMEM;
 
-	minixsb = (struct minix_super_block *) buf;
-	romfsb = (struct romfs_super_block *) buf;
-	cramfsb = (struct cramfs_super *) buf;
-	squashfsb = (struct squashfs_super_block *) buf;
+	minixsb = (struct minix_super_block *)buf;
+	romfsb = (struct romfs_super_block *)buf;
+	cramfsb = (struct cramfs_super *)buf;
+	squashfsb = (struct squashfs_super_block *)buf;
 	memset(buf, 0xe5, size);
 
 	/*
@@ -98,12 +97,12 @@ identify_ramdisk_image(struct file *file, loff_t pos,
 	}
 
 	/* romfs is at block zero too */
-	if (romfsb->word0 == ROMSB_WORD0 &&
-	    romfsb->word1 == ROMSB_WORD1) {
+	if (romfsb->word0 == ROMSB_WORD0 && romfsb->word1 == ROMSB_WORD1) {
 		printk(KERN_NOTICE
 		       "RAMDISK: romfs filesystem found at block %d\n",
 		       start_block);
-		nblocks = (ntohl(romfsb->size)+BLOCK_SIZE-1)>>BLOCK_SIZE_BITS;
+		nblocks = (ntohl(romfsb->size) + BLOCK_SIZE - 1) >>
+			  BLOCK_SIZE_BITS;
 		goto done;
 	}
 
@@ -120,8 +119,9 @@ identify_ramdisk_image(struct file *file, loff_t pos,
 		printk(KERN_NOTICE
 		       "RAMDISK: squashfs filesystem found at block %d\n",
 		       start_block);
-		nblocks = (le64_to_cpu(squashfsb->bytes_used) + BLOCK_SIZE - 1)
-			 >> BLOCK_SIZE_BITS;
+		nblocks =
+			(le64_to_cpu(squashfsb->bytes_used) + BLOCK_SIZE - 1) >>
+			BLOCK_SIZE_BITS;
 		goto done;
 	}
 
@@ -192,7 +192,7 @@ int __init rd_load_image(char *from)
 	unsigned short rotate = 0;
 	decompress_fn decompressor = NULL;
 #if !defined(CONFIG_S390)
-	char rotator[4] = { '|' , '/' , '-' , '\\' };
+	char rotator[4] = { '|', '/', '-', '\\' };
 #endif
 
 	out_file = filp_open("/dev/ram", O_RDWR, 0);
@@ -220,8 +220,8 @@ int __init rd_load_image(char *from)
 	 */
 	rd_blocks = nr_blocks(out_file);
 	if (nblocks > rd_blocks) {
-		printk("RAMDISK: image too big! (%dKiB/%ldKiB)\n",
-		       nblocks, rd_blocks);
+		printk("RAMDISK: image too big! (%dKiB/%ldKiB)\n", nblocks,
+		       rd_blocks);
 		goto done;
 	}
 
@@ -244,8 +244,10 @@ int __init rd_load_image(char *from)
 		goto done;
 	}
 
-	printk(KERN_NOTICE "RAMDISK: Loading %dKiB [%ld disk%s] into ram disk... ",
-		nblocks, ((nblocks-1)/devblocks)+1, nblocks>devblocks ? "s" : "");
+	printk(KERN_NOTICE
+	       "RAMDISK: Loading %dKiB [%ld disk%s] into ram disk... ",
+	       nblocks, ((nblocks - 1) / devblocks) + 1,
+	       nblocks > devblocks ? "s" : "");
 	for (i = 0; i < nblocks; i++) {
 		if (i && (i % devblocks == 0)) {
 			pr_cont("done disk #1.\n");

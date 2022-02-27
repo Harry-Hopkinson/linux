@@ -54,8 +54,8 @@ static int kasan_test_init(struct kunit *test)
 
 	multishot = kasan_save_enable_multi_shot();
 	fail_data.report_found = false;
-	kunit_add_named_resource(test, NULL, NULL, &resource,
-					"kasan_data", &fail_data);
+	kunit_add_named_resource(test, NULL, NULL, &resource, "kasan_data",
+				 &fail_data);
 	return 0;
 }
 
@@ -86,36 +86,40 @@ static void kasan_test_exit(struct kunit *test)
  * by asserting !fail_data.report_found at the start of KUNIT_EXPECT_KASAN_FAIL
  * and in kasan_test_exit.
  */
-#define KUNIT_EXPECT_KASAN_FAIL(test, expression) do {			\
-	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS) &&				\
-	    kasan_sync_fault_possible())				\
-		migrate_disable();					\
-	KUNIT_EXPECT_FALSE(test, READ_ONCE(fail_data.report_found));	\
-	barrier();							\
-	expression;							\
-	barrier();							\
-	if (!READ_ONCE(fail_data.report_found)) {			\
-		KUNIT_FAIL(test, KUNIT_SUBTEST_INDENT "KASAN failure "	\
-				"expected in \"" #expression		\
-				 "\", but none occurred");		\
-	}								\
-	if (IS_ENABLED(CONFIG_KASAN_HW_TAGS)) {				\
-		if (READ_ONCE(fail_data.report_found))			\
-			kasan_enable_tagging_sync();			\
-		migrate_enable();					\
-	}								\
-	WRITE_ONCE(fail_data.report_found, false);			\
-} while (0)
+#define KUNIT_EXPECT_KASAN_FAIL(test, expression)                              \
+	do {                                                                   \
+		if (IS_ENABLED(CONFIG_KASAN_HW_TAGS) &&                        \
+		    kasan_sync_fault_possible())                               \
+			migrate_disable();                                     \
+		KUNIT_EXPECT_FALSE(test, READ_ONCE(fail_data.report_found));   \
+		barrier();                                                     \
+		expression;                                                    \
+		barrier();                                                     \
+		if (!READ_ONCE(fail_data.report_found)) {                      \
+			KUNIT_FAIL(test, KUNIT_SUBTEST_INDENT                  \
+				   "KASAN failure "                            \
+				   "expected in \"" #expression                \
+				   "\", but none occurred");                   \
+		}                                                              \
+		if (IS_ENABLED(CONFIG_KASAN_HW_TAGS)) {                        \
+			if (READ_ONCE(fail_data.report_found))                 \
+				kasan_enable_tagging_sync();                   \
+			migrate_enable();                                      \
+		}                                                              \
+		WRITE_ONCE(fail_data.report_found, false);                     \
+	} while (0)
 
-#define KASAN_TEST_NEEDS_CONFIG_ON(test, config) do {			\
-	if (!IS_ENABLED(config))					\
-		kunit_skip((test), "Test requires " #config "=y");	\
-} while (0)
+#define KASAN_TEST_NEEDS_CONFIG_ON(test, config)                               \
+	do {                                                                   \
+		if (!IS_ENABLED(config))                                       \
+			kunit_skip((test), "Test requires " #config "=y");     \
+	} while (0)
 
-#define KASAN_TEST_NEEDS_CONFIG_OFF(test, config) do {			\
-	if (IS_ENABLED(config))						\
-		kunit_skip((test), "Test requires " #config "=n");	\
-} while (0)
+#define KASAN_TEST_NEEDS_CONFIG_OFF(test, config)                              \
+	do {                                                                   \
+		if (IS_ENABLED(config))                                        \
+			kunit_skip((test), "Test requires " #config "=n");     \
+	} while (0)
 
 static void kmalloc_oob_right(struct kunit *test)
 {
@@ -139,8 +143,8 @@ static void kmalloc_oob_right(struct kunit *test)
 	KUNIT_EXPECT_KASAN_FAIL(test, ptr[size + 5] = 'y');
 
 	/* Out-of-bounds access past the aligned kmalloc object. */
-	KUNIT_EXPECT_KASAN_FAIL(test, ptr[0] =
-					ptr[size + KASAN_GRANULE_SIZE + 5]);
+	KUNIT_EXPECT_KASAN_FAIL(test,
+				ptr[0] = ptr[size + KASAN_GRANULE_SIZE + 5]);
 
 	kfree(ptr);
 }
@@ -269,8 +273,8 @@ static void kmalloc_large_oob_right(struct kunit *test)
 	kfree(ptr);
 }
 
-static void krealloc_more_oob_helper(struct kunit *test,
-					size_t size1, size_t size2)
+static void krealloc_more_oob_helper(struct kunit *test, size_t size1,
+				     size_t size2)
 {
 	char *ptr1, *ptr2;
 	size_t middle;
@@ -295,14 +299,14 @@ static void krealloc_more_oob_helper(struct kunit *test,
 		KUNIT_EXPECT_KASAN_FAIL(test, ptr2[size2] = 'x');
 
 	/* For all modes first aligned offset after size2 must be inaccessible. */
-	KUNIT_EXPECT_KASAN_FAIL(test,
-		ptr2[round_up(size2, KASAN_GRANULE_SIZE)] = 'x');
+	KUNIT_EXPECT_KASAN_FAIL(
+		test, ptr2[round_up(size2, KASAN_GRANULE_SIZE)] = 'x');
 
 	kfree(ptr2);
 }
 
-static void krealloc_less_oob_helper(struct kunit *test,
-					size_t size1, size_t size2)
+static void krealloc_less_oob_helper(struct kunit *test, size_t size1,
+				     size_t size2)
 {
 	char *ptr1, *ptr2;
 	size_t middle;
@@ -324,17 +328,17 @@ static void krealloc_less_oob_helper(struct kunit *test,
 		KUNIT_EXPECT_KASAN_FAIL(test, ptr2[size2] = 'x');
 
 	/* For all modes first aligned offset after size2 must be inaccessible. */
-	KUNIT_EXPECT_KASAN_FAIL(test,
-		ptr2[round_up(size2, KASAN_GRANULE_SIZE)] = 'x');
+	KUNIT_EXPECT_KASAN_FAIL(
+		test, ptr2[round_up(size2, KASAN_GRANULE_SIZE)] = 'x');
 
 	/*
 	 * For all modes all size2, middle, and size1 should land in separate
 	 * granules and thus the latter two offsets should be inaccessible.
 	 */
 	KUNIT_EXPECT_LE(test, round_up(size2, KASAN_GRANULE_SIZE),
-				round_down(middle, KASAN_GRANULE_SIZE));
+			round_down(middle, KASAN_GRANULE_SIZE));
 	KUNIT_EXPECT_LE(test, round_up(middle, KASAN_GRANULE_SIZE),
-				round_down(size1, KASAN_GRANULE_SIZE));
+			round_down(size1, KASAN_GRANULE_SIZE));
 	KUNIT_EXPECT_KASAN_FAIL(test, ptr2[middle] = 'x');
 	KUNIT_EXPECT_KASAN_FAIL(test, ptr2[size1 - 1] = 'x');
 	KUNIT_EXPECT_KASAN_FAIL(test, ptr2[size1] = 'x');
@@ -358,7 +362,7 @@ static void krealloc_pagealloc_more_oob(struct kunit *test)
 	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
 
 	krealloc_more_oob_helper(test, KMALLOC_MAX_CACHE_SIZE + 201,
-					KMALLOC_MAX_CACHE_SIZE + 235);
+				 KMALLOC_MAX_CACHE_SIZE + 235);
 }
 
 static void krealloc_pagealloc_less_oob(struct kunit *test)
@@ -367,7 +371,7 @@ static void krealloc_pagealloc_less_oob(struct kunit *test)
 	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
 
 	krealloc_less_oob_helper(test, KMALLOC_MAX_CACHE_SIZE + 235,
-					KMALLOC_MAX_CACHE_SIZE + 201);
+				 KMALLOC_MAX_CACHE_SIZE + 201);
 }
 
 /*
@@ -393,7 +397,7 @@ static void kmalloc_oob_16(struct kunit *test)
 {
 	struct {
 		u64 words[2];
-	} *ptr1, *ptr2;
+	} * ptr1, *ptr2;
 
 	/* This test is specifically crafted for the generic mode. */
 	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_GENERIC);
@@ -413,7 +417,7 @@ static void kmalloc_uaf_16(struct kunit *test)
 {
 	struct {
 		u64 words[2];
-	} *ptr1, *ptr2;
+	} * ptr1, *ptr2;
 
 	ptr1 = kmalloc(sizeof(*ptr1), GFP_KERNEL);
 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr1);
@@ -518,8 +522,8 @@ static void kmalloc_memmove_negative_size(struct kunit *test)
 	memset((char *)ptr, 0, 64);
 	OPTIMIZER_HIDE_VAR(ptr);
 	OPTIMIZER_HIDE_VAR(invalid_size);
-	KUNIT_EXPECT_KASAN_FAIL(test,
-		memmove((char *)ptr, (char *)ptr + 4, invalid_size));
+	KUNIT_EXPECT_KASAN_FAIL(test, memmove((char *)ptr, (char *)ptr + 4,
+					      invalid_size));
 	kfree(ptr);
 }
 
@@ -534,8 +538,8 @@ static void kmalloc_memmove_invalid_size(struct kunit *test)
 
 	memset((char *)ptr, 0, 64);
 	OPTIMIZER_HIDE_VAR(ptr);
-	KUNIT_EXPECT_KASAN_FAIL(test,
-		memmove((char *)ptr, (char *)ptr + 4, invalid_size));
+	KUNIT_EXPECT_KASAN_FAIL(test, memmove((char *)ptr, (char *)ptr + 4,
+					      invalid_size));
 	kfree(ptr);
 }
 
@@ -588,7 +592,8 @@ again:
 	 * For tag-based KASAN ptr1 and ptr2 tags might happen to be the same.
 	 * Allow up to 16 attempts at generating different tags.
 	 */
-	if (!IS_ENABLED(CONFIG_KASAN_GENERIC) && ptr1 == ptr2 && counter++ < 16) {
+	if (!IS_ENABLED(CONFIG_KASAN_GENERIC) && ptr1 == ptr2 &&
+	    counter++ < 16) {
 		kfree(ptr2);
 		goto again;
 	}
@@ -687,7 +692,8 @@ static void kmem_cache_bulk(struct kunit *test)
 	cache = kmem_cache_create("test_cache", size, 0, 0, NULL);
 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
 
-	ret = kmem_cache_alloc_bulk(cache, GFP_KERNEL, ARRAY_SIZE(p), (void **)&p);
+	ret = kmem_cache_alloc_bulk(cache, GFP_KERNEL, ARRAY_SIZE(p),
+				    (void **)&p);
 	if (!ret) {
 		kunit_err(test, "Allocation failed: %s\n", __func__);
 		kmem_cache_destroy(cache);
@@ -869,7 +875,9 @@ static void kmem_cache_invalid_free(struct kunit *test)
 	kmem_cache_destroy(cache);
 }
 
-static void empty_cache_ctor(void *object) { }
+static void empty_cache_ctor(void *object)
+{
+}
 
 static void kmem_cache_double_destroy(struct kunit *test)
 {
@@ -902,7 +910,7 @@ static void kasan_memchr(struct kunit *test)
 	OPTIMIZER_HIDE_VAR(ptr);
 	OPTIMIZER_HIDE_VAR(size);
 	KUNIT_EXPECT_KASAN_FAIL(test,
-		kasan_ptr_result = memchr(ptr, '1', size + 1));
+				kasan_ptr_result = memchr(ptr, '1', size + 1));
 
 	kfree(ptr);
 }
@@ -929,7 +937,7 @@ static void kasan_memcmp(struct kunit *test)
 	OPTIMIZER_HIDE_VAR(ptr);
 	OPTIMIZER_HIDE_VAR(size);
 	KUNIT_EXPECT_KASAN_FAIL(test,
-		kasan_int_result = memcmp(ptr, arr, size+1));
+				kasan_int_result = memcmp(ptr, arr, size + 1));
 	kfree(ptr);
 }
 
@@ -993,8 +1001,9 @@ static void kasan_bitops_test_and_modify(struct kunit *test, int nr, void *addr)
 	KUNIT_EXPECT_KASAN_FAIL(test, kasan_int_result = test_bit(nr, addr));
 
 #if defined(clear_bit_unlock_is_negative_byte)
-	KUNIT_EXPECT_KASAN_FAIL(test, kasan_int_result =
-				clear_bit_unlock_is_negative_byte(nr, addr));
+	KUNIT_EXPECT_KASAN_FAIL(
+		test,
+		kasan_int_result = clear_bit_unlock_is_negative_byte(nr, addr));
 #endif
 }
 
@@ -1040,7 +1049,8 @@ static void kasan_bitops_tags(struct kunit *test)
 
 	/* Do the accesses past the 48 allocated bytes, but within the redone. */
 	kasan_bitops_modify(test, BITS_PER_LONG, (void *)bits + 48);
-	kasan_bitops_test_and_modify(test, BITS_PER_LONG + BITS_PER_BYTE, (void *)bits + 48);
+	kasan_bitops_test_and_modify(test, BITS_PER_LONG + BITS_PER_BYTE,
+				     (void *)bits + 48);
 
 	kfree(bits);
 }

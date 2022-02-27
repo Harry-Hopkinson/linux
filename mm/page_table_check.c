@@ -8,7 +8,7 @@
 #include <linux/page_table_check.h>
 
 #undef pr_fmt
-#define pr_fmt(fmt)	"page_table_check: " fmt
+#define pr_fmt(fmt) "page_table_check: " fmt
 
 struct page_table_check {
 	atomic_t anon_map_count;
@@ -16,7 +16,7 @@ struct page_table_check {
 };
 
 static bool __page_table_check_enabled __initdata =
-				IS_ENABLED(CONFIG_PAGE_TABLE_CHECK_ENFORCED);
+	IS_ENABLED(CONFIG_PAGE_TABLE_CHECK_ENFORCED);
 
 DEFINE_STATIC_KEY_TRUE(page_table_check_disabled);
 EXPORT_SYMBOL(page_table_check_disabled);
@@ -68,13 +68,13 @@ static inline bool pte_user_accessible_page(pte_t pte)
 static inline bool pmd_user_accessible_page(pmd_t pmd)
 {
 	return pmd_leaf(pmd) && (pmd_val(pmd) & _PAGE_PRESENT) &&
-		(pmd_val(pmd) & _PAGE_USER);
+	       (pmd_val(pmd) & _PAGE_USER);
 }
 
 static inline bool pud_user_accessible_page(pud_t pud)
 {
 	return pud_leaf(pud) && (pud_val(pud) & _PAGE_PRESENT) &&
-		(pud_val(pud) & _PAGE_USER);
+	       (pud_val(pud) & _PAGE_USER);
 }
 
 /*
@@ -136,7 +136,8 @@ static void page_table_check_set(struct mm_struct *mm, unsigned long addr,
 
 		if (anon) {
 			BUG_ON(atomic_read(&ptc->file_map_count));
-			BUG_ON(atomic_inc_return(&ptc->anon_map_count) > 1 && rw);
+			BUG_ON(atomic_inc_return(&ptc->anon_map_count) > 1 &&
+			       rw);
 		} else {
 			BUG_ON(atomic_read(&ptc->anon_map_count));
 			BUG_ON(atomic_inc_return(&ptc->file_map_count) < 0);
@@ -212,8 +213,7 @@ void __page_table_check_pte_set(struct mm_struct *mm, unsigned long addr,
 	__page_table_check_pte_clear(mm, addr, *ptep);
 	if (pte_user_accessible_page(pte)) {
 		page_table_check_set(mm, addr, pte_pfn(pte),
-				     PAGE_SIZE >> PAGE_SHIFT,
-				     pte_write(pte));
+				     PAGE_SIZE >> PAGE_SHIFT, pte_write(pte));
 	}
 }
 EXPORT_SYMBOL(__page_table_check_pte_set);
@@ -249,8 +249,7 @@ void __page_table_check_pud_set(struct mm_struct *mm, unsigned long addr,
 EXPORT_SYMBOL(__page_table_check_pud_set);
 
 void __page_table_check_pte_clear_range(struct mm_struct *mm,
-					unsigned long addr,
-					pmd_t pmd)
+					unsigned long addr, pmd_t pmd)
 {
 	if (&init_mm == mm)
 		return;

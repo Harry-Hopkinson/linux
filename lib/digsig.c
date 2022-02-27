@@ -28,9 +28,9 @@
 static struct crypto_shash *shash;
 
 static const char *pkcs_1_v1_5_decode_emsa(const unsigned char *msg,
-						unsigned long  msglen,
-						unsigned long  modulus_bitlen,
-						unsigned long *outlen)
+					   unsigned long msglen,
+					   unsigned long modulus_bitlen,
+					   unsigned long *outlen)
 {
 	unsigned long modulus_len, ps_len, i;
 
@@ -64,9 +64,8 @@ static const char *pkcs_1_v1_5_decode_emsa(const unsigned char *msg,
 /*
  * RSA Signature verification with public key
  */
-static int digsig_verify_rsa(struct key *key,
-		    const char *sig, int siglen,
-		       const char *h, int hlen)
+static int digsig_verify_rsa(struct key *key, const char *sig, int siglen,
+			     const char *h, int hlen)
 {
 	int err = -EINVAL;
 	unsigned long len;
@@ -197,7 +196,7 @@ err1:
  *
  */
 int digsig_verify(struct key *keyring, const char *sig, int siglen,
-						const char *data, int datalen)
+		  const char *data, int datalen)
 {
 	int err = -ENOMEM;
 	struct signature_hdr *sh = (struct signature_hdr *)sig;
@@ -247,7 +246,7 @@ int digsig_verify(struct key *keyring, const char *sig, int siglen,
 
 	/* pass signature mpis address */
 	err = digsig_verify_rsa(key, sig + sizeof(*sh), siglen - sizeof(*sh),
-			     hash, sizeof(hash));
+				hash, sizeof(hash));
 
 err:
 	key_put(key);
@@ -261,11 +260,10 @@ static int __init digsig_init(void)
 	shash = crypto_alloc_shash("sha1", 0, 0);
 	if (IS_ERR(shash)) {
 		pr_err("shash allocation failed\n");
-		return  PTR_ERR(shash);
+		return PTR_ERR(shash);
 	}
 
 	return 0;
-
 }
 
 static void __exit digsig_cleanup(void)

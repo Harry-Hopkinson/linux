@@ -13,7 +13,7 @@
  * Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>.
  */
 
-#define pr_fmt(fmt)	"kexec_elf: " fmt
+#define pr_fmt(fmt) "kexec_elf: " fmt
 
 #include <linux/elf.h>
 #include <linux/kexec.h>
@@ -135,27 +135,27 @@ static int elf_read_ehdr(const char *buf, size_t len, struct elfhdr *ehdr)
 	if (ehdr->e_ident[EI_CLASS] != ELF_CLASS) {
 		pr_debug("Not a supported ELF class.\n");
 		return -ENOEXEC;
-	} else  if (ehdr->e_ident[EI_DATA] != ELFDATA2LSB &&
-		ehdr->e_ident[EI_DATA] != ELFDATA2MSB) {
+	} else if (ehdr->e_ident[EI_DATA] != ELFDATA2LSB &&
+		   ehdr->e_ident[EI_DATA] != ELFDATA2MSB) {
 		pr_debug("Not a supported ELF data format.\n");
 		return -ENOEXEC;
 	}
 
-	buf_ehdr = (struct elfhdr *) buf;
+	buf_ehdr = (struct elfhdr *)buf;
 	if (elf16_to_cpu(ehdr, buf_ehdr->e_ehsize) != sizeof(*buf_ehdr)) {
 		pr_debug("Bad ELF header size.\n");
 		return -ENOEXEC;
 	}
 
-	ehdr->e_type      = elf16_to_cpu(ehdr, buf_ehdr->e_type);
-	ehdr->e_machine   = elf16_to_cpu(ehdr, buf_ehdr->e_machine);
-	ehdr->e_version   = elf32_to_cpu(ehdr, buf_ehdr->e_version);
-	ehdr->e_flags     = elf32_to_cpu(ehdr, buf_ehdr->e_flags);
+	ehdr->e_type = elf16_to_cpu(ehdr, buf_ehdr->e_type);
+	ehdr->e_machine = elf16_to_cpu(ehdr, buf_ehdr->e_machine);
+	ehdr->e_version = elf32_to_cpu(ehdr, buf_ehdr->e_version);
+	ehdr->e_flags = elf32_to_cpu(ehdr, buf_ehdr->e_flags);
 	ehdr->e_phentsize = elf16_to_cpu(ehdr, buf_ehdr->e_phentsize);
-	ehdr->e_phnum     = elf16_to_cpu(ehdr, buf_ehdr->e_phnum);
+	ehdr->e_phnum = elf16_to_cpu(ehdr, buf_ehdr->e_phnum);
 	ehdr->e_shentsize = elf16_to_cpu(ehdr, buf_ehdr->e_shentsize);
-	ehdr->e_shnum     = elf16_to_cpu(ehdr, buf_ehdr->e_shnum);
-	ehdr->e_shstrndx  = elf16_to_cpu(ehdr, buf_ehdr->e_shstrndx);
+	ehdr->e_shnum = elf16_to_cpu(ehdr, buf_ehdr->e_shnum);
+	ehdr->e_shstrndx = elf16_to_cpu(ehdr, buf_ehdr->e_shstrndx);
 
 	switch (ehdr->e_ident[EI_CLASS]) {
 	case ELFCLASS64:
@@ -184,7 +184,6 @@ static int elf_read_ehdr(const char *buf, size_t len, struct elfhdr *ehdr)
  */
 static bool elf_is_phdr_sane(const struct elf_phdr *phdr, size_t buf_len)
 {
-
 	if (phdr->p_offset + phdr->p_filesz < phdr->p_offset) {
 		pr_debug("ELF segment location wraps around.\n");
 		return false;
@@ -200,38 +199,37 @@ static bool elf_is_phdr_sane(const struct elf_phdr *phdr, size_t buf_len)
 }
 
 static int elf_read_phdr(const char *buf, size_t len,
-			 struct kexec_elf_info *elf_info,
-			 int idx)
+			 struct kexec_elf_info *elf_info, int idx)
 {
 	/* Override the const in proghdrs, we are the ones doing the loading. */
-	struct elf_phdr *phdr = (struct elf_phdr *) &elf_info->proghdrs[idx];
+	struct elf_phdr *phdr = (struct elf_phdr *)&elf_info->proghdrs[idx];
 	const struct elfhdr *ehdr = elf_info->ehdr;
 	const char *pbuf;
 	struct elf_phdr *buf_phdr;
 
 	pbuf = buf + elf_info->ehdr->e_phoff + (idx * sizeof(*buf_phdr));
-	buf_phdr = (struct elf_phdr *) pbuf;
+	buf_phdr = (struct elf_phdr *)pbuf;
 
-	phdr->p_type   = elf32_to_cpu(elf_info->ehdr, buf_phdr->p_type);
-	phdr->p_flags  = elf32_to_cpu(elf_info->ehdr, buf_phdr->p_flags);
+	phdr->p_type = elf32_to_cpu(elf_info->ehdr, buf_phdr->p_type);
+	phdr->p_flags = elf32_to_cpu(elf_info->ehdr, buf_phdr->p_flags);
 
 	switch (ehdr->e_ident[EI_CLASS]) {
 	case ELFCLASS64:
 		phdr->p_offset = elf64_to_cpu(ehdr, buf_phdr->p_offset);
-		phdr->p_paddr  = elf64_to_cpu(ehdr, buf_phdr->p_paddr);
-		phdr->p_vaddr  = elf64_to_cpu(ehdr, buf_phdr->p_vaddr);
+		phdr->p_paddr = elf64_to_cpu(ehdr, buf_phdr->p_paddr);
+		phdr->p_vaddr = elf64_to_cpu(ehdr, buf_phdr->p_vaddr);
 		phdr->p_filesz = elf64_to_cpu(ehdr, buf_phdr->p_filesz);
-		phdr->p_memsz  = elf64_to_cpu(ehdr, buf_phdr->p_memsz);
-		phdr->p_align  = elf64_to_cpu(ehdr, buf_phdr->p_align);
+		phdr->p_memsz = elf64_to_cpu(ehdr, buf_phdr->p_memsz);
+		phdr->p_align = elf64_to_cpu(ehdr, buf_phdr->p_align);
 		break;
 
 	case ELFCLASS32:
 		phdr->p_offset = elf32_to_cpu(ehdr, buf_phdr->p_offset);
-		phdr->p_paddr  = elf32_to_cpu(ehdr, buf_phdr->p_paddr);
-		phdr->p_vaddr  = elf32_to_cpu(ehdr, buf_phdr->p_vaddr);
+		phdr->p_paddr = elf32_to_cpu(ehdr, buf_phdr->p_paddr);
+		phdr->p_vaddr = elf32_to_cpu(ehdr, buf_phdr->p_vaddr);
 		phdr->p_filesz = elf32_to_cpu(ehdr, buf_phdr->p_filesz);
-		phdr->p_memsz  = elf32_to_cpu(ehdr, buf_phdr->p_memsz);
-		phdr->p_align  = elf32_to_cpu(ehdr, buf_phdr->p_align);
+		phdr->p_memsz = elf32_to_cpu(ehdr, buf_phdr->p_memsz);
+		phdr->p_align = elf32_to_cpu(ehdr, buf_phdr->p_align);
 		break;
 
 	default:
@@ -325,7 +323,7 @@ void kexec_free_elf_info(struct kexec_elf_info *elf_info)
  * kexec_build_elf_info - read ELF executable and check that we can use it
  */
 int kexec_build_elf_info(const char *buf, size_t len, struct elfhdr *ehdr,
-			       struct kexec_elf_info *elf_info)
+			 struct kexec_elf_info *elf_info)
 {
 	int i;
 	int ret;
@@ -361,7 +359,6 @@ error:
 	return -ENOEXEC;
 }
 
-
 int kexec_elf_probe(const char *buf, unsigned long len)
 {
 	struct elfhdr ehdr;
@@ -386,9 +383,8 @@ int kexec_elf_probe(const char *buf, unsigned long len)
  * 0 on success, negative value on failure.
  */
 int kexec_elf_load(struct kimage *image, struct elfhdr *ehdr,
-			 struct kexec_elf_info *elf_info,
-			 struct kexec_buf *kbuf,
-			 unsigned long *lowest_load_addr)
+		   struct kexec_elf_info *elf_info, struct kexec_buf *kbuf,
+		   unsigned long *lowest_load_addr)
 {
 	unsigned long lowest_addr = UINT_MAX;
 	int ret;
@@ -408,7 +404,7 @@ int kexec_elf_load(struct kimage *image, struct elfhdr *ehdr,
 		if (size > phdr->p_memsz)
 			size = phdr->p_memsz;
 
-		kbuf->buffer = (void *) elf_info->buffer + phdr->p_offset;
+		kbuf->buffer = (void *)elf_info->buffer + phdr->p_offset;
 		kbuf->bufsz = size;
 		kbuf->memsz = phdr->p_memsz;
 		kbuf->buf_align = phdr->p_align;
@@ -425,6 +421,6 @@ int kexec_elf_load(struct kimage *image, struct elfhdr *ehdr,
 
 	*lowest_load_addr = lowest_addr;
 	ret = 0;
- out:
+out:
 	return ret;
 }

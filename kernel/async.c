@@ -6,7 +6,6 @@
  * Author: Arjan van de Ven <arjan@linux.intel.com>
  */
 
-
 /*
 
 Goals and Theory of Operation
@@ -57,21 +56,21 @@ asynchronous and synchronous parts of the kernel.
 
 static async_cookie_t next_cookie = 1;
 
-#define MAX_WORK		32768
-#define ASYNC_COOKIE_MAX	ULLONG_MAX	/* infinity cookie */
+#define MAX_WORK 32768
+#define ASYNC_COOKIE_MAX ULLONG_MAX /* infinity cookie */
 
-static LIST_HEAD(async_global_pending);	/* pending from all registered doms */
+static LIST_HEAD(async_global_pending); /* pending from all registered doms */
 static ASYNC_DOMAIN(async_dfl_domain);
 static DEFINE_SPINLOCK(async_lock);
 
 struct async_entry {
-	struct list_head	domain_list;
-	struct list_head	global_list;
-	struct work_struct	work;
-	async_cookie_t		cookie;
-	async_func_t		func;
-	void			*data;
-	struct async_domain	*domain;
+	struct list_head domain_list;
+	struct list_head global_list;
+	struct work_struct work;
+	async_cookie_t cookie;
+	async_func_t func;
+	void *data;
+	struct async_domain *domain;
 };
 
 static DECLARE_WAIT_QUEUE_HEAD(async_done);
@@ -95,11 +94,13 @@ static async_cookie_t lowest_in_progress(struct async_domain *domain)
 	if (domain) {
 		if (!list_empty(&domain->pending))
 			first = list_first_entry(&domain->pending,
-					struct async_entry, domain_list);
+						 struct async_entry,
+						 domain_list);
 	} else {
 		if (!list_empty(&async_global_pending))
 			first = list_first_entry(&async_global_pending,
-					struct async_entry, global_list);
+						 struct async_entry,
+						 global_list);
 	}
 
 	if (first)
@@ -264,7 +265,8 @@ EXPORT_SYMBOL_GPL(async_synchronize_full_domain);
  * synchronization domain specified by @domain submitted prior to @cookie
  * have been done.
  */
-void async_synchronize_cookie_domain(async_cookie_t cookie, struct async_domain *domain)
+void async_synchronize_cookie_domain(async_cookie_t cookie,
+				     struct async_domain *domain)
 {
 	ktime_t starttime;
 
@@ -273,8 +275,8 @@ void async_synchronize_cookie_domain(async_cookie_t cookie, struct async_domain 
 
 	wait_event(async_done, lowest_in_progress(domain) >= cookie);
 
-	pr_debug("async_continuing @ %i after %lli usec\n", task_pid_nr(current),
-		 microseconds_since(starttime));
+	pr_debug("async_continuing @ %i after %lli usec\n",
+		 task_pid_nr(current), microseconds_since(starttime));
 }
 EXPORT_SYMBOL_GPL(async_synchronize_cookie_domain);
 

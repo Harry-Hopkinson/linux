@@ -12,7 +12,7 @@ static int slab_errors;
 static void test_clobber_zone(struct kunit *test)
 {
 	struct kmem_cache *s = kmem_cache_create("TestSlub_RZ_alloc", 64, 0,
-				SLAB_RED_ZONE, NULL);
+						 SLAB_RED_ZONE, NULL);
 	u8 *p = kmem_cache_alloc(s, GFP_KERNEL);
 
 	kasan_disable_current();
@@ -29,8 +29,8 @@ static void test_clobber_zone(struct kunit *test)
 #ifndef CONFIG_KASAN
 static void test_next_pointer(struct kunit *test)
 {
-	struct kmem_cache *s = kmem_cache_create("TestSlub_next_ptr_free", 64, 0,
-				SLAB_POISON, NULL);
+	struct kmem_cache *s = kmem_cache_create("TestSlub_next_ptr_free", 64,
+						 0, SLAB_POISON, NULL);
 	u8 *p = kmem_cache_alloc(s, GFP_KERNEL);
 	unsigned long tmp;
 	unsigned long *ptr_addr;
@@ -74,8 +74,8 @@ static void test_next_pointer(struct kunit *test)
 
 static void test_first_word(struct kunit *test)
 {
-	struct kmem_cache *s = kmem_cache_create("TestSlub_1th_word_free", 64, 0,
-				SLAB_POISON, NULL);
+	struct kmem_cache *s = kmem_cache_create("TestSlub_1th_word_free", 64,
+						 0, SLAB_POISON, NULL);
 	u8 *p = kmem_cache_alloc(s, GFP_KERNEL);
 
 	kmem_cache_free(s, p);
@@ -89,8 +89,8 @@ static void test_first_word(struct kunit *test)
 
 static void test_clobber_50th_byte(struct kunit *test)
 {
-	struct kmem_cache *s = kmem_cache_create("TestSlub_50th_word_free", 64, 0,
-				SLAB_POISON, NULL);
+	struct kmem_cache *s = kmem_cache_create("TestSlub_50th_word_free", 64,
+						 0, SLAB_POISON, NULL);
 	u8 *p = kmem_cache_alloc(s, GFP_KERNEL);
 
 	kmem_cache_free(s, p);
@@ -106,7 +106,7 @@ static void test_clobber_50th_byte(struct kunit *test)
 static void test_clobber_redzone_free(struct kunit *test)
 {
 	struct kmem_cache *s = kmem_cache_create("TestSlub_RZ_free", 64, 0,
-				SLAB_RED_ZONE, NULL);
+						 SLAB_RED_ZONE, NULL);
 	u8 *p = kmem_cache_alloc(s, GFP_KERNEL);
 
 	kasan_disable_current();
@@ -124,23 +124,21 @@ static int test_init(struct kunit *test)
 {
 	slab_errors = 0;
 
-	kunit_add_named_resource(test, NULL, NULL, &resource,
-					"slab_errors", &slab_errors);
+	kunit_add_named_resource(test, NULL, NULL, &resource, "slab_errors",
+				 &slab_errors);
 	return 0;
 }
 
-static struct kunit_case test_cases[] = {
-	KUNIT_CASE(test_clobber_zone),
+static struct kunit_case test_cases[] = { KUNIT_CASE(test_clobber_zone),
 
 #ifndef CONFIG_KASAN
-	KUNIT_CASE(test_next_pointer),
-	KUNIT_CASE(test_first_word),
-	KUNIT_CASE(test_clobber_50th_byte),
+					  KUNIT_CASE(test_next_pointer),
+					  KUNIT_CASE(test_first_word),
+					  KUNIT_CASE(test_clobber_50th_byte),
 #endif
 
-	KUNIT_CASE(test_clobber_redzone_free),
-	{}
-};
+					  KUNIT_CASE(test_clobber_redzone_free),
+					  {} };
 
 static struct kunit_suite test_suite = {
 	.name = "slub_test",

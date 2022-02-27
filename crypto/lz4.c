@@ -50,11 +50,10 @@ static void lz4_exit(struct crypto_tfm *tfm)
 	lz4_free_ctx(NULL, ctx->lz4_comp_mem);
 }
 
-static int __lz4_compress_crypto(const u8 *src, unsigned int slen,
-				 u8 *dst, unsigned int *dlen, void *ctx)
+static int __lz4_compress_crypto(const u8 *src, unsigned int slen, u8 *dst,
+				 unsigned int *dlen, void *ctx)
 {
-	int out_len = LZ4_compress_default(src, dst,
-		slen, *dlen, ctx);
+	int out_len = LZ4_compress_default(src, dst, slen, *dlen, ctx);
 
 	if (!out_len)
 		return -EINVAL;
@@ -78,8 +77,8 @@ static int lz4_compress_crypto(struct crypto_tfm *tfm, const u8 *src,
 	return __lz4_compress_crypto(src, slen, dst, dlen, ctx->lz4_comp_mem);
 }
 
-static int __lz4_decompress_crypto(const u8 *src, unsigned int slen,
-				   u8 *dst, unsigned int *dlen, void *ctx)
+static int __lz4_decompress_crypto(const u8 *src, unsigned int slen, u8 *dst,
+				   unsigned int *dlen, void *ctx)
 {
 	int out_len = LZ4_decompress_safe(src, dst, slen, *dlen);
 
@@ -98,36 +97,32 @@ static int lz4_sdecompress(struct crypto_scomp *tfm, const u8 *src,
 }
 
 static int lz4_decompress_crypto(struct crypto_tfm *tfm, const u8 *src,
-				 unsigned int slen, u8 *dst,
-				 unsigned int *dlen)
+				 unsigned int slen, u8 *dst, unsigned int *dlen)
 {
 	return __lz4_decompress_crypto(src, slen, dst, dlen, NULL);
 }
 
 static struct crypto_alg alg_lz4 = {
-	.cra_name		= "lz4",
-	.cra_driver_name	= "lz4-generic",
-	.cra_flags		= CRYPTO_ALG_TYPE_COMPRESS,
-	.cra_ctxsize		= sizeof(struct lz4_ctx),
-	.cra_module		= THIS_MODULE,
-	.cra_init		= lz4_init,
-	.cra_exit		= lz4_exit,
-	.cra_u			= { .compress = {
-	.coa_compress		= lz4_compress_crypto,
-	.coa_decompress		= lz4_decompress_crypto } }
+	.cra_name = "lz4",
+	.cra_driver_name = "lz4-generic",
+	.cra_flags = CRYPTO_ALG_TYPE_COMPRESS,
+	.cra_ctxsize = sizeof(struct lz4_ctx),
+	.cra_module = THIS_MODULE,
+	.cra_init = lz4_init,
+	.cra_exit = lz4_exit,
+	.cra_u = { .compress = { .coa_compress = lz4_compress_crypto,
+				 .coa_decompress = lz4_decompress_crypto } }
 };
 
-static struct scomp_alg scomp = {
-	.alloc_ctx		= lz4_alloc_ctx,
-	.free_ctx		= lz4_free_ctx,
-	.compress		= lz4_scompress,
-	.decompress		= lz4_sdecompress,
-	.base			= {
-		.cra_name	= "lz4",
-		.cra_driver_name = "lz4-scomp",
-		.cra_module	 = THIS_MODULE,
-	}
-};
+static struct scomp_alg scomp = { .alloc_ctx = lz4_alloc_ctx,
+				  .free_ctx = lz4_free_ctx,
+				  .compress = lz4_scompress,
+				  .decompress = lz4_sdecompress,
+				  .base = {
+					  .cra_name = "lz4",
+					  .cra_driver_name = "lz4-scomp",
+					  .cra_module = THIS_MODULE,
+				  } };
 
 static int __init lz4_mod_init(void)
 {

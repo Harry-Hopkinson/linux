@@ -6,7 +6,6 @@
 #include <kunit/test.h>
 #include <linux/bits.h>
 
-
 static void genmask_test(struct kunit *test)
 {
 	KUNIT_EXPECT_EQ(test, 1ul, GENMASK(0, 0));
@@ -20,8 +19,6 @@ static void genmask_test(struct kunit *test)
 	GENMASK(0, 10);
 	GENMASK(9, 10);
 #endif
-
-
 }
 
 static void genmask_ull_test(struct kunit *test)
@@ -57,7 +54,6 @@ static void genmask_input_check_test(struct kunit *test)
 	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(1, 1));
 	KUNIT_EXPECT_EQ(test, 0, GENMASK_INPUT_CHECK(39, 21));
 }
-
 
 static struct kunit_case bits_test_cases[] = {
 	KUNIT_CASE(genmask_test),

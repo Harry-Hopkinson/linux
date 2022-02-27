@@ -114,8 +114,8 @@ static __printf(2, 3) int cn_printf(struct core_name *cn, const char *fmt, ...)
 	return ret;
 }
 
-static __printf(2, 3)
-int cn_esc_printf(struct core_name *cn, const char *fmt, ...)
+static __printf(2, 3) int cn_esc_printf(struct core_name *cn, const char *fmt,
+					...)
 {
 	int cur = cn->used;
 	va_list arg;
@@ -131,8 +131,8 @@ int cn_esc_printf(struct core_name *cn, const char *fmt, ...)
 		 * resulting corefile path to consist of a ".." or ".".
 		 */
 		if ((cn->used - cur == 1 && cn->corename[cur] == '.') ||
-				(cn->used - cur == 2 && cn->corename[cur] == '.'
-				&& cn->corename[cur+1] == '.'))
+		    (cn->used - cur == 2 && cn->corename[cur] == '.' &&
+		     cn->corename[cur + 1] == '.'))
 			cn->corename[cur] = '!';
 
 		/*
@@ -255,20 +255,19 @@ static int format_corename(struct core_name *cn, struct coredump_params *cprm,
 			case 'p':
 				pid_in_pattern = 1;
 				err = cn_printf(cn, "%d",
-					      task_tgid_vnr(current));
+						task_tgid_vnr(current));
 				break;
 			/* global pid */
 			case 'P':
 				err = cn_printf(cn, "%d",
-					      task_tgid_nr(current));
+						task_tgid_nr(current));
 				break;
 			case 'i':
 				err = cn_printf(cn, "%d",
-					      task_pid_vnr(current));
+						task_pid_vnr(current));
 				break;
 			case 'I':
-				err = cn_printf(cn, "%d",
-					      task_pid_nr(current));
+				err = cn_printf(cn, "%d", task_pid_nr(current));
 				break;
 			/* uid */
 			case 'u':
@@ -284,7 +283,7 @@ static int format_corename(struct core_name *cn, struct coredump_params *cprm,
 				break;
 			case 'd':
 				err = cn_printf(cn, "%d",
-					__get_dumpable(cprm->mm_flags));
+						__get_dumpable(cprm->mm_flags));
 				break;
 			/* signal that caused the coredump */
 			case 's':
@@ -303,7 +302,7 @@ static int format_corename(struct core_name *cn, struct coredump_params *cprm,
 			case 'h':
 				down_read(&uts_sem);
 				err = cn_esc_printf(cn, "%s",
-					      utsname()->nodename);
+						    utsname()->nodename);
 				up_read(&uts_sem);
 				break;
 			/* executable, could be changed by prctl PR_SET_NAME etc */
@@ -319,8 +318,7 @@ static int format_corename(struct core_name *cn, struct coredump_params *cprm,
 				break;
 			/* core limit size */
 			case 'c':
-				err = cn_printf(cn, "%lu",
-					      rlimit(RLIMIT_CORE));
+				err = cn_printf(cn, "%lu", rlimit(RLIMIT_CORE));
 				break;
 			default:
 				break;
@@ -356,7 +354,7 @@ static int zap_process(struct task_struct *start, int exit_code)
 	start->signal->group_exit_code = exit_code;
 	start->signal->group_stop_count = 0;
 
-	for_each_thread(start, t) {
+	for_each_thread (start, t) {
 		task_clear_jobctl_pending(t, JOBCTL_PENDING_MASK);
 		if (t != current && !(t->flags & PF_POSTCOREDUMP)) {
 			sigaddset(&t->pending.signal, SIGKILL);
@@ -368,8 +366,8 @@ static int zap_process(struct task_struct *start, int exit_code)
 	return nr;
 }
 
-static int zap_threads(struct task_struct *tsk,
-			struct core_state *core_state, int exit_code)
+static int zap_threads(struct task_struct *tsk, struct core_state *core_state,
+		       int exit_code)
 {
 	struct signal_struct *signal = tsk->signal;
 	int nr = -EAGAIN;
@@ -500,7 +498,7 @@ static int umh_pipe_setup(struct subprocess_info *info, struct cred *new)
 	err = replace_fd(0, files[0], 0);
 	fput(files[0]);
 	/* and disallow core files too */
-	current->signal->rlim[RLIMIT_CORE] = (struct rlimit){1, 1};
+	current->signal->rlim[RLIMIT_CORE] = (struct rlimit){ 1, 1 };
 
 	return err;
 }
@@ -510,7 +508,7 @@ void do_coredump(const kernel_siginfo_t *siginfo)
 	struct core_state core_state;
 	struct core_name cn;
 	struct mm_struct *mm = current->mm;
-	struct linux_binfmt * binfmt;
+	struct linux_binfmt *binfmt;
 	const struct cred *old_cred;
 	struct cred *cred;
 	int retval = 0;
@@ -552,7 +550,7 @@ void do_coredump(const kernel_siginfo_t *siginfo)
 	 */
 	if (__get_dumpable(cprm.mm_flags) == SUID_DUMP_ROOT) {
 		/* Setuid core dump mode */
-		cred->fsuid = GLOBAL_ROOT_UID;	/* Dump root private */
+		cred->fsuid = GLOBAL_ROOT_UID; /* Dump root private */
 		need_suid_safe = true;
 	}
 
@@ -593,8 +591,8 @@ void do_coredump(const kernel_siginfo_t *siginfo)
 			 * core_pattern process dies.
 			 */
 			printk(KERN_WARNING
-				"Process %d(%s) has RLIMIT_CORE set to 1\n",
-				task_tgid_vnr(current), current->comm);
+			       "Process %d(%s) has RLIMIT_CORE set to 1\n",
+			       task_tgid_vnr(current), current->comm);
 			printk(KERN_WARNING "Aborting core\n");
 			goto fail_unlock;
 		}
@@ -620,9 +618,10 @@ void do_coredump(const kernel_siginfo_t *siginfo)
 		helper_argv[argi] = NULL;
 
 		retval = -ENOMEM;
-		sub_info = call_usermodehelper_setup(helper_argv[0],
-						helper_argv, NULL, GFP_KERNEL,
-						umh_pipe_setup, NULL, &cprm);
+		sub_info =
+			call_usermodehelper_setup(helper_argv[0], helper_argv,
+						  NULL, GFP_KERNEL,
+						  umh_pipe_setup, NULL, &cprm);
 		if (sub_info)
 			retval = call_usermodehelper_exec(sub_info,
 							  UMH_WAIT_EXEC);
@@ -636,16 +635,16 @@ void do_coredump(const kernel_siginfo_t *siginfo)
 	} else {
 		struct user_namespace *mnt_userns;
 		struct inode *inode;
-		int open_flags = O_CREAT | O_RDWR | O_NOFOLLOW |
-				 O_LARGEFILE | O_EXCL;
+		int open_flags =
+			O_CREAT | O_RDWR | O_NOFOLLOW | O_LARGEFILE | O_EXCL;
 
 		if (cprm.limit < binfmt->min_coredump)
 			goto fail_unlock;
 
 		if (need_suid_safe && cn.corename[0] != '/') {
-			printk(KERN_WARNING "Pid %d(%s) can only dump core "\
-				"to fully qualified path!\n",
-				task_tgid_vnr(current), current->comm);
+			printk(KERN_WARNING "Pid %d(%s) can only dump core "
+					    "to fully qualified path!\n",
+			       task_tgid_vnr(current), current->comm);
 			printk(KERN_WARNING "Skipping core dump\n");
 			goto fail_unlock;
 		}
@@ -715,19 +714,21 @@ void do_coredump(const kernel_siginfo_t *siginfo)
 		mnt_userns = file_mnt_user_ns(cprm.file);
 		if (!uid_eq(i_uid_into_mnt(mnt_userns, inode),
 			    current_fsuid())) {
-			pr_info_ratelimited("Core dump to %s aborted: cannot preserve file owner\n",
-					    cn.corename);
+			pr_info_ratelimited(
+				"Core dump to %s aborted: cannot preserve file owner\n",
+				cn.corename);
 			goto close_fail;
 		}
 		if ((inode->i_mode & 0677) != 0600) {
-			pr_info_ratelimited("Core dump to %s aborted: cannot preserve file permissions\n",
-					    cn.corename);
+			pr_info_ratelimited(
+				"Core dump to %s aborted: cannot preserve file permissions\n",
+				cn.corename);
 			goto close_fail;
 		}
 		if (!(cprm.file->f_mode & FMODE_CAN_WRITE))
 			goto close_fail;
-		if (do_truncate(mnt_userns, cprm.file->f_path.dentry,
-				0, 0, cprm.file))
+		if (do_truncate(mnt_userns, cprm.file->f_path.dentry, 0, 0,
+				cprm.file))
 			goto close_fail;
 	}
 
@@ -790,7 +791,6 @@ static int __dump_emit(struct coredump_params *cprm, const void *addr, int nr)
 	ssize_t n;
 	if (cprm->written + nr > cprm->limit)
 		return 0;
-
 
 	if (dump_interrupted())
 		return 0;
@@ -896,18 +896,16 @@ EXPORT_SYMBOL(dump_align);
 
 void validate_coredump_safety(void)
 {
-	if (suid_dumpable == SUID_DUMP_ROOT &&
-	    core_pattern[0] != '/' && core_pattern[0] != '|') {
-		pr_warn(
-"Unsafe core_pattern used with fs.suid_dumpable=2.\n"
-"Pipe handler or fully qualified core dump path required.\n"
-"Set kernel.core_pattern before fs.suid_dumpable.\n"
-		);
+	if (suid_dumpable == SUID_DUMP_ROOT && core_pattern[0] != '/' &&
+	    core_pattern[0] != '|') {
+		pr_warn("Unsafe core_pattern used with fs.suid_dumpable=2.\n"
+			"Pipe handler or fully qualified core dump path required.\n"
+			"Set kernel.core_pattern before fs.suid_dumpable.\n");
 	}
 }
 
 static int proc_dostring_coredump(struct ctl_table *table, int write,
-		  void *buffer, size_t *lenp, loff_t *ppos)
+				  void *buffer, size_t *lenp, loff_t *ppos)
 {
 	int error = proc_dostring(table, write, buffer, lenp, ppos);
 
@@ -918,27 +916,27 @@ static int proc_dostring_coredump(struct ctl_table *table, int write,
 
 static struct ctl_table coredump_sysctls[] = {
 	{
-		.procname	= "core_uses_pid",
-		.data		= &core_uses_pid,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec,
+		.procname = "core_uses_pid",
+		.data = &core_uses_pid,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_dointvec,
 	},
 	{
-		.procname	= "core_pattern",
-		.data		= core_pattern,
-		.maxlen		= CORENAME_MAX_SIZE,
-		.mode		= 0644,
-		.proc_handler	= proc_dostring_coredump,
+		.procname = "core_pattern",
+		.data = core_pattern,
+		.maxlen = CORENAME_MAX_SIZE,
+		.mode = 0644,
+		.proc_handler = proc_dostring_coredump,
 	},
 	{
-		.procname	= "core_pipe_limit",
-		.data		= &core_pipe_limit,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec,
+		.procname = "core_pipe_limit",
+		.data = &core_pipe_limit,
+		.maxlen = sizeof(unsigned int),
+		.mode = 0644,
+		.proc_handler = proc_dointvec,
 	},
-	{ }
+	{}
 };
 
 static int __init init_fs_coredump_sysctls(void)
@@ -986,7 +984,7 @@ static bool always_dump_vma(struct vm_area_struct *vma)
 static unsigned long vma_dump_size(struct vm_area_struct *vma,
 				   unsigned long mm_flags)
 {
-#define FILTER(type)	(mm_flags & (1UL << MMF_DUMP_##type))
+#define FILTER(type) (mm_flags & (1UL << MMF_DUMP_##type))
 
 	/* always dump the vdso and vsyscall sections */
 	if (always_dump_vma(vma))
@@ -1020,7 +1018,8 @@ static unsigned long vma_dump_size(struct vm_area_struct *vma,
 	/* By default, dump shared memory if mapped from an anonymous file. */
 	if (vma->vm_flags & VM_SHARED) {
 		if (file_inode(vma->vm_file)->i_nlink == 0 ?
-		    FILTER(ANON_SHARED) : FILTER(MAPPED_SHARED))
+			    FILTER(ANON_SHARED) :
+			    FILTER(MAPPED_SHARED))
 			goto whole;
 		return 0;
 	}
@@ -1038,12 +1037,12 @@ static unsigned long vma_dump_size(struct vm_area_struct *vma,
 	 * If this is the beginning of an executable file mapping,
 	 * dump the first page to aid in determining what was mapped here.
 	 */
-	if (FILTER(ELF_HEADERS) &&
-	    vma->vm_pgoff == 0 && (vma->vm_flags & VM_READ) &&
+	if (FILTER(ELF_HEADERS) && vma->vm_pgoff == 0 &&
+	    (vma->vm_flags & VM_READ) &&
 	    (READ_ONCE(file_inode(vma->vm_file)->i_mode) & 0111) != 0)
 		return PAGE_SIZE;
 
-#undef	FILTER
+#undef FILTER
 
 	return 0;
 
@@ -1109,7 +1108,7 @@ int dump_vma_snapshot(struct coredump_params *cprm, int *vma_count,
 	}
 
 	for (i = 0, vma = first_vma(current, gate_vma); vma != NULL;
-			vma = next_vma(vma, gate_vma), i++) {
+	     vma = next_vma(vma, gate_vma), i++) {
 		struct core_vma_metadata *m = (*vma_meta) + i;
 
 		m->start = vma->vm_start;

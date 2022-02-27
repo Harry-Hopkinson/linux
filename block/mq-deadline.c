@@ -29,29 +29,31 @@
 /*
  * See Documentation/block/deadline-iosched.rst
  */
-static const int read_expire = HZ / 2;  /* max time before a read is submitted. */
-static const int write_expire = 5 * HZ; /* ditto for writes, these limits are SOFT! */
+static const int read_expire =
+	HZ / 2; /* max time before a read is submitted. */
+static const int write_expire =
+	5 * HZ; /* ditto for writes, these limits are SOFT! */
 /*
  * Time after which to dispatch lower priority requests even if higher
  * priority requests are pending.
  */
 static const int prio_aging_expire = 10 * HZ;
-static const int writes_starved = 2;    /* max times reads can starve a write */
-static const int fifo_batch = 16;       /* # of sequential requests treated as one
+static const int writes_starved = 2; /* max times reads can starve a write */
+static const int fifo_batch = 16; /* # of sequential requests treated as one
 				     by the above parameters. For throughput. */
 
 enum dd_data_dir {
-	DD_READ		= READ,
-	DD_WRITE	= WRITE,
+	DD_READ = READ,
+	DD_WRITE = WRITE,
 };
 
 enum { DD_DIR_COUNT = 2 };
 
 enum dd_prio {
-	DD_RT_PRIO	= 0,
-	DD_BE_PRIO	= 1,
-	DD_IDLE_PRIO	= 2,
-	DD_PRIO_MAX	= 2,
+	DD_RT_PRIO = 0,
+	DD_BE_PRIO = 1,
+	DD_IDLE_PRIO = 2,
+	DD_PRIO_MAX = 2,
 };
 
 enum { DD_PRIO_COUNT = 3 };
@@ -90,8 +92,8 @@ struct deadline_data {
 
 	/* Data direction of latest dispatched request. */
 	enum dd_data_dir last_dir;
-	unsigned int batching;		/* number of sequential requests made */
-	unsigned int starved;		/* times reads have starved writes */
+	unsigned int batching; /* number of sequential requests made */
+	unsigned int starved; /* times reads have starved writes */
 
 	/*
 	 * settings that change how the i/o scheduler behaves
@@ -109,14 +111,14 @@ struct deadline_data {
 
 /* Maps an I/O priority class to a deadline scheduler priority. */
 static const enum dd_prio ioprio_class_to_prio[] = {
-	[IOPRIO_CLASS_NONE]	= DD_BE_PRIO,
-	[IOPRIO_CLASS_RT]	= DD_RT_PRIO,
-	[IOPRIO_CLASS_BE]	= DD_BE_PRIO,
-	[IOPRIO_CLASS_IDLE]	= DD_IDLE_PRIO,
+	[IOPRIO_CLASS_NONE] = DD_BE_PRIO,
+	[IOPRIO_CLASS_RT] = DD_RT_PRIO,
+	[IOPRIO_CLASS_BE] = DD_BE_PRIO,
+	[IOPRIO_CLASS_IDLE] = DD_IDLE_PRIO,
 };
 
-static inline struct rb_root *
-deadline_rb_root(struct dd_per_prio *per_prio, struct request *rq)
+static inline struct rb_root *deadline_rb_root(struct dd_per_prio *per_prio,
+					       struct request *rq)
 {
 	return &per_prio->sort_list[rq_data_dir(rq)];
 }
@@ -133,8 +135,7 @@ static u8 dd_rq_ioclass(struct request *rq)
 /*
  * get the request after `rq' in sector-sorted order
  */
-static inline struct request *
-deadline_latter_request(struct request *rq)
+static inline struct request *deadline_latter_request(struct request *rq)
 {
 	struct rb_node *node = rb_next(&rq->rb_node);
 
@@ -144,16 +145,15 @@ deadline_latter_request(struct request *rq)
 	return NULL;
 }
 
-static void
-deadline_add_rq_rb(struct dd_per_prio *per_prio, struct request *rq)
+static void deadline_add_rq_rb(struct dd_per_prio *per_prio, struct request *rq)
 {
 	struct rb_root *root = deadline_rb_root(per_prio, rq);
 
 	elv_rb_add(root, rq);
 }
 
-static inline void
-deadline_del_rq_rb(struct dd_per_prio *per_prio, struct request *rq)
+static inline void deadline_del_rq_rb(struct dd_per_prio *per_prio,
+				      struct request *rq)
 {
 	const enum dd_data_dir data_dir = rq_data_dir(rq);
 
@@ -235,9 +235,9 @@ static void dd_merged_requests(struct request_queue *q, struct request *req,
 /*
  * move an entry to dispatch queue
  */
-static void
-deadline_move_request(struct deadline_data *dd, struct dd_per_prio *per_prio,
-		      struct request *rq)
+static void deadline_move_request(struct deadline_data *dd,
+				  struct dd_per_prio *per_prio,
+				  struct request *rq)
 {
 	const enum dd_data_dir data_dir = rq_data_dir(rq);
 
@@ -281,9 +281,9 @@ static inline int deadline_check_fifo(struct dd_per_prio *per_prio,
  * For the specified data direction, return the next request to
  * dispatch using arrival ordered lists.
  */
-static struct request *
-deadline_fifo_request(struct deadline_data *dd, struct dd_per_prio *per_prio,
-		      enum dd_data_dir data_dir)
+static struct request *deadline_fifo_request(struct deadline_data *dd,
+					     struct dd_per_prio *per_prio,
+					     enum dd_data_dir data_dir)
 {
 	struct request *rq;
 	unsigned long flags;
@@ -300,7 +300,7 @@ deadline_fifo_request(struct deadline_data *dd, struct dd_per_prio *per_prio,
 	 * an unlocked target zone.
 	 */
 	spin_lock_irqsave(&dd->zone_lock, flags);
-	list_for_each_entry(rq, &per_prio->fifo_list[DD_WRITE], queuelist) {
+	list_for_each_entry (rq, &per_prio->fifo_list[DD_WRITE], queuelist) {
 		if (blk_req_can_dispatch_to_zone(rq))
 			goto out;
 	}
@@ -315,9 +315,9 @@ out:
  * For the specified data direction, return the next request to
  * dispatch using sector position sorted lists.
  */
-static struct request *
-deadline_next_request(struct deadline_data *dd, struct dd_per_prio *per_prio,
-		      enum dd_data_dir data_dir)
+static struct request *deadline_next_request(struct deadline_data *dd,
+					     struct dd_per_prio *per_prio,
+					     enum dd_data_dir data_dir)
 {
 	struct request *rq;
 	unsigned long flags;
@@ -412,7 +412,7 @@ static struct request *__dd_dispatch_request(struct deadline_data *dd,
 	 */
 
 	if (!list_empty(&per_prio->fifo_list[DD_WRITE])) {
-dispatch_writes:
+	dispatch_writes:
 		BUG_ON(RB_EMPTY_ROOT(&per_prio->sort_list[DD_WRITE]));
 
 		dd->starved = 0;
@@ -687,7 +687,7 @@ static int dd_request_merge(struct request_queue *q, struct request **rq,
  * before @bio is associated with a request.
  */
 static bool dd_bio_merge(struct request_queue *q, struct bio *bio,
-		unsigned int nr_segs)
+			 unsigned int nr_segs)
 {
 	struct deadline_data *dd = q->elevator->elevator_data;
 	struct request *free = NULL;
@@ -833,8 +833,8 @@ static void dd_finish_request(struct request *rq)
 static bool dd_has_work_for_prio(struct dd_per_prio *per_prio)
 {
 	return !list_empty_careful(&per_prio->dispatch) ||
-		!list_empty_careful(&per_prio->fifo_list[DD_READ]) ||
-		!list_empty_careful(&per_prio->fifo_list[DD_WRITE]);
+	       !list_empty_careful(&per_prio->fifo_list[DD_READ]) ||
+	       !list_empty_careful(&per_prio->fifo_list[DD_WRITE]);
 }
 
 static bool dd_has_work(struct blk_mq_hw_ctx *hctx)
@@ -852,13 +852,13 @@ static bool dd_has_work(struct blk_mq_hw_ctx *hctx)
 /*
  * sysfs parts below
  */
-#define SHOW_INT(__FUNC, __VAR)						\
-static ssize_t __FUNC(struct elevator_queue *e, char *page)		\
-{									\
-	struct deadline_data *dd = e->elevator_data;			\
-									\
-	return sysfs_emit(page, "%d\n", __VAR);				\
-}
+#define SHOW_INT(__FUNC, __VAR)                                                \
+	static ssize_t __FUNC(struct elevator_queue *e, char *page)            \
+	{                                                                      \
+		struct deadline_data *dd = e->elevator_data;                   \
+                                                                               \
+		return sysfs_emit(page, "%d\n", __VAR);                        \
+	}
 #define SHOW_JIFFIES(__FUNC, __VAR) SHOW_INT(__FUNC, jiffies_to_msecs(__VAR))
 SHOW_JIFFIES(deadline_read_expire_show, dd->fifo_expire[DD_READ]);
 SHOW_JIFFIES(deadline_write_expire_show, dd->fifo_expire[DD_WRITE]);
@@ -870,29 +870,33 @@ SHOW_INT(deadline_fifo_batch_show, dd->fifo_batch);
 #undef SHOW_INT
 #undef SHOW_JIFFIES
 
-#define STORE_FUNCTION(__FUNC, __PTR, MIN, MAX, __CONV)			\
-static ssize_t __FUNC(struct elevator_queue *e, const char *page, size_t count)	\
-{									\
-	struct deadline_data *dd = e->elevator_data;			\
-	int __data, __ret;						\
-									\
-	__ret = kstrtoint(page, 0, &__data);				\
-	if (__ret < 0)							\
-		return __ret;						\
-	if (__data < (MIN))						\
-		__data = (MIN);						\
-	else if (__data > (MAX))					\
-		__data = (MAX);						\
-	*(__PTR) = __CONV(__data);					\
-	return count;							\
-}
-#define STORE_INT(__FUNC, __PTR, MIN, MAX)				\
+#define STORE_FUNCTION(__FUNC, __PTR, MIN, MAX, __CONV)                        \
+	static ssize_t __FUNC(struct elevator_queue *e, const char *page,      \
+			      size_t count)                                    \
+	{                                                                      \
+		struct deadline_data *dd = e->elevator_data;                   \
+		int __data, __ret;                                             \
+                                                                               \
+		__ret = kstrtoint(page, 0, &__data);                           \
+		if (__ret < 0)                                                 \
+			return __ret;                                          \
+		if (__data < (MIN))                                            \
+			__data = (MIN);                                        \
+		else if (__data > (MAX))                                       \
+			__data = (MAX);                                        \
+		*(__PTR) = __CONV(__data);                                     \
+		return count;                                                  \
+	}
+#define STORE_INT(__FUNC, __PTR, MIN, MAX)                                     \
 	STORE_FUNCTION(__FUNC, __PTR, MIN, MAX, )
-#define STORE_JIFFIES(__FUNC, __PTR, MIN, MAX)				\
+#define STORE_JIFFIES(__FUNC, __PTR, MIN, MAX)                                 \
 	STORE_FUNCTION(__FUNC, __PTR, MIN, MAX, msecs_to_jiffies)
-STORE_JIFFIES(deadline_read_expire_store, &dd->fifo_expire[DD_READ], 0, INT_MAX);
-STORE_JIFFIES(deadline_write_expire_store, &dd->fifo_expire[DD_WRITE], 0, INT_MAX);
-STORE_JIFFIES(deadline_prio_aging_expire_store, &dd->prio_aging_expire, 0, INT_MAX);
+STORE_JIFFIES(deadline_read_expire_store, &dd->fifo_expire[DD_READ], 0,
+	      INT_MAX);
+STORE_JIFFIES(deadline_write_expire_store, &dd->fifo_expire[DD_WRITE], 0,
+	      INT_MAX);
+STORE_JIFFIES(deadline_prio_aging_expire_store, &dd->prio_aging_expire, 0,
+	      INT_MAX);
 STORE_INT(deadline_writes_starved_store, &dd->writes_starved, INT_MIN, INT_MAX);
 STORE_INT(deadline_front_merges_store, &dd->front_merges, 0, 1);
 STORE_INT(deadline_async_depth_store, &dd->async_depth, 1, INT_MAX);
@@ -901,72 +905,67 @@ STORE_INT(deadline_fifo_batch_store, &dd->fifo_batch, 0, INT_MAX);
 #undef STORE_INT
 #undef STORE_JIFFIES
 
-#define DD_ATTR(name) \
+#define DD_ATTR(name)                                                          \
 	__ATTR(name, 0644, deadline_##name##_show, deadline_##name##_store)
 
 static struct elv_fs_entry deadline_attrs[] = {
-	DD_ATTR(read_expire),
-	DD_ATTR(write_expire),
-	DD_ATTR(writes_starved),
-	DD_ATTR(front_merges),
-	DD_ATTR(async_depth),
-	DD_ATTR(fifo_batch),
-	DD_ATTR(prio_aging_expire),
-	__ATTR_NULL
+	DD_ATTR(read_expire),	    DD_ATTR(write_expire),
+	DD_ATTR(writes_starved),    DD_ATTR(front_merges),
+	DD_ATTR(async_depth),	    DD_ATTR(fifo_batch),
+	DD_ATTR(prio_aging_expire), __ATTR_NULL
 };
 
 #ifdef CONFIG_BLK_DEBUG_FS
-#define DEADLINE_DEBUGFS_DDIR_ATTRS(prio, data_dir, name)		\
-static void *deadline_##name##_fifo_start(struct seq_file *m,		\
-					  loff_t *pos)			\
-	__acquires(&dd->lock)						\
-{									\
-	struct request_queue *q = m->private;				\
-	struct deadline_data *dd = q->elevator->elevator_data;		\
-	struct dd_per_prio *per_prio = &dd->per_prio[prio];		\
-									\
-	spin_lock(&dd->lock);						\
-	return seq_list_start(&per_prio->fifo_list[data_dir], *pos);	\
-}									\
-									\
-static void *deadline_##name##_fifo_next(struct seq_file *m, void *v,	\
-					 loff_t *pos)			\
-{									\
-	struct request_queue *q = m->private;				\
-	struct deadline_data *dd = q->elevator->elevator_data;		\
-	struct dd_per_prio *per_prio = &dd->per_prio[prio];		\
-									\
-	return seq_list_next(v, &per_prio->fifo_list[data_dir], pos);	\
-}									\
-									\
-static void deadline_##name##_fifo_stop(struct seq_file *m, void *v)	\
-	__releases(&dd->lock)						\
-{									\
-	struct request_queue *q = m->private;				\
-	struct deadline_data *dd = q->elevator->elevator_data;		\
-									\
-	spin_unlock(&dd->lock);						\
-}									\
-									\
-static const struct seq_operations deadline_##name##_fifo_seq_ops = {	\
-	.start	= deadline_##name##_fifo_start,				\
-	.next	= deadline_##name##_fifo_next,				\
-	.stop	= deadline_##name##_fifo_stop,				\
-	.show	= blk_mq_debugfs_rq_show,				\
-};									\
-									\
-static int deadline_##name##_next_rq_show(void *data,			\
-					  struct seq_file *m)		\
-{									\
-	struct request_queue *q = data;					\
-	struct deadline_data *dd = q->elevator->elevator_data;		\
-	struct dd_per_prio *per_prio = &dd->per_prio[prio];		\
-	struct request *rq = per_prio->next_rq[data_dir];		\
-									\
-	if (rq)								\
-		__blk_mq_debugfs_rq_show(m, rq);			\
-	return 0;							\
-}
+#define DEADLINE_DEBUGFS_DDIR_ATTRS(prio, data_dir, name)                      \
+	static void *deadline_##name##_fifo_start(                             \
+		struct seq_file *m, loff_t *pos) __acquires(&dd->lock)         \
+	{                                                                      \
+		struct request_queue *q = m->private;                          \
+		struct deadline_data *dd = q->elevator->elevator_data;         \
+		struct dd_per_prio *per_prio = &dd->per_prio[prio];            \
+                                                                               \
+		spin_lock(&dd->lock);                                          \
+		return seq_list_start(&per_prio->fifo_list[data_dir], *pos);   \
+	}                                                                      \
+                                                                               \
+	static void *deadline_##name##_fifo_next(struct seq_file *m, void *v,  \
+						 loff_t *pos)                  \
+	{                                                                      \
+		struct request_queue *q = m->private;                          \
+		struct deadline_data *dd = q->elevator->elevator_data;         \
+		struct dd_per_prio *per_prio = &dd->per_prio[prio];            \
+                                                                               \
+		return seq_list_next(v, &per_prio->fifo_list[data_dir], pos);  \
+	}                                                                      \
+                                                                               \
+	static void deadline_##name##_fifo_stop(struct seq_file *m, void *v)   \
+		__releases(&dd->lock)                                          \
+	{                                                                      \
+		struct request_queue *q = m->private;                          \
+		struct deadline_data *dd = q->elevator->elevator_data;         \
+                                                                               \
+		spin_unlock(&dd->lock);                                        \
+	}                                                                      \
+                                                                               \
+	static const struct seq_operations deadline_##name##_fifo_seq_ops = {  \
+		.start = deadline_##name##_fifo_start,                         \
+		.next = deadline_##name##_fifo_next,                           \
+		.stop = deadline_##name##_fifo_stop,                           \
+		.show = blk_mq_debugfs_rq_show,                                \
+	};                                                                     \
+                                                                               \
+	static int deadline_##name##_next_rq_show(void *data,                  \
+						  struct seq_file *m)          \
+	{                                                                      \
+		struct request_queue *q = data;                                \
+		struct deadline_data *dd = q->elevator->elevator_data;         \
+		struct dd_per_prio *per_prio = &dd->per_prio[prio];            \
+		struct request *rq = per_prio->next_rq[data_dir];              \
+                                                                               \
+		if (rq)                                                        \
+			__blk_mq_debugfs_rq_show(m, rq);                       \
+		return 0;                                                      \
+	}
 
 DEADLINE_DEBUGFS_DDIR_ATTRS(DD_RT_PRIO, DD_READ, read0);
 DEADLINE_DEBUGFS_DDIR_ATTRS(DD_RT_PRIO, DD_WRITE, write0);
@@ -1028,7 +1027,7 @@ static u32 dd_owned_by_driver(struct deadline_data *dd, enum dd_prio prio)
 	lockdep_assert_held(&dd->lock);
 
 	return stats->dispatched + stats->merged -
-		atomic_read(&stats->completed);
+	       atomic_read(&stats->completed);
 }
 
 static int dd_owned_by_driver_show(void *data, struct seq_file *m)
@@ -1048,55 +1047,58 @@ static int dd_owned_by_driver_show(void *data, struct seq_file *m)
 	return 0;
 }
 
-#define DEADLINE_DISPATCH_ATTR(prio)					\
-static void *deadline_dispatch##prio##_start(struct seq_file *m,	\
-					     loff_t *pos)		\
-	__acquires(&dd->lock)						\
-{									\
-	struct request_queue *q = m->private;				\
-	struct deadline_data *dd = q->elevator->elevator_data;		\
-	struct dd_per_prio *per_prio = &dd->per_prio[prio];		\
-									\
-	spin_lock(&dd->lock);						\
-	return seq_list_start(&per_prio->dispatch, *pos);		\
-}									\
-									\
-static void *deadline_dispatch##prio##_next(struct seq_file *m,		\
-					    void *v, loff_t *pos)	\
-{									\
-	struct request_queue *q = m->private;				\
-	struct deadline_data *dd = q->elevator->elevator_data;		\
-	struct dd_per_prio *per_prio = &dd->per_prio[prio];		\
-									\
-	return seq_list_next(v, &per_prio->dispatch, pos);		\
-}									\
-									\
-static void deadline_dispatch##prio##_stop(struct seq_file *m, void *v)	\
-	__releases(&dd->lock)						\
-{									\
-	struct request_queue *q = m->private;				\
-	struct deadline_data *dd = q->elevator->elevator_data;		\
-									\
-	spin_unlock(&dd->lock);						\
-}									\
-									\
-static const struct seq_operations deadline_dispatch##prio##_seq_ops = { \
-	.start	= deadline_dispatch##prio##_start,			\
-	.next	= deadline_dispatch##prio##_next,			\
-	.stop	= deadline_dispatch##prio##_stop,			\
-	.show	= blk_mq_debugfs_rq_show,				\
-}
+#define DEADLINE_DISPATCH_ATTR(prio)                                             \
+	static void *deadline_dispatch##prio##_start(                            \
+		struct seq_file *m, loff_t *pos) __acquires(&dd->lock)           \
+	{                                                                        \
+		struct request_queue *q = m->private;                            \
+		struct deadline_data *dd = q->elevator->elevator_data;           \
+		struct dd_per_prio *per_prio = &dd->per_prio[prio];              \
+                                                                                 \
+		spin_lock(&dd->lock);                                            \
+		return seq_list_start(&per_prio->dispatch, *pos);                \
+	}                                                                        \
+                                                                                 \
+	static void *deadline_dispatch##prio##_next(struct seq_file *m,          \
+						    void *v, loff_t *pos)        \
+	{                                                                        \
+		struct request_queue *q = m->private;                            \
+		struct deadline_data *dd = q->elevator->elevator_data;           \
+		struct dd_per_prio *per_prio = &dd->per_prio[prio];              \
+                                                                                 \
+		return seq_list_next(v, &per_prio->dispatch, pos);               \
+	}                                                                        \
+                                                                                 \
+	static void deadline_dispatch##prio##_stop(                              \
+		struct seq_file *m, void *v) __releases(&dd->lock)               \
+	{                                                                        \
+		struct request_queue *q = m->private;                            \
+		struct deadline_data *dd = q->elevator->elevator_data;           \
+                                                                                 \
+		spin_unlock(&dd->lock);                                          \
+	}                                                                        \
+                                                                                 \
+	static const struct seq_operations deadline_dispatch##prio##_seq_ops = { \
+		.start = deadline_dispatch##prio##_start,                        \
+		.next = deadline_dispatch##prio##_next,                          \
+		.stop = deadline_dispatch##prio##_stop,                          \
+		.show = blk_mq_debugfs_rq_show,                                  \
+	}
 
 DEADLINE_DISPATCH_ATTR(0);
 DEADLINE_DISPATCH_ATTR(1);
 DEADLINE_DISPATCH_ATTR(2);
 #undef DEADLINE_DISPATCH_ATTR
 
-#define DEADLINE_QUEUE_DDIR_ATTRS(name)					\
-	{#name "_fifo_list", 0400,					\
-			.seq_ops = &deadline_##name##_fifo_seq_ops}
-#define DEADLINE_NEXT_RQ_ATTR(name)					\
-	{#name "_next_rq", 0400, deadline_##name##_next_rq_show}
+#define DEADLINE_QUEUE_DDIR_ATTRS(name)                                        \
+	{                                                                      \
+#name "_fifo_list", 0400,                                      \
+			.seq_ops = &deadline_##name##_fifo_seq_ops             \
+	}
+#define DEADLINE_NEXT_RQ_ATTR(name)                                            \
+	{                                                                      \
+#name "_next_rq", 0400, deadline_##name##_next_rq_show         \
+	}
 static const struct blk_mq_debugfs_attr deadline_queue_debugfs_attrs[] = {
 	DEADLINE_QUEUE_DDIR_ATTRS(read0),
 	DEADLINE_QUEUE_DDIR_ATTRS(write0),
@@ -1110,14 +1112,14 @@ static const struct blk_mq_debugfs_attr deadline_queue_debugfs_attrs[] = {
 	DEADLINE_NEXT_RQ_ATTR(write1),
 	DEADLINE_NEXT_RQ_ATTR(read2),
 	DEADLINE_NEXT_RQ_ATTR(write2),
-	{"batching", 0400, deadline_batching_show},
-	{"starved", 0400, deadline_starved_show},
-	{"async_depth", 0400, dd_async_depth_show},
-	{"dispatch0", 0400, .seq_ops = &deadline_dispatch0_seq_ops},
-	{"dispatch1", 0400, .seq_ops = &deadline_dispatch1_seq_ops},
-	{"dispatch2", 0400, .seq_ops = &deadline_dispatch2_seq_ops},
-	{"owned_by_driver", 0400, dd_owned_by_driver_show},
-	{"queued", 0400, dd_queued_show},
+	{ "batching", 0400, deadline_batching_show },
+	{ "starved", 0400, deadline_starved_show },
+	{ "async_depth", 0400, dd_async_depth_show },
+	{ "dispatch0", 0400, .seq_ops = &deadline_dispatch0_seq_ops },
+	{ "dispatch1", 0400, .seq_ops = &deadline_dispatch1_seq_ops },
+	{ "dispatch2", 0400, .seq_ops = &deadline_dispatch2_seq_ops },
+	{ "owned_by_driver", 0400, dd_owned_by_driver_show },
+	{ "queued", 0400, dd_queued_show },
 	{},
 };
 #undef DEADLINE_QUEUE_DDIR_ATTRS

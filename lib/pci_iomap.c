@@ -25,10 +25,8 @@
  * @maxlen specifies the maximum length to map. If you want to get access to
  * the complete BAR from offset to the end, pass %0 here.
  * */
-void __iomem *pci_iomap_range(struct pci_dev *dev,
-			      int bar,
-			      unsigned long offset,
-			      unsigned long maxlen)
+void __iomem *pci_iomap_range(struct pci_dev *dev, int bar,
+			      unsigned long offset, unsigned long maxlen)
 {
 	resource_size_t start = pci_resource_start(dev, bar);
 	resource_size_t len = pci_resource_len(dev, bar);
@@ -65,15 +63,12 @@ EXPORT_SYMBOL(pci_iomap_range);
  * @maxlen specifies the maximum length to map. If you want to get access to
  * the complete BAR from offset to the end, pass %0 here.
  * */
-void __iomem *pci_iomap_wc_range(struct pci_dev *dev,
-				 int bar,
-				 unsigned long offset,
-				 unsigned long maxlen)
+void __iomem *pci_iomap_wc_range(struct pci_dev *dev, int bar,
+				 unsigned long offset, unsigned long maxlen)
 {
 	resource_size_t start = pci_resource_start(dev, bar);
 	resource_size_t len = pci_resource_len(dev, bar);
 	unsigned long flags = pci_resource_flags(dev, bar);
-
 
 	if (flags & IORESOURCE_IO)
 		return NULL;
@@ -165,8 +160,8 @@ EXPORT_SYMBOL_GPL(pci_iomap_wc);
 void pci_iounmap(struct pci_dev *dev, void __iomem *p)
 {
 #ifdef ARCH_HAS_GENERIC_IOPORT_MAP
-	uintptr_t start = (uintptr_t) PCI_IOBASE;
-	uintptr_t addr = (uintptr_t) p;
+	uintptr_t start = (uintptr_t)PCI_IOBASE;
+	uintptr_t addr = (uintptr_t)p;
 
 	if (addr >= start && addr < start + IO_SPACE_LIMIT)
 		return;

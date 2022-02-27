@@ -27,8 +27,7 @@
 #include <linux/if_ether.h>
 #endif
 
-static struct ctl_table_set *
-net_ctl_header_lookup(struct ctl_table_root *root)
+static struct ctl_table_set *net_ctl_header_lookup(struct ctl_table_root *root)
 {
 	return &current->nsproxy->net_ns->sysctls;
 }
@@ -54,8 +53,8 @@ static int net_ctl_permissions(struct ctl_table_header *head,
 }
 
 static void net_ctl_set_ownership(struct ctl_table_header *head,
-				  struct ctl_table *table,
-				  kuid_t *uid, kgid_t *gid)
+				  struct ctl_table *table, kuid_t *uid,
+				  kgid_t *gid)
 {
 	struct net *net = container_of(head->set, struct net, sysctls);
 	kuid_t ns_root_uid;
@@ -132,7 +131,8 @@ static void ensure_safe_net_sysctl(struct net *net, const char *path,
 		const char *where;
 
 		pr_debug("  procname=%s mode=%o proc_handler=%ps data=%p\n",
-			 ent->procname, ent->mode, ent->proc_handler, ent->data);
+			 ent->procname, ent->mode, ent->proc_handler,
+			 ent->data);
 
 		/* If it's not writable inside the netns, then it can't hurt. */
 		if ((ent->mode & 0222) == 0) {
@@ -160,8 +160,8 @@ static void ensure_safe_net_sysctl(struct net *net, const char *path,
 	}
 }
 
-struct ctl_table_header *register_net_sysctl(struct net *net,
-	const char *path, struct ctl_table *table)
+struct ctl_table_header *register_net_sysctl(struct net *net, const char *path,
+					     struct ctl_table *table)
 {
 	if (!net_eq(net, &init_net))
 		ensure_safe_net_sysctl(net, path, table);

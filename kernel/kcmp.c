@@ -58,8 +58,7 @@ static int kcmp_ptr(void *v1, void *v2, enum kcmp_type type)
 }
 
 /* The caller must have pinned the task */
-static struct file *
-get_file_raw_ptr(struct task_struct *task, unsigned int idx)
+static struct file *get_file_raw_ptr(struct task_struct *task, unsigned int idx)
 {
 	struct file *file;
 
@@ -96,8 +95,7 @@ static int kcmp_lock(struct rw_semaphore *l1, struct rw_semaphore *l2)
 
 #ifdef CONFIG_EPOLL
 static int kcmp_epoll_target(struct task_struct *task1,
-			     struct task_struct *task2,
-			     unsigned long idx1,
+			     struct task_struct *task2, unsigned long idx1,
 			     struct kcmp_epoll_slot __user *uslot)
 {
 	struct file *filp, *filp_epoll, *filp_tgt;
@@ -124,16 +122,15 @@ static int kcmp_epoll_target(struct task_struct *task1,
 }
 #else
 static int kcmp_epoll_target(struct task_struct *task1,
-			     struct task_struct *task2,
-			     unsigned long idx1,
+			     struct task_struct *task2, unsigned long idx1,
 			     struct kcmp_epoll_slot __user *uslot)
 {
 	return -EOPNOTSUPP;
 }
 #endif
 
-SYSCALL_DEFINE5(kcmp, pid_t, pid1, pid_t, pid2, int, type,
-		unsigned long, idx1, unsigned long, idx2)
+SYSCALL_DEFINE5(kcmp, pid_t, pid1, pid_t, pid2, int, type, unsigned long, idx1,
+		unsigned long, idx2)
 {
 	struct task_struct *task1, *task2;
 	int ret;
@@ -197,8 +194,7 @@ SYSCALL_DEFINE5(kcmp, pid_t, pid1, pid_t, pid2, int, type,
 	case KCMP_SYSVSEM:
 #ifdef CONFIG_SYSVIPC
 		ret = kcmp_ptr(task1->sysvsem.undo_list,
-			       task2->sysvsem.undo_list,
-			       KCMP_SYSVSEM);
+			       task2->sysvsem.undo_list, KCMP_SYSVSEM);
 #else
 		ret = -EOPNOTSUPP;
 #endif
@@ -232,7 +228,7 @@ static __init int kcmp_cookies_init(void)
 	get_random_bytes(cookies, sizeof(cookies));
 
 	for (i = 0; i < KCMP_TYPES; i++)
-		cookies[i][1] |= (~(~0UL >>  1) | 1);
+		cookies[i][1] |= (~(~0UL >> 1) | 1);
 
 	return 0;
 }

@@ -29,7 +29,6 @@ static void put_back_pages(unsigned int cmd, struct page **pages,
 		} else {
 			for (i = 0; i < nr_pages; i++)
 				put_page(pages[i]);
-
 		}
 		break;
 	}
@@ -49,13 +48,12 @@ static void verify_dma_pinned(unsigned int cmd, struct page **pages,
 			page = pages[i];
 			if (WARN(!page_maybe_dma_pinned(page),
 				 "pages[%lu] is NOT dma-pinned\n", i)) {
-
 				dump_page(page, "gup_test failure");
 				break;
 			} else if (cmd == PIN_LONGTERM_BENCHMARK &&
-				WARN(!is_pinnable_page(page),
-				     "pages[%lu] is NOT pinnable but pinned\n",
-				     i)) {
+				   WARN(!is_pinnable_page(page),
+					"pages[%lu] is NOT pinnable but pinned\n",
+					i)) {
 				dump_page(page, "gup_test failure");
 				break;
 			}
@@ -95,8 +93,7 @@ static void dump_pages_test(struct gup_test *gup, struct page **pages,
 	}
 }
 
-static int __gup_test_ioctl(unsigned int cmd,
-		struct gup_test *gup)
+static int __gup_test_ioctl(unsigned int cmd, struct gup_test *gup)
 {
 	ktime_t start_time, end_time;
 	unsigned long i, nr_pages, addr, next;
@@ -204,7 +201,7 @@ free_pages:
 }
 
 static long gup_test_ioctl(struct file *filep, unsigned int cmd,
-		unsigned long arg)
+			   unsigned long arg)
 {
 	struct gup_test gup;
 	int ret;

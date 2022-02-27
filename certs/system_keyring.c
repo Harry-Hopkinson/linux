@@ -55,10 +55,8 @@ int restrict_link_by_builtin_trusted(struct key *dest_keyring,
  * keyrings.
  */
 int restrict_link_by_builtin_and_secondary_trusted(
-	struct key *dest_keyring,
-	const struct key_type *type,
-	const union key_payload *payload,
-	struct key *restrict_key)
+	struct key *dest_keyring, const struct key_type *type,
+	const union key_payload *payload, struct key *restrict_key)
 {
 	/* If we have a secondary trusted keyring, then that contains a link
 	 * through to the builtin keyring and the search will follow that link.
@@ -77,7 +75,8 @@ int restrict_link_by_builtin_and_secondary_trusted(
  * Allocate a struct key_restriction for the "builtin and secondary trust"
  * keyring. Only for use in system_trusted_keyring_init().
  */
-static __init struct key_restriction *get_builtin_and_secondary_restriction(void)
+static __init struct key_restriction *
+get_builtin_and_secondary_restriction(void)
 {
 	struct key_restriction *restriction;
 
@@ -100,25 +99,22 @@ static __init int system_trusted_keyring_init(void)
 	pr_notice("Initialise system trusted keyrings\n");
 
 	builtin_trusted_keys =
-		keyring_alloc(".builtin_trusted_keys",
-			      GLOBAL_ROOT_UID, GLOBAL_ROOT_GID, current_cred(),
-			      ((KEY_POS_ALL & ~KEY_POS_SETATTR) |
-			      KEY_USR_VIEW | KEY_USR_READ | KEY_USR_SEARCH),
-			      KEY_ALLOC_NOT_IN_QUOTA,
-			      NULL, NULL);
+		keyring_alloc(".builtin_trusted_keys", GLOBAL_ROOT_UID,
+			      GLOBAL_ROOT_GID, current_cred(),
+			      ((KEY_POS_ALL & ~KEY_POS_SETATTR) | KEY_USR_VIEW |
+			       KEY_USR_READ | KEY_USR_SEARCH),
+			      KEY_ALLOC_NOT_IN_QUOTA, NULL, NULL);
 	if (IS_ERR(builtin_trusted_keys))
 		panic("Can't allocate builtin trusted keyring\n");
 
 #ifdef CONFIG_SECONDARY_TRUSTED_KEYRING
 	secondary_trusted_keys =
-		keyring_alloc(".secondary_trusted_keys",
-			      GLOBAL_ROOT_UID, GLOBAL_ROOT_GID, current_cred(),
-			      ((KEY_POS_ALL & ~KEY_POS_SETATTR) |
-			       KEY_USR_VIEW | KEY_USR_READ | KEY_USR_SEARCH |
-			       KEY_USR_WRITE),
+		keyring_alloc(".secondary_trusted_keys", GLOBAL_ROOT_UID,
+			      GLOBAL_ROOT_GID, current_cred(),
+			      ((KEY_POS_ALL & ~KEY_POS_SETATTR) | KEY_USR_VIEW |
+			       KEY_USR_READ | KEY_USR_SEARCH | KEY_USR_WRITE),
 			      KEY_ALLOC_NOT_IN_QUOTA,
-			      get_builtin_and_secondary_restriction(),
-			      NULL);
+			      get_builtin_and_secondary_restriction(), NULL);
 	if (IS_ERR(secondary_trusted_keys))
 		panic("Can't allocate secondary trusted keyring\n");
 
@@ -141,7 +137,8 @@ __init int load_module_cert(struct key *keyring)
 
 	pr_notice("Loading compiled-in module X.509 certificates\n");
 
-	return load_certificate_list(system_certificate_list, module_cert_size, keyring);
+	return load_certificate_list(system_certificate_list, module_cert_size,
+				     keyring);
 }
 
 /*
@@ -183,9 +180,8 @@ int verify_pkcs7_message_sig(const void *data, size_t len,
 			     struct pkcs7_message *pkcs7,
 			     struct key *trusted_keys,
 			     enum key_being_used_for usage,
-			     int (*view_content)(void *ctx,
-						 const void *data, size_t len,
-						 size_t asn1hdrlen),
+			     int (*view_content)(void *ctx, const void *data,
+						 size_t len, size_t asn1hdrlen),
 			     void *ctx)
 {
 	int ret;
@@ -230,7 +226,8 @@ int verify_pkcs7_message_sig(const void *data, size_t len,
 	ret = pkcs7_validate_trust(pkcs7, trusted_keys);
 	if (ret < 0) {
 		if (ret == -ENOKEY)
-			pr_devel("PKCS#7 signature not signed with a trusted key\n");
+			pr_devel(
+				"PKCS#7 signature not signed with a trusted key\n");
 		goto error;
 	}
 
@@ -240,7 +237,8 @@ int verify_pkcs7_message_sig(const void *data, size_t len,
 		ret = pkcs7_get_content_data(pkcs7, &data, &len, &asn1hdrlen);
 		if (ret < 0) {
 			if (ret == -ENODATA)
-				pr_devel("PKCS#7 message does not contain data\n");
+				pr_devel(
+					"PKCS#7 message does not contain data\n");
 			goto error;
 		}
 
@@ -264,13 +262,11 @@ error:
  * @view_content: Callback to gain access to content.
  * @ctx: Context for callback.
  */
-int verify_pkcs7_signature(const void *data, size_t len,
-			   const void *raw_pkcs7, size_t pkcs7_len,
-			   struct key *trusted_keys,
+int verify_pkcs7_signature(const void *data, size_t len, const void *raw_pkcs7,
+			   size_t pkcs7_len, struct key *trusted_keys,
 			   enum key_being_used_for usage,
-			   int (*view_content)(void *ctx,
-					       const void *data, size_t len,
-					       size_t asn1hdrlen),
+			   int (*view_content)(void *ctx, const void *data,
+					       size_t len, size_t asn1hdrlen),
 			   void *ctx)
 {
 	struct pkcs7_message *pkcs7;

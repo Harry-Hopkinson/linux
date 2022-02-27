@@ -50,36 +50,36 @@ struct kcov {
 	 *  - task with enabled coverage (we can't unwire it from another task)
 	 *  - each code section for remote coverage collection
 	 */
-	refcount_t		refcount;
+	refcount_t refcount;
 	/* The lock protects mode, size, area and t. */
-	spinlock_t		lock;
-	enum kcov_mode		mode;
+	spinlock_t lock;
+	enum kcov_mode mode;
 	/* Size of arena (in long's). */
-	unsigned int		size;
+	unsigned int size;
 	/* Coverage buffer shared with user space. */
-	void			*area;
+	void *area;
 	/* Task for which we collect coverage, or NULL. */
-	struct task_struct	*t;
+	struct task_struct *t;
 	/* Collecting coverage from remote (background) threads. */
-	bool			remote;
+	bool remote;
 	/* Size of remote area (in long's). */
-	unsigned int		remote_size;
+	unsigned int remote_size;
 	/*
 	 * Sequence is incremented each time kcov is reenabled, used by
 	 * kcov_remote_stop(), see the comment there.
 	 */
-	int			sequence;
+	int sequence;
 };
 
 struct kcov_remote_area {
-	struct list_head	list;
-	unsigned int		size;
+	struct list_head list;
+	unsigned int size;
 };
 
 struct kcov_remote {
-	u64			handle;
-	struct kcov		*kcov;
-	struct hlist_node	hnode;
+	u64 handle;
+	struct kcov *kcov;
+	struct hlist_node hnode;
 };
 
 static DEFINE_SPINLOCK(kcov_remote_lock);
@@ -87,14 +87,14 @@ static DEFINE_HASHTABLE(kcov_remote_map, 4);
 static struct list_head kcov_remote_areas = LIST_HEAD_INIT(kcov_remote_areas);
 
 struct kcov_percpu_data {
-	void			*irq_area;
-	local_lock_t		lock;
+	void *irq_area;
+	local_lock_t lock;
 
-	unsigned int		saved_mode;
-	unsigned int		saved_size;
-	void			*saved_area;
-	struct kcov		*saved_kcov;
-	int			saved_sequence;
+	unsigned int saved_mode;
+	unsigned int saved_size;
+	void *saved_area;
+	struct kcov *saved_kcov;
+	int saved_sequence;
 };
 
 static DEFINE_PER_CPU(struct kcov_percpu_data, kcov_percpu_data) = {
@@ -106,7 +106,7 @@ static struct kcov_remote *kcov_remote_find(u64 handle)
 {
 	struct kcov_remote *remote;
 
-	hash_for_each_possible(kcov_remote_map, remote, hnode, handle) {
+	hash_for_each_possible (kcov_remote_map, remote, hnode, handle) {
 		if (remote->handle == handle)
 			return remote;
 	}
@@ -135,7 +135,7 @@ static struct kcov_remote_area *kcov_remote_area_get(unsigned int size)
 	struct kcov_remote_area *area;
 	struct list_head *pos;
 
-	list_for_each(pos, &kcov_remote_areas) {
+	list_for_each (pos, &kcov_remote_areas) {
 		area = list_entry(pos, struct kcov_remote_area, list);
 		if (area->size == size) {
 			list_del(&area->list);
@@ -147,14 +147,15 @@ static struct kcov_remote_area *kcov_remote_area_get(unsigned int size)
 
 /* Must be called with kcov_remote_lock locked. */
 static void kcov_remote_area_put(struct kcov_remote_area *area,
-					unsigned int size)
+				 unsigned int size)
 {
 	INIT_LIST_HEAD(&area->list);
 	area->size = size;
 	list_add(&area->list, &kcov_remote_areas);
 }
 
-static notrace bool check_kcov_mode(enum kcov_mode needed_mode, struct task_struct *t)
+static notrace bool check_kcov_mode(enum kcov_mode needed_mode,
+				    struct task_struct *t)
 {
 	unsigned int mode;
 
@@ -326,8 +327,8 @@ EXPORT_SYMBOL(__sanitizer_cov_trace_switch);
 #endif /* ifdef CONFIG_KCOV_ENABLE_COMPARISONS */
 
 static void kcov_start(struct task_struct *t, struct kcov *kcov,
-			unsigned int size, void *area, enum kcov_mode mode,
-			int sequence)
+		       unsigned int size, void *area, enum kcov_mode mode,
+		       int sequence)
 {
 	kcov_debug("t = %px, size = %u, area = %px\n", t, size, area);
 	t->kcov = kcov;
@@ -379,7 +380,7 @@ static void kcov_remote_reset(struct kcov *kcov)
 	unsigned long flags;
 
 	spin_lock_irqsave(&kcov_remote_lock, flags);
-	hash_for_each_safe(kcov_remote_map, bkt, tmp, remote, hnode) {
+	hash_for_each_safe (kcov_remote_map, bkt, tmp, remote, hnode) {
 		if (remote->kcov != kcov)
 			continue;
 		hash_del(&remote->hnode);
@@ -544,14 +545,14 @@ static void kcov_fault_in_area(struct kcov *kcov)
 }
 
 static inline bool kcov_check_handle(u64 handle, bool common_valid,
-				bool uncommon_valid, bool zero_valid)
+				     bool uncommon_valid, bool zero_valid)
 {
 	if (handle & ~(KCOV_SUBSYSTEM_MASK | KCOV_INSTANCE_MASK))
 		return false;
 	switch (handle & KCOV_SUBSYSTEM_MASK) {
 	case KCOV_SUBSYSTEM_COMMON:
-		return (handle & KCOV_INSTANCE_MASK) ?
-			common_valid : zero_valid;
+		return (handle & KCOV_INSTANCE_MASK) ? common_valid :
+						       zero_valid;
 	case KCOV_SUBSYSTEM_USB:
 		return uncommon_valid;
 	default:
@@ -608,7 +609,7 @@ static int kcov_ioctl_locked(struct kcov *kcov, unsigned int cmd,
 		kcov_fault_in_area(kcov);
 		kcov->mode = mode;
 		kcov_start(t, kcov, kcov->size, kcov->area, kcov->mode,
-				kcov->sequence);
+			   kcov->sequence);
 		kcov->t = t;
 		/* Put either in kcov_task_exit() or in KCOV_DISABLE. */
 		kcov_get(kcov);
@@ -643,34 +644,34 @@ static int kcov_ioctl_locked(struct kcov *kcov, unsigned int cmd,
 		kcov->remote_size = remote_arg->area_size;
 		spin_lock_irqsave(&kcov_remote_lock, flags);
 		for (i = 0; i < remote_arg->num_handles; i++) {
-			if (!kcov_check_handle(remote_arg->handles[i],
-						false, true, false)) {
+			if (!kcov_check_handle(remote_arg->handles[i], false,
+					       true, false)) {
 				spin_unlock_irqrestore(&kcov_remote_lock,
-							flags);
+						       flags);
 				kcov_disable(t, kcov);
 				return -EINVAL;
 			}
 			remote = kcov_remote_add(kcov, remote_arg->handles[i]);
 			if (IS_ERR(remote)) {
 				spin_unlock_irqrestore(&kcov_remote_lock,
-							flags);
+						       flags);
 				kcov_disable(t, kcov);
 				return PTR_ERR(remote);
 			}
 		}
 		if (remote_arg->common_handle) {
-			if (!kcov_check_handle(remote_arg->common_handle,
-						true, false, false)) {
+			if (!kcov_check_handle(remote_arg->common_handle, true,
+					       false, false)) {
 				spin_unlock_irqrestore(&kcov_remote_lock,
-							flags);
+						       flags);
 				kcov_disable(t, kcov);
 				return -EINVAL;
 			}
 			remote = kcov_remote_add(kcov,
-					remote_arg->common_handle);
+						 remote_arg->common_handle);
 			if (IS_ERR(remote)) {
 				spin_unlock_irqrestore(&kcov_remote_lock,
-							flags);
+						       flags);
 				kcov_disable(t, kcov);
 				return PTR_ERR(remote);
 			}
@@ -695,13 +696,15 @@ static long kcov_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
 	unsigned long flags;
 
 	if (cmd == KCOV_REMOTE_ENABLE) {
-		if (get_user(remote_num_handles, (unsigned __user *)(arg +
-				offsetof(struct kcov_remote_arg, num_handles))))
+		if (get_user(remote_num_handles,
+			     (unsigned __user *)(arg +
+						 offsetof(struct kcov_remote_arg,
+							  num_handles))))
 			return -EFAULT;
 		if (remote_num_handles > KCOV_REMOTE_MAX_HANDLES)
 			return -EINVAL;
-		remote_arg_size = struct_size(remote_arg, handles,
-					remote_num_handles);
+		remote_arg_size =
+			struct_size(remote_arg, handles, remote_num_handles);
 		remote_arg = memdup_user((void __user *)arg, remote_arg_size);
 		if (IS_ERR(remote_arg))
 			return PTR_ERR(remote_arg);
@@ -723,11 +726,11 @@ static long kcov_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
 }
 
 static const struct file_operations kcov_fops = {
-	.open		= kcov_open,
-	.unlocked_ioctl	= kcov_ioctl,
-	.compat_ioctl	= kcov_ioctl,
-	.mmap		= kcov_mmap,
-	.release        = kcov_close,
+	.open = kcov_open,
+	.unlocked_ioctl = kcov_ioctl,
+	.compat_ioctl = kcov_ioctl,
+	.mmap = kcov_mmap,
+	.release = kcov_close,
 };
 
 /*
@@ -801,8 +804,8 @@ static void kcov_remote_softirq_stop(struct task_struct *t)
 
 	if (data->saved_kcov) {
 		kcov_start(t, data->saved_kcov, data->saved_size,
-				data->saved_area, data->saved_mode,
-				data->saved_sequence);
+			   data->saved_area, data->saved_mode,
+			   data->saved_sequence);
 		data->saved_mode = 0;
 		data->saved_size = 0;
 		data->saved_area = NULL;
@@ -856,7 +859,7 @@ void kcov_remote_start(u64 handle)
 		return;
 	}
 	kcov_debug("handle = %llx, context: %s\n", handle,
-			in_task() ? "task" : "softirq");
+		   in_task() ? "task" : "softirq");
 	kcov = remote->kcov;
 	/* Put in kcov_remote_stop(). */
 	kcov_get(kcov);
@@ -896,12 +899,11 @@ void kcov_remote_start(u64 handle)
 	kcov_start(t, kcov, size, area, mode, sequence);
 
 	local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
-
 }
 EXPORT_SYMBOL(kcov_remote_start);
 
 static void kcov_move_area(enum kcov_mode mode, void *dst_area,
-				unsigned int dst_area_size, void *src_area)
+			   unsigned int dst_area_size, void *src_area)
 {
 	u64 word_size = sizeof(unsigned long);
 	u64 count_size, entry_size_log;
@@ -909,8 +911,8 @@ static void kcov_move_area(enum kcov_mode mode, void *dst_area,
 	void *dst_entries, *src_entries;
 	u64 dst_occupied, dst_free, bytes_to_move, entries_moved;
 
-	kcov_debug("%px %u <= %px %lu\n",
-		dst_area, dst_area_size, src_area, *(unsigned long *)src_area);
+	kcov_debug("%px %u <= %px %lu\n", dst_area, dst_area_size, src_area,
+		   *(unsigned long *)src_area);
 
 	switch (mode) {
 	case KCOV_MODE_TRACE_PC:
@@ -932,8 +934,8 @@ static void kcov_move_area(enum kcov_mode mode, void *dst_area,
 	}
 
 	/* As arm can't divide u64 integers use log of entry size. */
-	if (dst_len > ((dst_area_size * word_size - count_size) >>
-				entry_size_log))
+	if (dst_len >
+	    ((dst_area_size * word_size - count_size) >> entry_size_log))
 		return;
 	dst_occupied = count_size + (dst_len << entry_size_log);
 	dst_free = dst_area_size * word_size - dst_occupied;
@@ -1037,9 +1039,10 @@ static int __init kcov_init(void)
 {
 	int cpu;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu (cpu) {
 		void *area = vmalloc_node(CONFIG_KCOV_IRQ_AREA_SIZE *
-				sizeof(unsigned long), cpu_to_node(cpu));
+						  sizeof(unsigned long),
+					  cpu_to_node(cpu));
 		if (!area)
 			return -ENOMEM;
 		per_cpu_ptr(&kcov_percpu_data, cpu)->irq_area = area;

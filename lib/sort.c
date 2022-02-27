@@ -29,8 +29,8 @@
  * For some reason, gcc doesn't know to optimize "if (a & mask || b & mask)"
  * to "if ((a | b) & mask)", so we do that by hand.
  */
-__attribute_const__ __always_inline
-static bool is_aligned(const void *base, size_t size, unsigned char align)
+__attribute_const__ __always_inline static bool
+is_aligned(const void *base, size_t size, unsigned char align)
 {
 	unsigned char lsbits = (unsigned char)size;
 
@@ -124,7 +124,7 @@ static void swap_bytes(void *a, void *b, size_t n)
  */
 #define SWAP_WORDS_64 (swap_func_t)0
 #define SWAP_WORDS_32 (swap_func_t)1
-#define SWAP_BYTES    (swap_func_t)2
+#define SWAP_BYTES (swap_func_t)2
 
 /*
  * The function pointer is last to make tail calls most efficient if the
@@ -144,7 +144,8 @@ static void do_swap(void *a, void *b, size_t size, swap_func_t swap_func)
 
 #define _CMP_WRAPPER ((cmp_r_func_t)0L)
 
-static int do_cmp(const void *a, const void *b, cmp_r_func_t cmp, const void *priv)
+static int do_cmp(const void *a, const void *b, cmp_r_func_t cmp,
+		  const void *priv)
 {
 	if (cmp == _CMP_WRAPPER)
 		return ((cmp_func_t)(priv))(a, b);
@@ -169,8 +170,8 @@ static int do_cmp(const void *a, const void *b, cmp_r_func_t cmp, const void *pr
  * branch is unpredictable, it's done with a bit of clever branch-free
  * code instead.
  */
-__attribute_const__ __always_inline
-static size_t parent(size_t i, unsigned int lsbit, size_t size)
+__attribute_const__ __always_inline static size_t
+parent(size_t i, unsigned int lsbit, size_t size)
 {
 	i -= size;
 	i -= size & -(i & lsbit);
@@ -196,16 +197,14 @@ static size_t parent(size_t i, unsigned int lsbit, size_t size)
  * O(n*n) worst-case behavior and extra memory requirements that make
  * it less suitable for kernel use.
  */
-void sort_r(void *base, size_t num, size_t size,
-	    cmp_r_func_t cmp_func,
-	    swap_func_t swap_func,
-	    const void *priv)
+void sort_r(void *base, size_t num, size_t size, cmp_r_func_t cmp_func,
+	    swap_func_t swap_func, const void *priv)
 {
 	/* pre-scale counters for performance */
-	size_t n = num * size, a = (num/2) * size;
-	const unsigned int lsbit = size & -size;  /* Used to find parent */
+	size_t n = num * size, a = (num / 2) * size;
+	const unsigned int lsbit = size & -size; /* Used to find parent */
 
-	if (!a)		/* num < 2 || size == 0 */
+	if (!a) /* num < 2 || size == 0 */
 		return;
 
 	if (!swap_func) {
@@ -227,11 +226,11 @@ void sort_r(void *base, size_t num, size_t size,
 	for (;;) {
 		size_t b, c, d;
 
-		if (a)			/* Building heap: sift down --a */
+		if (a) /* Building heap: sift down --a */
 			a -= size;
-		else if (n -= size)	/* Sorting: Extract root to --n */
+		else if (n -= size) /* Sorting: Extract root to --n */
 			do_swap(base, base + n, size, swap_func);
-		else			/* Sort complete */
+		else /* Sort complete */
 			break;
 
 		/*
@@ -246,16 +245,19 @@ void sort_r(void *base, size_t num, size_t size,
 		 * on the way down.  (A bit more than half as many on
 		 * average, 3/4 worst-case.)
 		 */
-		for (b = a; c = 2*b + size, (d = c + size) < n;)
-			b = do_cmp(base + c, base + d, cmp_func, priv) >= 0 ? c : d;
-		if (d == n)	/* Special case last leaf with no sibling */
+		for (b = a; c = 2 * b + size, (d = c + size) < n;)
+			b = do_cmp(base + c, base + d, cmp_func, priv) >= 0 ?
+				    c :
+				    d;
+		if (d == n) /* Special case last leaf with no sibling */
 			b = c;
 
 		/* Now backtrack from "b" to the correct location for "a" */
-		while (b != a && do_cmp(base + a, base + b, cmp_func, priv) >= 0)
+		while (b != a &&
+		       do_cmp(base + a, base + b, cmp_func, priv) >= 0)
 			b = parent(b, lsbit, size);
-		c = b;			/* Where "a" belongs */
-		while (b != a) {	/* Shift it into place */
+		c = b; /* Where "a" belongs */
+		while (b != a) { /* Shift it into place */
 			b = parent(b, lsbit, size);
 			do_swap(base + b, base + c, size, swap_func);
 		}
@@ -263,8 +265,7 @@ void sort_r(void *base, size_t num, size_t size,
 }
 EXPORT_SYMBOL(sort_r);
 
-void sort(void *base, size_t num, size_t size,
-	  cmp_func_t cmp_func,
+void sort(void *base, size_t num, size_t size, cmp_func_t cmp_func,
 	  swap_func_t swap_func)
 {
 	return sort_r(base, num, size, _CMP_WRAPPER, swap_func, cmp_func);

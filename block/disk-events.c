@@ -8,27 +8,27 @@
 #include "blk.h"
 
 struct disk_events {
-	struct list_head	node;		/* all disk_event's */
-	struct gendisk		*disk;		/* the associated disk */
-	spinlock_t		lock;
+	struct list_head node; /* all disk_event's */
+	struct gendisk *disk; /* the associated disk */
+	spinlock_t lock;
 
-	struct mutex		block_mutex;	/* protects blocking */
-	int			block;		/* event blocking depth */
-	unsigned int		pending;	/* events already sent out */
-	unsigned int		clearing;	/* events being cleared */
+	struct mutex block_mutex; /* protects blocking */
+	int block; /* event blocking depth */
+	unsigned int pending; /* events already sent out */
+	unsigned int clearing; /* events being cleared */
 
-	long			poll_msecs;	/* interval, -1 for default */
-	struct delayed_work	dwork;
+	long poll_msecs; /* interval, -1 for default */
+	struct delayed_work dwork;
 };
 
 static const char *disk_events_strs[] = {
-	[ilog2(DISK_EVENT_MEDIA_CHANGE)]	= "media_change",
-	[ilog2(DISK_EVENT_EJECT_REQUEST)]	= "eject_request",
+	[ilog2(DISK_EVENT_MEDIA_CHANGE)] = "media_change",
+	[ilog2(DISK_EVENT_EJECT_REQUEST)] = "eject_request",
 };
 
 static char *disk_uevents[] = {
-	[ilog2(DISK_EVENT_MEDIA_CHANGE)]	= "DISK_MEDIA_CHANGE=1",
-	[ilog2(DISK_EVENT_EJECT_REQUEST)]	= "DISK_EJECT_REQUEST=1",
+	[ilog2(DISK_EVENT_MEDIA_CHANGE)] = "DISK_MEDIA_CHANGE=1",
+	[ilog2(DISK_EVENT_EJECT_REQUEST)] = "DISK_EJECT_REQUEST=1",
 };
 
 /* list of all disk_events */
@@ -112,10 +112,10 @@ static void __disk_unblock_events(struct gendisk *disk, bool check_now)
 	intv = disk_events_poll_jiffies(disk);
 	if (check_now)
 		queue_delayed_work(system_freezable_power_efficient_wq,
-				&ev->dwork, 0);
+				   &ev->dwork, 0);
 	else if (intv)
 		queue_delayed_work(system_freezable_power_efficient_wq,
-				&ev->dwork, intv);
+				   &ev->dwork, intv);
 out_unlock:
 	spin_unlock_irqrestore(&ev->lock, flags);
 }
@@ -159,7 +159,7 @@ void disk_flush_events(struct gendisk *disk, unsigned int mask)
 	ev->clearing |= mask;
 	if (!ev->block)
 		mod_delayed_work(system_freezable_power_efficient_wq,
-				&ev->dwork, 0);
+				 &ev->dwork, 0);
 	spin_unlock_irq(&ev->lock);
 }
 
@@ -170,7 +170,7 @@ void disk_flush_events(struct gendisk *disk, unsigned int mask)
  */
 static void disk_event_uevent(struct gendisk *disk, unsigned int events)
 {
-	char *envp[ARRAY_SIZE(disk_uevents) + 1] = { };
+	char *envp[ARRAY_SIZE(disk_uevents) + 1] = {};
 	int nr_events = 0, i;
 
 	for (i = 0; i < ARRAY_SIZE(disk_uevents); i++)
@@ -202,7 +202,7 @@ static void disk_check_events(struct disk_events *ev,
 	intv = disk_events_poll_jiffies(disk);
 	if (!ev->block && intv)
 		queue_delayed_work(system_freezable_power_efficient_wq,
-				&ev->dwork, intv);
+				   &ev->dwork, intv);
 
 	spin_unlock_irq(&ev->lock);
 
@@ -276,8 +276,9 @@ bool bdev_check_media_change(struct block_device *bdev)
 {
 	unsigned int events;
 
-	events = disk_clear_events(bdev->bd_disk, DISK_EVENT_MEDIA_CHANGE |
-				   DISK_EVENT_EJECT_REQUEST);
+	events = disk_clear_events(bdev->bd_disk,
+				   DISK_EVENT_MEDIA_CHANGE |
+					   DISK_EVENT_EJECT_REQUEST);
 	if (!(events & DISK_EVENT_MEDIA_CHANGE))
 		return false;
 
@@ -344,8 +345,8 @@ static ssize_t __disk_events_show(unsigned int events, char *buf)
 
 	for (i = 0; i < ARRAY_SIZE(disk_events_strs); i++)
 		if (events & (1 << i)) {
-			pos += sprintf(buf + pos, "%s%s",
-				       delim, disk_events_strs[i]);
+			pos += sprintf(buf + pos, "%s%s", delim,
+				       disk_events_strs[i]);
 			delim = " ";
 		}
 	if (pos)
@@ -424,19 +425,19 @@ static int disk_events_set_dfl_poll_msecs(const char *val,
 		return ret;
 
 	mutex_lock(&disk_events_mutex);
-	list_for_each_entry(ev, &disk_events, node)
+	list_for_each_entry (ev, &disk_events, node)
 		disk_flush_events(ev->disk, 0);
 	mutex_unlock(&disk_events_mutex);
 	return 0;
 }
 
 static const struct kernel_param_ops disk_events_dfl_poll_msecs_param_ops = {
-	.set	= disk_events_set_dfl_poll_msecs,
-	.get	= param_get_ulong,
+	.set = disk_events_set_dfl_poll_msecs,
+	.get = param_get_ulong,
 };
 
 #undef MODULE_PARAM_PREFIX
-#define MODULE_PARAM_PREFIX	"block."
+#define MODULE_PARAM_PREFIX "block."
 
 module_param_cb(events_dfl_poll_msecs, &disk_events_dfl_poll_msecs_param_ops,
 		&disk_events_dfl_poll_msecs, 0644);

@@ -19,8 +19,9 @@
 #include <linux/backing-dev.h>
 #include "internal.h"
 
-#define VALID_FLAGS (SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE| \
-			SYNC_FILE_RANGE_WAIT_AFTER)
+#define VALID_FLAGS                                                            \
+	(SYNC_FILE_RANGE_WAIT_BEFORE | SYNC_FILE_RANGE_WRITE |                 \
+	 SYNC_FILE_RANGE_WAIT_AFTER)
 
 /*
  * Write out and wait upon all dirty data associated with this
@@ -230,7 +231,7 @@ int sync_file_range(struct file *file, loff_t offset, loff_t nbytes,
 {
 	int ret;
 	struct address_space *mapping;
-	loff_t endbyte;			/* inclusive */
+	loff_t endbyte; /* inclusive */
 	umode_t i_mode;
 
 	ret = -EINVAL;
@@ -266,12 +267,12 @@ int sync_file_range(struct file *file, loff_t offset, loff_t nbytes,
 	if (nbytes == 0)
 		endbyte = LLONG_MAX;
 	else
-		endbyte--;		/* inclusive */
+		endbyte--; /* inclusive */
 
 	i_mode = file_inode(file)->i_mode;
 	ret = -ESPIPE;
 	if (!S_ISREG(i_mode) && !S_ISBLK(i_mode) && !S_ISDIR(i_mode) &&
-			!S_ISLNK(i_mode))
+	    !S_ISLNK(i_mode))
 		goto out;
 
 	mapping = file->f_mapping;
@@ -286,7 +287,7 @@ int sync_file_range(struct file *file, loff_t offset, loff_t nbytes,
 		int sync_mode = WB_SYNC_NONE;
 
 		if ((flags & SYNC_FILE_RANGE_WRITE_AND_WAIT) ==
-			     SYNC_FILE_RANGE_WRITE_AND_WAIT)
+		    SYNC_FILE_RANGE_WRITE_AND_WAIT)
 			sync_mode = WB_SYNC_ALL;
 
 		ret = __filemap_fdatawrite_range(mapping, offset, endbyte,
@@ -368,15 +369,15 @@ int ksys_sync_file_range(int fd, loff_t offset, loff_t nbytes,
 }
 
 SYSCALL_DEFINE4(sync_file_range, int, fd, loff_t, offset, loff_t, nbytes,
-				unsigned int, flags)
+		unsigned int, flags)
 {
 	return ksys_sync_file_range(fd, offset, nbytes, flags);
 }
 
 /* It would be nice if people remember that not all the world's an i386
    when they introduce new system calls */
-SYSCALL_DEFINE4(sync_file_range2, int, fd, unsigned int, flags,
-				 loff_t, offset, loff_t, nbytes)
+SYSCALL_DEFINE4(sync_file_range2, int, fd, unsigned int, flags, loff_t, offset,
+		loff_t, nbytes)
 {
 	return ksys_sync_file_range(fd, offset, nbytes, flags);
 }

@@ -80,8 +80,7 @@ static int generic_remap_checks(struct file *file_in, loff_t pos_in,
 	}
 
 	/* Don't allow overlapped cloning within the same file. */
-	if (inode_in == inode_out &&
-	    pos_out + bcount > pos_in &&
+	if (inode_in == inode_out && pos_out + bcount > pos_in &&
 	    pos_out < pos_in + bcount)
 		return -EINVAL;
 
@@ -102,7 +101,7 @@ static int remap_verify_area(struct file *file, loff_t pos, loff_t len,
 	if (unlikely(pos < 0 || len < 0))
 		return -EINVAL;
 
-	if (unlikely((loff_t) (pos + len) < 0))
+	if (unlikely((loff_t)(pos + len) < 0))
 		return -EINVAL;
 
 	return security_file_permission(file, write ? MAY_WRITE : MAY_READ);
@@ -120,10 +119,8 @@ static int remap_verify_area(struct file *file, loff_t pos, loff_t len,
  * Shorten the request if possible.
  */
 static int generic_remap_check_len(struct inode *inode_in,
-				   struct inode *inode_out,
-				   loff_t pos_out,
-				   loff_t *len,
-				   unsigned int remap_flags)
+				   struct inode *inode_out, loff_t pos_out,
+				   loff_t *len, unsigned int remap_flags)
 {
 	u64 blkmask = i_blocksize(inode_in) - 1;
 	loff_t new_len = *len;
@@ -223,7 +220,8 @@ static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
 		 * mapped to the file data we're interested in.  If not,
 		 * someone is invalidating pages on us and we lose.
 		 */
-		if (!folio_test_uptodate(src_folio) || !folio_test_uptodate(dst_folio) ||
+		if (!folio_test_uptodate(src_folio) ||
+		    !folio_test_uptodate(dst_folio) ||
 		    src_folio->mapping != src->i_mapping ||
 		    dst_folio->mapping != dest->i_mapping) {
 			same = false;
@@ -231,9 +229,9 @@ static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
 		}
 
 		src_addr = kmap_local_folio(src_folio,
-					offset_in_folio(src_folio, srcoff));
+					    offset_in_folio(src_folio, srcoff));
 		dst_addr = kmap_local_folio(dst_folio,
-					offset_in_folio(dst_folio, dstoff));
+					    offset_in_folio(dst_folio, dstoff));
 
 		flush_dcache_folio(src_folio);
 		flush_dcache_folio(dst_folio);
@@ -243,7 +241,7 @@ static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
 
 		kunmap_local(dst_addr);
 		kunmap_local(src_addr);
-unlock:
+	unlock:
 		vfs_unlock_two_folios(src_folio, dst_folio);
 		folio_put(dst_folio);
 		folio_put(src_folio);
@@ -308,7 +306,7 @@ int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
 
 	/* Check that we don't violate system file offset limits. */
 	ret = generic_remap_checks(file_in, pos_in, file_out, pos_out, len,
-			remap_flags);
+				   remap_flags);
 	if (ret)
 		return ret;
 
@@ -317,13 +315,13 @@ int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
 	if (!same_inode)
 		inode_dio_wait(inode_out);
 
-	ret = filemap_write_and_wait_range(inode_in->i_mapping,
-			pos_in, pos_in + *len - 1);
+	ret = filemap_write_and_wait_range(inode_in->i_mapping, pos_in,
+					   pos_in + *len - 1);
 	if (ret)
 		return ret;
 
-	ret = filemap_write_and_wait_range(inode_out->i_mapping,
-			pos_out, pos_out + *len - 1);
+	ret = filemap_write_and_wait_range(inode_out->i_mapping, pos_out,
+					   pos_out + *len - 1);
 	if (ret)
 		return ret;
 
@@ -331,10 +329,10 @@ int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
 	 * Check that the extents are the same.
 	 */
 	if (remap_flags & REMAP_FILE_DEDUP) {
-		bool		is_same = false;
+		bool is_same = false;
 
-		ret = vfs_dedupe_file_range_compare(inode_in, pos_in,
-				inode_out, pos_out, *len, &is_same);
+		ret = vfs_dedupe_file_range_compare(inode_in, pos_in, inode_out,
+						    pos_out, *len, &is_same);
 		if (ret)
 			return ret;
 		if (!is_same)
@@ -342,7 +340,7 @@ int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
 	}
 
 	ret = generic_remap_check_len(inode_in, inode_out, pos_out, len,
-			remap_flags);
+				      remap_flags);
 	if (ret)
 		return ret;
 
@@ -355,8 +353,8 @@ int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
 EXPORT_SYMBOL(generic_remap_file_range_prep);
 
 loff_t do_clone_file_range(struct file *file_in, loff_t pos_in,
-			   struct file *file_out, loff_t pos_out,
-			   loff_t len, unsigned int remap_flags)
+			   struct file *file_out, loff_t pos_out, loff_t len,
+			   unsigned int remap_flags)
 {
 	loff_t ret;
 
@@ -385,8 +383,8 @@ loff_t do_clone_file_range(struct file *file_in, loff_t pos_in,
 	if (ret)
 		return ret;
 
-	ret = file_in->f_op->remap_file_range(file_in, pos_in,
-			file_out, pos_out, len, remap_flags);
+	ret = file_in->f_op->remap_file_range(file_in, pos_in, file_out,
+					      pos_out, len, remap_flags);
 	if (ret < 0)
 		return ret;
 
@@ -397,8 +395,8 @@ loff_t do_clone_file_range(struct file *file_in, loff_t pos_in,
 EXPORT_SYMBOL(do_clone_file_range);
 
 loff_t vfs_clone_file_range(struct file *file_in, loff_t pos_in,
-			    struct file *file_out, loff_t pos_out,
-			    loff_t len, unsigned int remap_flags)
+			    struct file *file_out, loff_t pos_out, loff_t len,
+			    unsigned int remap_flags)
 {
 	loff_t ret;
 
@@ -434,8 +432,8 @@ loff_t vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
 {
 	loff_t ret;
 
-	WARN_ON_ONCE(remap_flags & ~(REMAP_FILE_DEDUP |
-				     REMAP_FILE_CAN_SHORTEN));
+	WARN_ON_ONCE(remap_flags &
+		     ~(REMAP_FILE_DEDUP | REMAP_FILE_CAN_SHORTEN));
 
 	ret = mnt_want_write_file(dst_file);
 	if (ret)
@@ -475,7 +473,8 @@ loff_t vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
 	}
 
 	ret = dst_file->f_op->remap_file_range(src_file, src_pos, dst_file,
-			dst_pos, len, remap_flags | REMAP_FILE_DEDUP);
+					       dst_pos, len,
+					       remap_flags | REMAP_FILE_DEDUP);
 out_drop_write:
 	mnt_drop_write_file(dst_file);
 
@@ -553,9 +552,9 @@ int vfs_dedupe_file_range(struct file *file, struct file_dedupe_range *same)
 		else
 			info->bytes_deduped = len;
 
-next_fdput:
+	next_fdput:
 		fdput(dst_fd);
-next_loop:
+	next_loop:
 		if (fatal_signal_pending(current))
 			break;
 	}

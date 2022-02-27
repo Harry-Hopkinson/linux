@@ -33,11 +33,11 @@ static struct inode *anon_inode_inode;
 static char *anon_inodefs_dname(struct dentry *dentry, char *buffer, int buflen)
 {
 	return dynamic_dname(dentry, buffer, buflen, "anon_inode:%s",
-				dentry->d_name.name);
+			     dentry->d_name.name);
 }
 
 static const struct dentry_operations anon_inodefs_dentry_operations = {
-	.d_dname	= anon_inodefs_dname,
+	.d_dname = anon_inodefs_dname,
 };
 
 static int anon_inodefs_init_fs_context(struct fs_context *fc)
@@ -50,14 +50,14 @@ static int anon_inodefs_init_fs_context(struct fs_context *fc)
 }
 
 static struct file_system_type anon_inode_fs_type = {
-	.name		= "anon_inodefs",
+	.name = "anon_inodefs",
 	.init_fs_context = anon_inodefs_init_fs_context,
-	.kill_sb	= kill_anon_super,
+	.kill_sb = kill_anon_super,
 };
 
-static struct inode *anon_inode_make_secure_inode(
-	const char *name,
-	const struct inode *context_inode)
+static struct inode *
+anon_inode_make_secure_inode(const char *name,
+			     const struct inode *context_inode)
 {
 	struct inode *inode;
 	const struct qstr qname = QSTR_INIT(name, strlen(name));
@@ -67,7 +67,7 @@ static struct inode *anon_inode_make_secure_inode(
 	if (IS_ERR(inode))
 		return inode;
 	inode->i_flags &= ~S_PRIVATE;
-	error =	security_inode_init_security_anon(inode, &qname, context_inode);
+	error = security_inode_init_security_anon(inode, &qname, context_inode);
 	if (error) {
 		iput(inode);
 		return ERR_PTR(error);
@@ -88,13 +88,13 @@ static struct file *__anon_inode_getfile(const char *name,
 		return ERR_PTR(-ENOENT);
 
 	if (secure) {
-		inode =	anon_inode_make_secure_inode(name, context_inode);
+		inode = anon_inode_make_secure_inode(name, context_inode);
 		if (IS_ERR(inode)) {
 			file = ERR_CAST(inode);
 			goto err;
 		}
 	} else {
-		inode =	anon_inode_inode;
+		inode = anon_inode_inode;
 		if (IS_ERR(inode)) {
 			file = ERR_PTR(-ENODEV);
 			goto err;
@@ -141,8 +141,8 @@ err:
  * setup.  Returns the newly created file* or an error pointer.
  */
 struct file *anon_inode_getfile(const char *name,
-				const struct file_operations *fops,
-				void *priv, int flags)
+				const struct file_operations *fops, void *priv,
+				int flags)
 {
 	return __anon_inode_getfile(name, fops, priv, flags, NULL, false);
 }
@@ -173,14 +173,13 @@ struct file *anon_inode_getfile_secure(const char *name,
 				       void *priv, int flags,
 				       const struct inode *context_inode)
 {
-	return __anon_inode_getfile(name, fops, priv, flags,
-				    context_inode, true);
+	return __anon_inode_getfile(name, fops, priv, flags, context_inode,
+				    true);
 }
 
 static int __anon_inode_getfd(const char *name,
-			      const struct file_operations *fops,
-			      void *priv, int flags,
-			      const struct inode *context_inode,
+			      const struct file_operations *fops, void *priv,
+			      int flags, const struct inode *context_inode,
 			      bool secure)
 {
 	int error, fd;
@@ -246,9 +245,9 @@ EXPORT_SYMBOL_GPL(anon_inode_getfd);
  * The LSM may use @context_inode in inode_init_security_anon(), but a
  * reference to it is not held.
  */
-int anon_inode_getfd_secure(const char *name, const struct file_operations *fops,
-			    void *priv, int flags,
-			    const struct inode *context_inode)
+int anon_inode_getfd_secure(const char *name,
+			    const struct file_operations *fops, void *priv,
+			    int flags, const struct inode *context_inode)
 {
 	return __anon_inode_getfd(name, fops, priv, flags, context_inode, true);
 }
@@ -258,14 +257,15 @@ static int __init anon_inode_init(void)
 {
 	anon_inode_mnt = kern_mount(&anon_inode_fs_type);
 	if (IS_ERR(anon_inode_mnt))
-		panic("anon_inode_init() kernel mount failed (%ld)\n", PTR_ERR(anon_inode_mnt));
+		panic("anon_inode_init() kernel mount failed (%ld)\n",
+		      PTR_ERR(anon_inode_mnt));
 
 	anon_inode_inode = alloc_anon_inode(anon_inode_mnt->mnt_sb);
 	if (IS_ERR(anon_inode_inode))
-		panic("anon_inode_init() inode allocation failed (%ld)\n", PTR_ERR(anon_inode_inode));
+		panic("anon_inode_init() inode allocation failed (%ld)\n",
+		      PTR_ERR(anon_inode_inode));
 
 	return 0;
 }
 
 fs_initcall(anon_inode_init);
-

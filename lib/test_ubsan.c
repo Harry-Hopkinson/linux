@@ -3,12 +3,13 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 
-typedef void(*test_ubsan_fp)(void);
+typedef void (*test_ubsan_fp)(void);
 
-#define UBSAN_TEST(config, ...)	do {					\
-		pr_info("%s " __VA_ARGS__ "%s(%s=%s)\n", __func__,	\
-			sizeof(" " __VA_ARGS__) > 2 ? " " : "",		\
-			#config, IS_ENABLED(config) ? "y" : "n");	\
+#define UBSAN_TEST(config, ...)                                                \
+	do {                                                                   \
+		pr_info("%s " __VA_ARGS__ "%s(%s=%s)\n", __func__,             \
+			sizeof(" " __VA_ARGS__) > 2 ? " " : "", #config,       \
+			IS_ENABLED(config) ? "y" : "n");                       \
 	} while (0)
 
 static void test_ubsan_divrem_overflow(void)
@@ -36,9 +37,9 @@ static void test_ubsan_shift_out_of_bounds(void)
 static void test_ubsan_out_of_bounds(void)
 {
 	volatile int i = 4, j = 5, k = -1;
-	volatile char above[4] = { }; /* Protect surrounding memory. */
+	volatile char above[4] = {}; /* Protect surrounding memory. */
 	volatile int arr[4];
-	volatile char below[4] = { }; /* Protect surrounding memory. */
+	volatile char below[4] = {}; /* Protect surrounding memory. */
 
 	above[0] = below[0];
 
@@ -81,7 +82,7 @@ static void test_ubsan_load_invalid_value(void)
 
 static void test_ubsan_misaligned_access(void)
 {
-	volatile char arr[5] __aligned(4) = {1, 2, 3, 4, 5};
+	volatile char arr[5] __aligned(4) = { 1, 2, 3, 4, 5 };
 	volatile int *ptr, val = 6;
 
 	UBSAN_TEST(CONFIG_UBSAN_ALIGNMENT);

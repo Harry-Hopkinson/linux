@@ -18,24 +18,22 @@
 
 #include "ubsan.h"
 
-static const char * const type_check_kinds[] = {
-	"load of",
-	"store to",
-	"reference binding to",
-	"member access within",
-	"member call on",
-	"constructor call on",
-	"downcast of",
-	"downcast of"
-};
+static const char *const type_check_kinds[] = { "load of",
+						"store to",
+						"reference binding to",
+						"member access within",
+						"member call on",
+						"constructor call on",
+						"downcast of",
+						"downcast of" };
 
 #define REPORTED_BIT 31
 
 #if (BITS_PER_LONG == 64) && defined(__BIG_ENDIAN)
 #define COLUMN_MASK (~(1U << REPORTED_BIT))
-#define LINE_MASK   (~0U)
+#define LINE_MASK (~0U)
 #else
-#define COLUMN_MASK   (~0U)
+#define COLUMN_MASK (~0U)
 #define LINE_MASK (~(1U << REPORTED_BIT))
 #endif
 
@@ -59,7 +57,7 @@ static bool type_is_int(struct type_descriptor *type)
 static bool type_is_signed(struct type_descriptor *type)
 {
 	WARN_ON(!type_is_int(type));
-	return  type->type_info & 1;
+	return type->type_info & 1;
 }
 
 static unsigned type_bit_width(struct type_descriptor *type)
@@ -69,7 +67,7 @@ static unsigned type_bit_width(struct type_descriptor *type)
 
 static bool is_inline_int(struct type_descriptor *type)
 {
-	unsigned inline_bits = sizeof(unsigned long)*8;
+	unsigned inline_bits = sizeof(unsigned long) * 8;
 	unsigned bits = type_bit_width(type);
 
 	WARN_ON(!type_is_int(type));
@@ -80,7 +78,7 @@ static bool is_inline_int(struct type_descriptor *type)
 static s_max get_signed_val(struct type_descriptor *type, void *val)
 {
 	if (is_inline_int(type)) {
-		unsigned extra_bits = sizeof(s_max)*8 - type_bit_width(type);
+		unsigned extra_bits = sizeof(s_max) * 8 - type_bit_width(type);
 		unsigned long ulong_val = (unsigned long)val;
 
 		return ((s_max)ulong_val) << extra_bits >> extra_bits;
@@ -109,7 +107,7 @@ static u_max get_unsigned_val(struct type_descriptor *type, void *val)
 }
 
 static void val_to_string(char *str, size_t size, struct type_descriptor *type,
-			void *value)
+			  void *value)
 {
 	if (type_is_int(type)) {
 		if (type_bit_width(type) == 128) {
@@ -117,19 +115,17 @@ static void val_to_string(char *str, size_t size, struct type_descriptor *type,
 			u_max val = get_unsigned_val(type, value);
 
 			scnprintf(str, size, "0x%08x%08x%08x%08x",
-				(u32)(val >> 96),
-				(u32)(val >> 64),
-				(u32)(val >> 32),
-				(u32)(val));
+				  (u32)(val >> 96), (u32)(val >> 64),
+				  (u32)(val >> 32), (u32)(val));
 #else
 			WARN_ON(1);
 #endif
 		} else if (type_is_signed(type)) {
 			scnprintf(str, size, "%lld",
-				(s64)get_signed_val(type, value));
+				  (s64)get_signed_val(type, value));
 		} else {
 			scnprintf(str, size, "%llu",
-				(u64)get_unsigned_val(type, value));
+				  (u64)get_unsigned_val(type, value));
 		}
 	}
 }
@@ -139,9 +135,9 @@ static void ubsan_prologue(struct source_location *loc, const char *reason)
 	current->in_ubsan++;
 
 	pr_err("========================================"
-		"========================================\n");
+	       "========================================\n");
 	pr_err("UBSAN: %s in %s:%d:%d\n", reason, loc->file_name,
-		loc->line & LINE_MASK, loc->column & COLUMN_MASK);
+	       loc->line & LINE_MASK, loc->column & COLUMN_MASK);
 
 	kunit_fail_current_test("%s in %s", reason, loc->file_name);
 }
@@ -150,7 +146,7 @@ static void ubsan_epilogue(void)
 {
 	dump_stack();
 	pr_err("========================================"
-		"========================================\n");
+	       "========================================\n");
 
 	current->in_ubsan--;
 
@@ -180,7 +176,7 @@ void __ubsan_handle_divrem_overflow(void *_data, void *lhs, void *rhs)
 
 	if (type_is_signed(data->type) && get_signed_val(data->type, rhs) == -1)
 		pr_err("division of %s by -1 cannot be represented in type %s\n",
-			rhs_val_str, data->type->type_name);
+		       rhs_val_str, data->type->type_name);
 	else
 		pr_err("division by zero\n");
 
@@ -196,14 +192,13 @@ static void handle_null_ptr_deref(struct type_mismatch_data_common *data)
 	ubsan_prologue(data->location, "null-ptr-deref");
 
 	pr_err("%s null pointer of type %s\n",
-		type_check_kinds[data->type_check_kind],
-		data->type->type_name);
+	       type_check_kinds[data->type_check_kind], data->type->type_name);
 
 	ubsan_epilogue();
 }
 
 static void handle_misaligned_access(struct type_mismatch_data_common *data,
-				unsigned long ptr)
+				     unsigned long ptr)
 {
 	if (suppress_report(data->location))
 		return;
@@ -211,8 +206,8 @@ static void handle_misaligned_access(struct type_mismatch_data_common *data,
 	ubsan_prologue(data->location, "misaligned-access");
 
 	pr_err("%s misaligned address %p for type %s\n",
-		type_check_kinds[data->type_check_kind],
-		(void *)ptr, data->type->type_name);
+	       type_check_kinds[data->type_check_kind], (void *)ptr,
+	       data->type->type_name);
 	pr_err("which requires %ld byte alignment\n", data->alignment);
 
 	ubsan_epilogue();
@@ -226,14 +221,13 @@ static void handle_object_size_mismatch(struct type_mismatch_data_common *data,
 
 	ubsan_prologue(data->location, "object-size-mismatch");
 	pr_err("%s address %p with insufficient space\n",
-		type_check_kinds[data->type_check_kind],
-		(void *) ptr);
+	       type_check_kinds[data->type_check_kind], (void *)ptr);
 	pr_err("for an object of type %s\n", data->type->type_name);
 	ubsan_epilogue();
 }
 
 static void ubsan_type_mismatch_common(struct type_mismatch_data_common *data,
-				unsigned long ptr)
+				       unsigned long ptr)
 {
 	unsigned long flags = user_access_save();
 
@@ -247,8 +241,7 @@ static void ubsan_type_mismatch_common(struct type_mismatch_data_common *data,
 	user_access_restore(flags);
 }
 
-void __ubsan_handle_type_mismatch(struct type_mismatch_data *data,
-				void *ptr)
+void __ubsan_handle_type_mismatch(struct type_mismatch_data *data, void *ptr)
 {
 	struct type_mismatch_data_common common_data = {
 		.location = &data->location,
@@ -287,7 +280,7 @@ void __ubsan_handle_out_of_bounds(void *_data, void *index)
 
 	val_to_string(index_str, sizeof(index_str), data->index_type, index);
 	pr_err("index %s is out of range for type %s\n", index_str,
-		data->array_type->type_name);
+	       data->array_type->type_name);
 	ubsan_epilogue();
 }
 EXPORT_SYMBOL(__ubsan_handle_out_of_bounds);
@@ -312,27 +305,21 @@ void __ubsan_handle_shift_out_of_bounds(void *_data, void *lhs, void *rhs)
 	if (val_is_negative(rhs_type, rhs))
 		pr_err("shift exponent %s is negative\n", rhs_str);
 
-	else if (get_unsigned_val(rhs_type, rhs) >=
-		type_bit_width(lhs_type))
+	else if (get_unsigned_val(rhs_type, rhs) >= type_bit_width(lhs_type))
 		pr_err("shift exponent %s is too large for %u-bit type %s\n",
-			rhs_str,
-			type_bit_width(lhs_type),
-			lhs_type->type_name);
+		       rhs_str, type_bit_width(lhs_type), lhs_type->type_name);
 	else if (val_is_negative(lhs_type, lhs))
-		pr_err("left shift of negative value %s\n",
-			lhs_str);
+		pr_err("left shift of negative value %s\n", lhs_str);
 	else
 		pr_err("left shift of %s by %s places cannot be"
-			" represented in type %s\n",
-			lhs_str, rhs_str,
-			lhs_type->type_name);
+		       " represented in type %s\n",
+		       lhs_str, rhs_str, lhs_type->type_name);
 
 	ubsan_epilogue();
 out:
 	user_access_restore(ua_flags);
 }
 EXPORT_SYMBOL(__ubsan_handle_shift_out_of_bounds);
-
 
 void __ubsan_handle_builtin_unreachable(void *_data)
 {
@@ -356,8 +343,8 @@ void __ubsan_handle_load_invalid_value(void *_data, void *val)
 
 	val_to_string(val_str, sizeof(val_str), data->type, val);
 
-	pr_err("load of value %s is not a valid value for type %s\n",
-		val_str, data->type->type_name);
+	pr_err("load of value %s is not a valid value for type %s\n", val_str,
+	       data->type->type_name);
 
 	ubsan_epilogue();
 }

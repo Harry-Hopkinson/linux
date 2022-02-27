@@ -10,8 +10,8 @@
  */
 #include "internal.h"
 
-static struct page *pcpu_chunk_page(struct pcpu_chunk *chunk,
-				    unsigned int cpu, int page_idx)
+static struct page *pcpu_chunk_page(struct pcpu_chunk *chunk, unsigned int cpu,
+				    int page_idx)
 {
 	/* must not be used on pre-mapped chunk */
 	WARN_ON(chunk->immutable);
@@ -51,13 +51,13 @@ static struct page **pcpu_get_pages(void)
  * Free pages [@page_start and @page_end) in @pages for all units.
  * The pages were allocated for @chunk.
  */
-static void pcpu_free_pages(struct pcpu_chunk *chunk,
-			    struct page **pages, int page_start, int page_end)
+static void pcpu_free_pages(struct pcpu_chunk *chunk, struct page **pages,
+			    int page_start, int page_end)
 {
 	unsigned int cpu;
 	int i;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu (cpu) {
 		for (i = page_start; i < page_end; i++) {
 			struct page *page = pages[pcpu_page_idx(cpu, i)];
 
@@ -79,16 +79,15 @@ static void pcpu_free_pages(struct pcpu_chunk *chunk,
  * The allocation is for @chunk.  Percpu core doesn't care about the
  * content of @pages and will pass it verbatim to pcpu_map_pages().
  */
-static int pcpu_alloc_pages(struct pcpu_chunk *chunk,
-			    struct page **pages, int page_start, int page_end,
-			    gfp_t gfp)
+static int pcpu_alloc_pages(struct pcpu_chunk *chunk, struct page **pages,
+			    int page_start, int page_end, gfp_t gfp)
 {
 	unsigned int cpu, tcpu;
 	int i;
 
 	gfp |= __GFP_HIGHMEM;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu (cpu) {
 		for (i = page_start; i < page_end; i++) {
 			struct page **pagep = &pages[pcpu_page_idx(cpu, i)];
 
@@ -103,7 +102,7 @@ err:
 	while (--i >= page_start)
 		__free_page(pages[pcpu_page_idx(cpu, i)]);
 
-	for_each_possible_cpu(tcpu) {
+	for_each_possible_cpu (tcpu) {
 		if (tcpu == cpu)
 			break;
 		for (i = page_start; i < page_end; i++)
@@ -124,8 +123,8 @@ err:
  * doing it for each cpu.  This could be an overkill but is more
  * scalable.
  */
-static void pcpu_pre_unmap_flush(struct pcpu_chunk *chunk,
-				 int page_start, int page_end)
+static void pcpu_pre_unmap_flush(struct pcpu_chunk *chunk, int page_start,
+				 int page_end)
 {
 	flush_cache_vunmap(
 		pcpu_chunk_addr(chunk, pcpu_low_unit_cpu, page_start),
@@ -150,13 +149,13 @@ static void __pcpu_unmap_pages(unsigned long addr, int nr_pages)
  * called after all unmaps are finished.  The caller should call
  * proper pre/post flush functions.
  */
-static void pcpu_unmap_pages(struct pcpu_chunk *chunk,
-			     struct page **pages, int page_start, int page_end)
+static void pcpu_unmap_pages(struct pcpu_chunk *chunk, struct page **pages,
+			     int page_start, int page_end)
 {
 	unsigned int cpu;
 	int i;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu (cpu) {
 		for (i = page_start; i < page_end; i++) {
 			struct page *page;
 
@@ -182,8 +181,8 @@ static void pcpu_unmap_pages(struct pcpu_chunk *chunk,
  * As with pcpu_pre_unmap_flush(), TLB flushing also is done at once
  * for the whole region.
  */
-static void pcpu_post_unmap_tlb_flush(struct pcpu_chunk *chunk,
-				      int page_start, int page_end)
+static void pcpu_post_unmap_tlb_flush(struct pcpu_chunk *chunk, int page_start,
+				      int page_end)
 {
 	flush_tlb_kernel_range(
 		pcpu_chunk_addr(chunk, pcpu_low_unit_cpu, page_start),
@@ -211,13 +210,13 @@ static int __pcpu_map_pages(unsigned long addr, struct page **pages,
  * This function is responsible for setting up whatever is necessary for
  * reverse lookup (addr -> chunk).
  */
-static int pcpu_map_pages(struct pcpu_chunk *chunk,
-			  struct page **pages, int page_start, int page_end)
+static int pcpu_map_pages(struct pcpu_chunk *chunk, struct page **pages,
+			  int page_start, int page_end)
 {
 	unsigned int cpu, tcpu;
 	int i, err;
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu (cpu) {
 		err = __pcpu_map_pages(pcpu_chunk_addr(chunk, cpu, page_start),
 				       &pages[pcpu_page_idx(cpu, page_start)],
 				       page_end - page_start);
@@ -230,7 +229,7 @@ static int pcpu_map_pages(struct pcpu_chunk *chunk,
 	}
 	return 0;
 err:
-	for_each_possible_cpu(tcpu) {
+	for_each_possible_cpu (tcpu) {
 		if (tcpu == cpu)
 			break;
 		__pcpu_unmap_pages(pcpu_chunk_addr(chunk, tcpu, page_start),
@@ -252,12 +251,11 @@ err:
  * As with pcpu_pre_unmap_flush(), TLB flushing also is done at once
  * for the whole region.
  */
-static void pcpu_post_map_flush(struct pcpu_chunk *chunk,
-				int page_start, int page_end)
+static void pcpu_post_map_flush(struct pcpu_chunk *chunk, int page_start,
+				int page_end)
 {
-	flush_cache_vmap(
-		pcpu_chunk_addr(chunk, pcpu_low_unit_cpu, page_start),
-		pcpu_chunk_addr(chunk, pcpu_high_unit_cpu, page_end));
+	flush_cache_vmap(pcpu_chunk_addr(chunk, pcpu_low_unit_cpu, page_start),
+			 pcpu_chunk_addr(chunk, pcpu_high_unit_cpu, page_end));
 }
 
 /**
@@ -273,8 +271,8 @@ static void pcpu_post_map_flush(struct pcpu_chunk *chunk,
  * CONTEXT:
  * pcpu_alloc_mutex, does GFP_KERNEL allocation.
  */
-static int pcpu_populate_chunk(struct pcpu_chunk *chunk,
-			       int page_start, int page_end, gfp_t gfp)
+static int pcpu_populate_chunk(struct pcpu_chunk *chunk, int page_start,
+			       int page_end, gfp_t gfp)
 {
 	struct page **pages;
 
@@ -309,8 +307,8 @@ static int pcpu_populate_chunk(struct pcpu_chunk *chunk,
  * CONTEXT:
  * pcpu_alloc_mutex.
  */
-static void pcpu_depopulate_chunk(struct pcpu_chunk *chunk,
-				  int page_start, int page_end)
+static void pcpu_depopulate_chunk(struct pcpu_chunk *chunk, int page_start,
+				  int page_end)
 {
 	struct page **pages;
 
@@ -404,7 +402,7 @@ static bool pcpu_should_reclaim_chunk(struct pcpu_chunk *chunk)
 	 * chunk, move it to the to_depopulate list.
 	 */
 	return ((chunk->isolated && chunk->nr_empty_pop_pages) ||
-		(pcpu_nr_empty_pop_pages >
-		 (PCPU_EMPTY_POP_PAGES_HIGH + chunk->nr_empty_pop_pages) &&
+		(pcpu_nr_empty_pop_pages > (PCPU_EMPTY_POP_PAGES_HIGH +
+					    chunk->nr_empty_pop_pages) &&
 		 chunk->nr_empty_pop_pages >= chunk->nr_pages / 4));
 }

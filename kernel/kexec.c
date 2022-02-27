@@ -60,8 +60,8 @@ static int kimage_alloc_init(struct kimage **rimage, unsigned long entry,
 	 * counted as destination pages.
 	 */
 	ret = -ENOMEM;
-	image->control_code_page = kimage_alloc_control_pages(image,
-					   get_order(KEXEC_CONTROL_PAGE_SIZE));
+	image->control_code_page = kimage_alloc_control_pages(
+		image, get_order(KEXEC_CONTROL_PAGE_SIZE));
 	if (!image->control_code_page) {
 		pr_err("Could not allocate control_code_buffer\n");
 		goto out_free_image;
@@ -85,7 +85,7 @@ out_free_image:
 }
 
 static int do_kexec_load(unsigned long entry, unsigned long nr_segments,
-		struct kexec_segment *segments, unsigned long flags)
+			 struct kexec_segment *segments, unsigned long flags)
 {
 	struct kimage **dest_image, *image;
 	unsigned long i;
@@ -240,7 +240,7 @@ SYSCALL_DEFINE4(kexec_load, unsigned long, entry, unsigned long, nr_segments,
 
 	/* Verify we are on the appropriate architecture */
 	if (((flags & KEXEC_ARCH_MASK) != KEXEC_ARCH) &&
-		((flags & KEXEC_ARCH_MASK) != KEXEC_ARCH_DEFAULT))
+	    ((flags & KEXEC_ARCH_MASK) != KEXEC_ARCH_DEFAULT))
 		return -EINVAL;
 
 	ksegments = memdup_user(segments, nr_segments * sizeof(ksegments[0]));
@@ -254,10 +254,9 @@ SYSCALL_DEFINE4(kexec_load, unsigned long, entry, unsigned long, nr_segments,
 }
 
 #ifdef CONFIG_COMPAT
-COMPAT_SYSCALL_DEFINE4(kexec_load, compat_ulong_t, entry,
-		       compat_ulong_t, nr_segments,
-		       struct compat_kexec_segment __user *, segments,
-		       compat_ulong_t, flags)
+COMPAT_SYSCALL_DEFINE4(kexec_load, compat_ulong_t, entry, compat_ulong_t,
+		       nr_segments, struct compat_kexec_segment __user *,
+		       segments, compat_ulong_t, flags)
 {
 	struct compat_kexec_segment in;
 	struct kexec_segment *ksegments;
@@ -273,8 +272,8 @@ COMPAT_SYSCALL_DEFINE4(kexec_load, compat_ulong_t, entry,
 	if ((flags & KEXEC_ARCH_MASK) == KEXEC_ARCH_DEFAULT)
 		return -EINVAL;
 
-	ksegments = kmalloc_array(nr_segments, sizeof(ksegments[0]),
-			GFP_KERNEL);
+	ksegments =
+		kmalloc_array(nr_segments, sizeof(ksegments[0]), GFP_KERNEL);
 	if (!ksegments)
 		return -ENOMEM;
 
@@ -283,9 +282,9 @@ COMPAT_SYSCALL_DEFINE4(kexec_load, compat_ulong_t, entry,
 		if (result)
 			goto fail;
 
-		ksegments[i].buf   = compat_ptr(in.buf);
+		ksegments[i].buf = compat_ptr(in.buf);
 		ksegments[i].bufsz = in.bufsz;
-		ksegments[i].mem   = in.mem;
+		ksegments[i].mem = in.mem;
 		ksegments[i].memsz = in.memsz;
 	}
 

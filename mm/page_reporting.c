@@ -15,7 +15,7 @@ unsigned int page_reporting_order = MAX_ORDER;
 module_param(page_reporting_order, uint, 0644);
 MODULE_PARM_DESC(page_reporting_order, "Set page reporting order");
 
-#define PAGE_REPORTING_DELAY	(2 * HZ)
+#define PAGE_REPORTING_DELAY (2 * HZ)
 static struct page_reporting_dev_info __rcu *pr_dev_info __read_mostly;
 
 enum {
@@ -25,8 +25,7 @@ enum {
 };
 
 /* request page reporting */
-static void
-__page_reporting_request(struct page_reporting_dev_info *prdev)
+static void __page_reporting_request(struct page_reporting_dev_info *prdev)
 {
 	unsigned int state;
 
@@ -69,9 +68,9 @@ void __page_reporting_notify(void)
 	rcu_read_unlock();
 }
 
-static void
-page_reporting_drain(struct page_reporting_dev_info *prdev,
-		     struct scatterlist *sgl, unsigned int nents, bool reported)
+static void page_reporting_drain(struct page_reporting_dev_info *prdev,
+				 struct scatterlist *sgl, unsigned int nents,
+				 bool reported)
 {
 	struct scatterlist *sg = sgl;
 
@@ -110,10 +109,10 @@ page_reporting_drain(struct page_reporting_dev_info *prdev,
  * idle. We will cycle through the first 3 stages until we cannot obtain a
  * full scatterlist of pages, in that case we will switch to idle.
  */
-static int
-page_reporting_cycle(struct page_reporting_dev_info *prdev, struct zone *zone,
-		     unsigned int order, unsigned int mt,
-		     struct scatterlist *sgl, unsigned int *offset)
+static int page_reporting_cycle(struct page_reporting_dev_info *prdev,
+				struct zone *zone, unsigned int order,
+				unsigned int mt, struct scatterlist *sgl,
+				unsigned int *offset)
 {
 	struct free_area *area = &zone->free_area[order];
 	struct list_head *list = &area->free_list[mt];
@@ -148,7 +147,7 @@ page_reporting_cycle(struct page_reporting_dev_info *prdev, struct zone *zone,
 	budget = DIV_ROUND_UP(area->nr_free, PAGE_REPORTING_CAPACITY * 16);
 
 	/* loop through free list adding unreported pages to sg list */
-	list_for_each_entry_safe(page, next, list, lru) {
+	list_for_each_entry_safe (page, next, list, lru) {
 		/* We are going to skip over the reported pages. */
 		if (PageReported(page))
 			continue;
@@ -216,7 +215,8 @@ page_reporting_cycle(struct page_reporting_dev_info *prdev, struct zone *zone,
 	}
 
 	/* Rotate any leftover pages to the head of the freelist */
-	if (!list_entry_is_head(next, list, lru) && !list_is_first(&next->lru, list))
+	if (!list_entry_is_head(next, list, lru) &&
+	    !list_is_first(&next->lru, list))
 		list_rotate_to_front(&next->lru, list);
 
 	spin_unlock_irq(&zone->lock);
@@ -224,9 +224,9 @@ page_reporting_cycle(struct page_reporting_dev_info *prdev, struct zone *zone,
 	return err;
 }
 
-static int
-page_reporting_process_zone(struct page_reporting_dev_info *prdev,
-			    struct scatterlist *sgl, struct zone *zone)
+static int page_reporting_process_zone(struct page_reporting_dev_info *prdev,
+				       struct scatterlist *sgl,
+				       struct zone *zone)
 {
 	unsigned int order, mt, leftover, offset = PAGE_REPORTING_CAPACITY;
 	unsigned long watermark;
@@ -250,8 +250,8 @@ page_reporting_process_zone(struct page_reporting_dev_info *prdev,
 			if (is_migrate_isolate(mt))
 				continue;
 
-			err = page_reporting_cycle(prdev, zone, order, mt,
-						   sgl, &offset);
+			err = page_reporting_cycle(prdev, zone, order, mt, sgl,
+						   &offset);
 			if (err)
 				return err;
 		}
@@ -296,7 +296,7 @@ static void page_reporting_process(struct work_struct *work)
 
 	sg_init_table(sgl, PAGE_REPORTING_CAPACITY);
 
-	for_each_zone(zone) {
+	for_each_zone (zone) {
 		err = page_reporting_process_zone(prdev, sgl, zone);
 		if (err)
 			break;
@@ -333,7 +333,7 @@ int page_reporting_register(struct page_reporting_dev_info *prdev)
 	 * Update the page reporting order if it's specified by driver.
 	 * Otherwise, it falls back to @pageblock_order.
 	 */
-	page_reporting_order = prdev->order ? : pageblock_order;
+	page_reporting_order = prdev->order ?: pageblock_order;
 
 	/* initialize state and work structures */
 	atomic_set(&prdev->state, PAGE_REPORTING_IDLE);

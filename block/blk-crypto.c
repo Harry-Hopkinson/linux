@@ -45,7 +45,7 @@ static int num_prealloc_crypt_ctxs = 128;
 
 module_param(num_prealloc_crypt_ctxs, int, 0444);
 MODULE_PARM_DESC(num_prealloc_crypt_ctxs,
-		"Number of bio crypto contexts to preallocate");
+		 "Number of bio crypto contexts to preallocate");
 
 static struct kmem_cache *bio_crypt_ctx_cache;
 static mempool_t *bio_crypt_ctx_pool;
@@ -208,7 +208,7 @@ static bool bio_crypt_check_alignment(struct bio *bio)
 	struct bvec_iter iter;
 	struct bio_vec bv;
 
-	bio_for_each_segment(bv, bio, iter) {
+	bio_for_each_segment (bv, bio, iter) {
 		if (!IS_ALIGNED(bv.bv_len | bv.bv_offset, data_unit_size))
 			return false;
 	}
@@ -320,8 +320,7 @@ int __blk_crypto_rq_bio_prep(struct request *rq, struct bio *bio,
  */
 int blk_crypto_init_key(struct blk_crypto_key *blk_key, const u8 *raw_key,
 			enum blk_crypto_mode_num crypto_mode,
-			unsigned int dun_bytes,
-			unsigned int data_unit_size)
+			unsigned int dun_bytes, unsigned int data_unit_size)
 {
 	const struct blk_crypto_mode *mode;
 
@@ -382,7 +381,8 @@ int blk_crypto_start_using_key(const struct blk_crypto_key *key,
 {
 	if (__blk_crypto_cfg_supported(q->crypto_profile, &key->crypto_cfg))
 		return 0;
-	return blk_crypto_fallback_start_using_mode(key->crypto_cfg.crypto_mode);
+	return blk_crypto_fallback_start_using_mode(
+		key->crypto_cfg.crypto_mode);
 }
 
 /**

@@ -46,7 +46,8 @@
 #define TEST_PARMAN_PRIO_COUNT BIT(TEST_PARMAN_PRIO_SHIFT)
 #define TEST_PARMAN_PRIO_MASK (TEST_PARMAN_PRIO_COUNT - 1)
 
-#define TEST_PARMAN_ITEM_SHIFT 13 /* defines a total number
+#define TEST_PARMAN_ITEM_SHIFT                                                 \
+	13 /* defines a total number
 				   * of items for testing
 				   */
 #define TEST_PARMAN_ITEM_COUNT BIT(TEST_PARMAN_ITEM_SHIFT)
@@ -122,11 +123,11 @@ static void test_parman_move(void *priv, unsigned long from_index,
 }
 
 static const struct parman_ops test_parman_lsort_ops = {
-	.base_count	= TEST_PARMAN_BASE_COUNT,
-	.resize_step	= TEST_PARMAN_RESIZE_STEP_COUNT,
-	.resize		= test_parman_resize,
-	.move		= test_parman_move,
-	.algo		= PARMAN_ALGO_TYPE_LSORT,
+	.base_count = TEST_PARMAN_BASE_COUNT,
+	.resize_step = TEST_PARMAN_RESIZE_STEP_COUNT,
+	.resize = test_parman_resize,
+	.move = test_parman_move,
+	.algo = PARMAN_ALGO_TYPE_LSORT,
 };
 
 static void test_parman_rnd_init(struct test_parman *test_parman)
@@ -259,8 +260,8 @@ static bool test_parman_run_check_budgets(struct test_parman *test_parman)
 	if (test_parman->bulk_budget-- != 0)
 		return true;
 
-	test_parman->bulk_budget = test_parman_rnd_get(test_parman) &
-				   TEST_PARMAN_BULK_MAX_MASK;
+	test_parman->bulk_budget =
+		test_parman_rnd_get(test_parman) & TEST_PARMAN_BULK_MAX_MASK;
 	test_parman->bulk_noop = test_parman_rnd_get(test_parman) & 1;
 	return true;
 }

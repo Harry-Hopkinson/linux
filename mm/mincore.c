@@ -22,7 +22,7 @@
 #include <linux/uaccess.h>
 
 static int mincore_hugetlb(pte_t *pte, unsigned long hmask, unsigned long addr,
-			unsigned long end, struct mm_walk *walk)
+			   unsigned long end, struct mm_walk *walk)
 {
 #ifdef CONFIG_HUGETLB_PAGE
 	unsigned char present;
@@ -69,7 +69,8 @@ static unsigned char mincore_page(struct address_space *mapping, pgoff_t index)
 }
 
 static int __mincore_unmapped_range(unsigned long addr, unsigned long end,
-				struct vm_area_struct *vma, unsigned char *vec)
+				    struct vm_area_struct *vma,
+				    unsigned char *vec)
 {
 	unsigned long nr = (end - addr) >> PAGE_SHIFT;
 	int i;
@@ -88,16 +89,16 @@ static int __mincore_unmapped_range(unsigned long addr, unsigned long end,
 }
 
 static int mincore_unmapped_range(unsigned long addr, unsigned long end,
-				   __always_unused int depth,
-				   struct mm_walk *walk)
+				  __always_unused int depth,
+				  struct mm_walk *walk)
 {
-	walk->private += __mincore_unmapped_range(addr, end,
-						  walk->vma, walk->private);
+	walk->private +=
+		__mincore_unmapped_range(addr, end, walk->vma, walk->private);
 	return 0;
 }
 
 static int mincore_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
-			struct mm_walk *walk)
+			     struct mm_walk *walk)
 {
 	spinlock_t *ptl;
 	struct vm_area_struct *vma = walk->vma;
@@ -122,8 +123,8 @@ static int mincore_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
 		pte_t pte = *ptep;
 
 		if (pte_none(pte))
-			__mincore_unmapped_range(addr, addr + PAGE_SIZE,
-						 vma, vec);
+			__mincore_unmapped_range(addr, addr + PAGE_SIZE, vma,
+						 vec);
 		else if (pte_present(pte))
 			*vec = 1;
 		else { /* pte is a swap entry */
@@ -172,9 +173,9 @@ static inline bool can_do_mincore(struct vm_area_struct *vma)
 }
 
 static const struct mm_walk_ops mincore_walk_ops = {
-	.pmd_entry		= mincore_pte_range,
-	.pte_hole		= mincore_unmapped_range,
-	.hugetlb_entry		= mincore_hugetlb,
+	.pmd_entry = mincore_pte_range,
+	.pte_hole = mincore_unmapped_range,
+	.hugetlb_entry = mincore_hugetlb,
 };
 
 /*
@@ -182,7 +183,8 @@ static const struct mm_walk_ops mincore_walk_ops = {
  * all the arguments, we hold the mmap semaphore: we should
  * just return the amount of info we're asked for.
  */
-static long do_mincore(unsigned long addr, unsigned long pages, unsigned char *vec)
+static long do_mincore(unsigned long addr, unsigned long pages,
+		       unsigned char *vec)
 {
 	struct vm_area_struct *vma;
 	unsigned long end;
@@ -241,7 +243,7 @@ SYSCALL_DEFINE3(mincore, unsigned long, start, size_t, len,
 		return -EINVAL;
 
 	/* ..and we need to be passed a valid user-space range */
-	if (!access_ok((void __user *) start, len))
+	if (!access_ok((void __user *)start, len))
 		return -ENOMEM;
 
 	/* This also avoids any overflows on PAGE_ALIGN */
@@ -251,7 +253,7 @@ SYSCALL_DEFINE3(mincore, unsigned long, start, size_t, len,
 	if (!access_ok(vec, pages))
 		return -EFAULT;
 
-	tmp = (void *) __get_free_page(GFP_USER);
+	tmp = (void *)__get_free_page(GFP_USER);
 	if (!tmp)
 		return -EAGAIN;
 
@@ -276,6 +278,6 @@ SYSCALL_DEFINE3(mincore, unsigned long, start, size_t, len,
 		start += retval << PAGE_SHIFT;
 		retval = 0;
 	}
-	free_page((unsigned long) tmp);
+	free_page((unsigned long)tmp);
 	return retval;
 }

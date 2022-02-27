@@ -8,29 +8,33 @@
  * Note that the "cmpxchg()" reloads the "old" value for the
  * failure case.
  */
-#define CMPXCHG_LOOP(CODE, SUCCESS) do {					\
-	int retry = 100;							\
-	struct lockref old;							\
-	BUILD_BUG_ON(sizeof(old) != 8);						\
-	old.lock_count = READ_ONCE(lockref->lock_count);			\
-	while (likely(arch_spin_value_unlocked(old.lock.rlock.raw_lock))) {  	\
-		struct lockref new = old, prev = old;				\
-		CODE								\
-		old.lock_count = cmpxchg64_relaxed(&lockref->lock_count,	\
-						   old.lock_count,		\
-						   new.lock_count);		\
-		if (likely(old.lock_count == prev.lock_count)) {		\
-			SUCCESS;						\
-		}								\
-		if (!--retry)							\
-			break;							\
-		cpu_relax();							\
-	}									\
-} while (0)
+#define CMPXCHG_LOOP(CODE, SUCCESS)                                            \
+	do {                                                                   \
+		int retry = 100;                                               \
+		struct lockref old;                                            \
+		BUILD_BUG_ON(sizeof(old) != 8);                                \
+		old.lock_count = READ_ONCE(lockref->lock_count);               \
+		while (likely(                                                 \
+			arch_spin_value_unlocked(old.lock.rlock.raw_lock))) {  \
+			struct lockref new = old, prev = old;                  \
+			CODE old.lock_count =                                  \
+				cmpxchg64_relaxed(&lockref->lock_count,        \
+						  old.lock_count,              \
+						  new.lock_count);             \
+			if (likely(old.lock_count == prev.lock_count)) {       \
+				SUCCESS;                                       \
+			}                                                      \
+			if (!--retry)                                          \
+				break;                                         \
+			cpu_relax();                                           \
+		}                                                              \
+	} while (0)
 
 #else
 
-#define CMPXCHG_LOOP(CODE, SUCCESS) do { } while (0)
+#define CMPXCHG_LOOP(CODE, SUCCESS)                                            \
+	do {                                                                   \
+	} while (0)
 
 #endif
 
@@ -43,11 +47,7 @@
  */
 void lockref_get(struct lockref *lockref)
 {
-	CMPXCHG_LOOP(
-		new.count++;
-	,
-		return;
-	);
+	CMPXCHG_LOOP(new.count++;, return;);
 
 	spin_lock(&lockref->lock);
 	lockref->count++;
@@ -64,13 +64,7 @@ int lockref_get_not_zero(struct lockref *lockref)
 {
 	int retval;
 
-	CMPXCHG_LOOP(
-		new.count++;
-		if (old.count <= 0)
-			return 0;
-	,
-		return 1;
-	);
+	CMPXCHG_LOOP(new.count++; if (old.count <= 0) return 0;, return 1;);
 
 	spin_lock(&lockref->lock);
 	retval = 0;
@@ -92,13 +86,7 @@ int lockref_put_not_zero(struct lockref *lockref)
 {
 	int retval;
 
-	CMPXCHG_LOOP(
-		new.count--;
-		if (old.count <= 1)
-			return 0;
-	,
-		return 1;
-	);
+	CMPXCHG_LOOP(new.count--; if (old.count <= 1) return 0;, return 1;);
 
 	spin_lock(&lockref->lock);
 	retval = 0;
@@ -119,13 +107,7 @@ EXPORT_SYMBOL(lockref_put_not_zero);
  */
 int lockref_get_or_lock(struct lockref *lockref)
 {
-	CMPXCHG_LOOP(
-		new.count++;
-		if (old.count <= 0)
-			break;
-	,
-		return 1;
-	);
+	CMPXCHG_LOOP(new.count++; if (old.count <= 0) break;, return 1;);
 
 	spin_lock(&lockref->lock);
 	if (lockref->count <= 0)
@@ -145,13 +127,8 @@ EXPORT_SYMBOL(lockref_get_or_lock);
  */
 int lockref_put_return(struct lockref *lockref)
 {
-	CMPXCHG_LOOP(
-		new.count--;
-		if (old.count <= 0)
-			return -1;
-	,
-		return new.count;
-	);
+	CMPXCHG_LOOP(new.count--; if (old.count <= 0) return -1;
+		     , return new.count;);
 	return -1;
 }
 EXPORT_SYMBOL(lockref_put_return);
@@ -163,13 +140,7 @@ EXPORT_SYMBOL(lockref_put_return);
  */
 int lockref_put_or_lock(struct lockref *lockref)
 {
-	CMPXCHG_LOOP(
-		new.count--;
-		if (old.count <= 1)
-			break;
-	,
-		return 1;
-	);
+	CMPXCHG_LOOP(new.count--; if (old.count <= 1) break;, return 1;);
 
 	spin_lock(&lockref->lock);
 	if (lockref->count <= 1)
@@ -200,13 +171,7 @@ int lockref_get_not_dead(struct lockref *lockref)
 {
 	int retval;
 
-	CMPXCHG_LOOP(
-		new.count++;
-		if (old.count < 0)
-			return 0;
-	,
-		return 1;
-	);
+	CMPXCHG_LOOP(new.count++; if (old.count < 0) return 0;, return 1;);
 
 	spin_lock(&lockref->lock);
 	retval = 0;

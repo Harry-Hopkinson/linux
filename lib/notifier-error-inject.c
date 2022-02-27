@@ -19,13 +19,13 @@ DEFINE_SIMPLE_ATTRIBUTE(fops_errno, debugfs_errno_get, debugfs_errno_set,
 			"%lld\n");
 
 static struct dentry *debugfs_create_errno(const char *name, umode_t mode,
-				struct dentry *parent, int *value)
+					   struct dentry *parent, int *value)
 {
 	return debugfs_create_file(name, mode, parent, value, &fops_errno);
 }
 
 static int notifier_err_inject_callback(struct notifier_block *nb,
-				unsigned long val, void *p)
+					unsigned long val, void *p)
 {
 	int err = 0;
 	struct notifier_err_inject *err_inject =
@@ -48,7 +48,8 @@ struct dentry *notifier_err_inject_dir;
 EXPORT_SYMBOL_GPL(notifier_err_inject_dir);
 
 struct dentry *notifier_err_inject_init(const char *name, struct dentry *parent,
-			struct notifier_err_inject *err_inject, int priority)
+					struct notifier_err_inject *err_inject,
+					int priority)
 {
 	struct notifier_err_inject_action *action;
 	umode_t mode = S_IFREG | S_IRUSR | S_IWUSR;

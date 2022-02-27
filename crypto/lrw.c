@@ -62,7 +62,8 @@ static inline void lrw_setbit128_bbe(void *b, int bit)
 #else
 			 BITS_PER_BYTE
 #endif
-			), b);
+			 ),
+		  b);
 }
 
 static int lrw_setkey(struct crypto_skcipher *parent, const u8 *key,
@@ -77,7 +78,7 @@ static int lrw_setkey(struct crypto_skcipher *parent, const u8 *key,
 
 	crypto_skcipher_clear_flags(child, CRYPTO_TFM_REQ_MASK);
 	crypto_skcipher_set_flags(child, crypto_skcipher_get_flags(parent) &
-					 CRYPTO_TFM_REQ_MASK);
+						 CRYPTO_TFM_REQ_MASK);
 	err = crypto_skcipher_setkey(child, key, keylen - bsize);
 	if (err)
 		return err;
@@ -230,8 +231,8 @@ static void lrw_init_crypt(struct skcipher_request *req)
 	skcipher_request_set_callback(subreq, req->base.flags, lrw_crypt_done,
 				      req);
 	/* pass req->iv as IV (will be used by xor_tweak, ECB will ignore it) */
-	skcipher_request_set_crypt(subreq, req->dst, req->dst,
-				   req->cryptlen, req->iv);
+	skcipher_request_set_crypt(subreq, req->dst, req->dst, req->cryptlen,
+				   req->iv);
 
 	/* calculate first value of T */
 	memcpy(&rctx->t, req->iv, sizeof(rctx->t));
@@ -246,9 +247,9 @@ static int lrw_encrypt(struct skcipher_request *req)
 	struct skcipher_request *subreq = &rctx->subreq;
 
 	lrw_init_crypt(req);
-	return lrw_xor_tweak_pre(req) ?:
-		crypto_skcipher_encrypt(subreq) ?:
-		lrw_xor_tweak_post(req);
+	return lrw_xor_tweak_pre(req)		       ?:
+		       crypto_skcipher_encrypt(subreq) ?:
+							 lrw_xor_tweak_post(req);
 }
 
 static int lrw_decrypt(struct skcipher_request *req)
@@ -257,9 +258,9 @@ static int lrw_decrypt(struct skcipher_request *req)
 	struct skcipher_request *subreq = &rctx->subreq;
 
 	lrw_init_crypt(req);
-	return lrw_xor_tweak_pre(req) ?:
-		crypto_skcipher_decrypt(subreq) ?:
-		lrw_xor_tweak_post(req);
+	return lrw_xor_tweak_pre(req)		       ?:
+		       crypto_skcipher_decrypt(subreq) ?:
+							 lrw_xor_tweak_post(req);
 }
 
 static int lrw_init_tfm(struct crypto_skcipher *tfm)
@@ -275,8 +276,9 @@ static int lrw_init_tfm(struct crypto_skcipher *tfm)
 
 	ctx->child = cipher;
 
-	crypto_skcipher_set_reqsize(tfm, crypto_skcipher_reqsize(cipher) +
-					 sizeof(struct lrw_request_ctx));
+	crypto_skcipher_set_reqsize(tfm,
+				    crypto_skcipher_reqsize(cipher) +
+					    sizeof(struct lrw_request_ctx));
 
 	return 0;
 }
@@ -378,14 +380,14 @@ static int lrw_create(struct crypto_template *tmpl, struct rtattr **tb)
 
 	inst->alg.base.cra_priority = alg->base.cra_priority;
 	inst->alg.base.cra_blocksize = LRW_BLOCK_SIZE;
-	inst->alg.base.cra_alignmask = alg->base.cra_alignmask |
-				       (__alignof__(be128) - 1);
+	inst->alg.base.cra_alignmask =
+		alg->base.cra_alignmask | (__alignof__(be128) - 1);
 
 	inst->alg.ivsize = LRW_BLOCK_SIZE;
-	inst->alg.min_keysize = crypto_skcipher_alg_min_keysize(alg) +
-				LRW_BLOCK_SIZE;
-	inst->alg.max_keysize = crypto_skcipher_alg_max_keysize(alg) +
-				LRW_BLOCK_SIZE;
+	inst->alg.min_keysize =
+		crypto_skcipher_alg_min_keysize(alg) + LRW_BLOCK_SIZE;
+	inst->alg.max_keysize =
+		crypto_skcipher_alg_max_keysize(alg) + LRW_BLOCK_SIZE;
 
 	inst->alg.base.cra_ctxsize = sizeof(struct lrw_tfm_ctx);
 
@@ -400,7 +402,7 @@ static int lrw_create(struct crypto_template *tmpl, struct rtattr **tb)
 
 	err = skcipher_register_instance(tmpl, inst);
 	if (err) {
-err_free_inst:
+	err_free_inst:
 		lrw_free_instance(inst);
 	}
 	return err;

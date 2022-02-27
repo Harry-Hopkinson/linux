@@ -30,7 +30,7 @@
 #include <linux/sysctl.h>
 
 /* Not exposed in headers: strictly internal use only. */
-#define SECCOMP_MODE_DEAD	(SECCOMP_MODE_FILTER + 1)
+#define SECCOMP_MODE_DEAD (SECCOMP_MODE_FILTER + 1)
 
 #ifdef CONFIG_HAVE_ARCH_SECCOMP_FILTER
 #include <asm/syscall.h>
@@ -53,7 +53,7 @@
  * which the kernel needs to keep supporting until all userspaces stop
  * using the wrong command number.
  */
-#define SECCOMP_IOCTL_NOTIF_ID_VALID_WRONG_DIR	SECCOMP_IOR(2, __u64)
+#define SECCOMP_IOCTL_NOTIF_ID_VALID_WRONG_DIR SECCOMP_IOR(2, __u64)
 
 enum notify_state {
 	SECCOMP_NOTIFY_INIT,
@@ -170,10 +170,11 @@ struct action_cache {
 #endif
 };
 #else
-struct action_cache { };
+struct action_cache {};
 
-static inline bool seccomp_cache_check_allow(const struct seccomp_filter *sfilter,
-					     const struct seccomp_data *sd)
+static inline bool
+seccomp_cache_check_allow(const struct seccomp_filter *sfilter,
+			  const struct seccomp_data *sd)
 {
 	return false;
 }
@@ -359,17 +360,17 @@ static inline bool seccomp_cache_check_allow_bitmap(const void *bitmap,
  *
  * Returns true if the seccomp_data is cached and allowed.
  */
-static inline bool seccomp_cache_check_allow(const struct seccomp_filter *sfilter,
-					     const struct seccomp_data *sd)
+static inline bool
+seccomp_cache_check_allow(const struct seccomp_filter *sfilter,
+			  const struct seccomp_data *sd)
 {
 	int syscall_nr = sd->nr;
 	const struct action_cache *cache = &sfilter->cache;
 
 #ifndef SECCOMP_ARCH_COMPAT
 	/* A native-only architecture doesn't need to check sd->arch. */
-	return seccomp_cache_check_allow_bitmap(cache->allow_native,
-						SECCOMP_ARCH_NATIVE_NR,
-						syscall_nr);
+	return seccomp_cache_check_allow_bitmap(
+		cache->allow_native, SECCOMP_ARCH_NATIVE_NR, syscall_nr);
 #else
 	if (likely(sd->arch == SECCOMP_ARCH_NATIVE))
 		return seccomp_cache_check_allow_bitmap(cache->allow_native,
@@ -401,8 +402,7 @@ static u32 seccomp_run_filters(const struct seccomp_data *sd,
 {
 	u32 ret = SECCOMP_RET_ALLOW;
 	/* Make sure cross-thread synced filter points somewhere sane. */
-	struct seccomp_filter *f =
-			READ_ONCE(current->seccomp.filter);
+	struct seccomp_filter *f = READ_ONCE(current->seccomp.filter);
 
 	/* Ensure unexpected behavior doesn't result in failing open. */
 	if (WARN_ON(f == NULL))
@@ -437,7 +437,9 @@ static inline bool seccomp_may_assign_mode(unsigned long seccomp_mode)
 	return true;
 }
 
-void __weak arch_seccomp_spec_mitigate(struct task_struct *task) { }
+void __weak arch_seccomp_spec_mitigate(struct task_struct *task)
+{
+}
 
 static inline void seccomp_assign_mode(struct task_struct *task,
 				       unsigned long seccomp_mode,
@@ -489,7 +491,7 @@ static inline pid_t seccomp_can_sync_threads(void)
 
 	/* Validate all threads being eligible for synchronization. */
 	caller = current;
-	for_each_thread(caller, thread) {
+	for_each_thread (caller, thread) {
 		pid_t failed;
 
 		/* Skip current, since it is initiating the sync. */
@@ -586,7 +588,7 @@ static inline void seccomp_sync_threads(unsigned long flags)
 
 	/* Synchronize all threads. */
 	caller = current;
-	for_each_thread(caller, thread) {
+	for_each_thread (caller, thread) {
 		/* Skip current, since it needs no changes. */
 		if (thread == caller)
 			continue;
@@ -623,8 +625,7 @@ static inline void seccomp_sync_threads(unsigned long flags)
 		 * allow one thread to transition the other.
 		 */
 		if (thread->seccomp.mode == SECCOMP_MODE_DISABLED)
-			seccomp_assign_mode(thread, SECCOMP_MODE_FILTER,
-					    flags);
+			seccomp_assign_mode(thread, SECCOMP_MODE_FILTER, flags);
 	}
 }
 
@@ -657,7 +658,7 @@ static struct seccomp_filter *seccomp_prepare_filter(struct sock_fprog *fprog)
 	 * behavior of privileged children.
 	 */
 	if (!task_no_new_privs(current) &&
-			!ns_capable_noaudit(current_user_ns(), CAP_SYS_ADMIN))
+	    !ns_capable_noaudit(current_user_ns(), CAP_SYS_ADMIN))
 		return ERR_PTR(-EACCES);
 
 	/* Allocate a new seccomp_filter */
@@ -701,7 +702,7 @@ seccomp_prepare_user_filter(const char __user *user_filter)
 		fprog.filter = compat_ptr(fprog32.filter);
 	} else /* falls through to the if below. */
 #endif
-	if (copy_from_user(&fprog, user_filter, sizeof(fprog)))
+		if (copy_from_user(&fprog, user_filter, sizeof(fprog)))
 		goto out;
 	filter = seccomp_prepare_filter(&fprog);
 out:
@@ -836,16 +837,16 @@ static void seccomp_cache_prepare(struct seccomp_filter *sfilter)
 	const struct action_cache *cache_prev =
 		sfilter->prev ? &sfilter->prev->cache : NULL;
 
-	seccomp_cache_prepare_bitmap(sfilter, cache->allow_native,
-				     cache_prev ? cache_prev->allow_native : NULL,
-				     SECCOMP_ARCH_NATIVE_NR,
-				     SECCOMP_ARCH_NATIVE);
+	seccomp_cache_prepare_bitmap(
+		sfilter, cache->allow_native,
+		cache_prev ? cache_prev->allow_native : NULL,
+		SECCOMP_ARCH_NATIVE_NR, SECCOMP_ARCH_NATIVE);
 
 #ifdef SECCOMP_ARCH_COMPAT
-	seccomp_cache_prepare_bitmap(sfilter, cache->allow_compat,
-				     cache_prev ? cache_prev->allow_compat : NULL,
-				     SECCOMP_ARCH_COMPAT_NR,
-				     SECCOMP_ARCH_COMPAT);
+	seccomp_cache_prepare_bitmap(
+		sfilter, cache->allow_compat,
+		cache_prev ? cache_prev->allow_compat : NULL,
+		SECCOMP_ARCH_COMPAT_NR, SECCOMP_ARCH_COMPAT);
 #endif /* SECCOMP_ARCH_COMPAT */
 }
 #endif /* SECCOMP_ARCH_NATIVE */
@@ -873,7 +874,7 @@ static long seccomp_attach_filter(unsigned int flags,
 	/* Validate resulting filter length. */
 	total_insns = filter->prog->len;
 	for (walker = current->seccomp.filter; walker; walker = walker->prev)
-		total_insns += walker->prog->len + 4;  /* 4 instr penalty */
+		total_insns += walker->prog->len + 4; /* 4 instr penalty */
 	if (total_insns > MAX_INSNS_PER_PATH)
 		return -ENOMEM;
 
@@ -925,25 +926,22 @@ void get_seccomp_filter(struct task_struct *tsk)
 	refcount_inc(&orig->users);
 }
 
-#endif	/* CONFIG_SECCOMP_FILTER */
+#endif /* CONFIG_SECCOMP_FILTER */
 
 /* For use with seccomp_actions_logged */
-#define SECCOMP_LOG_KILL_PROCESS	(1 << 0)
-#define SECCOMP_LOG_KILL_THREAD		(1 << 1)
-#define SECCOMP_LOG_TRAP		(1 << 2)
-#define SECCOMP_LOG_ERRNO		(1 << 3)
-#define SECCOMP_LOG_TRACE		(1 << 4)
-#define SECCOMP_LOG_LOG			(1 << 5)
-#define SECCOMP_LOG_ALLOW		(1 << 6)
-#define SECCOMP_LOG_USER_NOTIF		(1 << 7)
+#define SECCOMP_LOG_KILL_PROCESS (1 << 0)
+#define SECCOMP_LOG_KILL_THREAD (1 << 1)
+#define SECCOMP_LOG_TRAP (1 << 2)
+#define SECCOMP_LOG_ERRNO (1 << 3)
+#define SECCOMP_LOG_TRACE (1 << 4)
+#define SECCOMP_LOG_LOG (1 << 5)
+#define SECCOMP_LOG_ALLOW (1 << 6)
+#define SECCOMP_LOG_USER_NOTIF (1 << 7)
 
 static u32 seccomp_actions_logged = SECCOMP_LOG_KILL_PROCESS |
-				    SECCOMP_LOG_KILL_THREAD  |
-				    SECCOMP_LOG_TRAP  |
-				    SECCOMP_LOG_ERRNO |
-				    SECCOMP_LOG_USER_NOTIF |
-				    SECCOMP_LOG_TRACE |
-				    SECCOMP_LOG_LOG;
+				    SECCOMP_LOG_KILL_THREAD | SECCOMP_LOG_TRAP |
+				    SECCOMP_LOG_ERRNO | SECCOMP_LOG_USER_NOTIF |
+				    SECCOMP_LOG_TRACE | SECCOMP_LOG_LOG;
 
 static inline void seccomp_log(unsigned long syscall, long signr, u32 action,
 			       bool requested)
@@ -963,7 +961,8 @@ static inline void seccomp_log(unsigned long syscall, long signr, u32 action,
 		log = requested && seccomp_actions_logged & SECCOMP_LOG_TRACE;
 		break;
 	case SECCOMP_RET_USER_NOTIF:
-		log = requested && seccomp_actions_logged & SECCOMP_LOG_USER_NOTIF;
+		log = requested &&
+		      seccomp_actions_logged & SECCOMP_LOG_USER_NOTIF;
 		break;
 	case SECCOMP_RET_LOG:
 		log = seccomp_actions_logged & SECCOMP_LOG_LOG;
@@ -994,7 +993,10 @@ static inline void seccomp_log(unsigned long syscall, long signr, u32 action,
  * to limit the stack allocations too.
  */
 static const int mode1_syscalls[] = {
-	__NR_seccomp_read, __NR_seccomp_write, __NR_seccomp_exit, __NR_seccomp_sigreturn,
+	__NR_seccomp_read,
+	__NR_seccomp_write,
+	__NR_seccomp_exit,
+	__NR_seccomp_sigreturn,
 	-1, /* negative terminated */
 };
 
@@ -1047,7 +1049,8 @@ static u64 seccomp_next_notify_id(struct seccomp_filter *filter)
 	return filter->notif->next_id++;
 }
 
-static void seccomp_handle_addfd(struct seccomp_kaddfd *addfd, struct seccomp_knotif *n)
+static void seccomp_handle_addfd(struct seccomp_kaddfd *addfd,
+				 struct seccomp_knotif *n)
 {
 	int fd;
 
@@ -1123,7 +1126,7 @@ static int seccomp_do_user_notification(int this_syscall,
 		if (addfd)
 			seccomp_handle_addfd(addfd, &n);
 
-	}  while (n.state != SECCOMP_NOTIFY_REPLIED);
+	} while (n.state != SECCOMP_NOTIFY_REPLIED);
 
 	ret = n.val;
 	err = n.error;
@@ -1131,7 +1134,7 @@ static int seccomp_do_user_notification(int this_syscall,
 
 interrupted:
 	/* If there were any pending addfd calls, clear them out */
-	list_for_each_entry_safe(addfd, tmp, &n.addfd, list) {
+	list_for_each_entry_safe (addfd, tmp, &n.addfd, list) {
 		/* The process went away before we got a chance to handle it */
 		addfd->ret = -ESRCH;
 		list_del_init(&addfd->list);
@@ -1157,8 +1160,7 @@ out:
 	if (flags & SECCOMP_USER_NOTIF_FLAG_CONTINUE)
 		return 0;
 
-	syscall_set_return_value(current, current_pt_regs(),
-				 err, ret);
+	syscall_set_return_value(current, current_pt_regs(), err, ret);
 	return -1;
 }
 
@@ -1190,8 +1192,7 @@ static int __seccomp_filter(int this_syscall, const struct seccomp_data *sd,
 		/* Set low-order bits as an errno, capped at MAX_ERRNO. */
 		if (data > MAX_ERRNO)
 			data = MAX_ERRNO;
-		syscall_set_return_value(current, current_pt_regs(),
-					 -data, 0);
+		syscall_set_return_value(current, current_pt_regs(), -data, 0);
 		goto skip;
 
 	case SECCOMP_RET_TRAP:
@@ -1208,8 +1209,7 @@ static int __seccomp_filter(int this_syscall, const struct seccomp_data *sd,
 
 		/* ENOSYS these calls if there is no tracer attached. */
 		if (!ptrace_event_enabled(current, PTRACE_EVENT_SECCOMP)) {
-			syscall_set_return_value(current,
-						 current_pt_regs(),
+			syscall_set_return_value(current, current_pt_regs(),
 						 -ENOSYS, 0);
 			goto skip;
 		}
@@ -1305,12 +1305,11 @@ int __secure_computing(const struct seccomp_data *sd)
 	    unlikely(current->ptrace & PT_SUSPEND_SECCOMP))
 		return 0;
 
-	this_syscall = sd ? sd->nr :
-		syscall_get_nr(current, current_pt_regs());
+	this_syscall = sd ? sd->nr : syscall_get_nr(current, current_pt_regs());
 
 	switch (mode) {
 	case SECCOMP_MODE_STRICT:
-		__secure_computing_strict(this_syscall);  /* may call do_exit */
+		__secure_computing_strict(this_syscall); /* may call do_exit */
 		return 0;
 	case SECCOMP_MODE_FILTER:
 		return __seccomp_filter(this_syscall, sd, false);
@@ -1379,7 +1378,7 @@ static void seccomp_notify_detach(struct seccomp_filter *filter)
 	 * If this file is being closed because e.g. the task who owned it
 	 * died, let's wake everyone up who was waiting on us.
 	 */
-	list_for_each_entry(knotif, &filter->notif->notifications, list) {
+	list_for_each_entry (knotif, &filter->notif->notifications, list) {
 		if (knotif->state == SECCOMP_NOTIFY_REPLIED)
 			continue;
 
@@ -1416,7 +1415,7 @@ find_notification(struct seccomp_filter *filter, u64 id)
 
 	lockdep_assert_held(&filter->notify_lock);
 
-	list_for_each_entry(cur, &filter->notif->notifications, list) {
+	list_for_each_entry (cur, &filter->notif->notifications, list) {
 		if (cur->id == id)
 			return cur;
 	}
@@ -1424,9 +1423,7 @@ find_notification(struct seccomp_filter *filter, u64 id)
 	return NULL;
 }
 
-
-static long seccomp_notify_recv(struct seccomp_filter *filter,
-				void __user *buf)
+static long seccomp_notify_recv(struct seccomp_filter *filter, void __user *buf)
 {
 	struct seccomp_knotif *knotif = NULL, *cur;
 	struct seccomp_notif unotif;
@@ -1446,7 +1443,7 @@ static long seccomp_notify_recv(struct seccomp_filter *filter,
 		return ret;
 
 	mutex_lock(&filter->notify_lock);
-	list_for_each_entry(cur, &filter->notif->notifications, list) {
+	list_for_each_entry (cur, &filter->notif->notifications, list) {
 		if (cur->state == SECCOMP_NOTIFY_INIT) {
 			knotif = cur;
 			break;
@@ -1494,8 +1491,7 @@ out:
 	return ret;
 }
 
-static long seccomp_notify_send(struct seccomp_filter *filter,
-				void __user *buf)
+static long seccomp_notify_send(struct seccomp_filter *filter, void __user *buf)
 {
 	struct seccomp_notif_resp resp = {};
 	struct seccomp_knotif *knotif;
@@ -1694,7 +1690,7 @@ static long seccomp_notify_ioctl(struct file *file, unsigned int cmd,
 	}
 
 	/* Extensible Argument ioctls */
-#define EA_IOCTL(cmd)	((cmd) & ~(IOC_INOUT | IOCSIZE_MASK))
+#define EA_IOCTL(cmd) ((cmd) & ~(IOC_INOUT | IOCSIZE_MASK))
 	switch (EA_IOCTL(cmd)) {
 	case EA_IOCTL(SECCOMP_IOCTL_NOTIF_ADDFD):
 		return seccomp_notify_addfd(filter, buf, _IOC_SIZE(cmd));
@@ -1715,7 +1711,7 @@ static __poll_t seccomp_notify_poll(struct file *file,
 	if (mutex_lock_interruptible(&filter->notify_lock) < 0)
 		return EPOLLERR;
 
-	list_for_each_entry(cur, &filter->notif->notifications, list) {
+	list_for_each_entry (cur, &filter->notif->notifications, list) {
 		if (cur->state == SECCOMP_NOTIFY_INIT)
 			ret |= EPOLLIN | EPOLLRDNORM;
 		if (cur->state == SECCOMP_NOTIFY_SENT)
@@ -1752,8 +1748,8 @@ static struct file *init_listener(struct seccomp_filter *filter)
 	filter->notif->next_id = get_random_u64();
 	INIT_LIST_HEAD(&filter->notif->notifications);
 
-	ret = anon_inode_getfile("seccomp notify", &seccomp_notify_ops,
-				 filter, O_RDWR);
+	ret = anon_inode_getfile("seccomp notify", &seccomp_notify_ops, filter,
+				 O_RDWR);
 	if (IS_ERR(ret))
 		goto out_notif;
 
@@ -1942,8 +1938,7 @@ static long seccomp_get_notif_sizes(void __user *usizes)
 }
 
 /* Common entry point for both prctl and syscall. */
-static long do_seccomp(unsigned int op, unsigned int flags,
-		       void __user *uargs)
+static long do_seccomp(unsigned int op, unsigned int flags, void __user *uargs)
 {
 	switch (op) {
 	case SECCOMP_SET_MODE_STRICT:
@@ -1967,8 +1962,8 @@ static long do_seccomp(unsigned int op, unsigned int flags,
 	}
 }
 
-SYSCALL_DEFINE3(seccomp, unsigned int, op, unsigned int, flags,
-			 void __user *, uargs)
+SYSCALL_DEFINE3(seccomp, unsigned int, op, unsigned int, flags, void __user *,
+		uargs)
 {
 	return do_seccomp(op, flags, uargs);
 }
@@ -2092,8 +2087,8 @@ out:
 	return ret;
 }
 
-long seccomp_get_metadata(struct task_struct *task,
-			  unsigned long size, void __user *data)
+long seccomp_get_metadata(struct task_struct *task, unsigned long size,
+			  void __user *data)
 {
 	long ret;
 	struct seccomp_filter *filter;
@@ -2131,28 +2126,24 @@ long seccomp_get_metadata(struct task_struct *task,
 #ifdef CONFIG_SYSCTL
 
 /* Human readable action names for friendly sysctl interaction */
-#define SECCOMP_RET_KILL_PROCESS_NAME	"kill_process"
-#define SECCOMP_RET_KILL_THREAD_NAME	"kill_thread"
-#define SECCOMP_RET_TRAP_NAME		"trap"
-#define SECCOMP_RET_ERRNO_NAME		"errno"
-#define SECCOMP_RET_USER_NOTIF_NAME	"user_notif"
-#define SECCOMP_RET_TRACE_NAME		"trace"
-#define SECCOMP_RET_LOG_NAME		"log"
-#define SECCOMP_RET_ALLOW_NAME		"allow"
+#define SECCOMP_RET_KILL_PROCESS_NAME "kill_process"
+#define SECCOMP_RET_KILL_THREAD_NAME "kill_thread"
+#define SECCOMP_RET_TRAP_NAME "trap"
+#define SECCOMP_RET_ERRNO_NAME "errno"
+#define SECCOMP_RET_USER_NOTIF_NAME "user_notif"
+#define SECCOMP_RET_TRACE_NAME "trace"
+#define SECCOMP_RET_LOG_NAME "log"
+#define SECCOMP_RET_ALLOW_NAME "allow"
 
-static const char seccomp_actions_avail[] =
-				SECCOMP_RET_KILL_PROCESS_NAME	" "
-				SECCOMP_RET_KILL_THREAD_NAME	" "
-				SECCOMP_RET_TRAP_NAME		" "
-				SECCOMP_RET_ERRNO_NAME		" "
-				SECCOMP_RET_USER_NOTIF_NAME     " "
-				SECCOMP_RET_TRACE_NAME		" "
-				SECCOMP_RET_LOG_NAME		" "
-				SECCOMP_RET_ALLOW_NAME;
+static const char seccomp_actions_avail[] = SECCOMP_RET_KILL_PROCESS_NAME
+	" " SECCOMP_RET_KILL_THREAD_NAME " " SECCOMP_RET_TRAP_NAME
+	" " SECCOMP_RET_ERRNO_NAME " " SECCOMP_RET_USER_NOTIF_NAME
+	" " SECCOMP_RET_TRACE_NAME " " SECCOMP_RET_LOG_NAME
+	" " SECCOMP_RET_ALLOW_NAME;
 
 struct seccomp_log_name {
-	u32		log;
-	const char	*name;
+	u32 log;
+	const char *name;
 };
 
 static const struct seccomp_log_name seccomp_log_names[] = {
@@ -2164,7 +2155,7 @@ static const struct seccomp_log_name seccomp_log_names[] = {
 	{ SECCOMP_LOG_TRACE, SECCOMP_RET_TRACE_NAME },
 	{ SECCOMP_LOG_LOG, SECCOMP_RET_LOG_NAME },
 	{ SECCOMP_LOG_ALLOW, SECCOMP_RET_ALLOW_NAME },
-	{ }
+	{}
 };
 
 static bool seccomp_names_from_actions_logged(char *names, size_t size,
@@ -2304,9 +2295,8 @@ static void audit_actions_logged(u32 actions_logged, u32 old_actions_logged,
 
 	if (!old_actions_logged)
 		old = "(none)";
-	else if (!seccomp_names_from_actions_logged(old_names,
-						    sizeof(old_names),
-						    old_actions_logged, ","))
+	else if (!seccomp_names_from_actions_logged(
+			 old_names, sizeof(old_names), old_actions_logged, ","))
 		old = "?";
 
 	return audit_seccomp_actions_logged(new, old, !ret);
@@ -2331,26 +2321,28 @@ static int seccomp_actions_logged_handler(struct ctl_table *ro_table, int write,
 	return ret;
 }
 
-static struct ctl_path seccomp_sysctl_path[] = {
-	{ .procname = "kernel", },
-	{ .procname = "seccomp", },
-	{ }
-};
+static struct ctl_path seccomp_sysctl_path[] = { {
+							 .procname = "kernel",
+						 },
+						 {
+							 .procname = "seccomp",
+						 },
+						 {} };
 
 static struct ctl_table seccomp_sysctl_table[] = {
 	{
-		.procname	= "actions_avail",
-		.data		= (void *) &seccomp_actions_avail,
-		.maxlen		= sizeof(seccomp_actions_avail),
-		.mode		= 0444,
-		.proc_handler	= proc_dostring,
+		.procname = "actions_avail",
+		.data = (void *)&seccomp_actions_avail,
+		.maxlen = sizeof(seccomp_actions_avail),
+		.mode = 0444,
+		.proc_handler = proc_dostring,
 	},
 	{
-		.procname	= "actions_logged",
-		.mode		= 0644,
-		.proc_handler	= seccomp_actions_logged_handler,
+		.procname = "actions_logged",
+		.mode = 0644,
+		.proc_handler = seccomp_actions_logged_handler,
 	},
-	{ }
+	{}
 };
 
 static int __init seccomp_sysctl_init(void)
@@ -2371,9 +2363,11 @@ device_initcall(seccomp_sysctl_init)
 #endif /* CONFIG_SYSCTL */
 
 #ifdef CONFIG_SECCOMP_CACHE_DEBUG
-/* Currently CONFIG_SECCOMP_CACHE_DEBUG implies SECCOMP_ARCH_NATIVE */
-static void proc_pid_seccomp_cache_arch(struct seq_file *m, const char *name,
-					const void *bitmap, size_t bitmap_size)
+	/* Currently CONFIG_SECCOMP_CACHE_DEBUG implies SECCOMP_ARCH_NATIVE */
+	static void proc_pid_seccomp_cache_arch(struct seq_file *m,
+						const char *name,
+						const void *bitmap,
+						size_t bitmap_size)
 {
 	int nr;
 

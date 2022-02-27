@@ -19,14 +19,14 @@
 #define uptr64(val) ((void __user *)(uintptr_t)(val))
 
 struct bsg_set {
-	struct blk_mq_tag_set	tag_set;
-	struct bsg_device	*bd;
-	bsg_job_fn		*job_fn;
-	bsg_timeout_fn		*timeout_fn;
+	struct blk_mq_tag_set tag_set;
+	struct bsg_device *bd;
+	bsg_job_fn *job_fn;
+	bsg_timeout_fn *timeout_fn;
 };
 
 static int bsg_transport_sg_io_fn(struct request_queue *q, struct sg_io_v4 *hdr,
-		fmode_t mode, unsigned int timeout)
+				  fmode_t mode, unsigned int timeout)
 {
 	struct bsg_job *job;
 	struct request *rq;
@@ -34,14 +34,14 @@ static int bsg_transport_sg_io_fn(struct request_queue *q, struct sg_io_v4 *hdr,
 	void *reply;
 	int ret;
 
-	if (hdr->protocol != BSG_PROTOCOL_SCSI  ||
+	if (hdr->protocol != BSG_PROTOCOL_SCSI ||
 	    hdr->subprotocol != BSG_SUB_PROTOCOL_SCSI_TRANSPORT)
 		return -EINVAL;
 	if (!capable(CAP_SYS_RAWIO))
 		return -EPERM;
 
-	rq = blk_mq_alloc_request(q, hdr->dout_xfer_len ?
-			     REQ_OP_DRV_OUT : REQ_OP_DRV_IN, 0);
+	rq = blk_mq_alloc_request(
+		q, hdr->dout_xfer_len ? REQ_OP_DRV_OUT : REQ_OP_DRV_IN, 0);
 	if (IS_ERR(rq))
 		return PTR_ERR(rq);
 	rq->timeout = timeout;
@@ -68,8 +68,8 @@ static int bsg_transport_sg_io_fn(struct request_queue *q, struct sg_io_v4 *hdr,
 		}
 
 		ret = blk_rq_map_user(rq->q, job->bidi_rq, NULL,
-				uptr64(hdr->din_xferp), hdr->din_xfer_len,
-				GFP_KERNEL);
+				      uptr64(hdr->din_xferp), hdr->din_xfer_len,
+				      GFP_KERNEL);
 		if (ret)
 			goto out_free_bidi_rq;
 
@@ -82,10 +82,10 @@ static int bsg_transport_sg_io_fn(struct request_queue *q, struct sg_io_v4 *hdr,
 	ret = 0;
 	if (hdr->dout_xfer_len) {
 		ret = blk_rq_map_user(rq->q, rq, NULL, uptr64(hdr->dout_xferp),
-				hdr->dout_xfer_len, GFP_KERNEL);
+				      hdr->dout_xfer_len, GFP_KERNEL);
 	} else if (hdr->din_xfer_len) {
 		ret = blk_rq_map_user(rq->q, rq, NULL, uptr64(hdr->din_xferp),
-				hdr->din_xfer_len, GFP_KERNEL);
+				      hdr->din_xfer_len, GFP_KERNEL);
 	}
 
 	if (ret)
@@ -158,7 +158,7 @@ static void bsg_teardown_job(struct kref *kref)
 	struct bsg_job *job = container_of(kref, struct bsg_job, kref);
 	struct request *rq = blk_mq_rq_from_pdu(job);
 
-	put_device(job->dev);	/* release reference for the request */
+	put_device(job->dev); /* release reference for the request */
 
 	kfree(job->request_payload.sg_list);
 	kfree(job->reply_payload.sg_list);
@@ -310,7 +310,7 @@ static int bsg_init_rq(struct blk_mq_tag_set *set, struct request *req,
 }
 
 static void bsg_exit_rq(struct blk_mq_tag_set *set, struct request *req,
-		       unsigned int hctx_idx)
+			unsigned int hctx_idx)
 {
 	struct bsg_job *job = blk_mq_rq_to_pdu(req);
 
@@ -342,11 +342,11 @@ static enum blk_eh_timer_return bsg_timeout(struct request *rq, bool reserved)
 }
 
 static const struct blk_mq_ops bsg_mq_ops = {
-	.queue_rq		= bsg_queue_rq,
-	.init_request		= bsg_init_rq,
-	.exit_request		= bsg_exit_rq,
-	.complete		= bsg_complete,
-	.timeout		= bsg_timeout,
+	.queue_rq = bsg_queue_rq,
+	.init_request = bsg_init_rq,
+	.exit_request = bsg_exit_rq,
+	.complete = bsg_complete,
+	.timeout = bsg_timeout,
 };
 
 /**
@@ -358,7 +358,8 @@ static const struct blk_mq_ops bsg_mq_ops = {
  * @dd_job_size: size of LLD data needed for each job
  */
 struct request_queue *bsg_setup_queue(struct device *dev, const char *name,
-		bsg_job_fn *job_fn, bsg_timeout_fn *timeout, int dd_job_size)
+				      bsg_job_fn *job_fn,
+				      bsg_timeout_fn *timeout, int dd_job_size)
 {
 	struct bsg_set *bset;
 	struct blk_mq_tag_set *set;

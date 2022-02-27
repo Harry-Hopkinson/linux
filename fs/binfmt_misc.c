@@ -31,9 +31,9 @@
 #include "internal.h"
 
 #ifdef DEBUG
-# define USE_DEBUG 1
+#define USE_DEBUG 1
 #else
-# define USE_DEBUG 0
+#define USE_DEBUG 0
 #endif
 
 enum {
@@ -43,7 +43,7 @@ enum {
 static LIST_HEAD(entries);
 static int enabled = 1;
 
-enum {Enabled, Magic};
+enum { Enabled, Magic };
 #define MISC_FMT_PRESERVE_ARGV0 (1 << 31)
 #define MISC_FMT_OPEN_BINARY (1 << 30)
 #define MISC_FMT_CREDENTIALS (1 << 29)
@@ -51,12 +51,12 @@ enum {Enabled, Magic};
 
 typedef struct {
 	struct list_head list;
-	unsigned long flags;		/* type, status, etc. */
-	int offset;			/* offset of magic */
-	int size;			/* size of magic/mask */
-	char *magic;			/* magic or filename extension */
-	char *mask;			/* mask, NULL for exact match */
-	const char *interpreter;	/* filename of interpreter */
+	unsigned long flags; /* type, status, etc. */
+	int offset; /* offset of magic */
+	int size; /* size of magic/mask */
+	char *magic; /* magic or filename extension */
+	char *mask; /* mask, NULL for exact match */
+	const char *interpreter; /* filename of interpreter */
 	char *name;
 	struct dentry *dentry;
 	struct file *interp_file;
@@ -93,7 +93,7 @@ static Node *check_file(struct linux_binprm *bprm)
 	struct list_head *l;
 
 	/* Walk all the registered handlers. */
-	list_for_each(l, &entries) {
+	list_for_each (l, &entries) {
 		Node *e = list_entry(l, Node, list);
 		char *s;
 		int j;
@@ -223,7 +223,7 @@ static char *scanarg(char *s, char del)
 				return NULL;
 		}
 	}
-	s[-1] ='\0';
+	s[-1] = '\0';
 	return s;
 }
 
@@ -250,11 +250,12 @@ static char *check_special_flags(char *sfs, Node *e)
 			p++;
 			/* this flags also implies the
 			   open-binary flag */
-			e->flags |= (MISC_FMT_CREDENTIALS |
-					MISC_FMT_OPEN_BINARY);
+			e->flags |=
+				(MISC_FMT_CREDENTIALS | MISC_FMT_OPEN_BINARY);
 			break;
 		case 'F':
-			pr_debug("register: flag: F: open interpreter file now\n");
+			pr_debug(
+				"register: flag: F: open interpreter file now\n");
 			p++;
 			e->flags |= MISC_FMT_OPEN_FILE;
 			break;
@@ -297,7 +298,7 @@ static Node *create_entry(const char __user *buffer, size_t count)
 	if (copy_from_user(buf, buffer, count))
 		goto efault;
 
-	del = *p++;	/* delimeter */
+	del = *p++; /* delimeter */
 
 	pr_debug("register: delim: %#x {%c}\n", del, del);
 
@@ -310,9 +311,7 @@ static Node *create_entry(const char __user *buffer, size_t count)
 	if (!p)
 		goto einval;
 	*p++ = '\0';
-	if (!e->name[0] ||
-	    !strcmp(e->name, ".") ||
-	    !strcmp(e->name, "..") ||
+	if (!e->name[0] || !strcmp(e->name, ".") || !strcmp(e->name, "..") ||
 	    strchr(e->name, '/'))
 		goto einval;
 
@@ -361,9 +360,10 @@ static Node *create_entry(const char __user *buffer, size_t count)
 		if (!e->magic[0])
 			goto einval;
 		if (USE_DEBUG)
-			print_hex_dump_bytes(
-				KBUILD_MODNAME ": register: magic[raw]: ",
-				DUMP_PREFIX_NONE, e->magic, p - e->magic);
+			print_hex_dump_bytes(KBUILD_MODNAME
+					     ": register: magic[raw]: ",
+					     DUMP_PREFIX_NONE, e->magic,
+					     p - e->magic);
 
 		/* Parse the 'mask' field. */
 		e->mask = p;
@@ -374,9 +374,10 @@ static Node *create_entry(const char __user *buffer, size_t count)
 			e->mask = NULL;
 			pr_debug("register:  mask[raw]: none\n");
 		} else if (USE_DEBUG)
-			print_hex_dump_bytes(
-				KBUILD_MODNAME ": register:  mask[raw]: ",
-				DUMP_PREFIX_NONE, e->mask, p - e->mask);
+			print_hex_dump_bytes(KBUILD_MODNAME
+					     ": register:  mask[raw]: ",
+					     DUMP_PREFIX_NONE, e->mask,
+					     p - e->mask);
 
 		/*
 		 * Decode the magic & mask fields.
@@ -393,24 +394,29 @@ static Node *create_entry(const char __user *buffer, size_t count)
 			goto einval;
 		pr_debug("register: magic/mask length: %i\n", e->size);
 		if (USE_DEBUG) {
-			print_hex_dump_bytes(
-				KBUILD_MODNAME ": register: magic[decoded]: ",
-				DUMP_PREFIX_NONE, e->magic, e->size);
+			print_hex_dump_bytes(KBUILD_MODNAME
+					     ": register: magic[decoded]: ",
+					     DUMP_PREFIX_NONE, e->magic,
+					     e->size);
 
 			if (e->mask) {
 				int i;
 				char *masked = kmalloc(e->size, GFP_KERNEL);
 
 				print_hex_dump_bytes(
-					KBUILD_MODNAME ": register:  mask[decoded]: ",
+					KBUILD_MODNAME
+					": register:  mask[decoded]: ",
 					DUMP_PREFIX_NONE, e->mask, e->size);
 
 				if (masked) {
 					for (i = 0; i < e->size; ++i)
-						masked[i] = e->magic[i] & e->mask[i];
+						masked[i] = e->magic[i] &
+							    e->mask[i];
 					print_hex_dump_bytes(
-						KBUILD_MODNAME ": register:  magic[masked]: ",
-						DUMP_PREFIX_NONE, masked, e->size);
+						KBUILD_MODNAME
+						": register:  magic[masked]: ",
+						DUMP_PREFIX_NONE, masked,
+						e->size);
 
 					kfree(masked);
 				}
@@ -581,14 +587,14 @@ static void kill_node(Node *e)
 
 /* /<entry> */
 
-static ssize_t
-bm_entry_read(struct file *file, char __user *buf, size_t nbytes, loff_t *ppos)
+static ssize_t bm_entry_read(struct file *file, char __user *buf, size_t nbytes,
+			     loff_t *ppos)
 {
 	Node *e = file_inode(file)->i_private;
 	ssize_t res;
 	char *page;
 
-	page = (char *) __get_free_page(GFP_KERNEL);
+	page = (char *)__get_free_page(GFP_KERNEL);
 	if (!page)
 		return -ENOMEM;
 
@@ -596,12 +602,12 @@ bm_entry_read(struct file *file, char __user *buf, size_t nbytes, loff_t *ppos)
 
 	res = simple_read_from_buffer(buf, nbytes, ppos, page, strlen(page));
 
-	free_page((unsigned long) page);
+	free_page((unsigned long)page);
 	return res;
 }
 
 static ssize_t bm_entry_write(struct file *file, const char __user *buffer,
-				size_t count, loff_t *ppos)
+			      size_t count, loff_t *ppos)
 {
 	struct dentry *root;
 	Node *e = file_inode(file)->i_private;
@@ -634,15 +640,15 @@ static ssize_t bm_entry_write(struct file *file, const char __user *buffer,
 }
 
 static const struct file_operations bm_entry_operations = {
-	.read		= bm_entry_read,
-	.write		= bm_entry_write,
-	.llseek		= default_llseek,
+	.read = bm_entry_read,
+	.write = bm_entry_write,
+	.llseek = default_llseek,
 };
 
 /* /register */
 
 static ssize_t bm_register_write(struct file *file, const char __user *buffer,
-			       size_t count, loff_t *ppos)
+				 size_t count, loff_t *ppos)
 {
 	Node *e;
 	struct inode *inode;
@@ -659,8 +665,9 @@ static ssize_t bm_register_write(struct file *file, const char __user *buffer,
 	if (e->flags & MISC_FMT_OPEN_FILE) {
 		f = open_exec(e->interpreter);
 		if (IS_ERR(f)) {
-			pr_notice("register: failed to install interpreter file %s\n",
-				 e->interpreter);
+			pr_notice(
+				"register: failed to install interpreter file %s\n",
+				e->interpreter);
 			kfree(e);
 			return PTR_ERR(f);
 		}
@@ -715,14 +722,14 @@ out:
 }
 
 static const struct file_operations bm_register_operations = {
-	.write		= bm_register_write,
-	.llseek		= noop_llseek,
+	.write = bm_register_write,
+	.llseek = noop_llseek,
 };
 
 /* /status */
 
-static ssize_t
-bm_status_read(struct file *file, char __user *buf, size_t nbytes, loff_t *ppos)
+static ssize_t bm_status_read(struct file *file, char __user *buf,
+			      size_t nbytes, loff_t *ppos)
 {
 	char *s = enabled ? "enabled\n" : "disabled\n";
 
@@ -730,7 +737,7 @@ bm_status_read(struct file *file, char __user *buf, size_t nbytes, loff_t *ppos)
 }
 
 static ssize_t bm_status_write(struct file *file, const char __user *buffer,
-		size_t count, loff_t *ppos)
+			       size_t count, loff_t *ppos)
 {
 	int res = parse_command(buffer, count);
 	struct dentry *root;
@@ -762,25 +769,25 @@ static ssize_t bm_status_write(struct file *file, const char __user *buffer,
 }
 
 static const struct file_operations bm_status_operations = {
-	.read		= bm_status_read,
-	.write		= bm_status_write,
-	.llseek		= default_llseek,
+	.read = bm_status_read,
+	.write = bm_status_write,
+	.llseek = default_llseek,
 };
 
 /* Superblock handling */
 
 static const struct super_operations s_ops = {
-	.statfs		= simple_statfs,
-	.evict_inode	= bm_evict_inode,
+	.statfs = simple_statfs,
+	.evict_inode = bm_evict_inode,
 };
 
 static int bm_fill_super(struct super_block *sb, struct fs_context *fc)
 {
 	int err;
 	static const struct tree_descr bm_files[] = {
-		[2] = {"status", &bm_status_operations, S_IWUSR|S_IRUGO},
-		[3] = {"register", &bm_register_operations, S_IWUSR},
-		/* last one */ {""}
+		[2] = { "status", &bm_status_operations, S_IWUSR | S_IRUGO },
+		[3] = { "register", &bm_register_operations, S_IWUSR },
+		/* last one */ { "" }
 	};
 
 	err = simple_fill_super(sb, BINFMTFS_MAGIC, bm_files);
@@ -795,7 +802,7 @@ static int bm_get_tree(struct fs_context *fc)
 }
 
 static const struct fs_context_operations bm_context_ops = {
-	.get_tree	= bm_get_tree,
+	.get_tree = bm_get_tree,
 };
 
 static int bm_init_fs_context(struct fs_context *fc)
@@ -810,10 +817,10 @@ static struct linux_binfmt misc_format = {
 };
 
 static struct file_system_type bm_fs_type = {
-	.owner		= THIS_MODULE,
-	.name		= "binfmt_misc",
+	.owner = THIS_MODULE,
+	.name = "binfmt_misc",
 	.init_fs_context = bm_init_fs_context,
-	.kill_sb	= kill_litter_super,
+	.kill_sb = kill_litter_super,
 };
 MODULE_ALIAS_FS("binfmt_misc");
 

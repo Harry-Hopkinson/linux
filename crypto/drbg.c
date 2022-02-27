@@ -123,13 +123,15 @@ static const struct drbg_core drbg_cores[] = {
 		.blocklen_bytes = 16,
 		.cra_name = "ctr_aes128",
 		.backend_cra_name = "aes",
-	}, {
+	},
+	{
 		.flags = DRBG_CTR | DRBG_STRENGTH192,
 		.statelen = 40, /* 320 bits as defined in 10.2.1 */
 		.blocklen_bytes = 16,
 		.cra_name = "ctr_aes192",
 		.backend_cra_name = "aes",
-	}, {
+	},
+	{
 		.flags = DRBG_CTR | DRBG_STRENGTH256,
 		.statelen = 48, /* 384 bits as defined in 10.2.1 */
 		.blocklen_bytes = 16,
@@ -144,19 +146,22 @@ static const struct drbg_core drbg_cores[] = {
 		.blocklen_bytes = 20,
 		.cra_name = "sha1",
 		.backend_cra_name = "sha1",
-	}, {
+	},
+	{
 		.flags = DRBG_HASH | DRBG_STRENGTH256,
 		.statelen = 111, /* 888 bits */
 		.blocklen_bytes = 48,
 		.cra_name = "sha384",
 		.backend_cra_name = "sha384",
-	}, {
+	},
+	{
 		.flags = DRBG_HASH | DRBG_STRENGTH256,
 		.statelen = 111, /* 888 bits */
 		.blocklen_bytes = 64,
 		.cra_name = "sha512",
 		.backend_cra_name = "sha512",
-	}, {
+	},
+	{
 		.flags = DRBG_HASH | DRBG_STRENGTH256,
 		.statelen = 55, /* 440 bits */
 		.blocklen_bytes = 32,
@@ -171,19 +176,22 @@ static const struct drbg_core drbg_cores[] = {
 		.blocklen_bytes = 20,
 		.cra_name = "hmac_sha1",
 		.backend_cra_name = "hmac(sha1)",
-	}, {
+	},
+	{
 		.flags = DRBG_HMAC | DRBG_STRENGTH256,
 		.statelen = 48, /* block length of cipher */
 		.blocklen_bytes = 48,
 		.cra_name = "hmac_sha384",
 		.backend_cra_name = "hmac(sha384)",
-	}, {
+	},
+	{
 		.flags = DRBG_HMAC | DRBG_STRENGTH256,
 		.statelen = 32, /* block length of cipher */
 		.blocklen_bytes = 32,
 		.cra_name = "hmac_sha256",
 		.backend_cra_name = "hmac(sha256)",
-	}, {
+	},
+	{
 		.flags = DRBG_HMAC | DRBG_STRENGTH256,
 		.statelen = 64, /* block length of cipher */
 		.blocklen_bytes = 64,
@@ -286,7 +294,7 @@ static inline void drbg_cpu_to_be32(__u32 val, unsigned char *buf)
 	struct s {
 		__be32 conv;
 	};
-	struct s *conversion = (struct s *) buf;
+	struct s *conversion = (struct s *)buf;
 
 	conversion->conv = cpu_to_be32(val);
 }
@@ -311,15 +319,13 @@ static int drbg_kcapi_sym(struct drbg_state *drbg, unsigned char *outval,
 			  const struct drbg_string *in);
 static int drbg_init_sym_kernel(struct drbg_state *drbg);
 static int drbg_fini_sym_kernel(struct drbg_state *drbg);
-static int drbg_kcapi_sym_ctr(struct drbg_state *drbg,
-			      u8 *inbuf, u32 inbuflen,
+static int drbg_kcapi_sym_ctr(struct drbg_state *drbg, u8 *inbuf, u32 inbuflen,
 			      u8 *outbuf, u32 outlen);
 #define DRBG_OUTSCRATCHLEN 256
 
 /* BCC function for CTR DRBG as defined in 10.4.3 */
-static int drbg_ctr_bcc(struct drbg_state *drbg,
-			unsigned char *out, const unsigned char *key,
-			struct list_head *in)
+static int drbg_ctr_bcc(struct drbg_state *drbg, unsigned char *out,
+			const unsigned char *key, struct list_head *in)
 {
 	int ret = 0;
 	struct drbg_string *curr = NULL;
@@ -330,7 +336,7 @@ static int drbg_ctr_bcc(struct drbg_state *drbg,
 
 	/* 10.4.3 step 2 / 4 */
 	drbg_kcapi_symsetkey(drbg, key);
-	list_for_each_entry(curr, in, list) {
+	list_for_each_entry (curr, in, list) {
 		const unsigned char *pos = curr->buf;
 		size_t len = curr->len;
 		/* 10.4.3 step 4.1 */
@@ -395,9 +401,8 @@ static int drbg_ctr_bcc(struct drbg_state *drbg,
  */
 
 /* Derivation Function for CTR DRBG as defined in 10.4.2 */
-static int drbg_ctr_df(struct drbg_state *drbg,
-		       unsigned char *df_data, size_t bytes_to_return,
-		       struct list_head *seedlist)
+static int drbg_ctr_df(struct drbg_state *drbg, unsigned char *df_data,
+		       size_t bytes_to_return, struct list_head *seedlist)
 {
 	int ret = -EFAULT;
 	unsigned char L_N[8];
@@ -412,11 +417,11 @@ static int drbg_ctr_df(struct drbg_state *drbg,
 	/* 10.4.2 step 7 */
 	unsigned int i = 0;
 	/* 10.4.2 step 8 */
-	const unsigned char *K = (unsigned char *)
-			   "\x00\x01\x02\x03\x04\x05\x06\x07"
-			   "\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f"
-			   "\x10\x11\x12\x13\x14\x15\x16\x17"
-			   "\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f";
+	const unsigned char *K =
+		(unsigned char *)"\x00\x01\x02\x03\x04\x05\x06\x07"
+				 "\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f"
+				 "\x10\x11\x12\x13\x14\x15\x16\x17"
+				 "\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f";
 	unsigned char *X;
 	size_t generated_len = 0;
 	size_t inputlen = 0;
@@ -428,11 +433,11 @@ static int drbg_ctr_df(struct drbg_state *drbg,
 	/* 10.4.2 step 1 is implicit as we work byte-wise */
 
 	/* 10.4.2 step 2 */
-	if ((512/8) < bytes_to_return)
+	if ((512 / 8) < bytes_to_return)
 		return -EINVAL;
 
 	/* 10.4.2 step 2 -- calculate the entire length of all input data */
-	list_for_each_entry(seed, seedlist, list)
+	list_for_each_entry (seed, seedlist, list)
 		inputlen += seed->len;
 	drbg_cpu_to_be32(inputlen, &L_N[0]);
 
@@ -497,9 +502,9 @@ static int drbg_ctr_df(struct drbg_state *drbg,
 		if (ret)
 			goto out;
 		blocklen = (drbg_blocklen(drbg) <
-				(bytes_to_return - generated_len)) ?
-			    drbg_blocklen(drbg) :
-				(bytes_to_return - generated_len);
+			    (bytes_to_return - generated_len)) ?
+				   drbg_blocklen(drbg) :
+				   (bytes_to_return - generated_len);
 		/* 10.4.2 step 13.2 and 14 */
 		memcpy(df_data + generated_len, X, blocklen);
 		generated_len += blocklen;
@@ -535,8 +540,8 @@ static int drbg_ctr_update(struct drbg_state *drbg, struct list_head *seed,
 	int ret = -EFAULT;
 	/* 10.2.1.2 step 1 */
 	unsigned char *temp = drbg->scratchpad;
-	unsigned char *df_data = drbg->scratchpad + drbg_statelen(drbg) +
-				 drbg_blocklen(drbg);
+	unsigned char *df_data =
+		drbg->scratchpad + drbg_statelen(drbg) + drbg_blocklen(drbg);
 
 	if (3 > reseed)
 		memset(df_data, 0, drbg_statelen(drbg));
@@ -564,14 +569,13 @@ static int drbg_ctr_update(struct drbg_state *drbg, struct list_head *seed,
 			goto out;
 	}
 
-	ret = drbg_kcapi_sym_ctr(drbg, df_data, drbg_statelen(drbg),
-				 temp, drbg_statelen(drbg));
+	ret = drbg_kcapi_sym_ctr(drbg, df_data, drbg_statelen(drbg), temp,
+				 drbg_statelen(drbg));
 	if (ret)
 		return ret;
 
 	/* 10.2.1.2 step 5 */
-	ret = crypto_skcipher_setkey(drbg->ctr_handle, temp,
-				     drbg_keylen(drbg));
+	ret = crypto_skcipher_setkey(drbg->ctr_handle, temp, drbg_keylen(drbg));
 	if (ret)
 		goto out;
 	/* 10.2.1.2 step 6 */
@@ -592,9 +596,8 @@ out:
  * drbg_ctr_extract_bytes. Therefore, the scratchpad is reused
  */
 /* Generate function of CTR DRBG as defined in 10.2.1.5.2 */
-static int drbg_ctr_generate(struct drbg_state *drbg,
-			     unsigned char *buf, unsigned int buflen,
-			     struct list_head *addtl)
+static int drbg_ctr_generate(struct drbg_state *drbg, unsigned char *buf,
+			     unsigned int buflen, struct list_head *addtl)
 {
 	int ret;
 	int len = min_t(int, buflen, INT_MAX);
@@ -620,10 +623,10 @@ static int drbg_ctr_generate(struct drbg_state *drbg,
 }
 
 static const struct drbg_state_ops drbg_ctr_ops = {
-	.update		= drbg_ctr_update,
-	.generate	= drbg_ctr_generate,
-	.crypto_init	= drbg_init_sym_kernel,
-	.crypto_fini	= drbg_fini_sym_kernel,
+	.update = drbg_ctr_update,
+	.generate = drbg_ctr_generate,
+	.crypto_init = drbg_init_sym_kernel,
+	.crypto_fini = drbg_fini_sym_kernel,
 };
 #endif /* CONFIG_CRYPTO_DRBG_CTR */
 
@@ -704,10 +707,8 @@ static int drbg_hmac_update(struct drbg_state *drbg, struct list_head *seed,
 }
 
 /* generate function of HMAC DRBG as defined in 10.1.2.5 */
-static int drbg_hmac_generate(struct drbg_state *drbg,
-			      unsigned char *buf,
-			      unsigned int buflen,
-			      struct list_head *addtl)
+static int drbg_hmac_generate(struct drbg_state *drbg, unsigned char *buf,
+			      unsigned int buflen, struct list_head *addtl)
 {
 	int len = 0;
 	int ret = 0;
@@ -730,7 +731,8 @@ static int drbg_hmac_generate(struct drbg_state *drbg,
 		if (ret)
 			return ret;
 		outlen = (drbg_blocklen(drbg) < (buflen - len)) ?
-			  drbg_blocklen(drbg) : (buflen - len);
+				 drbg_blocklen(drbg) :
+				 (buflen - len);
 
 		/* 10.1.2.5 step 4.2 */
 		memcpy(buf + len, drbg->V, outlen);
@@ -749,10 +751,10 @@ static int drbg_hmac_generate(struct drbg_state *drbg,
 }
 
 static const struct drbg_state_ops drbg_hmac_ops = {
-	.update		= drbg_hmac_update,
-	.generate	= drbg_hmac_generate,
-	.crypto_init	= drbg_init_hash_kernel,
-	.crypto_fini	= drbg_fini_hash_kernel,
+	.update = drbg_hmac_update,
+	.generate = drbg_hmac_generate,
+	.crypto_init = drbg_init_hash_kernel,
+	.crypto_fini = drbg_fini_hash_kernel,
 };
 #endif /* CONFIG_CRYPTO_DRBG_HMAC */
 
@@ -786,20 +788,23 @@ static inline void drbg_add_buf(unsigned char *dst, size_t dstlen,
 	unsigned int remainder = 0;
 	size_t len = addlen;
 
-	dstptr = dst + (dstlen-1);
-	addptr = add + (addlen-1);
+	dstptr = dst + (dstlen - 1);
+	addptr = add + (addlen - 1);
 	while (len) {
 		remainder += *dstptr + *addptr;
 		*dstptr = remainder & 0xff;
 		remainder >>= 8;
-		len--; dstptr--; addptr--;
+		len--;
+		dstptr--;
+		addptr--;
 	}
 	len = dstlen - addlen;
 	while (len && remainder > 0) {
 		remainder = *dstptr + 1;
 		*dstptr = remainder & 0xff;
 		remainder >>= 8;
-		len--; dstptr--;
+		len--;
+		dstptr--;
 	}
 }
 
@@ -819,9 +824,8 @@ static inline void drbg_add_buf(unsigned char *dst, size_t dstlen,
  */
 
 /* Derivation Function for Hash DRBG as defined in 10.4.1 */
-static int drbg_hash_df(struct drbg_state *drbg,
-			unsigned char *outval, size_t outlen,
-			struct list_head *entropylist)
+static int drbg_hash_df(struct drbg_state *drbg, unsigned char *outval,
+			size_t outlen, struct list_head *entropylist)
 {
 	int ret = 0;
 	size_t len = 0;
@@ -847,7 +851,8 @@ static int drbg_hash_df(struct drbg_state *drbg,
 		/* 10.4.1 step 4.2 */
 		input[0]++;
 		blocklen = (drbg_blocklen(drbg) < (outlen - len)) ?
-			    drbg_blocklen(drbg) : (outlen - len);
+				   drbg_blocklen(drbg) :
+				   (outlen - len);
 		memcpy(outval + len, tmp, blocklen);
 		len += blocklen;
 	}
@@ -924,8 +929,8 @@ static int drbg_hash_process_addtl(struct drbg_state *drbg,
 		goto out;
 
 	/* 10.1.1.4 step 2b */
-	drbg_add_buf(drbg->V, drbg_statelen(drbg),
-		     drbg->scratchpad, drbg_blocklen(drbg));
+	drbg_add_buf(drbg->V, drbg_statelen(drbg), drbg->scratchpad,
+		     drbg_blocklen(drbg));
 
 out:
 	memset(drbg->scratchpad, 0, drbg_blocklen(drbg));
@@ -933,8 +938,7 @@ out:
 }
 
 /* Hashgen defined in 10.1.1.4 */
-static int drbg_hash_hashgen(struct drbg_state *drbg,
-			     unsigned char *buf,
+static int drbg_hash_hashgen(struct drbg_state *drbg, unsigned char *buf,
 			     unsigned int buflen)
 {
 	int len = 0;
@@ -958,7 +962,8 @@ static int drbg_hash_hashgen(struct drbg_state *drbg,
 			goto out;
 		}
 		outlen = (drbg_blocklen(drbg) < (buflen - len)) ?
-			  drbg_blocklen(drbg) : (buflen - len);
+				 drbg_blocklen(drbg) :
+				 (buflen - len);
 		/* 10.1.1.4 step hashgen 4.2 */
 		memcpy(buf + len, dst, outlen);
 		len += outlen;
@@ -974,9 +979,8 @@ out:
 }
 
 /* generate function for Hash DRBG as defined in  10.1.1.4 */
-static int drbg_hash_generate(struct drbg_state *drbg,
-			      unsigned char *buf, unsigned int buflen,
-			      struct list_head *addtl)
+static int drbg_hash_generate(struct drbg_state *drbg, unsigned char *buf,
+			      unsigned int buflen, struct list_head *addtl)
 {
 	int len = 0;
 	int ret = 0;
@@ -1008,10 +1012,10 @@ static int drbg_hash_generate(struct drbg_state *drbg,
 	}
 
 	/* 10.1.1.4 step 5 */
-	drbg_add_buf(drbg->V, drbg_statelen(drbg),
-		     drbg->scratchpad, drbg_blocklen(drbg));
-	drbg_add_buf(drbg->V, drbg_statelen(drbg),
-		     drbg->C, drbg_statelen(drbg));
+	drbg_add_buf(drbg->V, drbg_statelen(drbg), drbg->scratchpad,
+		     drbg_blocklen(drbg));
+	drbg_add_buf(drbg->V, drbg_statelen(drbg), drbg->C,
+		     drbg_statelen(drbg));
 	u.req_int = cpu_to_be64(drbg->reseed_ctr);
 	drbg_add_buf(drbg->V, drbg_statelen(drbg), u.req, 8);
 
@@ -1025,10 +1029,10 @@ out:
  * can use the scratchpad
  */
 static const struct drbg_state_ops drbg_hash_ops = {
-	.update		= drbg_hash_update,
-	.generate	= drbg_hash_generate,
-	.crypto_init	= drbg_init_hash_kernel,
-	.crypto_fini	= drbg_fini_hash_kernel,
+	.update = drbg_hash_update,
+	.generate = drbg_hash_generate,
+	.crypto_init = drbg_init_hash_kernel,
+	.crypto_fini = drbg_fini_hash_kernel,
 };
 #endif /* CONFIG_CRYPTO_DRBG_HASH */
 
@@ -1197,9 +1201,8 @@ static int drbg_seed(struct drbg_state *drbg, struct drbg_string *pers,
 			 * Get seed from Jitter RNG, failures are
 			 * fatal only in FIPS mode.
 			 */
-			ret = crypto_rng_get_bytes(drbg->jent,
-						   entropy + entropylen,
-						   entropylen);
+			ret = crypto_rng_get_bytes(
+				drbg->jent, entropy + entropylen, entropylen);
 			if (fips_enabled && ret) {
 				pr_devel("DRBG: jent failed with %d\n", ret);
 
@@ -1325,9 +1328,9 @@ static inline int drbg_alloc_state(struct drbg_state *drbg)
 		sb_size = 0;
 	else if (drbg->core->flags & DRBG_CTR)
 		sb_size = drbg_statelen(drbg) + drbg_blocklen(drbg) + /* temp */
-			  drbg_statelen(drbg) +	/* df_data */
-			  drbg_blocklen(drbg) +	/* pad */
-			  drbg_blocklen(drbg) +	/* iv */
+			  drbg_statelen(drbg) + /* df_data */
+			  drbg_blocklen(drbg) + /* pad */
+			  drbg_blocklen(drbg) + /* iv */
 			  drbg_statelen(drbg) + drbg_blocklen(drbg); /* temp */
 	else
 		sb_size = drbg_statelen(drbg) + drbg_blocklen(drbg);
@@ -1380,9 +1383,8 @@ err:
  *
  * return: 0 when all bytes are generated; < 0 in case of an error
  */
-static int drbg_generate(struct drbg_state *drbg,
-			 unsigned char *buf, unsigned int buflen,
-			 struct drbg_string *addtl)
+static int drbg_generate(struct drbg_state *drbg, unsigned char *buf,
+			 unsigned int buflen, struct drbg_string *addtl)
 {
 	int len = 0;
 	LIST_HEAD(addtllist);
@@ -1429,8 +1431,8 @@ static int drbg_generate(struct drbg_state *drbg,
 		pr_devel("DRBG: reseeding before generation (prediction "
 			 "resistance: %s, state %s)\n",
 			 drbg->pr ? "true" : "false",
-			 (drbg->seeded ==  DRBG_SEED_STATE_FULL ?
-			  "seeded" : "unseeded"));
+			 (drbg->seeded == DRBG_SEED_STATE_FULL ? "seeded" :
+								 "unseeded"));
 		/* 9.3.1 steps 7.1 through 7.3 */
 		len = drbg_seed(drbg, addtl, true);
 		if (len)
@@ -1455,7 +1457,7 @@ static int drbg_generate(struct drbg_state *drbg,
 	if (0 >= len)
 		goto err;
 
-	/*
+		/*
 	 * Section 11.3.3 requires to re-perform self tests after some
 	 * generated random numbers. The chosen value after which self
 	 * test is performed is arbitrary, but it should be reasonable.
@@ -1514,9 +1516,8 @@ err:
  * Return codes: see drbg_generate -- if one drbg_generate request fails,
  *		 the entire drbg_generate_long request fails
  */
-static int drbg_generate_long(struct drbg_state *drbg,
-			      unsigned char *buf, unsigned int buflen,
-			      struct drbg_string *addtl)
+static int drbg_generate_long(struct drbg_state *drbg, unsigned char *buf,
+			      unsigned int buflen, struct drbg_string *addtl)
 {
 	unsigned int len = 0;
 	unsigned int slice = 0;
@@ -1578,7 +1579,8 @@ static int drbg_instantiate(struct drbg_state *drbg, struct drbg_string *pers,
 	bool reseed = true;
 
 	pr_devel("DRBG: Initializing DRBG core %d with prediction resistance "
-		 "%s\n", coreref, pr ? "enabled" : "disabled");
+		 "%s\n",
+		 coreref, pr ? "enabled" : "disabled");
 	mutex_lock(&drbg->drbg_mutex);
 
 	/* 9.1 step 1 is implicit with the selected DRBG type */
@@ -1656,8 +1658,8 @@ static int drbg_uninstantiate(struct drbg_state *drbg)
  * @data test data
  * @len test data length
  */
-static void drbg_kcapi_set_entropy(struct crypto_rng *tfm,
-				   const u8 *data, unsigned int len)
+static void drbg_kcapi_set_entropy(struct crypto_rng *tfm, const u8 *data,
+				   unsigned int len)
 {
 	struct drbg_state *drbg = crypto_rng_ctx(tfm);
 
@@ -1684,7 +1686,7 @@ static int drbg_init_hash_kernel(struct drbg_state *drbg)
 	tfm = crypto_alloc_shash(drbg->core->backend_cra_name, 0, 0);
 	if (IS_ERR(tfm)) {
 		pr_info("DRBG: could not allocate digest TFM handle: %s\n",
-				drbg->core->backend_cra_name);
+			drbg->core->backend_cra_name);
 		return PTR_ERR(tfm);
 	}
 	BUG_ON(drbg_blocklen(drbg) != crypto_shash_digestsize(tfm));
@@ -1727,7 +1729,7 @@ static int drbg_kcapi_hash(struct drbg_state *drbg, unsigned char *outval,
 	struct drbg_string *input = NULL;
 
 	crypto_shash_init(&sdesc->shash);
-	list_for_each_entry(input, in, list)
+	list_for_each_entry (input, in, list)
 		crypto_shash_update(&sdesc->shash, input->buf, input->len);
 	return crypto_shash_final(&sdesc->shash, outval);
 }
@@ -1736,8 +1738,7 @@ static int drbg_kcapi_hash(struct drbg_state *drbg, unsigned char *outval,
 #ifdef CONFIG_CRYPTO_DRBG_CTR
 static int drbg_fini_sym_kernel(struct drbg_state *drbg)
 {
-	struct crypto_cipher *tfm =
-		(struct crypto_cipher *)drbg->priv_data;
+	struct crypto_cipher *tfm = (struct crypto_cipher *)drbg->priv_data;
 	if (tfm)
 		crypto_free_cipher(tfm);
 	drbg->priv_data = NULL;
@@ -1767,21 +1768,21 @@ static int drbg_init_sym_kernel(struct drbg_state *drbg)
 	tfm = crypto_alloc_cipher(drbg->core->backend_cra_name, 0, 0);
 	if (IS_ERR(tfm)) {
 		pr_info("DRBG: could not allocate cipher TFM handle: %s\n",
-				drbg->core->backend_cra_name);
+			drbg->core->backend_cra_name);
 		return PTR_ERR(tfm);
 	}
 	BUG_ON(drbg_blocklen(drbg) != crypto_cipher_blocksize(tfm));
 	drbg->priv_data = tfm;
 
 	if (snprintf(ctr_name, CRYPTO_MAX_ALG_NAME, "ctr(%s)",
-	    drbg->core->backend_cra_name) >= CRYPTO_MAX_ALG_NAME) {
+		     drbg->core->backend_cra_name) >= CRYPTO_MAX_ALG_NAME) {
 		drbg_fini_sym_kernel(drbg);
 		return -EINVAL;
 	}
 	sk_tfm = crypto_alloc_skcipher(ctr_name, 0, 0);
 	if (IS_ERR(sk_tfm)) {
 		pr_info("DRBG: could not allocate CTR cipher TFM handle: %s\n",
-				ctr_name);
+			ctr_name);
 		drbg_fini_sym_kernel(drbg);
 		return PTR_ERR(sk_tfm);
 	}
@@ -1795,19 +1796,19 @@ static int drbg_init_sym_kernel(struct drbg_state *drbg)
 		return -ENOMEM;
 	}
 	drbg->ctr_req = req;
-	skcipher_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG |
-						CRYPTO_TFM_REQ_MAY_SLEEP,
-					crypto_req_done, &drbg->ctr_wait);
+	skcipher_request_set_callback(
+		req, CRYPTO_TFM_REQ_MAY_BACKLOG | CRYPTO_TFM_REQ_MAY_SLEEP,
+		crypto_req_done, &drbg->ctr_wait);
 
 	alignmask = crypto_skcipher_alignmask(sk_tfm);
-	drbg->outscratchpadbuf = kmalloc(DRBG_OUTSCRATCHLEN + alignmask,
-					 GFP_KERNEL);
+	drbg->outscratchpadbuf =
+		kmalloc(DRBG_OUTSCRATCHLEN + alignmask, GFP_KERNEL);
 	if (!drbg->outscratchpadbuf) {
 		drbg_fini_sym_kernel(drbg);
 		return -ENOMEM;
 	}
-	drbg->outscratchpad = (u8 *)PTR_ALIGN(drbg->outscratchpadbuf,
-					      alignmask + 1);
+	drbg->outscratchpad =
+		(u8 *)PTR_ALIGN(drbg->outscratchpadbuf, alignmask + 1);
 
 	sg_init_table(&drbg->sg_in, 1);
 	sg_init_one(&drbg->sg_out, drbg->outscratchpad, DRBG_OUTSCRATCHLEN);
@@ -1818,8 +1819,7 @@ static int drbg_init_sym_kernel(struct drbg_state *drbg)
 static void drbg_kcapi_symsetkey(struct drbg_state *drbg,
 				 const unsigned char *key)
 {
-	struct crypto_cipher *tfm =
-		(struct crypto_cipher *)drbg->priv_data;
+	struct crypto_cipher *tfm = (struct crypto_cipher *)drbg->priv_data;
 
 	crypto_cipher_setkey(tfm, key, (drbg_keylen(drbg)));
 }
@@ -1827,8 +1827,7 @@ static void drbg_kcapi_symsetkey(struct drbg_state *drbg,
 static int drbg_kcapi_sym(struct drbg_state *drbg, unsigned char *outval,
 			  const struct drbg_string *in)
 {
-	struct crypto_cipher *tfm =
-		(struct crypto_cipher *)drbg->priv_data;
+	struct crypto_cipher *tfm = (struct crypto_cipher *)drbg->priv_data;
 
 	/* there is only component in *in */
 	BUG_ON(in->len < drbg_blocklen(drbg));
@@ -1836,8 +1835,7 @@ static int drbg_kcapi_sym(struct drbg_state *drbg, unsigned char *outval,
 	return 0;
 }
 
-static int drbg_kcapi_sym_ctr(struct drbg_state *drbg,
-			      u8 *inbuf, u32 inlen,
+static int drbg_kcapi_sym_ctr(struct drbg_state *drbg, u8 *inbuf, u32 inlen,
 			      u8 *outbuf, u32 outlen)
 {
 	struct scatterlist *sg_in = &drbg->sg_in, *sg_out = &drbg->sg_out;
@@ -1861,7 +1859,7 @@ static int drbg_kcapi_sym_ctr(struct drbg_state *drbg,
 		skcipher_request_set_crypt(drbg->ctr_req, sg_in, sg_out,
 					   cryptlen, drbg->V);
 		ret = crypto_wait_req(crypto_skcipher_encrypt(drbg->ctr_req),
-					&drbg->ctr_wait);
+				      &drbg->ctr_wait);
 		if (ret)
 			goto out;
 
@@ -1947,9 +1945,8 @@ static void drbg_kcapi_cleanup(struct crypto_tfm *tfm)
  * dst is the output buffer where random data is to be stored.
  * dlen is the length of dst.
  */
-static int drbg_kcapi_random(struct crypto_rng *tfm,
-			     const u8 *src, unsigned int slen,
-			     u8 *dst, unsigned int dlen)
+static int drbg_kcapi_random(struct crypto_rng *tfm, const u8 *src,
+			     unsigned int slen, u8 *dst, unsigned int dlen)
 {
 	struct drbg_state *drbg = crypto_rng_ctx(tfm);
 	struct drbg_string *addtl = NULL;
@@ -1967,8 +1964,8 @@ static int drbg_kcapi_random(struct crypto_rng *tfm,
 /*
  * Seed the DRBG invoked by the kernel crypto API
  */
-static int drbg_kcapi_seed(struct crypto_rng *tfm,
-			   const u8 *seed, unsigned int slen)
+static int drbg_kcapi_seed(struct crypto_rng *tfm, const u8 *seed,
+			   unsigned int slen)
 {
 	struct drbg_state *drbg = crypto_rng_ctx(tfm);
 	struct crypto_tfm *tfm_base = crypto_rng_tfm(tfm);
@@ -2099,14 +2096,14 @@ static inline void __init drbg_fill_array(struct rng_alg *alg,
 	if (fips_enabled)
 		alg->base.cra_priority += 200;
 
-	alg->base.cra_ctxsize 	= sizeof(struct drbg_state);
-	alg->base.cra_module	= THIS_MODULE;
-	alg->base.cra_init	= drbg_kcapi_init;
-	alg->base.cra_exit	= drbg_kcapi_cleanup;
-	alg->generate		= drbg_kcapi_random;
-	alg->seed		= drbg_kcapi_seed;
-	alg->set_ent		= drbg_kcapi_set_entropy;
-	alg->seedsize		= 0;
+	alg->base.cra_ctxsize = sizeof(struct drbg_state);
+	alg->base.cra_module = THIS_MODULE;
+	alg->base.cra_init = drbg_kcapi_init;
+	alg->base.cra_exit = drbg_kcapi_cleanup;
+	alg->generate = drbg_kcapi_random;
+	alg->seed = drbg_kcapi_seed;
+	alg->set_ent = drbg_kcapi_set_entropy;
+	alg->seedsize = 0;
 }
 
 static int __init drbg_init(void)
@@ -2161,9 +2158,7 @@ module_exit(drbg_exit);
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Stephan Mueller <smueller@chronox.de>");
 MODULE_DESCRIPTION("NIST SP800-90A Deterministic Random Bit Generator (DRBG) "
-		   "using following cores: "
-		   CRYPTO_DRBG_HASH_STRING
-		   CRYPTO_DRBG_HMAC_STRING
-		   CRYPTO_DRBG_CTR_STRING);
+		   "using following cores: " CRYPTO_DRBG_HASH_STRING
+			   CRYPTO_DRBG_HMAC_STRING CRYPTO_DRBG_CTR_STRING);
 MODULE_ALIAS_CRYPTO("stdrng");
 MODULE_IMPORT_NS(CRYPTO_INTERNAL);

@@ -9,8 +9,8 @@
 #include <linux/user_namespace.h>
 
 struct ucounts init_ucounts = {
-	.ns    = &init_user_ns,
-	.uid   = GLOBAL_ROOT_UID,
+	.ns = &init_user_ns,
+	.uid = GLOBAL_ROOT_UID,
 	.count = ATOMIC_INIT(1),
 };
 
@@ -18,16 +18,13 @@ struct ucounts init_ucounts = {
 static struct hlist_head ucounts_hashtable[(1 << UCOUNTS_HASHTABLE_BITS)];
 static DEFINE_SPINLOCK(ucounts_lock);
 
-#define ucounts_hashfn(ns, uid)						\
-	hash_long((unsigned long)__kuid_val(uid) + (unsigned long)(ns), \
+#define ucounts_hashfn(ns, uid)                                                \
+	hash_long((unsigned long)__kuid_val(uid) + (unsigned long)(ns),        \
 		  UCOUNTS_HASHTABLE_BITS)
-#define ucounts_hashentry(ns, uid)	\
-	(ucounts_hashtable + ucounts_hashfn(ns, uid))
-
+#define ucounts_hashentry(ns, uid) (ucounts_hashtable + ucounts_hashfn(ns, uid))
 
 #ifdef CONFIG_SYSCTL
-static struct ctl_table_set *
-set_lookup(struct ctl_table_root *root)
+static struct ctl_table_set *set_lookup(struct ctl_table_root *root)
 {
 	return &current_user_ns()->set;
 }
@@ -38,7 +35,7 @@ static int set_is_seen(struct ctl_table_set *set)
 }
 
 static int set_permissions(struct ctl_table_header *head,
-				  struct ctl_table *table)
+			   struct ctl_table *table)
 {
 	struct user_namespace *user_ns =
 		container_of(head->set, struct user_namespace, set);
@@ -48,7 +45,7 @@ static int set_permissions(struct ctl_table_header *head,
 	if (ns_capable(user_ns, CAP_SYS_RESOURCE))
 		mode = (table->mode & S_IRWXU) >> 6;
 	else
-	/* Allow all others at most read-only access */
+		/* Allow all others at most read-only access */
 		mode = table->mode & S_IROTH;
 	return (mode << 6) | (mode << 3) | mode;
 }
@@ -61,38 +58,33 @@ static struct ctl_table_root set_root = {
 static long ue_zero = 0;
 static long ue_int_max = INT_MAX;
 
-#define UCOUNT_ENTRY(name)					\
-	{							\
-		.procname	= name,				\
-		.maxlen		= sizeof(long),			\
-		.mode		= 0644,				\
-		.proc_handler	= proc_doulongvec_minmax,	\
-		.extra1		= &ue_zero,			\
-		.extra2		= &ue_int_max,			\
+#define UCOUNT_ENTRY(name)                                                     \
+	{                                                                      \
+		.procname = name, .maxlen = sizeof(long), .mode = 0644,        \
+		.proc_handler = proc_doulongvec_minmax, .extra1 = &ue_zero,    \
+		.extra2 = &ue_int_max,                                         \
 	}
-static struct ctl_table user_table[] = {
-	UCOUNT_ENTRY("max_user_namespaces"),
-	UCOUNT_ENTRY("max_pid_namespaces"),
-	UCOUNT_ENTRY("max_uts_namespaces"),
-	UCOUNT_ENTRY("max_ipc_namespaces"),
-	UCOUNT_ENTRY("max_net_namespaces"),
-	UCOUNT_ENTRY("max_mnt_namespaces"),
-	UCOUNT_ENTRY("max_cgroup_namespaces"),
-	UCOUNT_ENTRY("max_time_namespaces"),
+static struct ctl_table user_table[] = { UCOUNT_ENTRY("max_user_namespaces"),
+					 UCOUNT_ENTRY("max_pid_namespaces"),
+					 UCOUNT_ENTRY("max_uts_namespaces"),
+					 UCOUNT_ENTRY("max_ipc_namespaces"),
+					 UCOUNT_ENTRY("max_net_namespaces"),
+					 UCOUNT_ENTRY("max_mnt_namespaces"),
+					 UCOUNT_ENTRY("max_cgroup_namespaces"),
+					 UCOUNT_ENTRY("max_time_namespaces"),
 #ifdef CONFIG_INOTIFY_USER
-	UCOUNT_ENTRY("max_inotify_instances"),
-	UCOUNT_ENTRY("max_inotify_watches"),
+					 UCOUNT_ENTRY("max_inotify_instances"),
+					 UCOUNT_ENTRY("max_inotify_watches"),
 #endif
 #ifdef CONFIG_FANOTIFY
-	UCOUNT_ENTRY("max_fanotify_groups"),
-	UCOUNT_ENTRY("max_fanotify_marks"),
+					 UCOUNT_ENTRY("max_fanotify_groups"),
+					 UCOUNT_ENTRY("max_fanotify_marks"),
 #endif
-	{ },
-	{ },
-	{ },
-	{ },
-	{ }
-};
+					 {},
+					 {},
+					 {},
+					 {},
+					 {} };
 #endif /* CONFIG_SYSCTL */
 
 bool setup_userns_sysctls(struct user_namespace *ns)
@@ -131,11 +123,12 @@ void retire_userns_sysctls(struct user_namespace *ns)
 #endif
 }
 
-static struct ucounts *find_ucounts(struct user_namespace *ns, kuid_t uid, struct hlist_head *hashent)
+static struct ucounts *find_ucounts(struct user_namespace *ns, kuid_t uid,
+				    struct hlist_head *hashent)
 {
 	struct ucounts *ucounts;
 
-	hlist_for_each_entry(ucounts, hashent, node) {
+	hlist_for_each_entry (ucounts, hashent, node) {
 		if (uid_eq(ucounts->uid, uid) && (ucounts->ns == ns))
 			return ucounts;
 	}
@@ -144,7 +137,8 @@ static struct ucounts *find_ucounts(struct user_namespace *ns, kuid_t uid, struc
 
 static void hlist_add_ucounts(struct ucounts *ucounts)
 {
-	struct hlist_head *hashent = ucounts_hashentry(ucounts->ns, ucounts->uid);
+	struct hlist_head *hashent =
+		ucounts_hashentry(ucounts->ns, ucounts->uid);
 	spin_lock_irq(&ucounts_lock);
 	hlist_add_head(&ucounts->node, hashent);
 	spin_unlock_irq(&ucounts_lock);
@@ -208,7 +202,8 @@ void put_ucounts(struct ucounts *ucounts)
 {
 	unsigned long flags;
 
-	if (atomic_dec_and_lock_irqsave(&ucounts->count, &ucounts_lock, flags)) {
+	if (atomic_dec_and_lock_irqsave(&ucounts->count, &ucounts_lock,
+					flags)) {
 		hlist_del_init(&ucounts->node);
 		spin_unlock_irqrestore(&ucounts_lock, flags);
 		put_user_ns(ucounts->ns);
@@ -223,7 +218,7 @@ static inline bool atomic_long_inc_below(atomic_long_t *v, int u)
 	for (;;) {
 		if (unlikely(c >= u))
 			return false;
-		old = atomic_long_cmpxchg(v, c, c+1);
+		old = atomic_long_cmpxchg(v, c, c + 1);
 		if (likely(old == c))
 			return true;
 		c = old;
@@ -294,7 +289,8 @@ bool dec_rlimit_ucounts(struct ucounts *ucounts, enum ucount_type type, long v)
 }
 
 static void do_dec_rlimit_put_ucounts(struct ucounts *ucounts,
-				struct ucounts *last, enum ucount_type type)
+				      struct ucounts *last,
+				      enum ucount_type type)
 {
 	struct ucounts *iter, *next;
 	for (iter = ucounts; iter != last; iter = next) {
@@ -343,7 +339,8 @@ unwind:
 	return 0;
 }
 
-bool is_ucounts_overlimit(struct ucounts *ucounts, enum ucount_type type, unsigned long rlimit)
+bool is_ucounts_overlimit(struct ucounts *ucounts, enum ucount_type type,
+			  unsigned long rlimit)
 {
 	struct ucounts *iter;
 	long max = rlimit;

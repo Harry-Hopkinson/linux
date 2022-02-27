@@ -20,28 +20,19 @@
  * attribute length does not match the expected size a warning is emitted
  * to the user that the command is sending invalid data and needs to be fixed.
  */
-static const u8 nla_attr_len[NLA_TYPE_MAX+1] = {
-	[NLA_U8]	= sizeof(u8),
-	[NLA_U16]	= sizeof(u16),
-	[NLA_U32]	= sizeof(u32),
-	[NLA_U64]	= sizeof(u64),
-	[NLA_S8]	= sizeof(s8),
-	[NLA_S16]	= sizeof(s16),
-	[NLA_S32]	= sizeof(s32),
-	[NLA_S64]	= sizeof(s64),
+static const u8 nla_attr_len[NLA_TYPE_MAX + 1] = {
+	[NLA_U8] = sizeof(u8),	 [NLA_U16] = sizeof(u16),
+	[NLA_U32] = sizeof(u32), [NLA_U64] = sizeof(u64),
+	[NLA_S8] = sizeof(s8),	 [NLA_S16] = sizeof(s16),
+	[NLA_S32] = sizeof(s32), [NLA_S64] = sizeof(s64),
 };
 
-static const u8 nla_attr_minlen[NLA_TYPE_MAX+1] = {
-	[NLA_U8]	= sizeof(u8),
-	[NLA_U16]	= sizeof(u16),
-	[NLA_U32]	= sizeof(u32),
-	[NLA_U64]	= sizeof(u64),
-	[NLA_MSECS]	= sizeof(u64),
-	[NLA_NESTED]	= NLA_HDRLEN,
-	[NLA_S8]	= sizeof(s8),
-	[NLA_S16]	= sizeof(s16),
-	[NLA_S32]	= sizeof(s32),
-	[NLA_S64]	= sizeof(s64),
+static const u8 nla_attr_minlen[NLA_TYPE_MAX + 1] = {
+	[NLA_U8] = sizeof(u8),	   [NLA_U16] = sizeof(u16),
+	[NLA_U32] = sizeof(u32),   [NLA_U64] = sizeof(u64),
+	[NLA_MSECS] = sizeof(u64), [NLA_NESTED] = NLA_HDRLEN,
+	[NLA_S8] = sizeof(s8),	   [NLA_S16] = sizeof(s16),
+	[NLA_S32] = sizeof(s32),   [NLA_S64] = sizeof(s64),
 };
 
 /*
@@ -50,7 +41,7 @@ static const u8 nla_attr_minlen[NLA_TYPE_MAX+1] = {
  * abuse that and recurse by nesting in the right
  * ways. Limit recursion to avoid this problem.
  */
-#define MAX_POLICY_RECURSION_DEPTH	10
+#define MAX_POLICY_RECURSION_DEPTH 10
 
 static int __nla_validate_parse(const struct nlattr *head, int len, int maxtype,
 				const struct nla_policy *policy,
@@ -89,7 +80,7 @@ static int nla_validate_array(const struct nlattr *head, int len, int maxtype,
 	const struct nlattr *entry;
 	int rem;
 
-	nla_for_each_attr(entry, head, len, rem) {
+	nla_for_each_attr (entry, head, len, rem) {
 		int ret;
 
 		if (nla_len(entry) == 0)
@@ -192,8 +183,9 @@ static int nla_validate_range_unsigned(const struct nla_policy *pt,
 
 	if (pt->validation_type == NLA_VALIDATE_RANGE_WARN_TOO_LONG &&
 	    pt->type == NLA_BINARY && value > range.max) {
-		pr_warn_ratelimited("netlink: '%s': attribute type %d has an invalid length.\n",
-				    current->comm, pt->type);
+		pr_warn_ratelimited(
+			"netlink: '%s': attribute type %d has an invalid length.\n",
+			current->comm, pt->type);
 		if (validate & NL_VALIDATE_STRICT_ATTRS) {
 			NL_SET_ERR_MSG_ATTR_POL(extack, nla, pt,
 						"invalid attribute length");
@@ -208,8 +200,9 @@ static int nla_validate_range_unsigned(const struct nla_policy *pt,
 		bool binary = pt->type == NLA_BINARY;
 
 		if (binary)
-			NL_SET_ERR_MSG_ATTR_POL(extack, nla, pt,
-						"binary attribute size out of range");
+			NL_SET_ERR_MSG_ATTR_POL(
+				extack, nla, pt,
+				"binary attribute size out of range");
 		else
 			NL_SET_ERR_MSG_ATTR_POL(extack, nla, pt,
 						"integer out of range");
@@ -374,8 +367,9 @@ static int validate_nla(const struct nlattr *nla, int maxtype,
 	BUG_ON(pt->type > NLA_TYPE_MAX);
 
 	if (nla_attr_len[pt->type] && attrlen != nla_attr_len[pt->type]) {
-		pr_warn_ratelimited("netlink: '%s': attribute type %d has an invalid length.\n",
-				    current->comm, type);
+		pr_warn_ratelimited(
+			"netlink: '%s': attribute type %d has an invalid length.\n",
+			current->comm, type);
 		if (validate & NL_VALIDATE_STRICT_ATTRS) {
 			NL_SET_ERR_MSG_ATTR_POL(extack, nla, pt,
 						"invalid attribute length");
@@ -573,7 +567,7 @@ static int __nla_validate_parse(const struct nlattr *head, int len, int maxtype,
 	if (tb)
 		memset(tb, 0, sizeof(struct nlattr *) * (maxtype + 1));
 
-	nla_for_each_attr(nla, head, len, rem) {
+	nla_for_each_attr (nla, head, len, rem) {
 		u16 type = nla_type(nla);
 
 		if (type == 0 || type > maxtype) {
@@ -585,8 +579,8 @@ static int __nla_validate_parse(const struct nlattr *head, int len, int maxtype,
 			continue;
 		}
 		if (policy) {
-			int err = validate_nla(nla, maxtype, policy,
-					       validate, extack, depth);
+			int err = validate_nla(nla, maxtype, policy, validate,
+					       extack, depth);
 
 			if (err < 0)
 				return err;
@@ -597,9 +591,11 @@ static int __nla_validate_parse(const struct nlattr *head, int len, int maxtype,
 	}
 
 	if (unlikely(rem > 0)) {
-		pr_warn_ratelimited("netlink: %d bytes leftover after parsing attributes in process `%s'.\n",
-				    rem, current->comm);
-		NL_SET_ERR_MSG(extack, "bytes leftover after parsing attributes");
+		pr_warn_ratelimited(
+			"netlink: %d bytes leftover after parsing attributes in process `%s'.\n",
+			rem, current->comm);
+		NL_SET_ERR_MSG(extack,
+			       "bytes leftover after parsing attributes");
 		if (validate & NL_VALIDATE_TRAILING)
 			return -EINVAL;
 	}
@@ -643,8 +639,7 @@ EXPORT_SYMBOL(__nla_validate);
  *
  * Returns 0 on success or a negative error code.
  */
-int
-nla_policy_len(const struct nla_policy *p, int n)
+int nla_policy_len(const struct nla_policy *p, int n)
 {
 	int i, len = 0;
 
@@ -677,9 +672,8 @@ EXPORT_SYMBOL(nla_policy_len);
  *
  * Returns 0 on success or a negative error code.
  */
-int __nla_parse(struct nlattr **tb, int maxtype,
-		const struct nlattr *head, int len,
-		const struct nla_policy *policy, unsigned int validate,
+int __nla_parse(struct nlattr **tb, int maxtype, const struct nlattr *head,
+		int len, const struct nla_policy *policy, unsigned int validate,
 		struct netlink_ext_ack *extack)
 {
 	return __nla_validate_parse(head, len, maxtype, policy, validate,
@@ -700,7 +694,7 @@ struct nlattr *nla_find(const struct nlattr *head, int len, int attrtype)
 	const struct nlattr *nla;
 	int rem;
 
-	nla_for_each_attr(nla, head, len, rem)
+	nla_for_each_attr (nla, head, len, rem)
 		if (nla_type(nla) == attrtype)
 			return (struct nlattr *)nla;
 
@@ -804,8 +798,7 @@ EXPORT_SYMBOL(nla_memcpy);
  * @data: memory area
  * @size: size of memory area
  */
-int nla_memcmp(const struct nlattr *nla, const void *data,
-			     size_t size)
+int nla_memcmp(const struct nlattr *nla, const void *data, size_t size)
 {
 	int d = nla_len(nla) - size;
 
@@ -860,7 +853,7 @@ struct nlattr *__nla_reserve(struct sk_buff *skb, int attrtype, int attrlen)
 	nla->nla_type = attrtype;
 	nla->nla_len = nla_attr_size(attrlen);
 
-	memset((unsigned char *) nla + nla->nla_len, 0, nla_padlen(attrlen));
+	memset((unsigned char *)nla + nla->nla_len, 0, nla_padlen(attrlen));
 
 	return nla;
 }
@@ -985,8 +978,7 @@ EXPORT_SYMBOL(nla_reserve_nohdr);
  * The caller is responsible to ensure that the skb provides enough
  * tailroom for the attribute header and payload.
  */
-void __nla_put(struct sk_buff *skb, int attrtype, int attrlen,
-			     const void *data)
+void __nla_put(struct sk_buff *skb, int attrtype, int attrlen, const void *data)
 {
 	struct nlattr *nla;
 

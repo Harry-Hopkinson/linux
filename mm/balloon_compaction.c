@@ -45,7 +45,7 @@ size_t balloon_page_list_enqueue(struct balloon_dev_info *b_dev_info,
 	size_t n_pages = 0;
 
 	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
-	list_for_each_entry_safe(page, tmp, pages, lru) {
+	list_for_each_entry_safe (page, tmp, pages, lru) {
 		list_del(&page->lru);
 		balloon_page_enqueue_one(b_dev_info, page);
 		n_pages++;
@@ -81,7 +81,7 @@ size_t balloon_page_list_dequeue(struct balloon_dev_info *b_dev_info,
 	size_t n_pages = 0;
 
 	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
-	list_for_each_entry_safe(page, tmp, &b_dev_info->pages, lru) {
+	list_for_each_entry_safe (page, tmp, &b_dev_info->pages, lru) {
 		if (n_pages == n_req_pages)
 			break;
 
@@ -123,9 +123,9 @@ EXPORT_SYMBOL_GPL(balloon_page_list_dequeue);
  */
 struct page *balloon_page_alloc(void)
 {
-	struct page *page = alloc_page(balloon_mapping_gfp_mask() |
-				       __GFP_NOMEMALLOC | __GFP_NORETRY |
-				       __GFP_NOWARN);
+	struct page *page =
+		alloc_page(balloon_mapping_gfp_mask() | __GFP_NOMEMALLOC |
+			   __GFP_NORETRY | __GFP_NOWARN);
 	return page;
 }
 EXPORT_SYMBOL_GPL(balloon_page_alloc);
@@ -228,11 +228,9 @@ void balloon_page_putback(struct page *page)
 	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
 }
 
-
 /* move_to_new_page() counterpart for a ballooned page */
-int balloon_page_migrate(struct address_space *mapping,
-		struct page *newpage, struct page *page,
-		enum migrate_mode mode)
+int balloon_page_migrate(struct address_space *mapping, struct page *newpage,
+			 struct page *page, enum migrate_mode mode)
 {
 	struct balloon_dev_info *balloon = balloon_page_device(page);
 

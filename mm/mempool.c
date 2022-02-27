@@ -80,7 +80,8 @@ static void __poison_element(void *element, size_t size)
 static void poison_element(mempool_t *pool, void *element)
 {
 	/* Mempools backed by slab allocator */
-	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc) {
+	if (pool->alloc == mempool_alloc_slab ||
+	    pool->alloc == mempool_kmalloc) {
 		__poison_element(element, ksize(element));
 	} else if (pool->alloc == mempool_alloc_pages) {
 		/* Mempools backed by page allocator */
@@ -177,18 +178,18 @@ void mempool_destroy(mempool_t *pool)
 EXPORT_SYMBOL(mempool_destroy);
 
 int mempool_init_node(mempool_t *pool, int min_nr, mempool_alloc_t *alloc_fn,
-		      mempool_free_t *free_fn, void *pool_data,
-		      gfp_t gfp_mask, int node_id)
+		      mempool_free_t *free_fn, void *pool_data, gfp_t gfp_mask,
+		      int node_id)
 {
 	spin_lock_init(&pool->lock);
-	pool->min_nr	= min_nr;
+	pool->min_nr = min_nr;
 	pool->pool_data = pool_data;
-	pool->alloc	= alloc_fn;
-	pool->free	= free_fn;
+	pool->alloc = alloc_fn;
+	pool->free = free_fn;
 	init_waitqueue_head(&pool->wait);
 
-	pool->elements = kmalloc_array_node(min_nr, sizeof(void *),
-					    gfp_mask, node_id);
+	pool->elements =
+		kmalloc_array_node(min_nr, sizeof(void *), gfp_mask, node_id);
 	if (!pool->elements)
 		return -ENOMEM;
 
@@ -227,9 +228,8 @@ EXPORT_SYMBOL(mempool_init_node);
 int mempool_init(mempool_t *pool, int min_nr, mempool_alloc_t *alloc_fn,
 		 mempool_free_t *free_fn, void *pool_data)
 {
-	return mempool_init_node(pool, min_nr, alloc_fn, free_fn,
-				 pool_data, GFP_KERNEL, NUMA_NO_NODE);
-
+	return mempool_init_node(pool, min_nr, alloc_fn, free_fn, pool_data,
+				 GFP_KERNEL, NUMA_NO_NODE);
 }
 EXPORT_SYMBOL(mempool_init);
 
@@ -250,7 +250,7 @@ EXPORT_SYMBOL(mempool_init);
  * Return: pointer to the created memory pool object or %NULL on error.
  */
 mempool_t *mempool_create(int min_nr, mempool_alloc_t *alloc_fn,
-				mempool_free_t *free_fn, void *pool_data)
+			  mempool_free_t *free_fn, void *pool_data)
 {
 	return mempool_create_node(min_nr, alloc_fn, free_fn, pool_data,
 				   GFP_KERNEL, NUMA_NO_NODE);
@@ -318,8 +318,8 @@ int mempool_resize(mempool_t *pool, int new_min_nr)
 	spin_unlock_irqrestore(&pool->lock, flags);
 
 	/* Grow the pool */
-	new_elements = kmalloc_array(new_min_nr, sizeof(*new_elements),
-				     GFP_KERNEL);
+	new_elements =
+		kmalloc_array(new_min_nr, sizeof(*new_elements), GFP_KERNEL);
 	if (!new_elements)
 		return -ENOMEM;
 
@@ -331,7 +331,7 @@ int mempool_resize(mempool_t *pool, int new_min_nr)
 		goto out;
 	}
 	memcpy(new_elements, pool->elements,
-			pool->curr_nr * sizeof(*new_elements));
+	       pool->curr_nr * sizeof(*new_elements));
 	kfree(pool->elements);
 	pool->elements = new_elements;
 	pool->min_nr = new_min_nr;
@@ -346,7 +346,7 @@ int mempool_resize(mempool_t *pool, int new_min_nr)
 			add_element(pool, element);
 		} else {
 			spin_unlock_irqrestore(&pool->lock, flags);
-			pool->free(element, pool->pool_data);	/* Raced */
+			pool->free(element, pool->pool_data); /* Raced */
 			goto out;
 		}
 	}
@@ -381,11 +381,11 @@ void *mempool_alloc(mempool_t *pool, gfp_t gfp_mask)
 	VM_WARN_ON_ONCE(gfp_mask & __GFP_ZERO);
 	might_sleep_if(gfp_mask & __GFP_DIRECT_RECLAIM);
 
-	gfp_mask |= __GFP_NOMEMALLOC;	/* don't allocate emergency reserves */
-	gfp_mask |= __GFP_NORETRY;	/* don't loop in __alloc_pages */
-	gfp_mask |= __GFP_NOWARN;	/* failures are OK */
+	gfp_mask |= __GFP_NOMEMALLOC; /* don't allocate emergency reserves */
+	gfp_mask |= __GFP_NORETRY; /* don't loop in __alloc_pages */
+	gfp_mask |= __GFP_NOWARN; /* failures are OK */
 
-	gfp_temp = gfp_mask & ~(__GFP_DIRECT_RECLAIM|__GFP_IO);
+	gfp_temp = gfp_mask & ~(__GFP_DIRECT_RECLAIM | __GFP_IO);
 
 repeat_alloc:
 
@@ -433,7 +433,7 @@ repeat_alloc:
 	 * FIXME: this should be io_schedule().  The timeout is there as a
 	 * workaround for some DM problems in 2.6.18.
 	 */
-	io_schedule_timeout(5*HZ);
+	io_schedule_timeout(5 * HZ);
 
 	finish_wait(&pool->wait, &wait);
 	goto repeat_alloc;

@@ -47,8 +47,9 @@ static void warn_legacy_capability_use(void)
 {
 	char name[sizeof(current->comm)];
 
-	pr_info_once("warning: `%s' uses 32-bit capabilities (legacy support in use)\n",
-		     get_task_comm(name, current));
+	pr_info_once(
+		"warning: `%s' uses 32-bit capabilities (legacy support in use)\n",
+		get_task_comm(name, current));
 }
 
 /*
@@ -71,8 +72,9 @@ static void warn_deprecated_v2(void)
 {
 	char name[sizeof(current->comm)];
 
-	pr_info_once("warning: `%s' uses deprecated v2 capabilities in a way that may be insecure\n",
-		     get_task_comm(name, current));
+	pr_info_once(
+		"warning: `%s' uses deprecated v2 capabilities in a way that may be insecure\n",
+		get_task_comm(name, current));
 }
 
 /*
@@ -93,7 +95,7 @@ static int cap_validate_magic(cap_user_header_t header, unsigned *tocopy)
 		break;
 	case _LINUX_CAPABILITY_VERSION_2:
 		warn_deprecated_v2();
-		fallthrough;	/* v3 is otherwise equivalent to v2 */
+		fallthrough; /* v3 is otherwise equivalent to v2 */
 	case _LINUX_CAPABILITY_VERSION_3:
 		*tocopy = _LINUX_CAPABILITY_U32S_3;
 		break;
@@ -192,8 +194,9 @@ SYSCALL_DEFINE2(capget, cap_user_header_t, header, cap_user_data_t, dataptr)
 		 * before modification is attempted and the application
 		 * fails.
 		 */
-		if (copy_to_user(dataptr, kdata, tocopy
-				 * sizeof(struct __user_cap_data_struct))) {
+		if (copy_to_user(
+			    dataptr, kdata,
+			    tocopy * sizeof(struct __user_cap_data_struct))) {
 			return -EFAULT;
 		}
 	}
@@ -266,8 +269,8 @@ SYSCALL_DEFINE2(capset, cap_user_header_t, header, const cap_user_data_t, data)
 	if (!new)
 		return -ENOMEM;
 
-	ret = security_capset(new, current_cred(),
-			      &effective, &inheritable, &permitted);
+	ret = security_capset(new, current_cred(), &effective, &inheritable,
+			      &permitted);
 	if (ret < 0)
 		goto error;
 
@@ -291,8 +294,8 @@ error:
  *
  * Note that this does not set PF_SUPERPRIV on the task.
  */
-bool has_ns_capability(struct task_struct *t,
-		       struct user_namespace *ns, int cap)
+bool has_ns_capability(struct task_struct *t, struct user_namespace *ns,
+		       int cap)
 {
 	int ret;
 
@@ -332,8 +335,8 @@ EXPORT_SYMBOL(has_capability);
  *
  * Note that this does not set PF_SUPERPRIV on the task.
  */
-bool has_ns_capability_noaudit(struct task_struct *t,
-			       struct user_namespace *ns, int cap)
+bool has_ns_capability_noaudit(struct task_struct *t, struct user_namespace *ns,
+			       int cap)
 {
 	int ret;
 
@@ -361,8 +364,7 @@ bool has_capability_noaudit(struct task_struct *t, int cap)
 	return has_ns_capability_noaudit(t, &init_user_ns, cap);
 }
 
-static bool ns_capable_common(struct user_namespace *ns,
-			      int cap,
+static bool ns_capable_common(struct user_namespace *ns, int cap,
 			      unsigned int opts)
 {
 	int capable;
@@ -466,7 +468,6 @@ EXPORT_SYMBOL(capable);
 bool file_ns_capable(const struct file *file, struct user_namespace *ns,
 		     int cap)
 {
-
 	if (WARN_ON_ONCE(!cap_valid(cap)))
 		return false;
 
@@ -521,7 +522,7 @@ EXPORT_SYMBOL(capable_wrt_inode_uidgid);
  */
 bool ptracer_capable(struct task_struct *tsk, struct user_namespace *ns)
 {
-	int ret = 0;  /* An absent tracer adds no restrictions */
+	int ret = 0; /* An absent tracer adds no restrictions */
 	const struct cred *cred;
 
 	rcu_read_lock();

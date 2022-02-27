@@ -29,7 +29,6 @@ static unsigned char *vmcoreinfo_data_safecopy;
  * this code is intended to be called from architecture specific code
  */
 
-
 /*
  * This function parses command lines in the format
  *
@@ -136,7 +135,7 @@ static int __init parse_crashkernel_simple(char *cmdline,
 	}
 
 	if (*cur == '@')
-		*crash_base = memparse(cur+1, &cur);
+		*crash_base = memparse(cur + 1, &cur);
 	else if (*cur != ' ' && *cur != '\0') {
 		pr_warn("crashkernel: unrecognized char: %c\n", *cur);
 		return -EINVAL;
@@ -146,11 +145,11 @@ static int __init parse_crashkernel_simple(char *cmdline,
 }
 
 #define SUFFIX_HIGH 0
-#define SUFFIX_LOW  1
+#define SUFFIX_LOW 1
 #define SUFFIX_NULL 2
 static __initdata char *suffix_tbl[] = {
 	[SUFFIX_HIGH] = ",high",
-	[SUFFIX_LOW]  = ",low",
+	[SUFFIX_LOW] = ",low",
 	[SUFFIX_NULL] = NULL,
 };
 
@@ -162,7 +161,7 @@ static __initdata char *suffix_tbl[] = {
  * It returns 0 on success and -EINVAL on failure.
  */
 static int __init parse_crashkernel_suffix(char *cmdline,
-					   unsigned long long	*crash_size,
+					   unsigned long long *crash_size,
 					   const char *suffix)
 {
 	char *cur = cmdline;
@@ -187,9 +186,8 @@ static int __init parse_crashkernel_suffix(char *cmdline,
 	return 0;
 }
 
-static __init char *get_last_crashkernel(char *cmdline,
-			     const char *name,
-			     const char *suffix)
+static __init char *get_last_crashkernel(char *cmdline, const char *name,
+					 const char *suffix)
 {
 	char *p = cmdline, *ck_cmdline = NULL;
 
@@ -218,8 +216,8 @@ static __init char *get_last_crashkernel(char *cmdline,
 			if (!strncmp(q, suffix, strlen(suffix)))
 				ck_cmdline = p;
 		}
-next:
-		p = strstr(p+1, name);
+	next:
+		p = strstr(p + 1, name);
 	}
 
 	if (!ck_cmdline)
@@ -229,14 +227,13 @@ next:
 }
 
 static int __init __parse_crashkernel(char *cmdline,
-			     unsigned long long system_ram,
-			     unsigned long long *crash_size,
-			     unsigned long long *crash_base,
-			     const char *name,
-			     const char *suffix)
+				      unsigned long long system_ram,
+				      unsigned long long *crash_size,
+				      unsigned long long *crash_base,
+				      const char *name, const char *suffix)
 {
-	char	*first_colon, *first_space;
-	char	*ck_cmdline;
+	char *first_colon, *first_space;
+	char *ck_cmdline;
 
 	BUG_ON(!crash_size || !crash_base);
 	*crash_size = 0;
@@ -250,8 +247,7 @@ static int __init __parse_crashkernel(char *cmdline,
 	ck_cmdline += strlen(name);
 
 	if (suffix)
-		return parse_crashkernel_suffix(ck_cmdline, crash_size,
-				suffix);
+		return parse_crashkernel_suffix(ck_cmdline, crash_size, suffix);
 	/*
 	 * if the commandline contains a ':', then that's the extended
 	 * syntax -- if not, it must be the classic syntax
@@ -259,8 +255,8 @@ static int __init __parse_crashkernel(char *cmdline,
 	first_colon = strchr(ck_cmdline, ':');
 	first_space = strchr(ck_cmdline, ' ');
 	if (first_colon && (!first_space || first_colon < first_space))
-		return parse_crashkernel_mem(ck_cmdline, system_ram,
-				crash_size, crash_base);
+		return parse_crashkernel_mem(ck_cmdline, system_ram, crash_size,
+					     crash_base);
 
 	return parse_crashkernel_simple(ck_cmdline, crash_size, crash_base);
 }
@@ -269,31 +265,28 @@ static int __init __parse_crashkernel(char *cmdline,
  * That function is the entry point for command line parsing and should be
  * called from the arch-specific code.
  */
-int __init parse_crashkernel(char *cmdline,
-			     unsigned long long system_ram,
+int __init parse_crashkernel(char *cmdline, unsigned long long system_ram,
 			     unsigned long long *crash_size,
 			     unsigned long long *crash_base)
 {
 	return __parse_crashkernel(cmdline, system_ram, crash_size, crash_base,
-					"crashkernel=", NULL);
+				   "crashkernel=", NULL);
 }
 
-int __init parse_crashkernel_high(char *cmdline,
-			     unsigned long long system_ram,
-			     unsigned long long *crash_size,
-			     unsigned long long *crash_base)
+int __init parse_crashkernel_high(char *cmdline, unsigned long long system_ram,
+				  unsigned long long *crash_size,
+				  unsigned long long *crash_base)
 {
 	return __parse_crashkernel(cmdline, system_ram, crash_size, crash_base,
-				"crashkernel=", suffix_tbl[SUFFIX_HIGH]);
+				   "crashkernel=", suffix_tbl[SUFFIX_HIGH]);
 }
 
-int __init parse_crashkernel_low(char *cmdline,
-			     unsigned long long system_ram,
-			     unsigned long long *crash_size,
-			     unsigned long long *crash_base)
+int __init parse_crashkernel_low(char *cmdline, unsigned long long system_ram,
+				 unsigned long long *crash_size,
+				 unsigned long long *crash_base)
 {
 	return __parse_crashkernel(cmdline, system_ram, crash_size, crash_base,
-				"crashkernel=", suffix_tbl[SUFFIX_LOW]);
+				   "crashkernel=", suffix_tbl[SUFFIX_LOW]);
 }
 
 /*
@@ -313,7 +306,7 @@ Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
 
 	note->n_namesz = strlen(name) + 1;
 	note->n_descsz = data_len;
-	note->n_type   = type;
+	note->n_type = type;
 	buf += DIV_ROUND_UP(sizeof(*note), sizeof(Elf_Word));
 	memcpy(buf, name, note->n_namesz);
 	buf += DIV_ROUND_UP(note->n_namesz, sizeof(Elf_Word));
@@ -382,7 +375,8 @@ void vmcoreinfo_append_str(const char *fmt, ...)
  * code may override this
  */
 void __weak arch_crash_save_vmcoreinfo(void)
-{}
+{
+}
 
 phys_addr_t __weak paddr_vmcoreinfo_note(void)
 {
@@ -399,7 +393,7 @@ static int __init crash_save_vmcoreinfo_init(void)
 	}
 
 	vmcoreinfo_note = alloc_pages_exact(VMCOREINFO_NOTE_SIZE,
-						GFP_KERNEL | __GFP_ZERO);
+					    GFP_KERNEL | __GFP_ZERO);
 	if (!vmcoreinfo_note) {
 		free_page((unsigned long)vmcoreinfo_data);
 		vmcoreinfo_data = NULL;
@@ -476,11 +470,11 @@ static int __init crash_save_vmcoreinfo_init(void)
 	VMCOREINFO_NUMBER(PG_hwpoison);
 #endif
 	VMCOREINFO_NUMBER(PG_head_mask);
-#define PAGE_BUDDY_MAPCOUNT_VALUE	(~PG_buddy)
+#define PAGE_BUDDY_MAPCOUNT_VALUE (~PG_buddy)
 	VMCOREINFO_NUMBER(PAGE_BUDDY_MAPCOUNT_VALUE);
 #ifdef CONFIG_HUGETLB_PAGE
 	VMCOREINFO_NUMBER(HUGETLB_PAGE_DTOR);
-#define PAGE_OFFLINE_MAPCOUNT_VALUE	(~PG_offline)
+#define PAGE_OFFLINE_MAPCOUNT_VALUE (~PG_offline)
 	VMCOREINFO_NUMBER(PAGE_OFFLINE_MAPCOUNT_VALUE);
 #endif
 

@@ -3,9 +3,9 @@
 #include <linux/slab.h>
 
 struct bd_holder_disk {
-	struct list_head	list;
-	struct block_device	*bdev;
-	int			refcnt;
+	struct list_head list;
+	struct block_device *bdev;
+	int refcnt;
 };
 
 static struct bd_holder_disk *bd_find_holder_disk(struct block_device *bdev,
@@ -13,7 +13,7 @@ static struct bd_holder_disk *bd_find_holder_disk(struct block_device *bdev,
 {
 	struct bd_holder_disk *holder;
 
-	list_for_each_entry(holder, &disk->slave_bdevs, list)
+	list_for_each_entry (holder, &disk->slave_bdevs, list)
 		if (holder->bdev == bdev)
 			return holder;
 	return NULL;
@@ -120,7 +120,7 @@ out_unlock:
 EXPORT_SYMBOL_GPL(bd_link_disk_holder);
 
 static void __unlink_disk_holder(struct block_device *bdev,
-		struct gendisk *disk)
+				 struct gendisk *disk)
 {
 	del_symlink(disk->slave_dir, bdev_kobj(bdev));
 	del_symlink(bdev->bd_holder_dir, &disk_to_dev(disk)->kobj);
@@ -159,7 +159,7 @@ int bd_register_pending_holders(struct gendisk *disk)
 	int ret;
 
 	mutex_lock(&disk->open_mutex);
-	list_for_each_entry(holder, &disk->slave_bdevs, list) {
+	list_for_each_entry (holder, &disk->slave_bdevs, list) {
 		ret = __link_disk_holder(holder->bdev, disk);
 		if (ret)
 			goto out_undo;
@@ -168,7 +168,7 @@ int bd_register_pending_holders(struct gendisk *disk)
 	return 0;
 
 out_undo:
-	list_for_each_entry_continue_reverse(holder, &disk->slave_bdevs, list)
+	list_for_each_entry_continue_reverse (holder, &disk->slave_bdevs, list)
 		__unlink_disk_holder(holder->bdev, disk);
 	mutex_unlock(&disk->open_mutex);
 	return ret;

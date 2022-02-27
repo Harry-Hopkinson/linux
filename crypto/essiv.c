@@ -40,31 +40,31 @@
 
 struct essiv_instance_ctx {
 	union {
-		struct crypto_skcipher_spawn	skcipher_spawn;
-		struct crypto_aead_spawn	aead_spawn;
+		struct crypto_skcipher_spawn skcipher_spawn;
+		struct crypto_aead_spawn aead_spawn;
 	} u;
-	char	essiv_cipher_name[CRYPTO_MAX_ALG_NAME];
-	char	shash_driver_name[CRYPTO_MAX_ALG_NAME];
+	char essiv_cipher_name[CRYPTO_MAX_ALG_NAME];
+	char shash_driver_name[CRYPTO_MAX_ALG_NAME];
 };
 
 struct essiv_tfm_ctx {
 	union {
-		struct crypto_skcipher	*skcipher;
-		struct crypto_aead	*aead;
+		struct crypto_skcipher *skcipher;
+		struct crypto_aead *aead;
 	} u;
-	struct crypto_cipher		*essiv_cipher;
-	struct crypto_shash		*hash;
-	int				ivoffset;
+	struct crypto_cipher *essiv_cipher;
+	struct crypto_shash *hash;
+	int ivoffset;
 };
 
 struct essiv_aead_request_ctx {
-	struct scatterlist		sg[4];
-	u8				*assoc;
-	struct aead_request		aead_req;
+	struct scatterlist sg[4];
+	u8 *assoc;
+	struct aead_request aead_req;
 };
 
-static int essiv_skcipher_setkey(struct crypto_skcipher *tfm,
-				 const u8 *key, unsigned int keylen)
+static int essiv_skcipher_setkey(struct crypto_skcipher *tfm, const u8 *key,
+				 unsigned int keylen)
 {
 	struct essiv_tfm_ctx *tctx = crypto_skcipher_ctx(tfm);
 	u8 salt[HASH_MAX_DIGESTSIZE];
@@ -73,7 +73,7 @@ static int essiv_skcipher_setkey(struct crypto_skcipher *tfm,
 	crypto_skcipher_clear_flags(tctx->u.skcipher, CRYPTO_TFM_REQ_MASK);
 	crypto_skcipher_set_flags(tctx->u.skcipher,
 				  crypto_skcipher_get_flags(tfm) &
-				  CRYPTO_TFM_REQ_MASK);
+					  CRYPTO_TFM_REQ_MASK);
 	err = crypto_skcipher_setkey(tctx->u.skcipher, key, keylen);
 	if (err)
 		return err;
@@ -85,7 +85,7 @@ static int essiv_skcipher_setkey(struct crypto_skcipher *tfm,
 	crypto_cipher_clear_flags(tctx->essiv_cipher, CRYPTO_TFM_REQ_MASK);
 	crypto_cipher_set_flags(tctx->essiv_cipher,
 				crypto_skcipher_get_flags(tfm) &
-				CRYPTO_TFM_REQ_MASK);
+					CRYPTO_TFM_REQ_MASK);
 	return crypto_cipher_setkey(tctx->essiv_cipher, salt,
 				    crypto_shash_digestsize(tctx->hash));
 }
@@ -100,8 +100,8 @@ static int essiv_aead_setkey(struct crypto_aead *tfm, const u8 *key,
 	int err;
 
 	crypto_aead_clear_flags(tctx->u.aead, CRYPTO_TFM_REQ_MASK);
-	crypto_aead_set_flags(tctx->u.aead, crypto_aead_get_flags(tfm) &
-					    CRYPTO_TFM_REQ_MASK);
+	crypto_aead_set_flags(tctx->u.aead,
+			      crypto_aead_get_flags(tfm) & CRYPTO_TFM_REQ_MASK);
 	err = crypto_aead_setkey(tctx->u.aead, key, keylen);
 	if (err)
 		return err;
@@ -110,15 +110,17 @@ static int essiv_aead_setkey(struct crypto_aead *tfm, const u8 *key,
 		return -EINVAL;
 
 	desc->tfm = tctx->hash;
-	err = crypto_shash_init(desc) ?:
-	      crypto_shash_update(desc, keys.enckey, keys.enckeylen) ?:
-	      crypto_shash_finup(desc, keys.authkey, keys.authkeylen, salt);
+	err = crypto_shash_init(desc)					     ?:
+		      crypto_shash_update(desc, keys.enckey, keys.enckeylen) ?:
+		      crypto_shash_finup(desc, keys.authkey, keys.authkeylen,
+					 salt);
 	if (err)
 		return err;
 
 	crypto_cipher_clear_flags(tctx->essiv_cipher, CRYPTO_TFM_REQ_MASK);
-	crypto_cipher_set_flags(tctx->essiv_cipher, crypto_aead_get_flags(tfm) &
-						    CRYPTO_TFM_REQ_MASK);
+	crypto_cipher_set_flags(tctx->essiv_cipher,
+				crypto_aead_get_flags(tfm) &
+					CRYPTO_TFM_REQ_MASK);
 	return crypto_cipher_setkey(tctx->essiv_cipher, salt,
 				    crypto_shash_digestsize(tctx->hash));
 }
@@ -194,7 +196,8 @@ static int essiv_aead_crypt(struct aead_request *req, bool enc)
 	rctx->assoc = NULL;
 	if (req->src == req->dst || !enc) {
 		scatterwalk_map_and_copy(req->iv, req->dst,
-					 req->assoclen - crypto_aead_ivsize(tfm),
+					 req->assoclen -
+						 crypto_aead_ivsize(tfm),
 					 crypto_aead_ivsize(tfm), 1);
 	} else {
 		u8 *iv = (u8 *)aead_request_ctx(req) + tctx->ivoffset;
@@ -244,8 +247,7 @@ static int essiv_aead_crypt(struct aead_request *req, bool enc)
 				  essiv_aead_done, req);
 	aead_request_set_crypt(subreq, src, req->dst, req->cryptlen, req->iv);
 
-	err = enc ? crypto_aead_encrypt(subreq) :
-		    crypto_aead_decrypt(subreq);
+	err = enc ? crypto_aead_encrypt(subreq) : crypto_aead_decrypt(subreq);
 
 	if (rctx->assoc && err != -EINPROGRESS)
 		kfree(rctx->assoc);
@@ -301,8 +303,9 @@ static int essiv_skcipher_init_tfm(struct crypto_skcipher *tfm)
 	if (IS_ERR(skcipher))
 		return PTR_ERR(skcipher);
 
-	crypto_skcipher_set_reqsize(tfm, sizeof(struct skcipher_request) +
-				         crypto_skcipher_reqsize(skcipher));
+	crypto_skcipher_set_reqsize(tfm,
+				    sizeof(struct skcipher_request) +
+					    crypto_skcipher_reqsize(skcipher));
 
 	err = essiv_init_tfm(ictx, tctx);
 	if (err) {
@@ -333,8 +336,8 @@ static int essiv_aead_init_tfm(struct crypto_aead *tfm)
 	subreq_size = sizeof_field(struct essiv_aead_request_ctx, aead_req) +
 		      crypto_aead_reqsize(aead);
 
-	tctx->ivoffset = offsetof(struct essiv_aead_request_ctx, aead_req) +
-			 subreq_size;
+	tctx->ivoffset =
+		offsetof(struct essiv_aead_request_ctx, aead_req) + subreq_size;
 	crypto_aead_set_reqsize(tfm, tctx->ivoffset + crypto_aead_ivsize(aead));
 
 	err = essiv_init_tfm(ictx, tctx);
@@ -406,14 +409,12 @@ static bool parse_cipher_name(char *essiv_cipher_name, const char *cra_name)
 }
 
 static bool essiv_supported_algorithms(const char *essiv_cipher_name,
-				       struct shash_alg *hash_alg,
-				       int ivsize)
+				       struct shash_alg *hash_alg, int ivsize)
 {
 	struct crypto_alg *alg;
 	bool ret = false;
 
-	alg = crypto_alg_mod_lookup(essiv_cipher_name,
-				    CRYPTO_ALG_TYPE_CIPHER,
+	alg = crypto_alg_mod_lookup(essiv_cipher_name, CRYPTO_ALG_TYPE_CIPHER,
 				    CRYPTO_ALG_TYPE_MASK);
 	if (IS_ERR(alg))
 		return false;
@@ -471,8 +472,8 @@ static int essiv_create(struct crypto_template *tmpl, struct rtattr **tb)
 
 	switch (type) {
 	case CRYPTO_ALG_TYPE_SKCIPHER:
-		skcipher_inst = kzalloc(sizeof(*skcipher_inst) +
-					sizeof(*ictx), GFP_KERNEL);
+		skcipher_inst = kzalloc(sizeof(*skcipher_inst) + sizeof(*ictx),
+					GFP_KERNEL);
 		if (!skcipher_inst)
 			return -ENOMEM;
 		inst = skcipher_crypto_instance(skcipher_inst);
@@ -484,14 +485,15 @@ static int essiv_create(struct crypto_template *tmpl, struct rtattr **tb)
 					   inner_cipher_name, 0, mask);
 		if (err)
 			goto out_free_inst;
-		skcipher_alg = crypto_spawn_skcipher_alg(&ictx->u.skcipher_spawn);
+		skcipher_alg =
+			crypto_spawn_skcipher_alg(&ictx->u.skcipher_spawn);
 		block_base = &skcipher_alg->base;
 		ivsize = crypto_skcipher_alg_ivsize(skcipher_alg);
 		break;
 
 	case CRYPTO_ALG_TYPE_AEAD:
-		aead_inst = kzalloc(sizeof(*aead_inst) +
-				    sizeof(*ictx), GFP_KERNEL);
+		aead_inst =
+			kzalloc(sizeof(*aead_inst) + sizeof(*ictx), GFP_KERNEL);
 		if (!aead_inst)
 			return -ENOMEM;
 		inst = aead_crypto_instance(aead_inst);
@@ -524,8 +526,7 @@ static int essiv_create(struct crypto_template *tmpl, struct rtattr **tb)
 	}
 
 	/* Synchronous hash, e.g., "sha256" */
-	_hash_alg = crypto_alg_mod_lookup(shash_name,
-					  CRYPTO_ALG_TYPE_SHASH,
+	_hash_alg = crypto_alg_mod_lookup(shash_name, CRYPTO_ALG_TYPE_SHASH,
 					  CRYPTO_ALG_TYPE_MASK | mask);
 	if (IS_ERR(_hash_alg)) {
 		err = PTR_ERR(_hash_alg);
@@ -549,12 +550,12 @@ static int essiv_create(struct crypto_template *tmpl, struct rtattr **tb)
 	/* Instance fields */
 
 	err = -ENAMETOOLONG;
-	if (snprintf(base->cra_name, CRYPTO_MAX_ALG_NAME,
-		     "essiv(%s,%s)", block_base->cra_name,
+	if (snprintf(base->cra_name, CRYPTO_MAX_ALG_NAME, "essiv(%s,%s)",
+		     block_base->cra_name,
 		     hash_alg->base.cra_name) >= CRYPTO_MAX_ALG_NAME)
 		goto out_free_hash;
-	if (snprintf(base->cra_driver_name, CRYPTO_MAX_ALG_NAME,
-		     "essiv(%s,%s)", block_base->cra_driver_name,
+	if (snprintf(base->cra_driver_name, CRYPTO_MAX_ALG_NAME, "essiv(%s,%s)",
+		     block_base->cra_driver_name,
 		     hash_alg->base.cra_driver_name) >= CRYPTO_MAX_ALG_NAME)
 		goto out_free_hash;
 
@@ -562,42 +563,47 @@ static int essiv_create(struct crypto_template *tmpl, struct rtattr **tb)
 	 * hash_alg wasn't gotten via crypto_grab*(), so we need to inherit its
 	 * flags manually.
 	 */
-	base->cra_flags        |= (hash_alg->base.cra_flags &
-				   CRYPTO_ALG_INHERITED_FLAGS);
-	base->cra_blocksize	= block_base->cra_blocksize;
-	base->cra_ctxsize	= sizeof(struct essiv_tfm_ctx);
-	base->cra_alignmask	= block_base->cra_alignmask;
-	base->cra_priority	= block_base->cra_priority;
+	base->cra_flags |=
+		(hash_alg->base.cra_flags & CRYPTO_ALG_INHERITED_FLAGS);
+	base->cra_blocksize = block_base->cra_blocksize;
+	base->cra_ctxsize = sizeof(struct essiv_tfm_ctx);
+	base->cra_alignmask = block_base->cra_alignmask;
+	base->cra_priority = block_base->cra_priority;
 
 	if (type == CRYPTO_ALG_TYPE_SKCIPHER) {
-		skcipher_inst->alg.setkey	= essiv_skcipher_setkey;
-		skcipher_inst->alg.encrypt	= essiv_skcipher_encrypt;
-		skcipher_inst->alg.decrypt	= essiv_skcipher_decrypt;
-		skcipher_inst->alg.init		= essiv_skcipher_init_tfm;
-		skcipher_inst->alg.exit		= essiv_skcipher_exit_tfm;
+		skcipher_inst->alg.setkey = essiv_skcipher_setkey;
+		skcipher_inst->alg.encrypt = essiv_skcipher_encrypt;
+		skcipher_inst->alg.decrypt = essiv_skcipher_decrypt;
+		skcipher_inst->alg.init = essiv_skcipher_init_tfm;
+		skcipher_inst->alg.exit = essiv_skcipher_exit_tfm;
 
-		skcipher_inst->alg.min_keysize	= crypto_skcipher_alg_min_keysize(skcipher_alg);
-		skcipher_inst->alg.max_keysize	= crypto_skcipher_alg_max_keysize(skcipher_alg);
-		skcipher_inst->alg.ivsize	= ivsize;
-		skcipher_inst->alg.chunksize	= crypto_skcipher_alg_chunksize(skcipher_alg);
-		skcipher_inst->alg.walksize	= crypto_skcipher_alg_walksize(skcipher_alg);
+		skcipher_inst->alg.min_keysize =
+			crypto_skcipher_alg_min_keysize(skcipher_alg);
+		skcipher_inst->alg.max_keysize =
+			crypto_skcipher_alg_max_keysize(skcipher_alg);
+		skcipher_inst->alg.ivsize = ivsize;
+		skcipher_inst->alg.chunksize =
+			crypto_skcipher_alg_chunksize(skcipher_alg);
+		skcipher_inst->alg.walksize =
+			crypto_skcipher_alg_walksize(skcipher_alg);
 
-		skcipher_inst->free		= essiv_skcipher_free_instance;
+		skcipher_inst->free = essiv_skcipher_free_instance;
 
 		err = skcipher_register_instance(tmpl, skcipher_inst);
 	} else {
-		aead_inst->alg.setkey		= essiv_aead_setkey;
-		aead_inst->alg.setauthsize	= essiv_aead_setauthsize;
-		aead_inst->alg.encrypt		= essiv_aead_encrypt;
-		aead_inst->alg.decrypt		= essiv_aead_decrypt;
-		aead_inst->alg.init		= essiv_aead_init_tfm;
-		aead_inst->alg.exit		= essiv_aead_exit_tfm;
+		aead_inst->alg.setkey = essiv_aead_setkey;
+		aead_inst->alg.setauthsize = essiv_aead_setauthsize;
+		aead_inst->alg.encrypt = essiv_aead_encrypt;
+		aead_inst->alg.decrypt = essiv_aead_decrypt;
+		aead_inst->alg.init = essiv_aead_init_tfm;
+		aead_inst->alg.exit = essiv_aead_exit_tfm;
 
-		aead_inst->alg.ivsize		= ivsize;
-		aead_inst->alg.maxauthsize	= crypto_aead_alg_maxauthsize(aead_alg);
-		aead_inst->alg.chunksize	= crypto_aead_alg_chunksize(aead_alg);
+		aead_inst->alg.ivsize = ivsize;
+		aead_inst->alg.maxauthsize =
+			crypto_aead_alg_maxauthsize(aead_alg);
+		aead_inst->alg.chunksize = crypto_aead_alg_chunksize(aead_alg);
 
-		aead_inst->free			= essiv_aead_free_instance;
+		aead_inst->free = essiv_aead_free_instance;
 
 		err = aead_register_instance(tmpl, aead_inst);
 	}
@@ -623,9 +629,9 @@ out_free_inst:
 
 /* essiv(cipher_name, shash_name) */
 static struct crypto_template essiv_tmpl = {
-	.name	= "essiv",
-	.create	= essiv_create,
-	.module	= THIS_MODULE,
+	.name = "essiv",
+	.create = essiv_create,
+	.module = THIS_MODULE,
 };
 
 static int __init essiv_module_init(void)

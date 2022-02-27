@@ -57,8 +57,7 @@ static __poll_t signalfd_poll(struct file *file, poll_table *wait)
 
 	spin_lock_irq(&current->sighand->siglock);
 	if (next_signal(&current->pending, &ctx->sigmask) ||
-	    next_signal(&current->signal->shared_pending,
-			&ctx->sigmask))
+	    next_signal(&current->signal->shared_pending, &ctx->sigmask))
 		events |= EPOLLIN;
 	spin_unlock_irq(&current->sighand->siglock);
 
@@ -86,7 +85,7 @@ static int signalfd_copyinfo(struct signalfd_siginfo __user *uinfo,
 	 */
 	new.ssi_signo = kinfo->si_signo;
 	new.ssi_errno = kinfo->si_errno;
-	new.ssi_code  = kinfo->si_code;
+	new.ssi_code = kinfo->si_code;
 	switch (siginfo_layout(kinfo->si_signo, kinfo->si_code)) {
 	case SIL_KILL:
 		new.ssi_pid = kinfo->si_pid;
@@ -95,12 +94,12 @@ static int signalfd_copyinfo(struct signalfd_siginfo __user *uinfo,
 	case SIL_TIMER:
 		new.ssi_tid = kinfo->si_tid;
 		new.ssi_overrun = kinfo->si_overrun;
-		new.ssi_ptr = (long) kinfo->si_ptr;
+		new.ssi_ptr = (long)kinfo->si_ptr;
 		new.ssi_int = kinfo->si_int;
 		break;
 	case SIL_POLL:
 		new.ssi_band = kinfo->si_band;
-		new.ssi_fd   = kinfo->si_fd;
+		new.ssi_fd = kinfo->si_fd;
 		break;
 	case SIL_FAULT_BNDERR:
 	case SIL_FAULT_PKUERR:
@@ -113,22 +112,22 @@ static int signalfd_copyinfo(struct signalfd_siginfo __user *uinfo,
 		 * and signalfd catches it treat it as SIL_FAULT.
 		 */
 	case SIL_FAULT:
-		new.ssi_addr = (long) kinfo->si_addr;
+		new.ssi_addr = (long)kinfo->si_addr;
 		break;
 	case SIL_FAULT_TRAPNO:
-		new.ssi_addr = (long) kinfo->si_addr;
+		new.ssi_addr = (long)kinfo->si_addr;
 		new.ssi_trapno = kinfo->si_trapno;
 		break;
 	case SIL_FAULT_MCEERR:
-		new.ssi_addr = (long) kinfo->si_addr;
-		new.ssi_addr_lsb = (short) kinfo->si_addr_lsb;
+		new.ssi_addr = (long)kinfo->si_addr;
+		new.ssi_addr_lsb = (short)kinfo->si_addr_lsb;
 		break;
 	case SIL_CHLD:
-		new.ssi_pid    = kinfo->si_pid;
-		new.ssi_uid    = kinfo->si_uid;
+		new.ssi_pid = kinfo->si_pid;
+		new.ssi_uid = kinfo->si_uid;
 		new.ssi_status = kinfo->si_status;
-		new.ssi_utime  = kinfo->si_utime;
-		new.ssi_stime  = kinfo->si_stime;
+		new.ssi_utime = kinfo->si_utime;
+		new.ssi_stime = kinfo->si_stime;
 		break;
 	case SIL_RT:
 		/*
@@ -136,13 +135,13 @@ static int signalfd_copyinfo(struct signalfd_siginfo __user *uinfo,
 		 */
 		new.ssi_pid = kinfo->si_pid;
 		new.ssi_uid = kinfo->si_uid;
-		new.ssi_ptr = (long) kinfo->si_ptr;
+		new.ssi_ptr = (long)kinfo->si_ptr;
 		new.ssi_int = kinfo->si_int;
 		break;
 	case SIL_SYS:
-		new.ssi_call_addr = (long) kinfo->si_call_addr;
-		new.ssi_syscall   = kinfo->si_syscall;
-		new.ssi_arch      = kinfo->si_arch;
+		new.ssi_call_addr = (long)kinfo->si_call_addr;
+		new.ssi_syscall = kinfo->si_syscall;
+		new.ssi_arch = kinfo->si_arch;
 		break;
 	}
 
@@ -152,8 +151,8 @@ static int signalfd_copyinfo(struct signalfd_siginfo __user *uinfo,
 	return sizeof(*uinfo);
 }
 
-static ssize_t signalfd_dequeue(struct signalfd_ctx *ctx, kernel_siginfo_t *info,
-				int nonblock)
+static ssize_t signalfd_dequeue(struct signalfd_ctx *ctx,
+				kernel_siginfo_t *info, int nonblock)
 {
 	enum pid_type type;
 	ssize_t ret;
@@ -212,7 +211,7 @@ static ssize_t signalfd_read(struct file *file, char __user *buf, size_t count,
 	if (!count)
 		return -EINVAL;
 
-	siginfo = (struct signalfd_siginfo __user *) buf;
+	siginfo = (struct signalfd_siginfo __user *)buf;
 	do {
 		ret = signalfd_dequeue(ctx, &info, nonblock);
 		if (unlikely(ret <= 0))
@@ -225,7 +224,7 @@ static ssize_t signalfd_read(struct file *file, char __user *buf, size_t count,
 		nonblock = 1;
 	} while (--count);
 
-	return total ? total: ret;
+	return total ? total : ret;
 }
 
 #ifdef CONFIG_PROC_FS
@@ -242,12 +241,12 @@ static void signalfd_show_fdinfo(struct seq_file *m, struct file *f)
 
 static const struct file_operations signalfd_fops = {
 #ifdef CONFIG_PROC_FS
-	.show_fdinfo	= signalfd_show_fdinfo,
+	.show_fdinfo = signalfd_show_fdinfo,
 #endif
-	.release	= signalfd_release,
-	.poll		= signalfd_poll,
-	.read		= signalfd_read,
-	.llseek		= noop_llseek,
+	.release = signalfd_release,
+	.poll = signalfd_poll,
+	.read = signalfd_read,
+	.llseek = noop_llseek,
 };
 
 static int do_signalfd4(int ufd, sigset_t *mask, int flags)
@@ -276,7 +275,8 @@ static int do_signalfd4(int ufd, sigset_t *mask, int flags)
 		 * anon_inode_getfd() will install the fd.
 		 */
 		ufd = anon_inode_getfd("[signalfd]", &signalfd_fops, ctx,
-				       O_RDWR | (flags & (O_CLOEXEC | O_NONBLOCK)));
+				       O_RDWR | (flags &
+						 (O_CLOEXEC | O_NONBLOCK)));
 		if (ufd < 0)
 			kfree(ctx);
 	} else {
@@ -299,8 +299,8 @@ static int do_signalfd4(int ufd, sigset_t *mask, int flags)
 	return ufd;
 }
 
-SYSCALL_DEFINE4(signalfd4, int, ufd, sigset_t __user *, user_mask,
-		size_t, sizemask, int, flags)
+SYSCALL_DEFINE4(signalfd4, int, ufd, sigset_t __user *, user_mask, size_t,
+		sizemask, int, flags)
 {
 	sigset_t mask;
 
@@ -311,8 +311,8 @@ SYSCALL_DEFINE4(signalfd4, int, ufd, sigset_t __user *, user_mask,
 	return do_signalfd4(ufd, &mask, flags);
 }
 
-SYSCALL_DEFINE3(signalfd, int, ufd, sigset_t __user *, user_mask,
-		size_t, sizemask)
+SYSCALL_DEFINE3(signalfd, int, ufd, sigset_t __user *, user_mask, size_t,
+		sizemask)
 {
 	sigset_t mask;
 
@@ -325,8 +325,8 @@ SYSCALL_DEFINE3(signalfd, int, ufd, sigset_t __user *, user_mask,
 
 #ifdef CONFIG_COMPAT
 static long do_compat_signalfd4(int ufd,
-			const compat_sigset_t __user *user_mask,
-			compat_size_t sigsetsize, int flags)
+				const compat_sigset_t __user *user_mask,
+				compat_size_t sigsetsize, int flags)
 {
 	sigset_t mask;
 
@@ -337,17 +337,14 @@ static long do_compat_signalfd4(int ufd,
 	return do_signalfd4(ufd, &mask, flags);
 }
 
-COMPAT_SYSCALL_DEFINE4(signalfd4, int, ufd,
-		     const compat_sigset_t __user *, user_mask,
-		     compat_size_t, sigsetsize,
-		     int, flags)
+COMPAT_SYSCALL_DEFINE4(signalfd4, int, ufd, const compat_sigset_t __user *,
+		       user_mask, compat_size_t, sigsetsize, int, flags)
 {
 	return do_compat_signalfd4(ufd, user_mask, sigsetsize, flags);
 }
 
-COMPAT_SYSCALL_DEFINE3(signalfd, int, ufd,
-		     const compat_sigset_t __user *, user_mask,
-		     compat_size_t, sigsetsize)
+COMPAT_SYSCALL_DEFINE3(signalfd, int, ufd, const compat_sigset_t __user *,
+		       user_mask, compat_size_t, sigsetsize)
 {
 	return do_compat_signalfd4(ufd, user_mask, sigsetsize, 0);
 }

@@ -15,8 +15,8 @@
 #include "blk.h"
 #include "blk-mq.h"
 
-static int queue_index(struct blk_mq_queue_map *qmap,
-		       unsigned int nr_queues, const int q)
+static int queue_index(struct blk_mq_queue_map *qmap, unsigned int nr_queues,
+		       const int q)
 {
 	return qmap->queue_offset + (q % nr_queues);
 }
@@ -38,20 +38,20 @@ int blk_mq_map_queues(struct blk_mq_queue_map *qmap)
 	unsigned int nr_queues = qmap->nr_queues;
 	unsigned int cpu, first_sibling, q = 0;
 
-	for_each_possible_cpu(cpu)
+	for_each_possible_cpu (cpu)
 		map[cpu] = -1;
 
 	/*
 	 * Spread queues among present CPUs first for minimizing
 	 * count of dead queues which are mapped by all un-present CPUs
 	 */
-	for_each_present_cpu(cpu) {
+	for_each_present_cpu (cpu) {
 		if (q >= nr_queues)
 			break;
 		map[cpu] = queue_index(qmap, nr_queues, q++);
 	}
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu (cpu) {
 		if (map[cpu] != -1)
 			continue;
 		/*
@@ -87,7 +87,7 @@ int blk_mq_hw_queue_to_node(struct blk_mq_queue_map *qmap, unsigned int index)
 {
 	int i;
 
-	for_each_possible_cpu(i) {
+	for_each_possible_cpu (i) {
 		if (index == qmap->mq_map[i])
 			return cpu_to_node(i);
 	}

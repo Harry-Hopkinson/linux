@@ -8,10 +8,10 @@
 #define REF_TRACKER_STACK_ENTRIES 16
 
 struct ref_tracker {
-	struct list_head	head;   /* anchor into dir->list or dir->quarantine */
-	bool			dead;
-	depot_stack_handle_t	alloc_stack_handle;
-	depot_stack_handle_t	free_stack_handle;
+	struct list_head head; /* anchor into dir->list or dir->quarantine */
+	bool dead;
+	depot_stack_handle_t alloc_stack_handle;
+	depot_stack_handle_t free_stack_handle;
 };
 
 void ref_tracker_dir_exit(struct ref_tracker_dir *dir)
@@ -21,12 +21,12 @@ void ref_tracker_dir_exit(struct ref_tracker_dir *dir)
 	bool leak = false;
 
 	spin_lock_irqsave(&dir->lock, flags);
-	list_for_each_entry_safe(tracker, n, &dir->quarantine, head) {
+	list_for_each_entry_safe (tracker, n, &dir->quarantine, head) {
 		list_del(&tracker->head);
 		kfree(tracker);
 		dir->quarantine_avail++;
 	}
-	list_for_each_entry_safe(tracker, n, &dir->list, head) {
+	list_for_each_entry_safe (tracker, n, &dir->list, head) {
 		pr_err("leaked reference.\n");
 		if (tracker->alloc_stack_handle)
 			stack_depot_print(tracker->alloc_stack_handle);
@@ -48,7 +48,7 @@ void ref_tracker_dir_print(struct ref_tracker_dir *dir,
 	unsigned int i = 0;
 
 	spin_lock_irqsave(&dir->lock, flags);
-	list_for_each_entry(tracker, &dir->list, head) {
+	list_for_each_entry (tracker, &dir->list, head) {
 		if (i < display_limit) {
 			pr_err("leaked reference.\n");
 			if (tracker->alloc_stack_handle)
@@ -63,8 +63,7 @@ void ref_tracker_dir_print(struct ref_tracker_dir *dir,
 EXPORT_SYMBOL(ref_tracker_dir_print);
 
 int ref_tracker_alloc(struct ref_tracker_dir *dir,
-		      struct ref_tracker **trackerp,
-		      gfp_t gfp)
+		      struct ref_tracker **trackerp, gfp_t gfp)
 {
 	unsigned long entries[REF_TRACKER_STACK_ENTRIES];
 	struct ref_tracker *tracker;
@@ -76,13 +75,15 @@ int ref_tracker_alloc(struct ref_tracker_dir *dir,
 		gfp_mask |= __GFP_NOFAIL;
 	*trackerp = tracker = kzalloc(sizeof(*tracker), gfp_mask);
 	if (unlikely(!tracker)) {
-		pr_err_once("memory allocation failure, unreliable refcount tracker.\n");
+		pr_err_once(
+			"memory allocation failure, unreliable refcount tracker.\n");
 		refcount_inc(&dir->untracked);
 		return -ENOMEM;
 	}
 	nr_entries = stack_trace_save(entries, ARRAY_SIZE(entries), 1);
 	nr_entries = filter_irq_stacks(entries, nr_entries);
-	tracker->alloc_stack_handle = stack_depot_save(entries, nr_entries, gfp);
+	tracker->alloc_stack_handle =
+		stack_depot_save(entries, nr_entries, gfp);
 
 	spin_lock_irqsave(&dir->lock, flags);
 	list_add(&tracker->head, &dir->list);
@@ -91,8 +92,7 @@ int ref_tracker_alloc(struct ref_tracker_dir *dir,
 }
 EXPORT_SYMBOL_GPL(ref_tracker_alloc);
 
-int ref_tracker_free(struct ref_tracker_dir *dir,
-		     struct ref_tracker **trackerp)
+int ref_tracker_free(struct ref_tracker_dir *dir, struct ref_tracker **trackerp)
 {
 	unsigned long entries[REF_TRACKER_STACK_ENTRIES];
 	struct ref_tracker *tracker = *trackerp;
@@ -129,7 +129,8 @@ int ref_tracker_free(struct ref_tracker_dir *dir,
 
 	list_move_tail(&tracker->head, &dir->quarantine);
 	if (!dir->quarantine_avail) {
-		tracker = list_first_entry(&dir->quarantine, struct ref_tracker, head);
+		tracker = list_first_entry(&dir->quarantine, struct ref_tracker,
+					   head);
 		list_del(&tracker->head);
 	} else {
 		dir->quarantine_avail--;

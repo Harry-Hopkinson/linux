@@ -35,12 +35,11 @@
 void string_get_size(u64 size, u64 blk_size, const enum string_size_units units,
 		     char *buf, int len)
 {
-	static const char *const units_10[] = {
-		"B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"
-	};
-	static const char *const units_2[] = {
-		"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"
-	};
+	static const char *const units_10[] = { "B",  "kB", "MB", "GB", "TB",
+						"PB", "EB", "ZB", "YB" };
+	static const char *const units_2[] = { "B",   "KiB", "MiB",
+					       "GiB", "TiB", "PiB",
+					       "EiB", "ZiB", "YiB" };
 	static const char *const *const units_str[] = {
 		[STRING_UNITS_10] = units_10,
 		[STRING_UNITS_2] = units_2,
@@ -96,7 +95,7 @@ void string_get_size(u64 size, u64 blk_size, const enum string_size_units units,
 	/* work out in j how many digits of precision we need from the
 	 * remainder */
 	sf_cap = size;
-	for (j = 0; sf_cap*10 < 1000; j++)
+	for (j = 0; sf_cap * 10 < 1000; j++)
 		sf_cap *= 10;
 
 	if (units == STRING_UNITS_2) {
@@ -117,17 +116,16 @@ void string_get_size(u64 size, u64 blk_size, const enum string_size_units units,
 
 	if (j) {
 		snprintf(tmp, sizeof(tmp), ".%03u", remainder);
-		tmp[j+1] = '\0';
+		tmp[j + 1] = '\0';
 	}
 
- out:
+out:
 	if (i >= ARRAY_SIZE(units_2))
 		unit = "UNK";
 	else
 		unit = units_str[units][i];
 
-	snprintf(buf, len, "%u%s %s", (u32)size,
-		 tmp, unit);
+	snprintf(buf, len, "%u%s %s", (u32)size, tmp, unit);
 }
 EXPORT_SYMBOL(string_get_size);
 
@@ -276,19 +274,18 @@ int string_unescape(char *src, char *dst, size_t size, unsigned int flags)
 			size--;
 
 			if (flags & UNESCAPE_SPACE &&
-					unescape_space(&src, &out))
+			    unescape_space(&src, &out))
 				continue;
 
 			if (flags & UNESCAPE_OCTAL &&
-					unescape_octal(&src, &out))
+			    unescape_octal(&src, &out))
 				continue;
 
-			if (flags & UNESCAPE_HEX &&
-					unescape_hex(&src, &out))
+			if (flags & UNESCAPE_HEX && unescape_hex(&src, &out))
 				continue;
 
 			if (flags & UNESCAPE_SPECIAL &&
-					unescape_special(&src, &out))
+			    unescape_special(&src, &out))
 				continue;
 
 			*out++ = '\\';
@@ -549,7 +546,7 @@ int string_escape_mem(const char *src, size_t isz, char *dst, size_t osz,
 		 * %ESCAPE_NA cases.
 		 */
 		if (!(is_append || in_dict) && is_dict &&
-					  escape_passthrough(c, &p, end))
+		    escape_passthrough(c, &p, end))
 			continue;
 
 		if (!(is_append && in_dict) && isascii(c) && isprint(c) &&
@@ -879,7 +876,7 @@ EXPORT_SYMBOL(sysfs_streq);
  * Return:
  * index of a @string in the @array if matches, or %-EINVAL otherwise.
  */
-int match_string(const char * const *array, size_t n, const char *string)
+int match_string(const char *const *array, size_t n, const char *string)
 {
 	int index;
 	const char *item;
@@ -913,7 +910,7 @@ EXPORT_SYMBOL(match_string);
  * when finishing the search: either @n elements have been compared OR
  * the first NULL element was found.
  */
-int __sysfs_match_string(const char * const *array, size_t n, const char *str)
+int __sysfs_match_string(const char *const *array, size_t n, const char *str)
 {
 	const char *item;
 	int index;
@@ -960,7 +957,7 @@ void memcpy_and_pad(void *dest, size_t dest_len, const void *src, size_t count,
 {
 	if (dest_len > count) {
 		memcpy(dest, src, count);
-		memset(dest + count, pad,  dest_len - count);
+		memset(dest + count, pad, dest_len - count);
 	} else {
 		memcpy(dest, src, dest_len);
 	}

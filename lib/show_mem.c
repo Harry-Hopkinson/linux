@@ -16,7 +16,7 @@ void show_mem(unsigned int filter, nodemask_t *nodemask)
 	printk("Mem-Info:\n");
 	show_free_areas(filter, nodemask);
 
-	for_each_online_pgdat(pgdat) {
+	for_each_online_pgdat (pgdat) {
 		int zoneid;
 
 		for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
@@ -25,7 +25,8 @@ void show_mem(unsigned int filter, nodemask_t *nodemask)
 				continue;
 
 			total += zone->present_pages;
-			reserved += zone->present_pages - zone_managed_pages(zone);
+			reserved +=
+				zone->present_pages - zone_managed_pages(zone);
 
 			if (is_highmem_idx(zoneid))
 				highmem += zone->present_pages;

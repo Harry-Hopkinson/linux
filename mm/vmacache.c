@@ -12,9 +12,9 @@
  * hit rate for workloads with spatial locality.  Otherwise, use pages.
  */
 #ifdef CONFIG_MMU
-#define VMACACHE_SHIFT	PMD_SHIFT
+#define VMACACHE_SHIFT PMD_SHIFT
 #else
-#define VMACACHE_SHIFT	PAGE_SHIFT
+#define VMACACHE_SHIFT PAGE_SHIFT
 #endif
 #define VMACACHE_HASH(addr) ((addr >> VMACACHE_SHIFT) & VMACACHE_MASK)
 

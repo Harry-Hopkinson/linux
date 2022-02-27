@@ -49,8 +49,8 @@ static void lzo_exit(struct crypto_tfm *tfm)
 	lzo_free_ctx(NULL, ctx->lzo_comp_mem);
 }
 
-static int __lzo_compress(const u8 *src, unsigned int slen,
-			  u8 *dst, unsigned int *dlen, void *ctx)
+static int __lzo_compress(const u8 *src, unsigned int slen, u8 *dst,
+			  unsigned int *dlen, void *ctx)
 {
 	size_t tmp_len = *dlen; /* size_t(ulong) <-> uint on 64 bit */
 	int err;
@@ -79,8 +79,8 @@ static int lzo_scompress(struct crypto_scomp *tfm, const u8 *src,
 	return __lzo_compress(src, slen, dst, dlen, ctx);
 }
 
-static int __lzo_decompress(const u8 *src, unsigned int slen,
-			    u8 *dst, unsigned int *dlen)
+static int __lzo_decompress(const u8 *src, unsigned int slen, u8 *dst,
+			    unsigned int *dlen)
 {
 	int err;
 	size_t tmp_len = *dlen; /* size_t(ulong) <-> uint on 64 bit */
@@ -108,29 +108,26 @@ static int lzo_sdecompress(struct crypto_scomp *tfm, const u8 *src,
 }
 
 static struct crypto_alg alg = {
-	.cra_name		= "lzo",
-	.cra_driver_name	= "lzo-generic",
-	.cra_flags		= CRYPTO_ALG_TYPE_COMPRESS,
-	.cra_ctxsize		= sizeof(struct lzo_ctx),
-	.cra_module		= THIS_MODULE,
-	.cra_init		= lzo_init,
-	.cra_exit		= lzo_exit,
-	.cra_u			= { .compress = {
-	.coa_compress		= lzo_compress,
-	.coa_decompress		= lzo_decompress } }
+	.cra_name = "lzo",
+	.cra_driver_name = "lzo-generic",
+	.cra_flags = CRYPTO_ALG_TYPE_COMPRESS,
+	.cra_ctxsize = sizeof(struct lzo_ctx),
+	.cra_module = THIS_MODULE,
+	.cra_init = lzo_init,
+	.cra_exit = lzo_exit,
+	.cra_u = { .compress = { .coa_compress = lzo_compress,
+				 .coa_decompress = lzo_decompress } }
 };
 
-static struct scomp_alg scomp = {
-	.alloc_ctx		= lzo_alloc_ctx,
-	.free_ctx		= lzo_free_ctx,
-	.compress		= lzo_scompress,
-	.decompress		= lzo_sdecompress,
-	.base			= {
-		.cra_name	= "lzo",
-		.cra_driver_name = "lzo-scomp",
-		.cra_module	 = THIS_MODULE,
-	}
-};
+static struct scomp_alg scomp = { .alloc_ctx = lzo_alloc_ctx,
+				  .free_ctx = lzo_free_ctx,
+				  .compress = lzo_scompress,
+				  .decompress = lzo_sdecompress,
+				  .base = {
+					  .cra_name = "lzo",
+					  .cra_driver_name = "lzo-scomp",
+					  .cra_module = THIS_MODULE,
+				  } };
 
 static int __init lzo_mod_init(void)
 {

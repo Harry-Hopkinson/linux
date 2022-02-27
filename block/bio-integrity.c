@@ -45,9 +45,8 @@ static void __bio_integrity_free(struct bio_set *bs,
  * metadata.  nr_vecs specifies the maximum number of pages containing
  * integrity metadata that can be attached.
  */
-struct bio_integrity_payload *bio_integrity_alloc(struct bio *bio,
-						  gfp_t gfp_mask,
-						  unsigned int nr_vecs)
+struct bio_integrity_payload *
+bio_integrity_alloc(struct bio *bio, gfp_t gfp_mask, unsigned int nr_vecs)
 {
 	struct bio_integrity_payload *bip;
 	struct bio_set *bs = bio->bi_pool;
@@ -57,7 +56,8 @@ struct bio_integrity_payload *bio_integrity_alloc(struct bio *bio,
 		return ERR_PTR(-EOPNOTSUPP);
 
 	if (!bs || !mempool_initialized(&bs->bio_integrity_pool)) {
-		bip = kmalloc(struct_size(bip, bip_inline_vecs, nr_vecs), gfp_mask);
+		bip = kmalloc(struct_size(bip, bip_inline_vecs, nr_vecs),
+			      gfp_mask);
 		inline_vecs = nr_vecs;
 	} else {
 		bip = mempool_alloc(&bs->bio_integrity_pool, gfp_mask);
@@ -120,8 +120,8 @@ void bio_integrity_free(struct bio *bio)
  *
  * Description: Attach a page containing integrity metadata to bio.
  */
-int bio_integrity_add_page(struct bio *bio, struct page *page,
-			   unsigned int len, unsigned int offset)
+int bio_integrity_add_page(struct bio *bio, struct page *page, unsigned int len,
+			   unsigned int offset)
 {
 	struct bio_integrity_payload *bip = bio_integrity(bio);
 	struct bio_vec *iv;
@@ -154,7 +154,8 @@ EXPORT_SYMBOL(bio_integrity_add_page);
  * @proc_fn:	Pointer to the relevant processing function
  */
 static blk_status_t bio_integrity_process(struct bio *bio,
-		struct bvec_iter *proc_iter, integrity_processing_fn *proc_fn)
+					  struct bvec_iter *proc_iter,
+					  integrity_processing_fn *proc_fn)
 {
 	struct blk_integrity *bi = blk_get_integrity(bio->bi_bdev->bd_disk);
 	struct blk_integrity_iter iter;
@@ -168,7 +169,7 @@ static blk_status_t bio_integrity_process(struct bio *bio,
 	iter.seed = proc_iter->bi_sector;
 	iter.prot_buf = bvec_virt(bip->bip_vec);
 
-	__bio_for_each_segment(bv, bio, bviter, *proc_iter) {
+	__bio_for_each_segment (bv, bio, bviter, *proc_iter) {
 		void *kaddr = bvec_kmap_local(&bv);
 
 		iter.data_buf = kaddr;
@@ -178,7 +179,6 @@ static blk_status_t bio_integrity_process(struct bio *bio,
 
 		if (ret)
 			break;
-
 	}
 	return ret;
 }
@@ -239,8 +239,8 @@ bool bio_integrity_prep(struct bio *bio)
 		goto err_end_io;
 	}
 
-	end = (((unsigned long) buf) + len + PAGE_SIZE - 1) >> PAGE_SHIFT;
-	start = ((unsigned long) buf) >> PAGE_SHIFT;
+	end = (((unsigned long)buf) + len + PAGE_SIZE - 1) >> PAGE_SHIFT;
+	start = ((unsigned long)buf) >> PAGE_SHIFT;
 	nr_pages = end - start;
 
 	/* Allocate bio integrity payload and integrity vectors */
@@ -261,7 +261,7 @@ bool bio_integrity_prep(struct bio *bio)
 
 	/* Map it */
 	offset = offset_in_page(buf);
-	for (i = 0 ; i < nr_pages ; i++) {
+	for (i = 0; i < nr_pages; i++) {
 		int ret;
 		bytes = PAGE_SIZE - offset;
 
@@ -271,8 +271,8 @@ bool bio_integrity_prep(struct bio *bio)
 		if (bytes > len)
 			bytes = len;
 
-		ret = bio_integrity_add_page(bio, virt_to_page(buf),
-					     bytes, offset);
+		ret = bio_integrity_add_page(bio, virt_to_page(buf), bytes,
+					     offset);
 
 		if (ret == 0) {
 			printk(KERN_ERR "could not attach integrity payload\n");
@@ -301,7 +301,6 @@ err_end_io:
 	bio->bi_status = status;
 	bio_endio(bio);
 	return false;
-
 }
 EXPORT_SYMBOL(bio_integrity_prep);
 
@@ -326,7 +325,7 @@ static void bio_integrity_verify_fn(struct work_struct *work)
 	 * it's original position.
 	 */
 	bio->bi_status = bio_integrity_process(bio, &bip->bio_iter,
-						bi->profile->verify_fn);
+					       bi->profile->verify_fn);
 	bio_integrity_free(bio);
 	bio_endio(bio);
 }
@@ -400,8 +399,7 @@ EXPORT_SYMBOL(bio_integrity_trim);
  *
  * Description:	Called to allocate a bip when cloning a bio
  */
-int bio_integrity_clone(struct bio *bio, struct bio *bio_src,
-			gfp_t gfp_mask)
+int bio_integrity_clone(struct bio *bio, struct bio *bio_src, gfp_t gfp_mask)
 {
 	struct bio_integrity_payload *bip_src = bio_integrity(bio_src);
 	struct bio_integrity_payload *bip;
@@ -427,8 +425,8 @@ int bioset_integrity_create(struct bio_set *bs, int pool_size)
 	if (mempool_initialized(&bs->bio_integrity_pool))
 		return 0;
 
-	if (mempool_init_slab_pool(&bs->bio_integrity_pool,
-				   pool_size, bip_slab))
+	if (mempool_init_slab_pool(&bs->bio_integrity_pool, pool_size,
+				   bip_slab))
 		return -1;
 
 	if (biovec_init_pool(&bs->bvec_integrity_pool, pool_size)) {
@@ -452,13 +450,16 @@ void __init bio_integrity_init(void)
 	 * kintegrityd won't block much but may burn a lot of CPU cycles.
 	 * Make it highpri CPU intensive wq with max concurrency of 1.
 	 */
-	kintegrityd_wq = alloc_workqueue("kintegrityd", WQ_MEM_RECLAIM |
-					 WQ_HIGHPRI | WQ_CPU_INTENSIVE, 1);
+	kintegrityd_wq =
+		alloc_workqueue("kintegrityd",
+				WQ_MEM_RECLAIM | WQ_HIGHPRI | WQ_CPU_INTENSIVE,
+				1);
 	if (!kintegrityd_wq)
 		panic("Failed to create kintegrityd\n");
 
 	bip_slab = kmem_cache_create("bio_integrity_payload",
 				     sizeof(struct bio_integrity_payload) +
-				     sizeof(struct bio_vec) * BIO_INLINE_VECS,
-				     0, SLAB_HWCACHE_ALIGN|SLAB_PANIC, NULL);
+					     sizeof(struct bio_vec) *
+						     BIO_INLINE_VECS,
+				     0, SLAB_HWCACHE_ALIGN | SLAB_PANIC, NULL);
 }

@@ -24,8 +24,8 @@ struct bio *blk_next_bio(struct bio *bio, unsigned int nr_pages, gfp_t gfp)
 EXPORT_SYMBOL_GPL(blk_next_bio);
 
 int __blkdev_issue_discard(struct block_device *bdev, sector_t sector,
-		sector_t nr_sects, gfp_t gfp_mask, int flags,
-		struct bio **biop)
+			   sector_t nr_sects, gfp_t gfp_mask, int flags,
+			   struct bio **biop)
 {
 	struct request_queue *q = bdev_get_queue(bdev);
 	struct bio *bio = *biop;
@@ -53,7 +53,8 @@ int __blkdev_issue_discard(struct block_device *bdev, sector_t sector,
 		char dev_name[BDEVNAME_SIZE];
 
 		bdevname(bdev, dev_name);
-		pr_err_ratelimited("%s: Error: discard_granularity is 0.\n", dev_name);
+		pr_err_ratelimited("%s: Error: discard_granularity is 0.\n",
+				   dev_name);
 		return -EOPNOTSUPP;
 	}
 
@@ -72,8 +73,9 @@ int __blkdev_issue_discard(struct block_device *bdev, sector_t sector,
 		sector_t granularity_aligned_lba, req_sects;
 		sector_t sector_mapped = sector + part_offset;
 
-		granularity_aligned_lba = round_up(sector_mapped,
-				q->limits.discard_granularity >> SECTOR_SHIFT);
+		granularity_aligned_lba =
+			round_up(sector_mapped,
+				 q->limits.discard_granularity >> SECTOR_SHIFT);
 
 		/*
 		 * Check whether the discard bio starts at a discard_granularity
@@ -90,8 +92,9 @@ int __blkdev_issue_discard(struct block_device *bdev, sector_t sector,
 			req_sects = min_t(sector_t, nr_sects,
 					  bio_aligned_discard_max_sectors(q));
 		else
-			req_sects = min_t(sector_t, nr_sects,
-					  granularity_aligned_lba - sector_mapped);
+			req_sects =
+				min_t(sector_t, nr_sects,
+				      granularity_aligned_lba - sector_mapped);
 
 		WARN_ON_ONCE((req_sects << 9) > UINT_MAX);
 
@@ -130,7 +133,7 @@ EXPORT_SYMBOL(__blkdev_issue_discard);
  *    Issue a discard request for the sectors in question.
  */
 int blkdev_issue_discard(struct block_device *bdev, sector_t sector,
-		sector_t nr_sects, gfp_t gfp_mask, unsigned long flags)
+			 sector_t nr_sects, gfp_t gfp_mask, unsigned long flags)
 {
 	struct bio *bio = NULL;
 	struct blk_plug plug;
@@ -138,7 +141,7 @@ int blkdev_issue_discard(struct block_device *bdev, sector_t sector,
 
 	blk_start_plug(&plug);
 	ret = __blkdev_issue_discard(bdev, sector, nr_sects, gfp_mask, flags,
-			&bio);
+				     &bio);
 	if (!ret && bio) {
 		ret = submit_bio_wait(bio);
 		if (ret == -EOPNOTSUPP)
@@ -164,8 +167,8 @@ EXPORT_SYMBOL(blkdev_issue_discard);
  *  Generate and issue number of bios(REQ_OP_WRITE_SAME) with same page.
  */
 static int __blkdev_issue_write_same(struct block_device *bdev, sector_t sector,
-		sector_t nr_sects, gfp_t gfp_mask, struct page *page,
-		struct bio **biop)
+				     sector_t nr_sects, gfp_t gfp_mask,
+				     struct page *page, struct bio **biop)
 {
 	struct request_queue *q = bdev_get_queue(bdev);
 	unsigned int max_write_same_sectors;
@@ -225,8 +228,8 @@ static int __blkdev_issue_write_same(struct block_device *bdev, sector_t sector,
  *    Issue a write same request for the sectors in question.
  */
 int blkdev_issue_write_same(struct block_device *bdev, sector_t sector,
-				sector_t nr_sects, gfp_t gfp_mask,
-				struct page *page)
+			    sector_t nr_sects, gfp_t gfp_mask,
+			    struct page *page)
 {
 	struct bio *bio = NULL;
 	struct blk_plug plug;
@@ -234,7 +237,7 @@ int blkdev_issue_write_same(struct block_device *bdev, sector_t sector,
 
 	blk_start_plug(&plug);
 	ret = __blkdev_issue_write_same(bdev, sector, nr_sects, gfp_mask, page,
-			&bio);
+					&bio);
 	if (ret == 0 && bio) {
 		ret = submit_bio_wait(bio);
 		bio_put(bio);
@@ -245,8 +248,9 @@ int blkdev_issue_write_same(struct block_device *bdev, sector_t sector,
 EXPORT_SYMBOL(blkdev_issue_write_same);
 
 static int __blkdev_issue_write_zeroes(struct block_device *bdev,
-		sector_t sector, sector_t nr_sects, gfp_t gfp_mask,
-		struct bio **biop, unsigned flags)
+				       sector_t sector, sector_t nr_sects,
+				       gfp_t gfp_mask, struct bio **biop,
+				       unsigned flags)
 {
 	struct bio *bio = *biop;
 	unsigned int max_write_zeroes_sectors;
@@ -300,9 +304,9 @@ static unsigned int __blkdev_sectors_to_bio_pages(sector_t nr_sects)
 	return min(pages, (sector_t)BIO_MAX_VECS);
 }
 
-static int __blkdev_issue_zero_pages(struct block_device *bdev,
-		sector_t sector, sector_t nr_sects, gfp_t gfp_mask,
-		struct bio **biop)
+static int __blkdev_issue_zero_pages(struct block_device *bdev, sector_t sector,
+				     sector_t nr_sects, gfp_t gfp_mask,
+				     struct bio **biop)
 {
 	struct request_queue *q = bdev_get_queue(bdev);
 	struct bio *bio = *biop;
@@ -323,7 +327,7 @@ static int __blkdev_issue_zero_pages(struct block_device *bdev,
 		bio_set_op_attrs(bio, REQ_OP_WRITE, 0);
 
 		while (nr_sects != 0) {
-			sz = min((sector_t) PAGE_SIZE, nr_sects << 9);
+			sz = min((sector_t)PAGE_SIZE, nr_sects << 9);
 			bi_size = bio_add_page(bio, ZERO_PAGE(0), sz, 0);
 			nr_sects -= bi_size >> 9;
 			sector += bi_size >> 9;
@@ -357,8 +361,8 @@ static int __blkdev_issue_zero_pages(struct block_device *bdev,
  *  -EOPNOTSUPP if no explicit hardware offload for zeroing is provided.
  */
 int __blkdev_issue_zeroout(struct block_device *bdev, sector_t sector,
-		sector_t nr_sects, gfp_t gfp_mask, struct bio **biop,
-		unsigned flags)
+			   sector_t nr_sects, gfp_t gfp_mask, struct bio **biop,
+			   unsigned flags)
 {
 	int ret;
 	sector_t bs_mask;
@@ -368,7 +372,7 @@ int __blkdev_issue_zeroout(struct block_device *bdev, sector_t sector,
 		return -EINVAL;
 
 	ret = __blkdev_issue_write_zeroes(bdev, sector, nr_sects, gfp_mask,
-			biop, flags);
+					  biop, flags);
 	if (ret != -EOPNOTSUPP || (flags & BLKDEV_ZERO_NOFALLBACK))
 		return ret;
 
@@ -391,7 +395,7 @@ EXPORT_SYMBOL(__blkdev_issue_zeroout);
  *  valid values for %flags.
  */
 int blkdev_issue_zeroout(struct block_device *bdev, sector_t sector,
-		sector_t nr_sects, gfp_t gfp_mask, unsigned flags)
+			 sector_t nr_sects, gfp_t gfp_mask, unsigned flags)
 {
 	int ret = 0;
 	sector_t bs_mask;

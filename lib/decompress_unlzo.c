@@ -30,13 +30,13 @@
 #include <linux/compiler.h>
 #include <asm/unaligned.h>
 
-static const unsigned char lzop_magic[] = {
-	0x89, 0x4c, 0x5a, 0x4f, 0x00, 0x0d, 0x0a, 0x1a, 0x0a };
+static const unsigned char lzop_magic[] = { 0x89, 0x4c, 0x5a, 0x4f, 0x00,
+					    0x0d, 0x0a, 0x1a, 0x0a };
 
-#define LZO_BLOCK_SIZE        (256*1024l)
-#define HEADER_HAS_FILTER      0x00000800L
-#define HEADER_SIZE_MIN       (9 + 7     + 4 + 8     + 1       + 4)
-#define HEADER_SIZE_MAX       (9 + 7 + 1 + 8 + 8 + 4 + 1 + 255 + 4)
+#define LZO_BLOCK_SIZE (256 * 1024l)
+#define HEADER_HAS_FILTER 0x00000800L
+#define HEADER_SIZE_MIN (9 + 7 + 4 + 8 + 1 + 4)
+#define HEADER_SIZE_MAX (9 + 7 + 1 + 8 + 8 + 4 + 1 + 255 + 4)
 
 STATIC inline long INIT parse_header(u8 *input, long *skip, long in_len)
 {
@@ -82,7 +82,7 @@ STATIC inline long INIT parse_header(u8 *input, long *skip, long in_len)
 	/* skip mode and mtime_low */
 	parse += 8;
 	if (version >= 0x0940)
-		parse += 4;	/* skip mtime_high */
+		parse += 4; /* skip mtime_high */
 
 	l = *parse++;
 	/* don't care about the file name, and skip checksum */
@@ -95,10 +95,9 @@ STATIC inline long INIT parse_header(u8 *input, long *skip, long in_len)
 }
 
 STATIC int INIT unlzo(u8 *input, long in_len,
-				long (*fill)(void *, unsigned long),
-				long (*flush)(void *, unsigned long),
-				u8 *output, long *posp,
-				void (*error) (char *x))
+		      long (*fill)(void *, unsigned long),
+		      long (*flush)(void *, unsigned long), u8 *output,
+		      long *posp, void (*error)(char *x))
 {
 	u8 r = 0;
 	long skip = 0;
@@ -231,8 +230,8 @@ STATIC int INIT unlzo(u8 *input, long in_len,
 		if (unlikely(dst_len == src_len))
 			memcpy(out_buf, in_buf, src_len);
 		else {
-			r = lzo1x_decompress_safe((u8 *) in_buf, src_len,
-						out_buf, &tmp);
+			r = lzo1x_decompress_safe((u8 *)in_buf, src_len,
+						  out_buf, &tmp);
 
 			if (r != LZO_E_OK || dst_len != tmp) {
 				error("Compressed data violation");
@@ -275,11 +274,10 @@ exit:
 
 #ifdef PREBOOT
 STATIC int INIT __decompress(unsigned char *buf, long len,
-			   long (*fill)(void*, unsigned long),
-			   long (*flush)(void*, unsigned long),
-			   unsigned char *out_buf, long olen,
-			   long *pos,
-			   void (*error)(char *x))
+			     long (*fill)(void *, unsigned long),
+			     long (*flush)(void *, unsigned long),
+			     unsigned char *out_buf, long olen, long *pos,
+			     void (*error)(char *x))
 {
 	return unlzo(buf, len, fill, flush, out_buf, pos, error);
 }

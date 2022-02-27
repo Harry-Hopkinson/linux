@@ -34,13 +34,13 @@
  */
 
 /* The low bits are designated for error code (max of MAX_ERRNO) */
-#define ERRSEQ_SHIFT		ilog2(MAX_ERRNO + 1)
+#define ERRSEQ_SHIFT ilog2(MAX_ERRNO + 1)
 
 /* This bit is used as a flag to indicate whether the value has been seen */
-#define ERRSEQ_SEEN		(1 << ERRSEQ_SHIFT)
+#define ERRSEQ_SEEN (1 << ERRSEQ_SHIFT)
 
 /* The lowest bit of the counter */
-#define ERRSEQ_CTR_INC		(1 << (ERRSEQ_SHIFT + 1))
+#define ERRSEQ_CTR_INC (1 << (ERRSEQ_SHIFT + 1))
 
 /**
  * errseq_set - set a errseq_t for later reporting
@@ -72,14 +72,14 @@ errseq_t errseq_set(errseq_t *eseq, int err)
 	old = READ_ONCE(*eseq);
 
 	if (WARN(unlikely(err == 0 || (unsigned int)-err > MAX_ERRNO),
-				"err = %d\n", err))
+		 "err = %d\n", err))
 		return old;
 
 	for (;;) {
 		errseq_t new;
 
 		/* Clear out error bits and set new error */
-		new = (old & ~(MAX_ERRNO|ERRSEQ_SEEN)) | -err;
+		new = (old & ~(MAX_ERRNO | ERRSEQ_SEEN)) | -err;
 
 		/* Only increment if someone has looked at it */
 		if (old & ERRSEQ_SEEN)
@@ -200,7 +200,7 @@ int errseq_check_and_advance(errseq_t *eseq, errseq_t *since)
 		if (new != old)
 			cmpxchg(eseq, old, new);
 		*since = new;
-		err = -(new & MAX_ERRNO);
+		err = -(new &MAX_ERRNO);
 	}
 	return err;
 }

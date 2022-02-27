@@ -21,8 +21,8 @@
  * @set->nr_hw_queues, or @dev does not provide an affinity mask for a
  * vector, we fallback to the naive mapping.
  */
-int blk_mq_rdma_map_queues(struct blk_mq_queue_map *map,
-		struct ib_device *dev, int first_vec)
+int blk_mq_rdma_map_queues(struct blk_mq_queue_map *map, struct ib_device *dev,
+			   int first_vec)
 {
 	const struct cpumask *mask;
 	unsigned int queue, cpu;
@@ -32,7 +32,7 @@ int blk_mq_rdma_map_queues(struct blk_mq_queue_map *map,
 		if (!mask)
 			goto fallback;
 
-		for_each_cpu(cpu, mask)
+		for_each_cpu (cpu, mask)
 			map->mq_map[cpu] = map->queue_offset + queue;
 	}
 

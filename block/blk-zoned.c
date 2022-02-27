@@ -22,14 +22,10 @@
 
 #define ZONE_COND_NAME(name) [BLK_ZONE_COND_##name] = #name
 static const char *const zone_cond_name[] = {
-	ZONE_COND_NAME(NOT_WP),
-	ZONE_COND_NAME(EMPTY),
-	ZONE_COND_NAME(IMP_OPEN),
-	ZONE_COND_NAME(EXP_OPEN),
-	ZONE_COND_NAME(CLOSED),
-	ZONE_COND_NAME(READONLY),
-	ZONE_COND_NAME(FULL),
-	ZONE_COND_NAME(OFFLINE),
+	ZONE_COND_NAME(NOT_WP),	  ZONE_COND_NAME(EMPTY),
+	ZONE_COND_NAME(IMP_OPEN), ZONE_COND_NAME(EXP_OPEN),
+	ZONE_COND_NAME(CLOSED),	  ZONE_COND_NAME(READONLY),
+	ZONE_COND_NAME(FULL),	  ZONE_COND_NAME(OFFLINE),
 };
 #undef ZONE_COND_NAME
 
@@ -202,9 +198,9 @@ static int blkdev_zone_reset_all_emulated(struct block_device *bdev,
 	if (!need_reset)
 		return -ENOMEM;
 
-	ret = bdev->bd_disk->fops->report_zones(bdev->bd_disk, 0,
-				q->nr_zones, blk_zone_need_reset_cb,
-				need_reset);
+	ret = bdev->bd_disk->fops->report_zones(bdev->bd_disk, 0, q->nr_zones,
+						blk_zone_need_reset_cb,
+						need_reset);
 	if (ret < 0)
 		goto out_free_need_reset;
 
@@ -263,8 +259,7 @@ static int blkdev_zone_reset_all(struct block_device *bdev, gfp_t gfp_mask)
  *    or finish request.
  */
 int blkdev_zone_mgmt(struct block_device *bdev, enum req_opf op,
-		     sector_t sector, sector_t nr_sectors,
-		     gfp_t gfp_mask)
+		     sector_t sector, sector_t nr_sectors, gfp_t gfp_mask)
 {
 	struct request_queue *q = bdev_get_queue(bdev);
 	sector_t zone_sectors = blk_queue_zone_sectors(q);
@@ -466,12 +461,12 @@ void blk_queue_free_zone_bitmaps(struct request_queue *q)
 }
 
 struct blk_revalidate_zone_args {
-	struct gendisk	*disk;
-	unsigned long	*conv_zones_bitmap;
-	unsigned long	*seq_zones_wlock;
-	unsigned int	nr_zones;
-	sector_t	zone_sectors;
-	sector_t	sector;
+	struct gendisk *disk;
+	unsigned long *conv_zones_bitmap;
+	unsigned long *seq_zones_wlock;
+	unsigned int nr_zones;
+	sector_t zone_sectors;
+	sector_t sector;
 };
 
 /*
@@ -514,8 +509,8 @@ static int blk_revalidate_zone_cb(struct blk_zone *zone, unsigned int idx,
 
 	/* Check for holes in the zone report */
 	if (zone->start != args->sector) {
-		pr_warn("%s: Zone gap at sectors %llu..%llu\n",
-			disk->disk_name, args->sector, zone->start);
+		pr_warn("%s: Zone gap at sectors %llu..%llu\n", disk->disk_name,
+			args->sector, zone->start);
 		return -ENODEV;
 	}
 
@@ -568,7 +563,7 @@ int blk_revalidate_disk_zones(struct gendisk *disk,
 {
 	struct request_queue *q = disk->queue;
 	struct blk_revalidate_zone_args args = {
-		.disk		= disk,
+		.disk = disk,
 	};
 	unsigned int noio_flag;
 	int ret;
@@ -599,8 +594,8 @@ int blk_revalidate_disk_zones(struct gendisk *disk,
 	 * has been checked.
 	 */
 	if (ret > 0 && args.sector != get_capacity(disk)) {
-		pr_warn("%s: Missing zones from sector %llu\n",
-			disk->disk_name, args.sector);
+		pr_warn("%s: Missing zones from sector %llu\n", disk->disk_name,
+			args.sector);
 		ret = -ENODEV;
 	}
 

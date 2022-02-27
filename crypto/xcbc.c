@@ -12,9 +12,9 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 
-static u_int32_t ks[12] = {0x01010101, 0x01010101, 0x01010101, 0x01010101,
-			   0x02020202, 0x02020202, 0x02020202, 0x02020202,
-			   0x03030303, 0x03030303, 0x03030303, 0x03030303};
+static u_int32_t ks[12] = { 0x01010101, 0x01010101, 0x01010101, 0x01010101,
+			    0x02020202, 0x02020202, 0x02020202, 0x02020202,
+			    0x03030303, 0x03030303, 0x03030303, 0x03030303 };
 
 /*
  * +------------------------
@@ -46,7 +46,7 @@ struct xcbc_desc_ctx {
 	u8 ctx[];
 };
 
-#define XCBC_BLOCKSIZE	16
+#define XCBC_BLOCKSIZE 16
 
 static int crypto_xcbc_digest_setkey(struct crypto_shash *parent,
 				     const u8 *inkey, unsigned int keylen)
@@ -66,7 +66,6 @@ static int crypto_xcbc_digest_setkey(struct crypto_shash *parent,
 	crypto_cipher_encrypt_one(ctx->child, key1, (u8 *)ks);
 
 	return crypto_cipher_setkey(ctx->child, key1, bs);
-
 }
 
 static int crypto_xcbc_digest_init(struct shash_desc *pdesc)
@@ -149,7 +148,7 @@ static int crypto_xcbc_digest_final(struct shash_desc *pdesc, u8 *out)
 		*p = 0x80;
 		p++;
 
-		rlen = bs - ctx->len -1;
+		rlen = bs - ctx->len - 1;
 		if (rlen)
 			memset(p, 0, rlen);
 
@@ -226,13 +225,12 @@ static int xcbc_create(struct crypto_template *tmpl, struct rtattr **tb)
 	inst->alg.digestsize = alg->cra_blocksize;
 	inst->alg.descsize = ALIGN(sizeof(struct xcbc_desc_ctx),
 				   crypto_tfm_ctx_alignment()) +
-			     (alignmask &
-			      ~(crypto_tfm_ctx_alignment() - 1)) +
+			     (alignmask & ~(crypto_tfm_ctx_alignment() - 1)) +
 			     alg->cra_blocksize * 2;
 
-	inst->alg.base.cra_ctxsize = ALIGN(sizeof(struct xcbc_tfm_ctx),
-					   alignmask + 1) +
-				     alg->cra_blocksize * 2;
+	inst->alg.base.cra_ctxsize =
+		ALIGN(sizeof(struct xcbc_tfm_ctx), alignmask + 1) +
+		alg->cra_blocksize * 2;
 	inst->alg.base.cra_init = xcbc_init_tfm;
 	inst->alg.base.cra_exit = xcbc_exit_tfm;
 
@@ -245,7 +243,7 @@ static int xcbc_create(struct crypto_template *tmpl, struct rtattr **tb)
 
 	err = shash_register_instance(tmpl, inst);
 	if (err) {
-err_free_inst:
+	err_free_inst:
 		shash_free_singlespawn_instance(inst);
 	}
 	return err;

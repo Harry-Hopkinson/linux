@@ -82,35 +82,32 @@ static void crypto_des3_ede_decrypt(struct crypto_tfm *tfm, u8 *dst,
 	des3_ede_decrypt(dctx, dst, src);
 }
 
-static struct crypto_alg des_algs[2] = { {
-	.cra_name		=	"des",
-	.cra_driver_name	=	"des-generic",
-	.cra_priority		=	100,
-	.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
-	.cra_blocksize		=	DES_BLOCK_SIZE,
-	.cra_ctxsize		=	sizeof(struct des_ctx),
-	.cra_module		=	THIS_MODULE,
-	.cra_u			=	{ .cipher = {
-	.cia_min_keysize	=	DES_KEY_SIZE,
-	.cia_max_keysize	=	DES_KEY_SIZE,
-	.cia_setkey		=	des_setkey,
-	.cia_encrypt		=	crypto_des_encrypt,
-	.cia_decrypt		=	crypto_des_decrypt } }
-}, {
-	.cra_name		=	"des3_ede",
-	.cra_driver_name	=	"des3_ede-generic",
-	.cra_priority		=	100,
-	.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
-	.cra_blocksize		=	DES3_EDE_BLOCK_SIZE,
-	.cra_ctxsize		=	sizeof(struct des3_ede_ctx),
-	.cra_module		=	THIS_MODULE,
-	.cra_u			=	{ .cipher = {
-	.cia_min_keysize	=	DES3_EDE_KEY_SIZE,
-	.cia_max_keysize	=	DES3_EDE_KEY_SIZE,
-	.cia_setkey		=	des3_ede_setkey,
-	.cia_encrypt		=	crypto_des3_ede_encrypt,
-	.cia_decrypt		=	crypto_des3_ede_decrypt } }
-} };
+static struct crypto_alg des_algs[2] = {
+	{ .cra_name = "des",
+	  .cra_driver_name = "des-generic",
+	  .cra_priority = 100,
+	  .cra_flags = CRYPTO_ALG_TYPE_CIPHER,
+	  .cra_blocksize = DES_BLOCK_SIZE,
+	  .cra_ctxsize = sizeof(struct des_ctx),
+	  .cra_module = THIS_MODULE,
+	  .cra_u = { .cipher = { .cia_min_keysize = DES_KEY_SIZE,
+				 .cia_max_keysize = DES_KEY_SIZE,
+				 .cia_setkey = des_setkey,
+				 .cia_encrypt = crypto_des_encrypt,
+				 .cia_decrypt = crypto_des_decrypt } } },
+	{ .cra_name = "des3_ede",
+	  .cra_driver_name = "des3_ede-generic",
+	  .cra_priority = 100,
+	  .cra_flags = CRYPTO_ALG_TYPE_CIPHER,
+	  .cra_blocksize = DES3_EDE_BLOCK_SIZE,
+	  .cra_ctxsize = sizeof(struct des3_ede_ctx),
+	  .cra_module = THIS_MODULE,
+	  .cra_u = { .cipher = { .cia_min_keysize = DES3_EDE_KEY_SIZE,
+				 .cia_max_keysize = DES3_EDE_KEY_SIZE,
+				 .cia_setkey = des3_ede_setkey,
+				 .cia_encrypt = crypto_des3_ede_encrypt,
+				 .cia_decrypt = crypto_des3_ede_decrypt } } }
+};
 
 static int __init des_generic_mod_init(void)
 {

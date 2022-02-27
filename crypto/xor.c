@@ -23,30 +23,30 @@
 /* The xor routines to use.  */
 static struct xor_block_template *active_template;
 
-void
-xor_blocks(unsigned int src_count, unsigned int bytes, void *dest, void **srcs)
+void xor_blocks(unsigned int src_count, unsigned int bytes, void *dest,
+		void **srcs)
 {
 	unsigned long *p1, *p2, *p3, *p4;
 
-	p1 = (unsigned long *) srcs[0];
+	p1 = (unsigned long *)srcs[0];
 	if (src_count == 1) {
 		active_template->do_2(bytes, dest, p1);
 		return;
 	}
 
-	p2 = (unsigned long *) srcs[1];
+	p2 = (unsigned long *)srcs[1];
 	if (src_count == 2) {
 		active_template->do_3(bytes, dest, p1, p2);
 		return;
 	}
 
-	p3 = (unsigned long *) srcs[2];
+	p3 = (unsigned long *)srcs[2];
 	if (src_count == 3) {
 		active_template->do_4(bytes, dest, p1, p2, p3);
 		return;
 	}
 
-	p4 = (unsigned long *) srcs[3];
+	p4 = (unsigned long *)srcs[3];
 	active_template->do_5(bytes, dest, p1, p2, p3, p4);
 }
 EXPORT_SYMBOL(xor_blocks);
@@ -66,7 +66,7 @@ static int __init register_xor_blocks(void)
 	active_template = XOR_SELECT_TEMPLATE(NULL);
 
 	if (!active_template) {
-#define xor_speed	do_xor_register
+#define xor_speed do_xor_register
 		// register all the templates and pick the first as the default
 		XOR_TRY_TEMPLATES;
 #undef xor_speed
@@ -76,11 +76,11 @@ static int __init register_xor_blocks(void)
 }
 #endif
 
-#define BENCH_SIZE	4096
-#define REPS		800U
+#define BENCH_SIZE 4096
+#define REPS 800U
 
-static void __init
-do_xor_speed(struct xor_block_template *tmpl, void *b1, void *b2)
+static void __init do_xor_speed(struct xor_block_template *tmpl, void *b1,
+				void *b2)
 {
 	int speed;
 	int i, j;
@@ -115,8 +115,7 @@ do_xor_speed(struct xor_block_template *tmpl, void *b1, void *b2)
 	pr_info("   %-16s: %5d MB/sec\n", tmpl->name, speed);
 }
 
-static int __init
-calibrate_xor_blocks(void)
+static int __init calibrate_xor_blocks(void)
 {
 	void *b1, *b2;
 	struct xor_block_template *f, *fastest;
@@ -130,19 +129,19 @@ calibrate_xor_blocks(void)
 		goto out;
 	}
 
-	b1 = (void *) __get_free_pages(GFP_KERNEL, 2);
+	b1 = (void *)__get_free_pages(GFP_KERNEL, 2);
 	if (!b1) {
 		printk(KERN_WARNING "xor: Yikes!  No memory available.\n");
 		return -ENOMEM;
 	}
-	b2 = b1 + 2*PAGE_SIZE + BENCH_SIZE;
+	b2 = b1 + 2 * PAGE_SIZE + BENCH_SIZE;
 
 	/*
 	 * If this arch/cpu has a short-circuited selection, don't loop through
 	 * all the possible functions, just test the best one
 	 */
 
-#define xor_speed(templ)	do_xor_speed((templ), b1, b2)
+#define xor_speed(templ) do_xor_speed((templ), b1, b2)
 
 	printk(KERN_INFO "xor: measuring software checksum speed\n");
 	template_list = NULL;
@@ -152,8 +151,8 @@ calibrate_xor_blocks(void)
 		if (f->speed > fastest->speed)
 			fastest = f;
 
-	pr_info("xor: using function: %s (%d MB/sec)\n",
-	       fastest->name, fastest->speed);
+	pr_info("xor: using function: %s (%d MB/sec)\n", fastest->name,
+		fastest->speed);
 
 #undef xor_speed
 
@@ -163,7 +162,9 @@ out:
 	return 0;
 }
 
-static __exit void xor_exit(void) { }
+static __exit void xor_exit(void)
+{
+}
 
 MODULE_LICENSE("GPL");
 

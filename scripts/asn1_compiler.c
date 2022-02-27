@@ -117,84 +117,55 @@ enum token_type {
 
 static const unsigned char token_to_tag[NR__TOKENS] = {
 	/* EOC goes first */
-	[DIRECTIVE_BOOLEAN]		= ASN1_BOOL,
-	[DIRECTIVE_INTEGER]		= ASN1_INT,
-	[DIRECTIVE_BIT]			= ASN1_BTS,
-	[DIRECTIVE_OCTET]		= ASN1_OTS,
-	[DIRECTIVE_NULL]		= ASN1_NULL,
-	[DIRECTIVE_OBJECT]		= ASN1_OID,
-	[DIRECTIVE_ObjectDescriptor]	= ASN1_ODE,
-	[DIRECTIVE_EXTERNAL]		= ASN1_EXT,
-	[DIRECTIVE_REAL]		= ASN1_REAL,
-	[DIRECTIVE_ENUMERATED]		= ASN1_ENUM,
-	[DIRECTIVE_EMBEDDED]		= 0,
-	[DIRECTIVE_UTF8String]		= ASN1_UTF8STR,
-	[DIRECTIVE_RELATIVE_OID]	= ASN1_RELOID,
+	[DIRECTIVE_BOOLEAN] = ASN1_BOOL,
+	[DIRECTIVE_INTEGER] = ASN1_INT,
+	[DIRECTIVE_BIT] = ASN1_BTS,
+	[DIRECTIVE_OCTET] = ASN1_OTS,
+	[DIRECTIVE_NULL] = ASN1_NULL,
+	[DIRECTIVE_OBJECT] = ASN1_OID,
+	[DIRECTIVE_ObjectDescriptor] = ASN1_ODE,
+	[DIRECTIVE_EXTERNAL] = ASN1_EXT,
+	[DIRECTIVE_REAL] = ASN1_REAL,
+	[DIRECTIVE_ENUMERATED] = ASN1_ENUM,
+	[DIRECTIVE_EMBEDDED] = 0,
+	[DIRECTIVE_UTF8String] = ASN1_UTF8STR,
+	[DIRECTIVE_RELATIVE_OID] = ASN1_RELOID,
 	/* 14 */
 	/* 15 */
-	[DIRECTIVE_SEQUENCE]		= ASN1_SEQ,
-	[DIRECTIVE_SET]			= ASN1_SET,
-	[DIRECTIVE_NumericString]	= ASN1_NUMSTR,
-	[DIRECTIVE_PrintableString]	= ASN1_PRNSTR,
-	[DIRECTIVE_T61String]		= ASN1_TEXSTR,
-	[DIRECTIVE_TeletexString]	= ASN1_TEXSTR,
-	[DIRECTIVE_VideotexString]	= ASN1_VIDSTR,
-	[DIRECTIVE_IA5String]		= ASN1_IA5STR,
-	[DIRECTIVE_UTCTime]		= ASN1_UNITIM,
-	[DIRECTIVE_GeneralizedTime]	= ASN1_GENTIM,
-	[DIRECTIVE_GraphicString]	= ASN1_GRASTR,
-	[DIRECTIVE_VisibleString]	= ASN1_VISSTR,
-	[DIRECTIVE_GeneralString]	= ASN1_GENSTR,
-	[DIRECTIVE_UniversalString]	= ASN1_UNITIM,
-	[DIRECTIVE_CHARACTER]		= ASN1_CHRSTR,
-	[DIRECTIVE_BMPString]		= ASN1_BMPSTR,
+	[DIRECTIVE_SEQUENCE] = ASN1_SEQ,
+	[DIRECTIVE_SET] = ASN1_SET,
+	[DIRECTIVE_NumericString] = ASN1_NUMSTR,
+	[DIRECTIVE_PrintableString] = ASN1_PRNSTR,
+	[DIRECTIVE_T61String] = ASN1_TEXSTR,
+	[DIRECTIVE_TeletexString] = ASN1_TEXSTR,
+	[DIRECTIVE_VideotexString] = ASN1_VIDSTR,
+	[DIRECTIVE_IA5String] = ASN1_IA5STR,
+	[DIRECTIVE_UTCTime] = ASN1_UNITIM,
+	[DIRECTIVE_GeneralizedTime] = ASN1_GENTIM,
+	[DIRECTIVE_GraphicString] = ASN1_GRASTR,
+	[DIRECTIVE_VisibleString] = ASN1_VISSTR,
+	[DIRECTIVE_GeneralString] = ASN1_GENSTR,
+	[DIRECTIVE_UniversalString] = ASN1_UNITIM,
+	[DIRECTIVE_CHARACTER] = ASN1_CHRSTR,
+	[DIRECTIVE_BMPString] = ASN1_BMPSTR,
 };
 
-static const char asn1_classes[4][5] = {
-	[ASN1_UNIV]	= "UNIV",
-	[ASN1_APPL]	= "APPL",
-	[ASN1_CONT]	= "CONT",
-	[ASN1_PRIV]	= "PRIV"
-};
+static const char asn1_classes[4][5] = { [ASN1_UNIV] = "UNIV",
+					 [ASN1_APPL] = "APPL",
+					 [ASN1_CONT] = "CONT",
+					 [ASN1_PRIV] = "PRIV" };
 
-static const char asn1_methods[2][5] = {
-	[ASN1_UNIV]	= "PRIM",
-	[ASN1_APPL]	= "CONS"
-};
+static const char
+	asn1_methods[2][5] = { [ASN1_UNIV] = "PRIM", [ASN1_APPL] = "CONS" };
 
 static const char *const asn1_universal_tags[32] = {
-	"EOC",
-	"BOOL",
-	"INT",
-	"BTS",
-	"OTS",
-	"NULL",
-	"OID",
-	"ODE",
-	"EXT",
-	"REAL",
-	"ENUM",
-	"EPDV",
-	"UTF8STR",
-	"RELOID",
-	NULL,		/* 14 */
-	NULL,		/* 15 */
-	"SEQ",
-	"SET",
-	"NUMSTR",
-	"PRNSTR",
-	"TEXSTR",
-	"VIDSTR",
-	"IA5STR",
-	"UNITIM",
-	"GENTIM",
-	"GRASTR",
-	"VISSTR",
-	"GENSTR",
-	"UNISTR",
-	"CHRSTR",
-	"BMPSTR",
-	NULL		/* 31 */
+	"EOC",	   "BOOL",   "INT",    "BTS",	 "OTS",	   "NULL",
+	"OID",	   "ODE",    "EXT",    "REAL",	 "ENUM",   "EPDV",
+	"UTF8STR", "RELOID", NULL, /* 14 */
+	NULL, /* 15 */
+	"SEQ",	   "SET",    "NUMSTR", "PRNSTR", "TEXSTR", "VIDSTR",
+	"IA5STR",  "UNITIM", "GENTIM", "GRASTR", "VISSTR", "GENSTR",
+	"UNISTR",  "CHRSTR", "BMPSTR", NULL /* 31 */
 };
 
 static const char *filename;
@@ -289,21 +260,21 @@ static const char *const directives[NR__DIRECTIVES] = {
 };
 
 struct action {
-	struct action	*next;
-	char		*name;
-	unsigned char	index;
+	struct action *next;
+	char *name;
+	unsigned char index;
 };
 
 static struct action *action_list;
 static unsigned nr_actions;
 
 struct token {
-	unsigned short	line;
-	enum token_type	token_type : 8;
-	unsigned char	size;
-	struct action	*action;
-	char		*content;
-	struct type	*type;
+	unsigned short line;
+	enum token_type token_type : 8;
+	unsigned char size;
+	struct action *action;
+	char *content;
+	struct type *type;
 };
 
 static struct token *token_list;
@@ -311,8 +282,16 @@ static unsigned nr_tokens;
 static bool verbose_opt;
 static bool debug_opt;
 
-#define verbose(fmt, ...) do { if (verbose_opt) printf(fmt, ## __VA_ARGS__); } while (0)
-#define debug(fmt, ...) do { if (debug_opt) printf(fmt, ## __VA_ARGS__); } while (0)
+#define verbose(fmt, ...)                                                      \
+	do {                                                                   \
+		if (verbose_opt)                                               \
+			printf(fmt, ##__VA_ARGS__);                            \
+	} while (0)
+#define debug(fmt, ...)                                                        \
+	do {                                                                   \
+		if (debug_opt)                                                 \
+			printf(fmt, ##__VA_ARGS__);                            \
+	} while (0)
 
 static int directive_compare(const void *_key, const void *_pdir)
 {
@@ -415,24 +394,28 @@ static void tokenise(char *buffer, char *end)
 				 * name.  Find the end of the name.
 				 */
 				q = p + 1;
-				while (q < nl && (isalnum(*q) || *q == '-' || *q == '_'))
+				while (q < nl &&
+				       (isalnum(*q) || *q == '-' || *q == '_'))
 					q++;
 				tokens[tix].size = q - p;
 				p = q;
 
-				tokens[tix].content = malloc(tokens[tix].size + 1);
+				tokens[tix].content =
+					malloc(tokens[tix].size + 1);
 				if (!tokens[tix].content) {
 					perror(NULL);
 					exit(1);
 				}
-				memcpy(tokens[tix].content, start, tokens[tix].size);
+				memcpy(tokens[tix].content, start,
+				       tokens[tix].size);
 				tokens[tix].content[tokens[tix].size] = 0;
-				
+
 				/* If it begins with a lowercase letter then
 				 * it's an element name
 				 */
 				if (islower(tokens[tix].content[0])) {
-					tokens[tix++].token_type = TOKEN_ELEMENT_NAME;
+					tokens[tix++].token_type =
+						TOKEN_ELEMENT_NAME;
 					continue;
 				}
 
@@ -440,11 +423,13 @@ static void tokenise(char *buffer, char *end)
 				 * table
 				 */
 				dir = bsearch(&tokens[tix], directives,
-					      sizeof(directives) / sizeof(directives[1]),
+					      sizeof(directives) /
+						      sizeof(directives[1]),
 					      sizeof(directives[1]),
 					      directive_compare);
 				if (dir) {
-					tokens[tix++].token_type = dir - directives;
+					tokens[tix++].token_type =
+						dir - directives;
 					continue;
 				}
 
@@ -460,12 +445,14 @@ static void tokenise(char *buffer, char *end)
 					q++;
 				tokens[tix].size = q - p;
 				p = q;
-				tokens[tix].content = malloc(tokens[tix].size + 1);
+				tokens[tix].content =
+					malloc(tokens[tix].size + 1);
 				if (!tokens[tix].content) {
 					perror(NULL);
 					exit(1);
 				}
-				memcpy(tokens[tix].content, start, tokens[tix].size);
+				memcpy(tokens[tix].content, start,
+				       tokens[tix].size);
 				tokens[tix].content[tokens[tix].size] = 0;
 				tokens[tix++].token_type = TOKEN_NUMBER;
 				continue;
@@ -476,7 +463,8 @@ static void tokenise(char *buffer, char *end)
 					p += 3;
 					tokens[tix].size = 3;
 					tokens[tix].content = "::=";
-					tokens[tix++].token_type = TOKEN_ASSIGNMENT;
+					tokens[tix++].token_type =
+						TOKEN_ASSIGNMENT;
 					continue;
 				}
 			}
@@ -486,14 +474,16 @@ static void tokenise(char *buffer, char *end)
 					p += 2;
 					tokens[tix].size = 2;
 					tokens[tix].content = "({";
-					tokens[tix++].token_type = TOKEN_OPEN_ACTION;
+					tokens[tix++].token_type =
+						TOKEN_OPEN_ACTION;
 					continue;
 				}
 				if (memcmp(p, "})", 2) == 0) {
 					p += 2;
 					tokens[tix].size = 2;
 					tokens[tix].content = "})";
-					tokens[tix++].token_type = TOKEN_CLOSE_ACTION;
+					tokens[tix++].token_type =
+						TOKEN_CLOSE_ACTION;
 					continue;
 				}
 			}
@@ -504,22 +494,26 @@ static void tokenise(char *buffer, char *end)
 				case '{':
 					p += 1;
 					tokens[tix].content = "{";
-					tokens[tix++].token_type = TOKEN_OPEN_CURLY;
+					tokens[tix++].token_type =
+						TOKEN_OPEN_CURLY;
 					continue;
 				case '}':
 					p += 1;
 					tokens[tix].content = "}";
-					tokens[tix++].token_type = TOKEN_CLOSE_CURLY;
+					tokens[tix++].token_type =
+						TOKEN_CLOSE_CURLY;
 					continue;
 				case '[':
 					p += 1;
 					tokens[tix].content = "[";
-					tokens[tix++].token_type = TOKEN_OPEN_SQUARE;
+					tokens[tix++].token_type =
+						TOKEN_OPEN_SQUARE;
 					continue;
 				case ']':
 					p += 1;
 					tokens[tix].content = "]";
-					tokens[tix++].token_type = TOKEN_CLOSE_SQUARE;
+					tokens[tix++].token_type =
+						TOKEN_CLOSE_SQUARE;
 					continue;
 				case ',':
 					p += 1;
@@ -531,7 +525,8 @@ static void tokenise(char *buffer, char *end)
 				}
 			}
 
-			fprintf(stderr, "%s:%u: Unknown character in grammar: '%c'\n",
+			fprintf(stderr,
+				"%s:%u: Unknown character in grammar: '%c'\n",
 				filename, lineno, *p);
 			exit(1);
 		}
@@ -582,7 +577,8 @@ int main(int argc, char **argv)
 	}
 
 	if (argc != 4) {
-		fprintf(stderr, "Format: %s [-v] [-d] <grammar-file> <c-file> <hdr-file>\n",
+		fprintf(stderr,
+			"Format: %s [-v] [-d] <grammar-file> <c-file> <hdr-file>\n",
 			argv[0]);
 		exit(2);
 	}
@@ -679,37 +675,37 @@ enum compound {
 };
 
 struct element {
-	struct type	*type_def;
-	struct token	*name;
-	struct token	*type;
-	struct action	*action;
-	struct element	*children;
-	struct element	*next;
-	struct element	*render_next;
-	struct element	*list_next;
-	uint8_t		n_elements;
-	enum compound	compound : 8;
-	enum asn1_class	class : 8;
+	struct type *type_def;
+	struct token *name;
+	struct token *type;
+	struct action *action;
+	struct element *children;
+	struct element *next;
+	struct element *render_next;
+	struct element *list_next;
+	uint8_t n_elements;
+	enum compound compound : 8;
+	enum asn1_class class : 8;
 	enum asn1_method method : 8;
-	uint8_t		tag;
-	unsigned	entry_index;
-	unsigned	flags;
-#define ELEMENT_IMPLICIT	0x0001
-#define ELEMENT_EXPLICIT	0x0002
-#define ELEMENT_TAG_SPECIFIED	0x0004
-#define ELEMENT_RENDERED	0x0008
-#define ELEMENT_SKIPPABLE	0x0010
-#define ELEMENT_CONDITIONAL	0x0020
+	uint8_t tag;
+	unsigned entry_index;
+	unsigned flags;
+#define ELEMENT_IMPLICIT 0x0001
+#define ELEMENT_EXPLICIT 0x0002
+#define ELEMENT_TAG_SPECIFIED 0x0004
+#define ELEMENT_RENDERED 0x0008
+#define ELEMENT_SKIPPABLE 0x0010
+#define ELEMENT_CONDITIONAL 0x0020
 };
 
 struct type {
-	struct token	*name;
-	struct token	*def;
-	struct element	*element;
-	unsigned	ref_count;
-	unsigned	flags;
-#define TYPE_STOP_MARKER	0x0001
-#define TYPE_BEGIN		0x0002
+	struct token *name;
+	struct token *def;
+	struct element *element;
+	unsigned ref_count;
+	unsigned flags;
+#define TYPE_STOP_MARKER 0x0001
+#define TYPE_BEGIN 0x0002
 };
 
 static struct type *type_list;
@@ -736,8 +732,7 @@ static int type_finder(const void *_key, const void *_ti)
 	if (token->size != type->name->size)
 		return token->size - type->name->size;
 	else
-		return memcmp(token->content, type->name->content,
-			      token->size);
+		return memcmp(token->content, type->name->content, token->size);
 }
 
 /*
@@ -888,7 +883,8 @@ static struct element *parse_type(struct token **_cursor, struct token *end,
 			cursor++;
 			break;
 		default:
-			fprintf(stderr, "%s:%d: Unrecognised tag class token '%s'\n",
+			fprintf(stderr,
+				"%s:%d: Unrecognised tag class token '%s'\n",
 				filename, cursor->line, cursor->content);
 			exit(1);
 		}
@@ -911,7 +907,8 @@ static struct element *parse_type(struct token **_cursor, struct token *end,
 		if (cursor >= end)
 			goto overrun_error;
 		if (cursor->token_type != TOKEN_CLOSE_SQUARE) {
-			fprintf(stderr, "%s:%d: Missing closing square bracket '%s'\n",
+			fprintf(stderr,
+				"%s:%d: Missing closing square bracket '%s'\n",
 				filename, cursor->line, cursor->content);
 			exit(1);
 		}
@@ -1009,8 +1006,8 @@ static struct element *parse_type(struct token **_cursor, struct token *end,
 
 	case TOKEN_TYPE_NAME:
 		element->compound = TYPE_REF;
-		ref = bsearch(cursor, type_index, nr_types, sizeof(type_index[0]),
-			      type_finder);
+		ref = bsearch(cursor, type_index, nr_types,
+			      sizeof(type_index[0]), type_finder);
 		if (!ref) {
 			fprintf(stderr, "%s:%d: Type '%s' undefined\n",
 				filename, cursor->line, cursor->content);
@@ -1069,8 +1066,7 @@ static struct element *parse_type(struct token **_cursor, struct token *end,
 
 	/* Handle elements that are optional */
 	if (cursor < end && (cursor->token_type == DIRECTIVE_OPTIONAL ||
-			     cursor->token_type == DIRECTIVE_DEFAULT)
-	    ) {
+			     cursor->token_type == DIRECTIVE_DEFAULT)) {
 		cursor++;
 		top->flags |= ELEMENT_SKIPPABLE;
 	}
@@ -1080,7 +1076,8 @@ static struct element *parse_type(struct token **_cursor, struct token *end,
 		if (cursor >= end)
 			goto overrun_error;
 		if (cursor->token_type != TOKEN_ELEMENT_NAME) {
-			fprintf(stderr, "%s:%d: Token '%s' is not an action function name\n",
+			fprintf(stderr,
+				"%s:%d: Token '%s' is not an action function name\n",
 				filename, cursor->line, cursor->content);
 			exit(1);
 		}
@@ -1093,10 +1090,8 @@ static struct element *parse_type(struct token **_cursor, struct token *end,
 		action->index = 0;
 		action->name = cursor->content;
 
-		for (ppaction = &action_list;
-		     *ppaction;
-		     ppaction = &(*ppaction)->next
-		     ) {
+		for (ppaction = &action_list; *ppaction;
+		     ppaction = &(*ppaction)->next) {
 			int cmp = strcmp(action->name, (*ppaction)->name);
 			if (cmp == 0) {
 				free(action);
@@ -1121,7 +1116,8 @@ static struct element *parse_type(struct token **_cursor, struct token *end,
 		if (cursor >= end)
 			goto overrun_error;
 		if (cursor->token_type != TOKEN_CLOSE_ACTION) {
-			fprintf(stderr, "%s:%d: Missing close action, got '%s'\n",
+			fprintf(stderr,
+				"%s:%d: Missing close action, got '%s'\n",
 				filename, cursor->line, cursor->content);
 			exit(1);
 		}
@@ -1132,8 +1128,8 @@ static struct element *parse_type(struct token **_cursor, struct token *end,
 	return top;
 
 parse_error:
-	fprintf(stderr, "%s:%d: Unexpected token '%s'\n",
-		filename, cursor->line, cursor->content);
+	fprintf(stderr, "%s:%d: Unexpected token '%s'\n", filename,
+		cursor->line, cursor->content);
 	exit(1);
 
 overrun_error:
@@ -1151,7 +1147,8 @@ static struct element *parse_compound(struct token **_cursor, struct token *end,
 	struct token *cursor = *_cursor, *name;
 
 	if (cursor->token_type != TOKEN_OPEN_CURLY) {
-		fprintf(stderr, "%s:%d: Expected compound to start with brace not '%s'\n",
+		fprintf(stderr,
+			"%s:%d: Expected compound to start with brace not '%s'\n",
 			filename, cursor->line, cursor->content);
 		exit(1);
 	}
@@ -1160,8 +1157,8 @@ static struct element *parse_compound(struct token **_cursor, struct token *end,
 		goto overrun_error;
 
 	if (cursor->token_type == TOKEN_OPEN_CURLY) {
-		fprintf(stderr, "%s:%d: Empty compound\n",
-			filename, cursor->line);
+		fprintf(stderr, "%s:%d: Empty compound\n", filename,
+			cursor->line);
 		exit(1);
 	}
 
@@ -1176,7 +1173,8 @@ static struct element *parse_compound(struct token **_cursor, struct token *end,
 
 		element = parse_type(&cursor, end, name);
 		if (alternates)
-			element->flags |= ELEMENT_SKIPPABLE | ELEMENT_CONDITIONAL;
+			element->flags |=
+				ELEMENT_SKIPPABLE | ELEMENT_CONDITIONAL;
 
 		*child_p = element;
 		child_p = &element->next;
@@ -1218,15 +1216,11 @@ static void dump_element(const struct element *e, int level)
 	if (e->class == 0 && e->method == 0 && e->tag == 0)
 		strcpy(tag, "<...>");
 	else if (e->class == ASN1_UNIV)
-		sprintf(tag, "%s %s %s",
-			asn1_classes[e->class],
-			asn1_methods[e->method],
-			asn1_universal_tags[e->tag]);
+		sprintf(tag, "%s %s %s", asn1_classes[e->class],
+			asn1_methods[e->method], asn1_universal_tags[e->tag]);
 	else
-		sprintf(tag, "%s %s %u",
-			asn1_classes[e->class],
-			asn1_methods[e->method],
-			e->tag);
+		sprintf(tag, "%s %s %u", asn1_classes[e->class],
+			asn1_methods[e->method], e->tag);
 
 	printf("%c%c%c%c%c %c %*s[*] \e[33m%s\e[m %s %s \e[35m%s\e[m\n",
 	       e->flags & ELEMENT_IMPLICIT ? 'I' : '-',
@@ -1234,11 +1228,7 @@ static void dump_element(const struct element *e, int level)
 	       e->flags & ELEMENT_TAG_SPECIFIED ? 'T' : '-',
 	       e->flags & ELEMENT_SKIPPABLE ? 'S' : '-',
 	       e->flags & ELEMENT_CONDITIONAL ? 'C' : '-',
-	       "-tTqQcaro"[e->compound],
-	       level, "",
-	       tag,
-	       tname,
-	       name,
+	       "-tTqQcaro"[e->compound], level, "", tag, tname, name,
 	       e->action ? e->action->name : "");
 	if (e->compound == TYPE_REF)
 		dump_element(e->type->type->element, level + 3);
@@ -1260,8 +1250,8 @@ static int nr_entries;
 static int render_depth = 1;
 static struct element *render_list, **render_list_p = &render_list;
 
-__attribute__((format(printf, 2, 3)))
-static void render_opcode(FILE *out, const char *fmt, ...)
+__attribute__((format(printf, 2, 3))) static void
+render_opcode(FILE *out, const char *fmt, ...)
 {
 	va_list va;
 
@@ -1274,8 +1264,8 @@ static void render_opcode(FILE *out, const char *fmt, ...)
 	nr_entries++;
 }
 
-__attribute__((format(printf, 2, 3)))
-static void render_more(FILE *out, const char *fmt, ...)
+__attribute__((format(printf, 2, 3))) static void
+render_more(FILE *out, const char *fmt, ...)
 {
 	va_list va;
 
@@ -1297,20 +1287,23 @@ static void render(FILE *out, FILE *hdr)
 	int index;
 
 	fprintf(hdr, "/*\n");
-	fprintf(hdr, " * Automatically generated by asn1_compiler.  Do not edit\n");
+	fprintf(hdr,
+		" * Automatically generated by asn1_compiler.  Do not edit\n");
 	fprintf(hdr, " *\n");
 	fprintf(hdr, " * ASN.1 parser for %s\n", grammar_name);
 	fprintf(hdr, " */\n");
 	fprintf(hdr, "#include <linux/asn1_decoder.h>\n");
 	fprintf(hdr, "\n");
-	fprintf(hdr, "extern const struct asn1_decoder %s_decoder;\n", grammar_name);
+	fprintf(hdr, "extern const struct asn1_decoder %s_decoder;\n",
+		grammar_name);
 	if (ferror(hdr)) {
 		perror(headername);
 		exit(1);
 	}
 
 	fprintf(out, "/*\n");
-	fprintf(out, " * Automatically generated by asn1_compiler.  Do not edit\n");
+	fprintf(out,
+		" * Automatically generated by asn1_compiler.  Do not edit\n");
 	fprintf(out, " *\n");
 	fprintf(out, " * ASN.1 parser for %s\n", grammar_name);
 	fprintf(out, " */\n");
@@ -1336,13 +1329,13 @@ static void render(FILE *out, FILE *hdr)
 
 	fprintf(out, "enum %s_actions {\n", grammar_name);
 	for (action = action_list; action; action = action->next)
-		fprintf(out, "\tACT_%s = %u,\n",
-			action->name, action->index);
+		fprintf(out, "\tACT_%s = %u,\n", action->name, action->index);
 	fprintf(out, "\tNR__%s_actions = %u\n", grammar_name, nr_actions);
 	fprintf(out, "};\n");
 
 	fprintf(out, "\n");
-	fprintf(out, "static const asn1_action_t %s_action_table[NR__%s_actions] = {\n",
+	fprintf(out,
+		"static const asn1_action_t %s_action_table[NR__%s_actions] = {\n",
 		grammar_name, grammar_name);
 	for (action = action_list; action; action = action->next)
 		fprintf(out, "\t[%4u] = %s,\n", action->index, action->name);
@@ -1379,7 +1372,8 @@ static void render(FILE *out, FILE *hdr)
 	fprintf(out, "};\n");
 
 	fprintf(out, "\n");
-	fprintf(out, "const struct asn1_decoder %s_decoder = {\n", grammar_name);
+	fprintf(out, "const struct asn1_decoder %s_decoder = {\n",
+		grammar_name);
 	fprintf(out, "\t.machine = %s_machine,\n", grammar_name);
 	fprintf(out, "\t.machlen = sizeof(%s_machine),\n", grammar_name);
 	fprintf(out, "\t.actions = %s_action_table,\n", grammar_name);
@@ -1446,8 +1440,7 @@ static void render_element(FILE *out, struct element *e, struct element *tag)
 	    (tag && tag->flags & ELEMENT_SKIPPABLE))
 		skippable = 1;
 
-	if ((e->type_def && e->type_def->ref_count > 1) ||
-	    skippable)
+	if ((e->type_def && e->type_def->ref_count > 1) || skippable)
 		outofline = 1;
 
 	if (e->type_def && out) {
@@ -1456,12 +1449,14 @@ static void render_element(FILE *out, struct element *e, struct element *tag)
 
 	/* Render the operation */
 	cond = (e->flags & ELEMENT_CONDITIONAL ||
-		(tag && tag->flags & ELEMENT_CONDITIONAL)) ? "COND_" : "";
+		(tag && tag->flags & ELEMENT_CONDITIONAL)) ?
+		       "COND_" :
+		       "";
 	act = e->action ? "_ACT" : "";
 	switch (e->compound) {
 	case ANY:
-		render_opcode(out, "ASN1_OP_%sMATCH_ANY%s%s,",
-			      cond, act, skippable ? "_OR_SKIP" : "");
+		render_opcode(out, "ASN1_OP_%sMATCH_ANY%s%s,", cond, act,
+			      skippable ? "_OR_SKIP" : "");
 		if (e->name)
 			render_more(out, "\t\t// %s", e->name->content);
 		render_more(out, "\n");
@@ -1475,8 +1470,7 @@ static void render_element(FILE *out, struct element *e, struct element *tag)
 	case SEQUENCE_OF:
 	case SET:
 	case SET_OF:
-		render_opcode(out, "ASN1_OP_%sMATCH%s%s,",
-			      cond,
+		render_opcode(out, "ASN1_OP_%sMATCH%s%s,", cond,
 			      outofline ? "_JUMP" : "",
 			      skippable ? "_OR_SKIP" : "");
 		break;
@@ -1485,11 +1479,11 @@ static void render_element(FILE *out, struct element *e, struct element *tag)
 		goto dont_render_tag;
 
 	case TYPE_REF:
-		if (e->class == ASN1_UNIV && e->method == ASN1_PRIM && e->tag == 0)
+		if (e->class == ASN1_UNIV && e->method == ASN1_PRIM &&
+		    e->tag == 0)
 			goto dont_render_tag;
 	default:
-		render_opcode(out, "ASN1_OP_%sMATCH%s%s,",
-			      cond, act,
+		render_opcode(out, "ASN1_OP_%sMATCH%s%s,", cond, act,
 			      skippable ? "_OR_SKIP" : "");
 		break;
 	}
@@ -1503,9 +1497,7 @@ static void render_element(FILE *out, struct element *e, struct element *tag)
 	if (!tag || !(tag->flags & ELEMENT_TAG_SPECIFIED))
 		tag = e;
 
-	if (tag->class == ASN1_UNIV &&
-	    tag->tag != 14 &&
-	    tag->tag != 15 &&
+	if (tag->class == ASN1_UNIV && tag->tag != 14 && tag->tag != 15 &&
 	    tag->tag != 31)
 		render_opcode(out, "_tag(%s, %s, %s),\n",
 			      asn1_classes[tag->class],
@@ -1514,8 +1506,7 @@ static void render_element(FILE *out, struct element *e, struct element *tag)
 	else
 		render_opcode(out, "_tagn(%s, %s, %2u),\n",
 			      asn1_classes[tag->class],
-			      asn1_methods[tag->method | e->method],
-			      tag->tag);
+			      asn1_methods[tag->method | e->method], tag->tag);
 	tag = NULL;
 dont_render_tag:
 
@@ -1576,9 +1567,11 @@ dont_render_tag:
 			render_element(out, e->children, NULL);
 			render_depth--;
 			if (e->compound == SEQUENCE_OF)
-				render_opcode(out, "ASN1_OP_END_SEQ_OF%s,\n", act);
+				render_opcode(out, "ASN1_OP_END_SEQ_OF%s,\n",
+					      act);
 			else
-				render_opcode(out, "ASN1_OP_END_SET_OF%s,\n", act);
+				render_opcode(out, "ASN1_OP_END_SET_OF%s,\n",
+					      act);
 			render_opcode(out, "_jump_target(%u),\n", entry);
 		}
 		break;
@@ -1590,7 +1583,8 @@ dont_render_tag:
 		 * elements are left out whilst not preventing optional
 		 * elements from being left out.
 		 */
-		fprintf(stderr, "The ASN.1 SET type is not currently supported.\n");
+		fprintf(stderr,
+			"The ASN.1 SET type is not currently supported.\n");
 		exit(1);
 
 	case CHOICE:

@@ -84,7 +84,7 @@ void invalidate_bdev(struct block_device *bdev)
 
 	if (mapping->nrpages) {
 		invalidate_bh_lrus();
-		lru_add_drain_all();	/* make sure all lru add caches are flushed */
+		lru_add_drain_all(); /* make sure all lru add caches are flushed */
 		invalidate_mapping_pages(mapping, 0, -1);
 	}
 }
@@ -94,8 +94,8 @@ EXPORT_SYMBOL(invalidate_bdev);
  * Drop all buffers & page cache for given bdev range. This function bails
  * with error if bdev has other exclusive owner (such as filesystem).
  */
-int truncate_bdev_range(struct block_device *bdev, fmode_t mode,
-			loff_t lstart, loff_t lend)
+int truncate_bdev_range(struct block_device *bdev, fmode_t mode, loff_t lstart,
+			loff_t lend)
 {
 	/*
 	 * If we don't hold exclusive handle for the device, upgrade to it
@@ -315,7 +315,7 @@ EXPORT_SYMBOL(thaw_bdev);
  * Return: negative errno if an error occurs, 0 if submission was successful.
  */
 int bdev_read_page(struct block_device *bdev, sector_t sector,
-			struct page *page)
+		   struct page *page)
 {
 	const struct block_device_operations *ops = bdev->bd_disk->fops;
 	int result = -EOPNOTSUPP;
@@ -352,7 +352,7 @@ int bdev_read_page(struct block_device *bdev, sector_t sector,
  * Return: negative errno if an error occurs, 0 if submission was successful.
  */
 int bdev_write_page(struct block_device *bdev, sector_t sector,
-			struct page *page, struct writeback_control *wbc)
+		    struct page *page, struct writeback_control *wbc)
 {
 	int result;
 	const struct block_device_operations *ops = bdev->bd_disk->fops;
@@ -380,8 +380,8 @@ int bdev_write_page(struct block_device *bdev, sector_t sector,
  * pseudo-fs
  */
 
-static  __cacheline_aligned_in_smp DEFINE_SPINLOCK(bdev_lock);
-static struct kmem_cache * bdev_cachep __read_mostly;
+static __cacheline_aligned_in_smp DEFINE_SPINLOCK(bdev_lock);
+static struct kmem_cache *bdev_cachep __read_mostly;
 
 static struct inode *bdev_alloc_inode(struct super_block *sb)
 {
@@ -445,9 +445,9 @@ static int bd_init_fs_context(struct fs_context *fc)
 }
 
 static struct file_system_type bd_type = {
-	.name		= "bdev",
+	.name = "bdev",
 	.init_fs_context = bd_init_fs_context,
-	.kill_sb	= kill_anon_super,
+	.kill_sb = kill_anon_super,
 };
 
 struct super_block *blockdev_superblock __read_mostly;
@@ -458,17 +458,18 @@ void __init bdev_cache_init(void)
 	int err;
 	static struct vfsmount *bd_mnt;
 
-	bdev_cachep = kmem_cache_create("bdev_cache", sizeof(struct bdev_inode),
-			0, (SLAB_HWCACHE_ALIGN|SLAB_RECLAIM_ACCOUNT|
-				SLAB_MEM_SPREAD|SLAB_ACCOUNT|SLAB_PANIC),
-			init_once);
+	bdev_cachep =
+		kmem_cache_create("bdev_cache", sizeof(struct bdev_inode), 0,
+				  (SLAB_HWCACHE_ALIGN | SLAB_RECLAIM_ACCOUNT |
+				   SLAB_MEM_SPREAD | SLAB_ACCOUNT | SLAB_PANIC),
+				  init_once);
 	err = register_filesystem(&bd_type);
 	if (err)
 		panic("Cannot register bdev pseudo-fs");
 	bd_mnt = kern_mount(&bd_type);
 	if (IS_ERR(bd_mnt))
 		panic("Cannot create bdev pseudo-fs");
-	blockdev_superblock = bd_mnt->mnt_sb;   /* For writeback */
+	blockdev_superblock = bd_mnt->mnt_sb; /* For writeback */
 }
 
 struct block_device *bdev_alloc(struct gendisk *disk, u8 partno)
@@ -513,7 +514,7 @@ long nr_blockdev_pages(void)
 	long ret = 0;
 
 	spin_lock(&blockdev_superblock->s_inode_list_lock);
-	list_for_each_entry(inode, &blockdev_superblock->s_inodes, i_sb_list)
+	list_for_each_entry (inode, &blockdev_superblock->s_inodes, i_sb_list)
 		ret += inode->i_mapping->nrpages;
 	spin_unlock(&blockdev_superblock->s_inode_list_lock);
 
@@ -538,18 +539,18 @@ static bool bd_may_claim(struct block_device *bdev, struct block_device *whole,
 			 void *holder)
 {
 	if (bdev->bd_holder == holder)
-		return true;	 /* already a holder */
+		return true; /* already a holder */
 	else if (bdev->bd_holder != NULL)
-		return false; 	 /* held by someone else */
+		return false; /* held by someone else */
 	else if (whole == bdev)
-		return true;  	 /* is a whole device which isn't held */
+		return true; /* is a whole device which isn't held */
 
 	else if (whole->bd_holder == bd_may_claim)
-		return true; 	 /* is a partition of a device that is being partitioned */
+		return true; /* is a partition of a device that is being partitioned */
 	else if (whole->bd_holder != NULL)
-		return false;	 /* is a partition of a held device */
+		return false; /* is a partition of a held device */
 	else
-		return true;	 /* is a partition of an un-held device */
+		return true; /* is a partition of an un-held device */
 }
 
 /**
@@ -667,7 +668,7 @@ static int blkdev_get_whole(struct block_device *bdev, fmode_t mode)
 		if (ret) {
 			/* avoid ghost partitions on a removed medium */
 			if (ret == -ENOMEDIUM &&
-			     test_bit(GD_NEED_PART_SCAN, &disk->state))
+			    test_bit(GD_NEED_PART_SCAN, &disk->state))
 				bdev_disk_changed(disk, true);
 			return ret;
 		}
@@ -678,7 +679,8 @@ static int blkdev_get_whole(struct block_device *bdev, fmode_t mode)
 	if (test_bit(GD_NEED_PART_SCAN, &disk->state))
 		bdev_disk_changed(disk, false);
 	bdev->bd_openers++;
-	return 0;;
+	return 0;
+	;
 }
 
 static void blkdev_put_whole(struct block_device *bdev, fmode_t mode)
@@ -781,9 +783,9 @@ struct block_device *blkdev_get_by_dev(dev_t dev, fmode_t mode, void *holder)
 	struct gendisk *disk;
 	int ret;
 
-	ret = devcgroup_check_permission(DEVCG_DEV_BLOCK,
-			MAJOR(dev), MINOR(dev),
-			((mode & FMODE_READ) ? DEVCG_ACC_READ : 0) |
+	ret = devcgroup_check_permission(
+		DEVCG_DEV_BLOCK, MAJOR(dev), MINOR(dev),
+		((mode & FMODE_READ) ? DEVCG_ACC_READ : 0) |
 			((mode & FMODE_WRITE) ? DEVCG_ACC_WRITE : 0));
 	if (ret)
 		return ERR_PTR(ret);
@@ -1015,12 +1017,12 @@ void sync_bdevs(bool wait)
 	struct inode *inode, *old_inode = NULL;
 
 	spin_lock(&blockdev_superblock->s_inode_list_lock);
-	list_for_each_entry(inode, &blockdev_superblock->s_inodes, i_sb_list) {
+	list_for_each_entry (inode, &blockdev_superblock->s_inodes, i_sb_list) {
 		struct address_space *mapping = inode->i_mapping;
 		struct block_device *bdev;
 
 		spin_lock(&inode->i_lock);
-		if (inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW) ||
+		if (inode->i_state & (I_FREEING | I_WILL_FREE | I_NEW) ||
 		    mapping->nrpages == 0) {
 			spin_unlock(&inode->i_lock);
 			continue;

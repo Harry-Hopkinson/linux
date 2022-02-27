@@ -48,17 +48,17 @@ static DEFINE_MUTEX(blkcg_pol_mutex);
 struct blkcg blkcg_root;
 EXPORT_SYMBOL_GPL(blkcg_root);
 
-struct cgroup_subsys_state * const blkcg_root_css = &blkcg_root.css;
+struct cgroup_subsys_state *const blkcg_root_css = &blkcg_root.css;
 EXPORT_SYMBOL_GPL(blkcg_root_css);
 
 static struct blkcg_policy *blkcg_policy[BLKCG_MAX_POLS];
 
-static LIST_HEAD(all_blkcgs);		/* protected by blkcg_pol_mutex */
+static LIST_HEAD(all_blkcgs); /* protected by blkcg_pol_mutex */
 
 bool blkcg_debug_stats = false;
 static struct workqueue_struct *blkcg_punt_bio_wq;
 
-#define BLKG_DESTROY_BATCH_SIZE  64
+#define BLKG_DESTROY_BATCH_SIZE 64
 
 static bool blkcg_policy_enabled(struct request_queue *q,
 				 const struct blkcg_policy *pol)
@@ -118,8 +118,8 @@ static void blkg_release(struct percpu_ref *ref)
 
 static void blkg_async_bio_workfn(struct work_struct *work)
 {
-	struct blkcg_gq *blkg = container_of(work, struct blkcg_gq,
-					     async_bio_work);
+	struct blkcg_gq *blkg =
+		container_of(work, struct blkcg_gq, async_bio_work);
 	struct bio_list bios = BIO_EMPTY_LIST;
 	struct bio *bio;
 	struct blk_plug plug;
@@ -176,7 +176,7 @@ static struct blkcg_gq *blkg_alloc(struct blkcg *blkcg, struct request_queue *q,
 	blkg->blkcg = blkcg;
 
 	u64_stats_init(&blkg->iostat.sync);
-	for_each_possible_cpu(cpu)
+	for_each_possible_cpu (cpu)
 		u64_stats_init(&per_cpu_ptr(blkg->iostat_cpu, cpu)->sync);
 
 	for (i = 0; i < BLKCG_MAX_POLS; i++) {
@@ -326,7 +326,7 @@ err_free_blkg:
  * down from root.
  */
 static struct blkcg_gq *blkg_lookup_create(struct blkcg *blkcg,
-		struct request_queue *q)
+					   struct request_queue *q)
 {
 	struct blkcg_gq *blkg;
 	unsigned long flags;
@@ -430,7 +430,7 @@ static void blkg_destroy_all(struct request_queue *q)
 
 restart:
 	spin_lock_irq(&q->queue_lock);
-	list_for_each_entry_safe(blkg, n, &q->blkg_list, q_node) {
+	list_for_each_entry_safe (blkg, n, &q->blkg_list, q_node) {
 		struct blkcg *blkcg = blkg->blkcg;
 
 		spin_lock(&blkcg->lock);
@@ -468,8 +468,8 @@ static int blkcg_reset_stats(struct cgroup_subsys_state *css,
 	 * stat updates.  This is a debug feature which shouldn't exist
 	 * anyway.  If you get hit by a race, retry.
 	 */
-	hlist_for_each_entry(blkg, &blkcg->blkg_list, blkcg_node) {
-		for_each_possible_cpu(cpu) {
+	hlist_for_each_entry (blkg, &blkcg->blkg_list, blkcg_node) {
+		for_each_possible_cpu (cpu) {
 			struct blkg_iostat_set *bis =
 				per_cpu_ptr(blkg->iostat_cpu, cpu);
 			memset(bis, 0, sizeof(*bis));
@@ -524,7 +524,7 @@ void blkcg_print_blkgs(struct seq_file *sf, struct blkcg *blkcg,
 	u64 total = 0;
 
 	rcu_read_lock();
-	hlist_for_each_entry_rcu(blkg, &blkcg->blkg_list, blkcg_node) {
+	hlist_for_each_entry_rcu (blkg, &blkcg->blkg_list, blkcg_node) {
 		spin_lock_irq(&blkg->q->queue_lock);
 		if (blkcg_policy_enabled(blkg->q, pol))
 			total += prfill(sf, blkg->pd[pol->plid], data);
@@ -621,8 +621,8 @@ struct block_device *blkcg_conf_open_bdev(char **inputp)
  * lock and queue lock held and must be paired with blkg_conf_finish().
  */
 int blkg_conf_prep(struct blkcg *blkcg, const struct blkcg_policy *pol,
-		   char *input, struct blkg_conf_ctx *ctx)
-	__acquires(rcu) __acquires(&bdev->bd_queue->queue_lock)
+		   char *input, struct blkg_conf_ctx *ctx) __acquires(rcu)
+	__acquires(&bdev->bd_queue->queue_lock)
 {
 	struct block_device *bdev;
 	struct request_queue *q;
@@ -798,9 +798,10 @@ static void blkcg_rstat_flush(struct cgroup_subsys_state *css, int cpu)
 
 	rcu_read_lock();
 
-	hlist_for_each_entry_rcu(blkg, &blkcg->blkg_list, blkcg_node) {
+	hlist_for_each_entry_rcu (blkg, &blkcg->blkg_list, blkcg_node) {
 		struct blkcg_gq *parent = blkg->parent;
-		struct blkg_iostat_set *bisc = per_cpu_ptr(blkg->iostat_cpu, cpu);
+		struct blkg_iostat_set *bisc =
+			per_cpu_ptr(blkg->iostat_cpu, cpu);
 		struct blkg_iostat cur, delta;
 		unsigned long flags;
 		unsigned int seq;
@@ -821,12 +822,14 @@ static void blkcg_rstat_flush(struct cgroup_subsys_state *css, int cpu)
 
 		/* propagate global delta to parent (unless that's root) */
 		if (parent && parent->parent) {
-			flags = u64_stats_update_begin_irqsave(&parent->iostat.sync);
+			flags = u64_stats_update_begin_irqsave(
+				&parent->iostat.sync);
 			blkg_iostat_set(&delta, &blkg->iostat.cur);
 			blkg_iostat_sub(&delta, &blkg->iostat.last);
 			blkg_iostat_add(&parent->iostat.cur, &delta);
 			blkg_iostat_add(&blkg->iostat.last, &delta);
-			u64_stats_update_end_irqrestore(&parent->iostat.sync, flags);
+			u64_stats_update_end_irqrestore(&parent->iostat.sync,
+							flags);
 		}
 	}
 
@@ -859,7 +862,7 @@ static void blkcg_fill_root_iostats(void)
 		int cpu;
 
 		memset(&tmp, 0, sizeof(tmp));
-		for_each_possible_cpu(cpu) {
+		for_each_possible_cpu (cpu) {
 			struct disk_stats *cpu_dkstats;
 			unsigned long flags;
 
@@ -878,9 +881,11 @@ static void blkcg_fill_root_iostats(void)
 			tmp.bytes[BLKG_IOSTAT_DISCARD] +=
 				cpu_dkstats->sectors[STAT_DISCARD] << 9;
 
-			flags = u64_stats_update_begin_irqsave(&blkg->iostat.sync);
+			flags = u64_stats_update_begin_irqsave(
+				&blkg->iostat.sync);
 			blkg_iostat_set(&blkg->iostat.cur, &tmp);
-			u64_stats_update_end_irqrestore(&blkg->iostat.sync, flags);
+			u64_stats_update_end_irqrestore(&blkg->iostat.sync,
+							flags);
 		}
 	}
 }
@@ -916,16 +921,17 @@ static void blkcg_print_one_stat(struct blkcg_gq *blkg, struct seq_file *s)
 
 	if (rbytes || wbytes || rios || wios) {
 		has_stats = true;
-		seq_printf(s, "rbytes=%llu wbytes=%llu rios=%llu wios=%llu dbytes=%llu dios=%llu",
-			rbytes, wbytes, rios, wios,
-			dbytes, dios);
+		seq_printf(
+			s,
+			"rbytes=%llu wbytes=%llu rios=%llu wios=%llu dbytes=%llu dios=%llu",
+			rbytes, wbytes, rios, wios, dbytes, dios);
 	}
 
 	if (blkcg_debug_stats && atomic_read(&blkg->use_delay)) {
 		has_stats = true;
 		seq_printf(s, " use_delay=%d delay_nsec=%llu",
-			atomic_read(&blkg->use_delay),
-			atomic64_read(&blkg->delay_nsec));
+			   atomic_read(&blkg->use_delay),
+			   atomic64_read(&blkg->delay_nsec));
 	}
 
 	for (i = 0; i < BLKCG_MAX_POLS; i++) {
@@ -953,7 +959,7 @@ static int blkcg_print_stat(struct seq_file *sf, void *v)
 		cgroup_rstat_flush(blkcg->css.cgroup);
 
 	rcu_read_lock();
-	hlist_for_each_entry_rcu(blkg, &blkcg->blkg_list, blkcg_node) {
+	hlist_for_each_entry_rcu (blkg, &blkcg->blkg_list, blkcg_node) {
 		spin_lock_irq(&blkg->q->queue_lock);
 		blkcg_print_one_stat(blkg, sf);
 		spin_unlock_irq(&blkg->q->queue_lock);
@@ -967,7 +973,7 @@ static struct cftype blkcg_files[] = {
 		.name = "stat",
 		.seq_show = blkcg_print_stat,
 	},
-	{ }	/* terminate */
+	{} /* terminate */
 };
 
 static struct cftype blkcg_legacy_files[] = {
@@ -975,7 +981,7 @@ static struct cftype blkcg_legacy_files[] = {
 		.name = "reset_stats",
 		.write_u64 = blkcg_reset_stats,
 	},
-	{ }	/* terminate */
+	{} /* terminate */
 };
 
 /*
@@ -1036,8 +1042,8 @@ void blkcg_destroy_blkgs(struct blkcg *blkcg)
 	spin_lock_irq(&blkcg->lock);
 
 	while (!hlist_empty(&blkcg->blkg_list)) {
-		struct blkcg_gq *blkg = hlist_entry(blkcg->blkg_list.first,
-						struct blkcg_gq, blkcg_node);
+		struct blkcg_gq *blkg = hlist_entry(
+			blkcg->blkg_list.first, struct blkcg_gq, blkcg_node);
 		struct request_queue *q = blkg->q;
 
 		if (need_resched() || !spin_trylock(&q->queue_lock)) {
@@ -1096,7 +1102,7 @@ blkcg_css_alloc(struct cgroup_subsys_state *parent_css)
 		}
 	}
 
-	for (i = 0; i < BLKCG_MAX_POLS ; i++) {
+	for (i = 0; i < BLKCG_MAX_POLS; i++) {
 		struct blkcg_policy *pol = blkcg_policy[i];
 		struct blkcg_policy_data *cpd;
 
@@ -1247,7 +1253,7 @@ static void blkcg_bind(struct cgroup_subsys_state *root_css)
 		if (!pol || !pol->cpd_bind_fn)
 			continue;
 
-		list_for_each_entry(blkcg, &all_blkcgs, all_blkcgs_node)
+		list_for_each_entry (blkcg, &all_blkcgs, all_blkcgs_node)
 			if (blkcg->cpd[pol->plid])
 				pol->cpd_bind_fn(blkcg->cpd[pol->plid]);
 	}
@@ -1315,7 +1321,7 @@ retry:
 	spin_lock_irq(&q->queue_lock);
 
 	/* blkg_list is pushed at the head, reverse walk to allocate parents first */
-	list_for_each_entry_reverse(blkg, &q->blkg_list, q_node) {
+	list_for_each_entry_reverse (blkg, &q->blkg_list, q_node) {
 		struct blkg_policy_data *pd;
 
 		if (blkg->pd[pol->plid])
@@ -1344,8 +1350,8 @@ retry:
 
 			if (pd_prealloc)
 				pol->pd_free_fn(pd_prealloc);
-			pd_prealloc = pol->pd_alloc_fn(GFP_KERNEL, q,
-						       blkg->blkcg);
+			pd_prealloc =
+				pol->pd_alloc_fn(GFP_KERNEL, q, blkg->blkcg);
 			if (pd_prealloc)
 				goto retry;
 			else
@@ -1359,7 +1365,7 @@ retry:
 
 	/* all allocated, init in the same order */
 	if (pol->pd_init_fn)
-		list_for_each_entry_reverse(blkg, &q->blkg_list, q_node)
+		list_for_each_entry_reverse (blkg, &q->blkg_list, q_node)
 			pol->pd_init_fn(blkg->pd[pol->plid]);
 
 	__set_bit(pol->plid, q->blkcg_pols);
@@ -1378,7 +1384,7 @@ out:
 enomem:
 	/* alloc failed, nothing's initialized yet, free everything */
 	spin_lock_irq(&q->queue_lock);
-	list_for_each_entry(blkg, &q->blkg_list, q_node) {
+	list_for_each_entry (blkg, &q->blkg_list, q_node) {
 		struct blkcg *blkcg = blkg->blkcg;
 
 		spin_lock(&blkcg->lock);
@@ -1417,7 +1423,7 @@ void blkcg_deactivate_policy(struct request_queue *q,
 
 	__clear_bit(pol->plid, q->blkcg_pols);
 
-	list_for_each_entry(blkg, &q->blkg_list, q_node) {
+	list_for_each_entry (blkg, &q->blkg_list, q_node) {
 		struct blkcg *blkcg = blkg->blkcg;
 
 		spin_lock(&blkcg->lock);
@@ -1464,7 +1470,7 @@ int blkcg_policy_register(struct blkcg_policy *pol)
 
 	/* Make sure cpd/pd_alloc_fn and cpd/pd_free_fn in pairs */
 	if ((!pol->cpd_alloc_fn ^ !pol->cpd_free_fn) ||
-		(!pol->pd_alloc_fn ^ !pol->pd_free_fn))
+	    (!pol->pd_alloc_fn ^ !pol->pd_free_fn))
 		goto err_unlock;
 
 	/* register @pol */
@@ -1473,7 +1479,7 @@ int blkcg_policy_register(struct blkcg_policy *pol)
 
 	/* allocate and install cpd's */
 	if (pol->cpd_alloc_fn) {
-		list_for_each_entry(blkcg, &all_blkcgs, all_blkcgs_node) {
+		list_for_each_entry (blkcg, &all_blkcgs, all_blkcgs_node) {
 			struct blkcg_policy_data *cpd;
 
 			cpd = pol->cpd_alloc_fn(GFP_KERNEL);
@@ -1502,7 +1508,7 @@ int blkcg_policy_register(struct blkcg_policy *pol)
 
 err_free_cpds:
 	if (pol->cpd_free_fn) {
-		list_for_each_entry(blkcg, &all_blkcgs, all_blkcgs_node) {
+		list_for_each_entry (blkcg, &all_blkcgs, all_blkcgs_node) {
 			if (blkcg->cpd[pol->plid]) {
 				pol->cpd_free_fn(blkcg->cpd[pol->plid]);
 				blkcg->cpd[pol->plid] = NULL;
@@ -1542,7 +1548,7 @@ void blkcg_policy_unregister(struct blkcg_policy *pol)
 	mutex_lock(&blkcg_pol_mutex);
 
 	if (pol->cpd_free_fn) {
-		list_for_each_entry(blkcg, &all_blkcgs, all_blkcgs_node) {
+		list_for_each_entry (blkcg, &all_blkcgs, all_blkcgs_node) {
 			if (blkcg->cpd[pol->plid]) {
 				pol->cpd_free_fn(blkcg->cpd[pol->plid]);
 				blkcg->cpd[pol->plid] = NULL;
@@ -1806,8 +1812,8 @@ void blkcg_add_delay(struct blkcg_gq *blkg, u64 now, u64 delta)
  * blkg->parent pointers are always valid.  This returns the blkg that it ended
  * up taking a reference on or %NULL if no reference was taken.
  */
-static inline struct blkcg_gq *blkg_tryget_closest(struct bio *bio,
-		struct cgroup_subsys_state *css)
+static inline struct blkcg_gq *
+blkg_tryget_closest(struct bio *bio, struct cgroup_subsys_state *css)
 {
 	struct blkcg_gq *blkg, *ret_blkg = NULL;
 
@@ -1934,9 +1940,9 @@ void blk_cgroup_bio_start(struct bio *bio)
 
 static int __init blkcg_init(void)
 {
-	blkcg_punt_bio_wq = alloc_workqueue("blkcg_punt_bio",
-					    WQ_MEM_RECLAIM | WQ_FREEZABLE |
-					    WQ_UNBOUND | WQ_SYSFS, 0);
+	blkcg_punt_bio_wq = alloc_workqueue(
+		"blkcg_punt_bio",
+		WQ_MEM_RECLAIM | WQ_FREEZABLE | WQ_UNBOUND | WQ_SYSFS, 0);
 	if (!blkcg_punt_bio_wq)
 		return -ENOMEM;
 	return 0;
@@ -1944,4 +1950,5 @@ static int __init blkcg_init(void)
 subsys_initcall(blkcg_init);
 
 module_param(blkcg_debug_stats, bool, 0644);
-MODULE_PARM_DESC(blkcg_debug_stats, "True if you want debug stats, false if not");
+MODULE_PARM_DESC(blkcg_debug_stats,
+		 "True if you want debug stats, false if not");

@@ -18,8 +18,8 @@ static void *get_mq(struct ctl_table *table)
 	return which;
 }
 
-static int proc_mq_dointvec(struct ctl_table *table, int write,
-			    void *buffer, size_t *lenp, loff_t *ppos)
+static int proc_mq_dointvec(struct ctl_table *table, int write, void *buffer,
+			    size_t *lenp, loff_t *ppos)
 {
 	struct ctl_table mq_table;
 	memcpy(&mq_table, table, sizeof(mq_table));
@@ -29,14 +29,13 @@ static int proc_mq_dointvec(struct ctl_table *table, int write,
 }
 
 static int proc_mq_dointvec_minmax(struct ctl_table *table, int write,
-		void *buffer, size_t *lenp, loff_t *ppos)
+				   void *buffer, size_t *lenp, loff_t *ppos)
 {
 	struct ctl_table mq_table;
 	memcpy(&mq_table, table, sizeof(mq_table));
 	mq_table.data = get_mq(table);
 
-	return proc_dointvec_minmax(&mq_table, write, buffer,
-					lenp, ppos);
+	return proc_dointvec_minmax(&mq_table, write, buffer, lenp, ppos);
 }
 #else
 #define proc_mq_dointvec NULL
@@ -51,68 +50,64 @@ static int msg_maxsize_limit_max = HARD_MSGSIZEMAX;
 
 static struct ctl_table mq_sysctls[] = {
 	{
-		.procname	= "queues_max",
-		.data		= &init_ipc_ns.mq_queues_max,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler	= proc_mq_dointvec,
+		.procname = "queues_max",
+		.data = &init_ipc_ns.mq_queues_max,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_mq_dointvec,
 	},
 	{
-		.procname	= "msg_max",
-		.data		= &init_ipc_ns.mq_msg_max,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler	= proc_mq_dointvec_minmax,
-		.extra1		= &msg_max_limit_min,
-		.extra2		= &msg_max_limit_max,
+		.procname = "msg_max",
+		.data = &init_ipc_ns.mq_msg_max,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_mq_dointvec_minmax,
+		.extra1 = &msg_max_limit_min,
+		.extra2 = &msg_max_limit_max,
 	},
 	{
-		.procname	= "msgsize_max",
-		.data		= &init_ipc_ns.mq_msgsize_max,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler	= proc_mq_dointvec_minmax,
-		.extra1		= &msg_maxsize_limit_min,
-		.extra2		= &msg_maxsize_limit_max,
+		.procname = "msgsize_max",
+		.data = &init_ipc_ns.mq_msgsize_max,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_mq_dointvec_minmax,
+		.extra1 = &msg_maxsize_limit_min,
+		.extra2 = &msg_maxsize_limit_max,
 	},
 	{
-		.procname	= "msg_default",
-		.data		= &init_ipc_ns.mq_msg_default,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler	= proc_mq_dointvec_minmax,
-		.extra1		= &msg_max_limit_min,
-		.extra2		= &msg_max_limit_max,
+		.procname = "msg_default",
+		.data = &init_ipc_ns.mq_msg_default,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_mq_dointvec_minmax,
+		.extra1 = &msg_max_limit_min,
+		.extra2 = &msg_max_limit_max,
 	},
 	{
-		.procname	= "msgsize_default",
-		.data		= &init_ipc_ns.mq_msgsize_default,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler	= proc_mq_dointvec_minmax,
-		.extra1		= &msg_maxsize_limit_min,
-		.extra2		= &msg_maxsize_limit_max,
+		.procname = "msgsize_default",
+		.data = &init_ipc_ns.mq_msgsize_default,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_mq_dointvec_minmax,
+		.extra1 = &msg_maxsize_limit_min,
+		.extra2 = &msg_maxsize_limit_max,
 	},
 	{}
 };
 
-static struct ctl_table mq_sysctl_dir[] = {
-	{
-		.procname	= "mqueue",
-		.mode		= 0555,
-		.child		= mq_sysctls,
-	},
-	{}
-};
+static struct ctl_table mq_sysctl_dir[] = { {
+						    .procname = "mqueue",
+						    .mode = 0555,
+						    .child = mq_sysctls,
+					    },
+					    {} };
 
-static struct ctl_table mq_sysctl_root[] = {
-	{
-		.procname	= "fs",
-		.mode		= 0555,
-		.child		= mq_sysctl_dir,
-	},
-	{}
-};
+static struct ctl_table mq_sysctl_root[] = { {
+						     .procname = "fs",
+						     .mode = 0555,
+						     .child = mq_sysctl_dir,
+					     },
+					     {} };
 
 struct ctl_table_header *mq_register_sysctl_table(void)
 {

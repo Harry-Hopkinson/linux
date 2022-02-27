@@ -13,10 +13,10 @@
 #include <linux/mpi.h>
 
 struct dh_ctx {
-	MPI p;	/* Value is guaranteed to be set. */
-	MPI q;	/* Value is optional. */
-	MPI g;	/* Value is guaranteed to be set. */
-	MPI xa;	/* Value is guaranteed to be set. */
+	MPI p; /* Value is guaranteed to be set. */
+	MPI q; /* Value is optional. */
+	MPI g; /* Value is guaranteed to be set. */
+	MPI xa; /* Value is guaranteed to be set. */
 };
 
 static void dh_clear_ctx(struct dh_ctx *ctx)
@@ -211,7 +211,7 @@ static int dh_compute_value(struct kpp_request *req)
 			if (ret)
 				goto err_free_base;
 
-		/* SP800-56A rev 3 5.6.2.1.3 key check */
+			/* SP800-56A rev 3 5.6.2.1.3 key check */
 		} else {
 			if (dh_is_pubkey_valid(ctx, val)) {
 				ret = -EAGAIN;

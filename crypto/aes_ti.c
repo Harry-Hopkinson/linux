@@ -50,19 +50,19 @@ static void aesti_decrypt(struct crypto_tfm *tfm, u8 *out, const u8 *in)
 }
 
 static struct crypto_alg aes_alg = {
-	.cra_name			= "aes",
-	.cra_driver_name		= "aes-fixed-time",
-	.cra_priority			= 100 + 1,
-	.cra_flags			= CRYPTO_ALG_TYPE_CIPHER,
-	.cra_blocksize			= AES_BLOCK_SIZE,
-	.cra_ctxsize			= sizeof(struct crypto_aes_ctx),
-	.cra_module			= THIS_MODULE,
+	.cra_name = "aes",
+	.cra_driver_name = "aes-fixed-time",
+	.cra_priority = 100 + 1,
+	.cra_flags = CRYPTO_ALG_TYPE_CIPHER,
+	.cra_blocksize = AES_BLOCK_SIZE,
+	.cra_ctxsize = sizeof(struct crypto_aes_ctx),
+	.cra_module = THIS_MODULE,
 
-	.cra_cipher.cia_min_keysize	= AES_MIN_KEY_SIZE,
-	.cra_cipher.cia_max_keysize	= AES_MAX_KEY_SIZE,
-	.cra_cipher.cia_setkey		= aesti_set_key,
-	.cra_cipher.cia_encrypt		= aesti_encrypt,
-	.cra_cipher.cia_decrypt		= aesti_decrypt
+	.cra_cipher.cia_min_keysize = AES_MIN_KEY_SIZE,
+	.cra_cipher.cia_max_keysize = AES_MAX_KEY_SIZE,
+	.cra_cipher.cia_setkey = aesti_set_key,
+	.cra_cipher.cia_encrypt = aesti_encrypt,
+	.cra_cipher.cia_decrypt = aesti_decrypt
 };
 
 static int __init aes_init(void)

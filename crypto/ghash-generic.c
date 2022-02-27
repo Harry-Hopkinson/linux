@@ -52,8 +52,8 @@ static int ghash_init(struct shash_desc *desc)
 	return 0;
 }
 
-static int ghash_setkey(struct crypto_shash *tfm,
-			const u8 *key, unsigned int keylen)
+static int ghash_setkey(struct crypto_shash *tfm, const u8 *key,
+			unsigned int keylen)
 {
 	struct ghash_ctx *ctx = crypto_shash_ctx(tfm);
 	be128 k;
@@ -75,8 +75,8 @@ static int ghash_setkey(struct crypto_shash *tfm,
 	return 0;
 }
 
-static int ghash_update(struct shash_desc *desc,
-			 const u8 *src, unsigned int srclen)
+static int ghash_update(struct shash_desc *desc, const u8 *src,
+			unsigned int srclen)
 {
 	struct ghash_desc_ctx *dctx = shash_desc_ctx(desc);
 	struct ghash_ctx *ctx = crypto_shash_ctx(desc->tfm);

@@ -42,29 +42,29 @@
 /*
  * User definable settings.
  */
-#define VMAC_TAG_LEN	64
-#define VMAC_KEY_SIZE	128/* Must be 128, 192 or 256			*/
-#define VMAC_KEY_LEN	(VMAC_KEY_SIZE/8)
-#define VMAC_NHBYTES	128/* Must 2^i for any 3 < i < 13 Standard = 128*/
-#define VMAC_NONCEBYTES	16
+#define VMAC_TAG_LEN 64
+#define VMAC_KEY_SIZE 128 /* Must be 128, 192 or 256			*/
+#define VMAC_KEY_LEN (VMAC_KEY_SIZE / 8)
+#define VMAC_NHBYTES 128 /* Must 2^i for any 3 < i < 13 Standard = 128*/
+#define VMAC_NONCEBYTES 16
 
 /* per-transform (per-key) context */
 struct vmac_tfm_ctx {
 	struct crypto_cipher *cipher;
-	u64 nhkey[(VMAC_NHBYTES/8)+2*(VMAC_TAG_LEN/64-1)];
-	u64 polykey[2*VMAC_TAG_LEN/64];
-	u64 l3key[2*VMAC_TAG_LEN/64];
+	u64 nhkey[(VMAC_NHBYTES / 8) + 2 * (VMAC_TAG_LEN / 64 - 1)];
+	u64 polykey[2 * VMAC_TAG_LEN / 64];
+	u64 l3key[2 * VMAC_TAG_LEN / 64];
 };
 
 /* per-request context */
 struct vmac_desc_ctx {
 	union {
-		u8 partial[VMAC_NHBYTES];	/* partial block */
+		u8 partial[VMAC_NHBYTES]; /* partial block */
 		__le64 partial_words[VMAC_NHBYTES / 8];
 	};
-	unsigned int partial_size;	/* size of the partial block */
+	unsigned int partial_size; /* size of the partial block */
 	bool first_block_processed;
-	u64 polytmp[2*VMAC_TAG_LEN/64];	/* running total of L2-hash */
+	u64 polytmp[2 * VMAC_TAG_LEN / 64]; /* running total of L2-hash */
 	union {
 		u8 bytes[VMAC_NONCEBYTES];
 		__be64 pads[VMAC_NONCEBYTES / 8];
@@ -76,13 +76,13 @@ struct vmac_desc_ctx {
  * Constants and masks
  */
 #define UINT64_C(x) x##ULL
-static const u64 p64   = UINT64_C(0xfffffffffffffeff);	/* 2^64 - 257 prime  */
-static const u64 m62   = UINT64_C(0x3fffffffffffffff);	/* 62-bit mask       */
-static const u64 m63   = UINT64_C(0x7fffffffffffffff);	/* 63-bit mask       */
-static const u64 m64   = UINT64_C(0xffffffffffffffff);	/* 64-bit mask       */
-static const u64 mpoly = UINT64_C(0x1fffffff1fffffff);	/* Poly key mask     */
+static const u64 p64 = UINT64_C(0xfffffffffffffeff); /* 2^64 - 257 prime  */
+static const u64 m62 = UINT64_C(0x3fffffffffffffff); /* 62-bit mask       */
+static const u64 m63 = UINT64_C(0x7fffffffffffffff); /* 63-bit mask       */
+static const u64 m64 = UINT64_C(0xffffffffffffffff); /* 64-bit mask       */
+static const u64 mpoly = UINT64_C(0x1fffffff1fffffff); /* Poly key mask     */
 
-#define pe64_to_cpup le64_to_cpup		/* Prefer little endian */
+#define pe64_to_cpup le64_to_cpup /* Prefer little endian */
 
 #ifdef __LITTLE_ENDIAN
 #define INDEX_HIGH 1
@@ -101,35 +101,35 @@ static const u64 mpoly = UINT64_C(0x1fffffff1fffffff);	/* Poly key mask     */
  * ADD128: 128x128->128-bit addition
  */
 
-#define ADD128(rh, rl, ih, il)						\
-	do {								\
-		u64 _il = (il);						\
-		(rl) += (_il);						\
-		if ((rl) < (_il))					\
-			(rh)++;						\
-		(rh) += (ih);						\
+#define ADD128(rh, rl, ih, il)                                                 \
+	do {                                                                   \
+		u64 _il = (il);                                                \
+		(rl) += (_il);                                                 \
+		if ((rl) < (_il))                                              \
+			(rh)++;                                                \
+		(rh) += (ih);                                                  \
 	} while (0)
 
-#define MUL32(i1, i2)	((u64)(u32)(i1)*(u32)(i2))
+#define MUL32(i1, i2) ((u64)(u32)(i1) * (u32)(i2))
 
-#define PMUL64(rh, rl, i1, i2)	/* Assumes m doesn't overflow */	\
-	do {								\
-		u64 _i1 = (i1), _i2 = (i2);				\
-		u64 m = MUL32(_i1, _i2>>32) + MUL32(_i1>>32, _i2);	\
-		rh = MUL32(_i1>>32, _i2>>32);				\
-		rl = MUL32(_i1, _i2);					\
-		ADD128(rh, rl, (m >> 32), (m << 32));			\
+#define PMUL64(rh, rl, i1, i2) /* Assumes m doesn't overflow */                \
+	do {                                                                   \
+		u64 _i1 = (i1), _i2 = (i2);                                    \
+		u64 m = MUL32(_i1, _i2 >> 32) + MUL32(_i1 >> 32, _i2);         \
+		rh = MUL32(_i1 >> 32, _i2 >> 32);                              \
+		rl = MUL32(_i1, _i2);                                          \
+		ADD128(rh, rl, (m >> 32), (m << 32));                          \
 	} while (0)
 
-#define MUL64(rh, rl, i1, i2)						\
-	do {								\
-		u64 _i1 = (i1), _i2 = (i2);				\
-		u64 m1 = MUL32(_i1, _i2>>32);				\
-		u64 m2 = MUL32(_i1>>32, _i2);				\
-		rh = MUL32(_i1>>32, _i2>>32);				\
-		rl = MUL32(_i1, _i2);					\
-		ADD128(rh, rl, (m1 >> 32), (m1 << 32));			\
-		ADD128(rh, rl, (m2 >> 32), (m2 << 32));			\
+#define MUL64(rh, rl, i1, i2)                                                  \
+	do {                                                                   \
+		u64 _i1 = (i1), _i2 = (i2);                                    \
+		u64 m1 = MUL32(_i1, _i2 >> 32);                                \
+		u64 m2 = MUL32(_i1 >> 32, _i2);                                \
+		rh = MUL32(_i1 >> 32, _i2 >> 32);                              \
+		rl = MUL32(_i1, _i2);                                          \
+		ADD128(rh, rl, (m1 >> 32), (m1 << 32));                        \
+		ADD128(rh, rl, (m2 >> 32), (m2 << 32));                        \
 	} while (0)
 
 /*
@@ -146,143 +146,154 @@ static const u64 mpoly = UINT64_C(0x1fffffff1fffffff);	/* Poly key mask     */
 
 #ifdef CONFIG_64BIT
 
-#define nh_16(mp, kp, nw, rh, rl)					\
-	do {								\
-		int i; u64 th, tl;					\
-		rh = rl = 0;						\
-		for (i = 0; i < nw; i += 2) {				\
-			MUL64(th, tl, pe64_to_cpup((mp)+i)+(kp)[i],	\
-				pe64_to_cpup((mp)+i+1)+(kp)[i+1]);	\
-			ADD128(rh, rl, th, tl);				\
-		}							\
+#define nh_16(mp, kp, nw, rh, rl)                                              \
+	do {                                                                   \
+		int i;                                                         \
+		u64 th, tl;                                                    \
+		rh = rl = 0;                                                   \
+		for (i = 0; i < nw; i += 2) {                                  \
+			MUL64(th, tl, pe64_to_cpup((mp) + i) + (kp)[i],        \
+			      pe64_to_cpup((mp) + i + 1) + (kp)[i + 1]);       \
+			ADD128(rh, rl, th, tl);                                \
+		}                                                              \
 	} while (0)
 
-#define nh_16_2(mp, kp, nw, rh, rl, rh1, rl1)				\
-	do {								\
-		int i; u64 th, tl;					\
-		rh1 = rl1 = rh = rl = 0;				\
-		for (i = 0; i < nw; i += 2) {				\
-			MUL64(th, tl, pe64_to_cpup((mp)+i)+(kp)[i],	\
-				pe64_to_cpup((mp)+i+1)+(kp)[i+1]);	\
-			ADD128(rh, rl, th, tl);				\
-			MUL64(th, tl, pe64_to_cpup((mp)+i)+(kp)[i+2],	\
-				pe64_to_cpup((mp)+i+1)+(kp)[i+3]);	\
-			ADD128(rh1, rl1, th, tl);			\
-		}							\
+#define nh_16_2(mp, kp, nw, rh, rl, rh1, rl1)                                  \
+	do {                                                                   \
+		int i;                                                         \
+		u64 th, tl;                                                    \
+		rh1 = rl1 = rh = rl = 0;                                       \
+		for (i = 0; i < nw; i += 2) {                                  \
+			MUL64(th, tl, pe64_to_cpup((mp) + i) + (kp)[i],        \
+			      pe64_to_cpup((mp) + i + 1) + (kp)[i + 1]);       \
+			ADD128(rh, rl, th, tl);                                \
+			MUL64(th, tl, pe64_to_cpup((mp) + i) + (kp)[i + 2],    \
+			      pe64_to_cpup((mp) + i + 1) + (kp)[i + 3]);       \
+			ADD128(rh1, rl1, th, tl);                              \
+		}                                                              \
 	} while (0)
 
 #if (VMAC_NHBYTES >= 64) /* These versions do 64-bytes of message at a time */
-#define nh_vmac_nhbytes(mp, kp, nw, rh, rl)				\
-	do {								\
-		int i; u64 th, tl;					\
-		rh = rl = 0;						\
-		for (i = 0; i < nw; i += 8) {				\
-			MUL64(th, tl, pe64_to_cpup((mp)+i)+(kp)[i],	\
-				pe64_to_cpup((mp)+i+1)+(kp)[i+1]);	\
-			ADD128(rh, rl, th, tl);				\
-			MUL64(th, tl, pe64_to_cpup((mp)+i+2)+(kp)[i+2],	\
-				pe64_to_cpup((mp)+i+3)+(kp)[i+3]);	\
-			ADD128(rh, rl, th, tl);				\
-			MUL64(th, tl, pe64_to_cpup((mp)+i+4)+(kp)[i+4],	\
-				pe64_to_cpup((mp)+i+5)+(kp)[i+5]);	\
-			ADD128(rh, rl, th, tl);				\
-			MUL64(th, tl, pe64_to_cpup((mp)+i+6)+(kp)[i+6],	\
-				pe64_to_cpup((mp)+i+7)+(kp)[i+7]);	\
-			ADD128(rh, rl, th, tl);				\
-		}							\
+#define nh_vmac_nhbytes(mp, kp, nw, rh, rl)                                    \
+	do {                                                                   \
+		int i;                                                         \
+		u64 th, tl;                                                    \
+		rh = rl = 0;                                                   \
+		for (i = 0; i < nw; i += 8) {                                  \
+			MUL64(th, tl, pe64_to_cpup((mp) + i) + (kp)[i],        \
+			      pe64_to_cpup((mp) + i + 1) + (kp)[i + 1]);       \
+			ADD128(rh, rl, th, tl);                                \
+			MUL64(th, tl,                                          \
+			      pe64_to_cpup((mp) + i + 2) + (kp)[i + 2],        \
+			      pe64_to_cpup((mp) + i + 3) + (kp)[i + 3]);       \
+			ADD128(rh, rl, th, tl);                                \
+			MUL64(th, tl,                                          \
+			      pe64_to_cpup((mp) + i + 4) + (kp)[i + 4],        \
+			      pe64_to_cpup((mp) + i + 5) + (kp)[i + 5]);       \
+			ADD128(rh, rl, th, tl);                                \
+			MUL64(th, tl,                                          \
+			      pe64_to_cpup((mp) + i + 6) + (kp)[i + 6],        \
+			      pe64_to_cpup((mp) + i + 7) + (kp)[i + 7]);       \
+			ADD128(rh, rl, th, tl);                                \
+		}                                                              \
 	} while (0)
 
-#define nh_vmac_nhbytes_2(mp, kp, nw, rh, rl, rh1, rl1)			\
-	do {								\
-		int i; u64 th, tl;					\
-		rh1 = rl1 = rh = rl = 0;				\
-		for (i = 0; i < nw; i += 8) {				\
-			MUL64(th, tl, pe64_to_cpup((mp)+i)+(kp)[i],	\
-				pe64_to_cpup((mp)+i+1)+(kp)[i+1]);	\
-			ADD128(rh, rl, th, tl);				\
-			MUL64(th, tl, pe64_to_cpup((mp)+i)+(kp)[i+2],	\
-				pe64_to_cpup((mp)+i+1)+(kp)[i+3]);	\
-			ADD128(rh1, rl1, th, tl);			\
-			MUL64(th, tl, pe64_to_cpup((mp)+i+2)+(kp)[i+2],	\
-				pe64_to_cpup((mp)+i+3)+(kp)[i+3]);	\
-			ADD128(rh, rl, th, tl);				\
-			MUL64(th, tl, pe64_to_cpup((mp)+i+2)+(kp)[i+4],	\
-				pe64_to_cpup((mp)+i+3)+(kp)[i+5]);	\
-			ADD128(rh1, rl1, th, tl);			\
-			MUL64(th, tl, pe64_to_cpup((mp)+i+4)+(kp)[i+4],	\
-				pe64_to_cpup((mp)+i+5)+(kp)[i+5]);	\
-			ADD128(rh, rl, th, tl);				\
-			MUL64(th, tl, pe64_to_cpup((mp)+i+4)+(kp)[i+6],	\
-				pe64_to_cpup((mp)+i+5)+(kp)[i+7]);	\
-			ADD128(rh1, rl1, th, tl);			\
-			MUL64(th, tl, pe64_to_cpup((mp)+i+6)+(kp)[i+6],	\
-				pe64_to_cpup((mp)+i+7)+(kp)[i+7]);	\
-			ADD128(rh, rl, th, tl);				\
-			MUL64(th, tl, pe64_to_cpup((mp)+i+6)+(kp)[i+8],	\
-				pe64_to_cpup((mp)+i+7)+(kp)[i+9]);	\
-			ADD128(rh1, rl1, th, tl);			\
-		}							\
+#define nh_vmac_nhbytes_2(mp, kp, nw, rh, rl, rh1, rl1)                        \
+	do {                                                                   \
+		int i;                                                         \
+		u64 th, tl;                                                    \
+		rh1 = rl1 = rh = rl = 0;                                       \
+		for (i = 0; i < nw; i += 8) {                                  \
+			MUL64(th, tl, pe64_to_cpup((mp) + i) + (kp)[i],        \
+			      pe64_to_cpup((mp) + i + 1) + (kp)[i + 1]);       \
+			ADD128(rh, rl, th, tl);                                \
+			MUL64(th, tl, pe64_to_cpup((mp) + i) + (kp)[i + 2],    \
+			      pe64_to_cpup((mp) + i + 1) + (kp)[i + 3]);       \
+			ADD128(rh1, rl1, th, tl);                              \
+			MUL64(th, tl,                                          \
+			      pe64_to_cpup((mp) + i + 2) + (kp)[i + 2],        \
+			      pe64_to_cpup((mp) + i + 3) + (kp)[i + 3]);       \
+			ADD128(rh, rl, th, tl);                                \
+			MUL64(th, tl,                                          \
+			      pe64_to_cpup((mp) + i + 2) + (kp)[i + 4],        \
+			      pe64_to_cpup((mp) + i + 3) + (kp)[i + 5]);       \
+			ADD128(rh1, rl1, th, tl);                              \
+			MUL64(th, tl,                                          \
+			      pe64_to_cpup((mp) + i + 4) + (kp)[i + 4],        \
+			      pe64_to_cpup((mp) + i + 5) + (kp)[i + 5]);       \
+			ADD128(rh, rl, th, tl);                                \
+			MUL64(th, tl,                                          \
+			      pe64_to_cpup((mp) + i + 4) + (kp)[i + 6],        \
+			      pe64_to_cpup((mp) + i + 5) + (kp)[i + 7]);       \
+			ADD128(rh1, rl1, th, tl);                              \
+			MUL64(th, tl,                                          \
+			      pe64_to_cpup((mp) + i + 6) + (kp)[i + 6],        \
+			      pe64_to_cpup((mp) + i + 7) + (kp)[i + 7]);       \
+			ADD128(rh, rl, th, tl);                                \
+			MUL64(th, tl,                                          \
+			      pe64_to_cpup((mp) + i + 6) + (kp)[i + 8],        \
+			      pe64_to_cpup((mp) + i + 7) + (kp)[i + 9]);       \
+			ADD128(rh1, rl1, th, tl);                              \
+		}                                                              \
 	} while (0)
 #endif
 
-#define poly_step(ah, al, kh, kl, mh, ml)				\
-	do {								\
-		u64 t1h, t1l, t2h, t2l, t3h, t3l, z = 0;		\
-		/* compute ab*cd, put bd into result registers */	\
-		PMUL64(t3h, t3l, al, kh);				\
-		PMUL64(t2h, t2l, ah, kl);				\
-		PMUL64(t1h, t1l, ah, 2*kh);				\
-		PMUL64(ah, al, al, kl);					\
-		/* add 2 * ac to result */				\
-		ADD128(ah, al, t1h, t1l);				\
-		/* add together ad + bc */				\
-		ADD128(t2h, t2l, t3h, t3l);				\
-		/* now (ah,al), (t2l,2*t2h) need summing */		\
-		/* first add the high registers, carrying into t2h */	\
-		ADD128(t2h, ah, z, t2l);				\
-		/* double t2h and add top bit of ah */			\
-		t2h = 2 * t2h + (ah >> 63);				\
-		ah &= m63;						\
-		/* now add the low registers */				\
-		ADD128(ah, al, mh, ml);					\
-		ADD128(ah, al, z, t2h);					\
+#define poly_step(ah, al, kh, kl, mh, ml)                                      \
+	do {                                                                   \
+		u64 t1h, t1l, t2h, t2l, t3h, t3l, z = 0;                       \
+		/* compute ab*cd, put bd into result registers */              \
+		PMUL64(t3h, t3l, al, kh);                                      \
+		PMUL64(t2h, t2l, ah, kl);                                      \
+		PMUL64(t1h, t1l, ah, 2 * kh);                                  \
+		PMUL64(ah, al, al, kl);                                        \
+		/* add 2 * ac to result */                                     \
+		ADD128(ah, al, t1h, t1l);                                      \
+		/* add together ad + bc */                                     \
+		ADD128(t2h, t2l, t3h, t3l);                                    \
+		/* now (ah,al), (t2l,2*t2h) need summing */                    \
+		/* first add the high registers, carrying into t2h */          \
+		ADD128(t2h, ah, z, t2l);                                       \
+		/* double t2h and add top bit of ah */                         \
+		t2h = 2 * t2h + (ah >> 63);                                    \
+		ah &= m63;                                                     \
+		/* now add the low registers */                                \
+		ADD128(ah, al, mh, ml);                                        \
+		ADD128(ah, al, z, t2h);                                        \
 	} while (0)
 
 #else /* ! CONFIG_64BIT */
 
 #ifndef nh_16
-#define nh_16(mp, kp, nw, rh, rl)					\
-	do {								\
-		u64 t1, t2, m1, m2, t;					\
-		int i;							\
-		rh = rl = t = 0;					\
-		for (i = 0; i < nw; i += 2)  {				\
-			t1 = pe64_to_cpup(mp+i) + kp[i];		\
-			t2 = pe64_to_cpup(mp+i+1) + kp[i+1];		\
-			m2 = MUL32(t1 >> 32, t2);			\
-			m1 = MUL32(t1, t2 >> 32);			\
-			ADD128(rh, rl, MUL32(t1 >> 32, t2 >> 32),	\
-				MUL32(t1, t2));				\
-			rh += (u64)(u32)(m1 >> 32)			\
-				+ (u32)(m2 >> 32);			\
-			t += (u64)(u32)m1 + (u32)m2;			\
-		}							\
-		ADD128(rh, rl, (t >> 32), (t << 32));			\
+#define nh_16(mp, kp, nw, rh, rl)                                              \
+	do {                                                                   \
+		u64 t1, t2, m1, m2, t;                                         \
+		int i;                                                         \
+		rh = rl = t = 0;                                               \
+		for (i = 0; i < nw; i += 2) {                                  \
+			t1 = pe64_to_cpup(mp + i) + kp[i];                     \
+			t2 = pe64_to_cpup(mp + i + 1) + kp[i + 1];             \
+			m2 = MUL32(t1 >> 32, t2);                              \
+			m1 = MUL32(t1, t2 >> 32);                              \
+			ADD128(rh, rl, MUL32(t1 >> 32, t2 >> 32),              \
+			       MUL32(t1, t2));                                 \
+			rh += (u64)(u32)(m1 >> 32) + (u32)(m2 >> 32);          \
+			t += (u64)(u32)m1 + (u32)m2;                           \
+		}                                                              \
+		ADD128(rh, rl, (t >> 32), (t << 32));                          \
 	} while (0)
 #endif
 
-static void poly_step_func(u64 *ahi, u64 *alo,
-			const u64 *kh, const u64 *kl,
-			const u64 *mh, const u64 *ml)
+static void poly_step_func(u64 *ahi, u64 *alo, const u64 *kh, const u64 *kl,
+			   const u64 *mh, const u64 *ml)
 {
-#define a0 (*(((u32 *)alo)+INDEX_LOW))
-#define a1 (*(((u32 *)alo)+INDEX_HIGH))
-#define a2 (*(((u32 *)ahi)+INDEX_LOW))
-#define a3 (*(((u32 *)ahi)+INDEX_HIGH))
-#define k0 (*(((u32 *)kl)+INDEX_LOW))
-#define k1 (*(((u32 *)kl)+INDEX_HIGH))
-#define k2 (*(((u32 *)kh)+INDEX_LOW))
-#define k3 (*(((u32 *)kh)+INDEX_HIGH))
+#define a0 (*(((u32 *)alo) + INDEX_LOW))
+#define a1 (*(((u32 *)alo) + INDEX_HIGH))
+#define a2 (*(((u32 *)ahi) + INDEX_LOW))
+#define a3 (*(((u32 *)ahi) + INDEX_HIGH))
+#define k0 (*(((u32 *)kl) + INDEX_LOW))
+#define k1 (*(((u32 *)kl) + INDEX_HIGH))
+#define k2 (*(((u32 *)kh) + INDEX_LOW))
+#define k3 (*(((u32 *)kh) + INDEX_HIGH))
 
 	u64 p, q, t;
 	u32 t2;
@@ -303,7 +314,7 @@ static void poly_step_func(u64 *ahi, u64 *alo,
 	p >>= 31;
 	p += (u64)(((u32 *)ml)[INDEX_LOW]);
 	p += MUL32(a0, k0);
-	q =  MUL32(a1, k3);
+	q = MUL32(a1, k3);
 	q += MUL32(a2, k2);
 	q += MUL32(a3, k1);
 	q += q;
@@ -313,7 +324,7 @@ static void poly_step_func(u64 *ahi, u64 *alo,
 	p += (u64)(((u32 *)ml)[INDEX_HIGH]);
 	p += MUL32(a0, k1);
 	p += MUL32(a1, k0);
-	q =  MUL32(a2, k3);
+	q = MUL32(a2, k3);
 	q += MUL32(a3, k2);
 	q += q;
 	p += q;
@@ -331,28 +342,27 @@ static void poly_step_func(u64 *ahi, u64 *alo,
 #undef k3
 }
 
-#define poly_step(ah, al, kh, kl, mh, ml)				\
+#define poly_step(ah, al, kh, kl, mh, ml)                                      \
 	poly_step_func(&(ah), &(al), &(kh), &(kl), &(mh), &(ml))
 
-#endif  /* end of specialized NH and poly definitions */
+#endif /* end of specialized NH and poly definitions */
 
 /* At least nh_16 is defined. Defined others as needed here */
 #ifndef nh_16_2
-#define nh_16_2(mp, kp, nw, rh, rl, rh2, rl2)				\
-	do { 								\
-		nh_16(mp, kp, nw, rh, rl);				\
-		nh_16(mp, ((kp)+2), nw, rh2, rl2);			\
+#define nh_16_2(mp, kp, nw, rh, rl, rh2, rl2)                                  \
+	do {                                                                   \
+		nh_16(mp, kp, nw, rh, rl);                                     \
+		nh_16(mp, ((kp) + 2), nw, rh2, rl2);                           \
 	} while (0)
 #endif
 #ifndef nh_vmac_nhbytes
-#define nh_vmac_nhbytes(mp, kp, nw, rh, rl)				\
-	nh_16(mp, kp, nw, rh, rl)
+#define nh_vmac_nhbytes(mp, kp, nw, rh, rl) nh_16(mp, kp, nw, rh, rl)
 #endif
 #ifndef nh_vmac_nhbytes_2
-#define nh_vmac_nhbytes_2(mp, kp, nw, rh, rl, rh2, rl2)			\
-	do {								\
-		nh_vmac_nhbytes(mp, kp, nw, rh, rl);			\
-		nh_vmac_nhbytes(mp, ((kp)+2), nw, rh2, rl2);		\
+#define nh_vmac_nhbytes_2(mp, kp, nw, rh, rl, rh2, rl2)                        \
+	do {                                                                   \
+		nh_vmac_nhbytes(mp, kp, nw, rh, rl);                           \
+		nh_vmac_nhbytes(mp, ((kp) + 2), nw, rh2, rl2);                 \
 	} while (0)
 #endif
 
@@ -391,14 +401,14 @@ static u64 l3hash(u64 p1, u64 p2, u64 k1, u64 k2, u64 len)
 	t += t << 8;
 	rl += t;
 	rl += (0 - (rl < t)) & 257;
-	rl += (0 - (rl > p64-1)) & 257;
+	rl += (0 - (rl > p64 - 1)) & 257;
 	return rl;
 }
 
 /* L1 and L2-hash one or more VMAC_NHBYTES-byte blocks */
 static void vhash_blocks(const struct vmac_tfm_ctx *tctx,
-			 struct vmac_desc_ctx *dctx,
-			 const __le64 *mptr, unsigned int blocks)
+			 struct vmac_desc_ctx *dctx, const __le64 *mptr,
+			 unsigned int blocks)
 {
 	const u64 *kptr = tctx->nhkey;
 	const u64 pkh = tctx->polykey[0];
@@ -409,26 +419,26 @@ static void vhash_blocks(const struct vmac_tfm_ctx *tctx,
 
 	if (!dctx->first_block_processed) {
 		dctx->first_block_processed = true;
-		nh_vmac_nhbytes(mptr, kptr, VMAC_NHBYTES/8, rh, rl);
+		nh_vmac_nhbytes(mptr, kptr, VMAC_NHBYTES / 8, rh, rl);
 		rh &= m62;
 		ADD128(ch, cl, rh, rl);
-		mptr += (VMAC_NHBYTES/sizeof(u64));
+		mptr += (VMAC_NHBYTES / sizeof(u64));
 		blocks--;
 	}
 
 	while (blocks--) {
-		nh_vmac_nhbytes(mptr, kptr, VMAC_NHBYTES/8, rh, rl);
+		nh_vmac_nhbytes(mptr, kptr, VMAC_NHBYTES / 8, rh, rl);
 		rh &= m62;
 		poly_step(ch, cl, pkh, pkl, rh, rl);
-		mptr += (VMAC_NHBYTES/sizeof(u64));
+		mptr += (VMAC_NHBYTES / sizeof(u64));
 	}
 
 	dctx->polytmp[0] = ch;
 	dctx->polytmp[1] = cl;
 }
 
-static int vmac_setkey(struct crypto_shash *tfm,
-		       const u8 *key, unsigned int keylen)
+static int vmac_setkey(struct crypto_shash *tfm, const u8 *key,
+		       unsigned int keylen)
 {
 	struct vmac_tfm_ctx *tctx = crypto_shash_ctx(tfm);
 	__be64 out[2];
@@ -448,7 +458,7 @@ static int vmac_setkey(struct crypto_shash *tfm,
 	for (i = 0; i < ARRAY_SIZE(tctx->nhkey); i += 2) {
 		crypto_cipher_encrypt_one(tctx->cipher, (u8 *)out, in);
 		tctx->nhkey[i] = be64_to_cpu(out[0]);
-		tctx->nhkey[i+1] = be64_to_cpu(out[1]);
+		tctx->nhkey[i + 1] = be64_to_cpu(out[1]);
 		in[15]++;
 	}
 
@@ -458,7 +468,7 @@ static int vmac_setkey(struct crypto_shash *tfm,
 	for (i = 0; i < ARRAY_SIZE(tctx->polykey); i += 2) {
 		crypto_cipher_encrypt_one(tctx->cipher, (u8 *)out, in);
 		tctx->polykey[i] = be64_to_cpu(out[0]) & mpoly;
-		tctx->polykey[i+1] = be64_to_cpu(out[1]) & mpoly;
+		tctx->polykey[i + 1] = be64_to_cpu(out[1]) & mpoly;
 		in[15]++;
 	}
 
@@ -469,9 +479,9 @@ static int vmac_setkey(struct crypto_shash *tfm,
 		do {
 			crypto_cipher_encrypt_one(tctx->cipher, (u8 *)out, in);
 			tctx->l3key[i] = be64_to_cpu(out[0]);
-			tctx->l3key[i+1] = be64_to_cpu(out[1]);
+			tctx->l3key[i + 1] = be64_to_cpu(out[1]);
 			in[15]++;
-		} while (tctx->l3key[i] >= p64 || tctx->l3key[i+1] >= p64);
+		} while (tctx->l3key[i] >= p64 || tctx->l3key[i + 1] >= p64);
 	}
 
 	return 0;
@@ -666,7 +676,7 @@ static int vmac_create(struct crypto_template *tmpl, struct rtattr **tb)
 
 	err = shash_register_instance(tmpl, inst);
 	if (err) {
-err_free_inst:
+	err_free_inst:
 		shash_free_singlespawn_instance(inst);
 	}
 	return err;

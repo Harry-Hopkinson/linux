@@ -19,8 +19,13 @@
 static int __init init_oss_soundcore(void);
 static void cleanup_oss_soundcore(void);
 #else
-static inline int init_oss_soundcore(void)	{ return 0; }
-static inline void cleanup_oss_soundcore(void)	{ }
+static inline int init_oss_soundcore(void)
+{
+	return 0;
+}
+static inline void cleanup_oss_soundcore(void)
+{
+}
 #endif
 
 struct class *sound_class;
@@ -65,7 +70,6 @@ static void __exit cleanup_soundcore(void)
 subsys_initcall(init_soundcore);
 module_exit(cleanup_soundcore);
 
-
 #ifdef CONFIG_SOUND_OSS_CORE
 /*
  *	OSS sound core handling. Breaks out sound functions to submodules
@@ -106,8 +110,7 @@ module_exit(cleanup_soundcore);
 
 #define SOUND_STEP 16
 
-struct sound_unit
-{
+struct sound_unit {
 	int unit_minor;
 	const struct file_operations *unit_fops;
 	struct sound_unit *next;
@@ -146,11 +149,10 @@ module_param(preclaim_oss, int, 0444);
 
 static int soundcore_open(struct inode *, struct file *);
 
-static const struct file_operations soundcore_fops =
-{
+static const struct file_operations soundcore_fops = {
 	/* We must have an owner or the module locking fails */
-	.owner	= THIS_MODULE,
-	.open	= soundcore_open,
+	.owner = THIS_MODULE,
+	.open = soundcore_open,
 	.llseek = noop_llseek,
 };
 
@@ -159,70 +161,69 @@ static const struct file_operations soundcore_fops =
  *	join into it. Called with the lock asserted
  */
 
-static int __sound_insert_unit(struct sound_unit * s, struct sound_unit **list, const struct file_operations *fops, int index, int low, int top)
+static int __sound_insert_unit(struct sound_unit *s, struct sound_unit **list,
+			       const struct file_operations *fops, int index,
+			       int low, int top)
 {
-	int n=low;
+	int n = low;
 
-	if (index < 0) {	/* first free */
+	if (index < 0) { /* first free */
 
-		while (*list && (*list)->unit_minor<n)
-			list=&((*list)->next);
+		while (*list && (*list)->unit_minor < n)
+			list = &((*list)->next);
 
-		while(n<top)
-		{
+		while (n < top) {
 			/* Found a hole ? */
-			if(*list==NULL || (*list)->unit_minor>n)
+			if (*list == NULL || (*list)->unit_minor > n)
 				break;
-			list=&((*list)->next);
-			n+=SOUND_STEP;
+			list = &((*list)->next);
+			n += SOUND_STEP;
 		}
 
-		if(n>=top)
+		if (n >= top)
 			return -ENOENT;
 	} else {
-		n = low+(index*16);
+		n = low + (index * 16);
 		while (*list) {
-			if ((*list)->unit_minor==n)
+			if ((*list)->unit_minor == n)
 				return -EBUSY;
-			if ((*list)->unit_minor>n)
+			if ((*list)->unit_minor > n)
 				break;
-			list=&((*list)->next);
+			list = &((*list)->next);
 		}
-	}	
-		
+	}
+
 	/*
 	 *	Fill it in
 	 */
-	 
-	s->unit_minor=n;
-	s->unit_fops=fops;
-	
+
+	s->unit_minor = n;
+	s->unit_fops = fops;
+
 	/*
 	 *	Link it
 	 */
-	 
-	s->next=*list;
-	*list=s;
-	
-	
+
+	s->next = *list;
+	*list = s;
+
 	return n;
 }
 
 /*
  *	Remove a node from the chain. Called with the lock asserted
  */
- 
-static struct sound_unit *__sound_remove_unit(struct sound_unit **list, int unit)
+
+static struct sound_unit *__sound_remove_unit(struct sound_unit **list,
+					      int unit)
 {
-	while(*list)
-	{
-		struct sound_unit *p=*list;
-		if(p->unit_minor==unit)
-		{
-			*list=p->next;
+	while (*list) {
+		struct sound_unit *p = *list;
+		if (p->unit_minor == unit) {
+			*list = p->next;
 			return p;
 		}
-		list=&(p->next);
+		list = &(p->next);
 	}
 	printk(KERN_ERR "Sound device %d went missing!\n", unit);
 	return NULL;
@@ -239,7 +240,10 @@ static DEFINE_SPINLOCK(sound_loader_lock);
  *	list. Acquires locks as needed
  */
 
-static int sound_insert_unit(struct sound_unit **list, const struct file_operations *fops, int index, int low, int top, const char *name, umode_t mode, struct device *dev)
+static int sound_insert_unit(struct sound_unit **list,
+			     const struct file_operations *fops, int index,
+			     int low, int top, const char *name, umode_t mode,
+			     struct device *dev)
 {
 	struct sound_unit *s = kmalloc(sizeof(*s), GFP_KERNEL);
 	int r;
@@ -251,7 +255,7 @@ static int sound_insert_unit(struct sound_unit **list, const struct file_operati
 retry:
 	r = __sound_insert_unit(s, list, fops, index, low, top);
 	spin_unlock(&sound_loader_lock);
-	
+
 	if (r < 0)
 		goto fail;
 	else if (r < SOUND_STEP)
@@ -280,8 +284,8 @@ retry:
 		}
 	}
 
-	device_create(sound_class, dev, MKDEV(SOUND_MAJOR, s->unit_minor),
-		      NULL, "%s", s->name+6);
+	device_create(sound_class, dev, MKDEV(SOUND_MAJOR, s->unit_minor), NULL,
+		      "%s", s->name + 6);
 	return s->unit_minor;
 
 fail:
@@ -294,7 +298,7 @@ fail:
  *	completed the removal before their file operations become
  *	invalid.
  */
- 	
+
 static void sound_remove_unit(struct sound_unit **list, int unit)
 {
 	struct sound_unit *p;
@@ -346,7 +350,7 @@ static struct sound_unit *chains[SOUND_STEP];
  *	Return: The allocated number is returned on success. On failure,
  *	a negative error code is returned.
  */
- 
+
 int register_sound_special_device(const struct file_operations *fops, int unit,
 				  struct device *dev)
 {
@@ -356,62 +360,60 @@ int register_sound_special_device(const struct file_operations *fops, int unit,
 	char _name[16];
 
 	switch (chain) {
-	    case 0:
+	case 0:
 		name = "mixer";
 		break;
-	    case 1:
+	case 1:
 		name = "sequencer";
 		if (unit >= SOUND_STEP)
 			goto __unknown;
 		max_unit = unit + 1;
 		break;
-	    case 2:
+	case 2:
 		name = "midi";
 		break;
-	    case 3:
+	case 3:
 		name = "dsp";
 		break;
-	    case 4:
+	case 4:
 		name = "audio";
 		break;
-	    case 5:
+	case 5:
 		name = "dspW";
 		break;
-	    case 8:
+	case 8:
 		name = "sequencer2";
 		if (unit >= SOUND_STEP)
 			goto __unknown;
 		max_unit = unit + 1;
 		break;
-	    case 9:
+	case 9:
 		name = "dmmidi";
 		break;
-	    case 10:
+	case 10:
 		name = "dmfm";
 		break;
-	    case 12:
+	case 12:
 		name = "adsp";
 		break;
-	    case 13:
+	case 13:
 		name = "amidi";
 		break;
-	    case 14:
+	case 14:
 		name = "admmidi";
 		break;
-	    default:
-	    	{
-		    __unknown:
-			sprintf(_name, "unknown%d", chain);
-		    	if (unit >= SOUND_STEP)
-		    		strcat(_name, "-");
-		    	name = _name;
-		}
-		break;
+	default: {
+	__unknown:
+		sprintf(_name, "unknown%d", chain);
+		if (unit >= SOUND_STEP)
+			strcat(_name, "-");
+		name = _name;
+	} break;
 	}
-	return sound_insert_unit(&chains[chain], fops, -1, unit, max_unit,
-				 name, 0600, dev);
+	return sound_insert_unit(&chains[chain], fops, -1, unit, max_unit, name,
+				 0600, dev);
 }
- 
+
 EXPORT_SYMBOL(register_sound_special_device);
 
 int register_sound_special(const struct file_operations *fops, int unit)
@@ -435,8 +437,8 @@ EXPORT_SYMBOL(register_sound_special);
 
 int register_sound_mixer(const struct file_operations *fops, int dev)
 {
-	return sound_insert_unit(&chains[0], fops, dev, 0, 128,
-				 "mixer", 0600, NULL);
+	return sound_insert_unit(&chains[0], fops, dev, 0, 128, "mixer", 0600,
+				 NULL);
 }
 
 EXPORT_SYMBOL(register_sound_mixer);
@@ -445,7 +447,7 @@ EXPORT_SYMBOL(register_sound_mixer);
  *	DSP's are registered as a triple. Register only one and cheat
  *	in open - see below.
  */
- 
+
 /**
  *	register_sound_dsp - register a DSP device
  *	@fops: File operations for the driver
@@ -463,8 +465,8 @@ EXPORT_SYMBOL(register_sound_mixer);
 
 int register_sound_dsp(const struct file_operations *fops, int dev)
 {
-	return sound_insert_unit(&chains[3], fops, dev, 3, 131,
-				 "dsp", 0600, NULL);
+	return sound_insert_unit(&chains[3], fops, dev, 3, 131, "dsp", 0600,
+				 NULL);
 }
 
 EXPORT_SYMBOL(register_sound_dsp);
@@ -478,12 +480,11 @@ EXPORT_SYMBOL(register_sound_dsp);
  *	the register function.
  */
 
-
 void unregister_sound_special(int unit)
 {
 	sound_remove_unit(&chains[unit % SOUND_STEP], unit);
 }
- 
+
 EXPORT_SYMBOL(unregister_sound_special);
 
 /**
@@ -516,19 +517,17 @@ void unregister_sound_dsp(int unit)
 	sound_remove_unit(&chains[3], unit);
 }
 
-
 EXPORT_SYMBOL(unregister_sound_dsp);
 
 static struct sound_unit *__look_for_unit(int chain, int unit)
 {
 	struct sound_unit *s;
-	
-	s=chains[chain];
-	while(s && s->unit_minor <= unit)
-	{
-		if(s->unit_minor==unit)
+
+	s = chains[chain];
+	while (s && s->unit_minor <= unit) {
+		if (s->unit_minor == unit)
 			return s;
-		s=s->next;
+		s = s->next;
 	}
 	return NULL;
 }
@@ -540,14 +539,14 @@ static int soundcore_open(struct inode *inode, struct file *file)
 	struct sound_unit *s;
 	const struct file_operations *new_fops = NULL;
 
-	chain=unit&0x0F;
-	if(chain==4 || chain==5)	/* dsp/audio/dsp16 */
+	chain = unit & 0x0F;
+	if (chain == 4 || chain == 5) /* dsp/audio/dsp16 */
 	{
-		unit&=0xF0;
-		unit|=3;
-		chain=3;
+		unit &= 0xF0;
+		unit |= 3;
+		chain = 3;
 	}
-	
+
 	spin_lock(&sound_loader_lock);
 	s = __look_for_unit(chain, unit);
 	if (s)
@@ -562,8 +561,8 @@ static int soundcore_open(struct inode *inode, struct file *file)
 		 *  ALSA toplevel modules for soundcards, thus we need
 		 *  load them at first.	  [Jaroslav Kysela <perex@jcu.cz>]
 		 */
-		request_module("sound-slot-%i", unit>>4);
-		request_module("sound-service-%i-%i", unit>>4, chain);
+		request_module("sound-slot-%i", unit >> 4);
+		request_module("sound-service-%i-%i", unit >> 4, chain);
 
 		/*
 		 * sound-slot/service-* module aliases are scheduled
@@ -590,7 +589,7 @@ static int soundcore_open(struct inode *inode, struct file *file)
 		replace_fops(file, new_fops);
 
 		if (file->f_op->open)
-			err = file->f_op->open(inode,file);
+			err = file->f_op->open(inode, file);
 
 		return err;
 	}

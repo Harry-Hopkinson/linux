@@ -29,14 +29,11 @@ static void test_sort(struct kunit *test)
 
 	sort(a, TEST_LEN, sizeof(*a), cmpint, NULL);
 
-	for (i = 0; i < TEST_LEN-1; i++)
+	for (i = 0; i < TEST_LEN - 1; i++)
 		KUNIT_ASSERT_LE(test, a[i], a[i + 1]);
 }
 
-static struct kunit_case sort_test_cases[] = {
-	KUNIT_CASE(test_sort),
-	{}
-};
+static struct kunit_case sort_test_cases[] = { KUNIT_CASE(test_sort), {} };
 
 static struct kunit_suite sort_test_suite = {
 	.name = "lib_sort",

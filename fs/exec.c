@@ -83,7 +83,7 @@ int suid_dumpable = 0;
 static LIST_HEAD(formats);
 static DEFINE_RWLOCK(binfmt_lock);
 
-void __register_binfmt(struct linux_binfmt * fmt, int insert)
+void __register_binfmt(struct linux_binfmt *fmt, int insert)
 {
 	write_lock(&binfmt_lock);
 	insert ? list_add(&fmt->lh, &formats) :
@@ -93,7 +93,7 @@ void __register_binfmt(struct linux_binfmt * fmt, int insert)
 
 EXPORT_SYMBOL(__register_binfmt);
 
-void unregister_binfmt(struct linux_binfmt * fmt)
+void unregister_binfmt(struct linux_binfmt *fmt)
 {
 	write_lock(&binfmt_lock);
 	list_del(&fmt->lh);
@@ -102,7 +102,7 @@ void unregister_binfmt(struct linux_binfmt * fmt)
 
 EXPORT_SYMBOL(unregister_binfmt);
 
-static inline void put_binfmt(struct linux_binfmt * fmt)
+static inline void put_binfmt(struct linux_binfmt *fmt)
 {
 	module_put(fmt->module);
 }
@@ -157,7 +157,7 @@ SYSCALL_DEFINE1(uselib, const char __user *, library)
 	error = -ENOEXEC;
 
 	read_lock(&binfmt_lock);
-	list_for_each_entry(fmt, &formats, lh) {
+	list_for_each_entry (fmt, &formats, lh) {
 		if (!fmt->load_shlib)
 			continue;
 		if (!try_module_get(fmt->module))
@@ -173,7 +173,7 @@ SYSCALL_DEFINE1(uselib, const char __user *, library)
 exit:
 	fput(file);
 out:
-  	return error;
+	return error;
 }
 #endif /* #ifdef CONFIG_USELIB */
 
@@ -197,7 +197,7 @@ static void acct_arg_size(struct linux_binprm *bprm, unsigned long pages)
 }
 
 static struct page *get_arg_page(struct linux_binprm *bprm, unsigned long pos,
-		int write)
+				 int write)
 {
 	struct page *page;
 	int ret;
@@ -219,8 +219,8 @@ static struct page *get_arg_page(struct linux_binprm *bprm, unsigned long pos,
 	 * doing the exec and bprm->mm is the new process's mm.
 	 */
 	mmap_read_lock(bprm->mm);
-	ret = get_user_pages_remote(bprm->mm, pos, 1, gup_flags,
-			&page, NULL, NULL);
+	ret = get_user_pages_remote(bprm->mm, pos, 1, gup_flags, &page, NULL,
+				    NULL);
 	mmap_read_unlock(bprm->mm);
 	if (ret <= 0)
 		return NULL;
@@ -241,7 +241,7 @@ static void free_arg_pages(struct linux_binprm *bprm)
 }
 
 static void flush_arg_page(struct linux_binprm *bprm, unsigned long pos,
-		struct page *page)
+			   struct page *page)
 {
 	flush_cache_page(bprm->vma, pos, page_to_pfn(page));
 }
@@ -271,7 +271,8 @@ static int __bprm_mm_init(struct linux_binprm *bprm)
 	BUILD_BUG_ON(VM_STACK_FLAGS & VM_STACK_INCOMPLETE_SETUP);
 	vma->vm_end = STACK_TOP_MAX;
 	vma->vm_start = vma->vm_end - PAGE_SIZE;
-	vma->vm_flags = VM_SOFTDIRTY | VM_STACK_FLAGS | VM_STACK_INCOMPLETE_SETUP;
+	vma->vm_flags =
+		VM_SOFTDIRTY | VM_STACK_FLAGS | VM_STACK_INCOMPLETE_SETUP;
 	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
 
 	err = insert_vm_struct(mm, vma);
@@ -302,13 +303,13 @@ static inline void acct_arg_size(struct linux_binprm *bprm, unsigned long pages)
 }
 
 static struct page *get_arg_page(struct linux_binprm *bprm, unsigned long pos,
-		int write)
+				 int write)
 {
 	struct page *page;
 
 	page = bprm->page[pos / PAGE_SIZE];
 	if (!page && write) {
-		page = alloc_page(GFP_HIGHUSER|__GFP_ZERO);
+		page = alloc_page(GFP_HIGHUSER | __GFP_ZERO);
 		if (!page)
 			return NULL;
 		bprm->page[pos / PAGE_SIZE] = page;
@@ -338,7 +339,7 @@ static void free_arg_pages(struct linux_binprm *bprm)
 }
 
 static void flush_arg_page(struct linux_binprm *bprm, unsigned long pos,
-		struct page *page)
+			   struct page *page)
 {
 }
 
@@ -586,7 +587,8 @@ static int copy_strings(int argc, struct user_arg_ptr argv,
 				kpos = pos & PAGE_MASK;
 				flush_arg_page(bprm, kpos, kmapped_page);
 			}
-			if (copy_from_user(kaddr+offset, str, bytes_to_copy)) {
+			if (copy_from_user(kaddr + offset, str,
+					   bytes_to_copy)) {
 				ret = -EFAULT;
 				goto out;
 			}
@@ -622,8 +624,9 @@ int copy_string_kernel(const char *arg, struct linux_binprm *bprm)
 		return -E2BIG;
 
 	while (len > 0) {
-		unsigned int bytes_to_copy = min_t(unsigned int, len,
-				min_not_zero(offset_in_page(pos), PAGE_SIZE));
+		unsigned int bytes_to_copy =
+			min_t(unsigned int, len,
+			      min_not_zero(offset_in_page(pos), PAGE_SIZE));
 		struct page *page;
 		char *kaddr;
 
@@ -703,8 +706,8 @@ static int shift_arg_pages(struct vm_area_struct *vma, unsigned long shift)
 	 * move the page tables downwards, on failure we rely on
 	 * process cleanup to remove whatever mess we made.
 	 */
-	if (length != move_page_tables(vma, old_start,
-				       vma, new_start, length, false))
+	if (length !=
+	    move_page_tables(vma, old_start, vma, new_start, length, false))
 		return -ENOMEM;
 
 	lru_add_drain();
@@ -714,7 +717,8 @@ static int shift_arg_pages(struct vm_area_struct *vma, unsigned long shift)
 		 * when the old and new regions overlap clear from new_end.
 		 */
 		free_pgd_range(&tlb, new_end, old_end, new_end,
-			vma->vm_next ? vma->vm_next->vm_start : USER_PGTABLES_CEILING);
+			       vma->vm_next ? vma->vm_next->vm_start :
+					      USER_PGTABLES_CEILING);
 	} else {
 		/*
 		 * otherwise, clean from old_start; this is done to not touch
@@ -723,7 +727,8 @@ static int shift_arg_pages(struct vm_area_struct *vma, unsigned long shift)
 		 * for the others its just a little faster.
 		 */
 		free_pgd_range(&tlb, old_start, old_end, new_end,
-			vma->vm_next ? vma->vm_next->vm_start : USER_PGTABLES_CEILING);
+			       vma->vm_next ? vma->vm_next->vm_start :
+					      USER_PGTABLES_CEILING);
 	}
 	tlb_finish_mmu(&tlb);
 
@@ -739,8 +744,7 @@ static int shift_arg_pages(struct vm_area_struct *vma, unsigned long shift)
  * Finalizes the stack vm_area_struct. The flags and permissions are updated,
  * the stack is optionally relocated, and some extra space is added.
  */
-int setup_arg_pages(struct linux_binprm *bprm,
-		    unsigned long stack_top,
+int setup_arg_pages(struct linux_binprm *bprm, unsigned long stack_top,
 		    int executable_stack)
 {
 	unsigned long ret;
@@ -807,8 +811,7 @@ int setup_arg_pages(struct linux_binprm *bprm,
 	vm_flags |= mm->def_flags;
 	vm_flags |= VM_STACK_INCOMPLETE_SETUP;
 
-	ret = mprotect_fixup(vma, &prev, vma->vm_start, vma->vm_end,
-			vm_flags);
+	ret = mprotect_fixup(vma, &prev, vma->vm_start, vma->vm_end, vm_flags);
 	if (ret)
 		goto out_unlock;
 	BUG_ON(prev != vma);
@@ -876,7 +879,7 @@ int transfer_args_to_stack(struct linux_binprm *bprm,
 		unsigned int offset = index == stop ? bprm->p & ~PAGE_MASK : 0;
 		char *src = kmap(bprm->page[index]) + offset;
 		sp -= PAGE_SIZE - offset;
-		if (copy_to_user((void *) sp, src, PAGE_SIZE - offset) != 0)
+		if (copy_to_user((void *)sp, src, PAGE_SIZE - offset) != 0)
 			ret = -EFAULT;
 		kunmap(bprm->page[index]);
 		if (ret)
@@ -952,8 +955,8 @@ struct file *open_exec(const char *name)
 }
 EXPORT_SYMBOL(open_exec);
 
-#if defined(CONFIG_HAVE_AOUT) || defined(CONFIG_BINFMT_FLAT) || \
-    defined(CONFIG_BINFMT_ELF_FDPIC)
+#if defined(CONFIG_HAVE_AOUT) || defined(CONFIG_BINFMT_FLAT) ||                \
+	defined(CONFIG_BINFMT_ELF_FDPIC)
 ssize_t read_code(struct file *file, unsigned long addr, loff_t pos, size_t len)
 {
 	ssize_t res = vfs_read(file, (void __user *)addr, len, &pos);
@@ -1169,7 +1172,6 @@ killed:
 	return -EAGAIN;
 }
 
-
 /*
  * This function makes sure the current process has its own signal table,
  * so that flush_signal_handlers can later reset the handlers without
@@ -1235,7 +1237,7 @@ void __set_task_comm(struct task_struct *tsk, const char *buf, bool exec)
  * signal (via de_thread() or coredump), or will have SEGV raised
  * (after exec_mmap()) by search_binary_handler (see below).
  */
-int begin_new_exec(struct linux_binprm * bprm)
+int begin_new_exec(struct linux_binprm *bprm)
 {
 	struct task_struct *me = current;
 	int retval;
@@ -1311,8 +1313,8 @@ int begin_new_exec(struct linux_binprm * bprm)
 
 	if (me->flags & PF_KTHREAD)
 		free_kthread_struct(me);
-	me->flags &= ~(PF_RANDOMIZE | PF_FORKNOEXEC | PF_KTHREAD |
-					PF_NOFREEZE | PF_NO_SETAFFINITY);
+	me->flags &= ~(PF_RANDOMIZE | PF_FORKNOEXEC | PF_KTHREAD | PF_NOFREEZE |
+		       PF_NO_SETAFFINITY);
 	flush_thread();
 	me->personality &= ~bprm->per_clear;
 
@@ -1430,7 +1432,7 @@ void would_dump(struct linux_binprm *bprm, struct file *file)
 }
 EXPORT_SYMBOL(would_dump);
 
-void setup_new_exec(struct linux_binprm * bprm)
+void setup_new_exec(struct linux_binprm *bprm)
 {
 	/* Setup things that can depend upon the personality */
 	struct task_struct *me = current;
@@ -1516,7 +1518,7 @@ static struct linux_binprm *alloc_bprm(int fd, struct filename *filename)
 			bprm->fdpath = kasprintf(GFP_KERNEL, "/dev/fd/%d", fd);
 		else
 			bprm->fdpath = kasprintf(GFP_KERNEL, "/dev/fd/%d/%s",
-						  fd, filename->name);
+						 fd, filename->name);
 		if (!bprm->fdpath)
 			goto out_free;
 
@@ -1571,7 +1573,8 @@ static void check_unsafe_exec(struct linux_binprm *bprm)
 	n_fs = 1;
 	spin_lock(&p->fs->lock);
 	rcu_read_lock();
-	while_each_thread(p, t) {
+	while_each_thread(p, t)
+	{
 		if (t->fs == p->fs)
 			n_fs++;
 	}
@@ -1601,7 +1604,7 @@ static void bprm_fill_uid(struct linux_binprm *bprm, struct file *file)
 
 	inode = file->f_path.dentry->d_inode;
 	mode = READ_ONCE(inode->i_mode);
-	if (!(mode & (S_ISUID|S_ISGID)))
+	if (!(mode & (S_ISUID | S_ISGID)))
 		return;
 
 	mnt_userns = file_mnt_user_ns(file);
@@ -1617,7 +1620,7 @@ static void bprm_fill_uid(struct linux_binprm *bprm, struct file *file)
 
 	/* We ignore suid/sgid if there are no mappings for them in the ns */
 	if (!kuid_has_mapping(bprm->cred->user_ns, uid) ||
-		 !kgid_has_mapping(bprm->cred->user_ns, gid))
+	    !kgid_has_mapping(bprm->cred->user_ns, gid))
 		return;
 
 	if (mode & S_ISUID) {
@@ -1681,8 +1684,7 @@ int remove_arg_zero(struct linux_binprm *bprm)
 		}
 		kaddr = kmap_atomic(page);
 
-		for (; offset < PAGE_SIZE && kaddr[offset];
-				offset++, bprm->p++)
+		for (; offset < PAGE_SIZE && kaddr[offset]; offset++, bprm->p++)
 			;
 
 		kunmap_atomic(kaddr);
@@ -1698,7 +1700,8 @@ out:
 }
 EXPORT_SYMBOL(remove_arg_zero);
 
-#define printable(c) (((c)=='\t') || ((c)=='\n') || (0x20<=(c) && (c)<=0x7e))
+#define printable(c)                                                           \
+	(((c) == '\t') || ((c) == '\n') || (0x20 <= (c) && (c) <= 0x7e))
 /*
  * cycle the list of binary formats handler, until one recognizes the image
  */
@@ -1717,9 +1720,9 @@ static int search_binary_handler(struct linux_binprm *bprm)
 		return retval;
 
 	retval = -ENOENT;
- retry:
+retry:
 	read_lock(&binfmt_lock);
-	list_for_each_entry(fmt, &formats, lh) {
+	list_for_each_entry (fmt, &formats, lh) {
 		if (!try_module_get(fmt->module))
 			continue;
 		read_unlock(&binfmt_lock);
@@ -1739,7 +1742,8 @@ static int search_binary_handler(struct linux_binprm *bprm)
 		if (printable(bprm->buf[0]) && printable(bprm->buf[1]) &&
 		    printable(bprm->buf[2]) && printable(bprm->buf[3]))
 			return retval;
-		if (request_module("binfmt-%04x", *(ushort *)(bprm->buf + 2)) < 0)
+		if (request_module("binfmt-%04x", *(ushort *)(bprm->buf + 2)) <
+		    0)
 			return retval;
 		need_retry = false;
 		goto retry;
@@ -1796,8 +1800,8 @@ static int exec_binprm(struct linux_binprm *bprm)
 /*
  * sys_execve() executes a new program.
  */
-static int bprm_execve(struct linux_binprm *bprm,
-		       int fd, struct filename *filename, int flags)
+static int bprm_execve(struct linux_binprm *bprm, int fd,
+		       struct filename *filename, int flags)
 {
 	struct file *file;
 	int retval;
@@ -1865,8 +1869,7 @@ out_unmark:
 
 static int do_execveat_common(int fd, struct filename *filename,
 			      struct user_arg_ptr argv,
-			      struct user_arg_ptr envp,
-			      int flags)
+			      struct user_arg_ptr envp, int flags)
 {
 	struct linux_binprm *bprm;
 	int retval;
@@ -1881,7 +1884,8 @@ static int do_execveat_common(int fd, struct filename *filename,
 	 * whether NPROC limit is still exceeded.
 	 */
 	if ((current->flags & PF_NPROC_EXCEEDED) &&
-	    is_ucounts_overlimit(current_ucounts(), UCOUNT_RLIMIT_NPROC, rlimit(RLIMIT_NPROC))) {
+	    is_ucounts_overlimit(current_ucounts(), UCOUNT_RLIMIT_NPROC,
+				 rlimit(RLIMIT_NPROC))) {
 		retval = -EAGAIN;
 		goto out_ret;
 	}
@@ -1932,8 +1936,8 @@ out_ret:
 	return retval;
 }
 
-int kernel_execve(const char *kernel_filename,
-		  const char *const *argv, const char *const *envp)
+int kernel_execve(const char *kernel_filename, const char *const *argv,
+		  const char *const *envp)
 {
 	struct filename *filename;
 	struct linux_binprm *bprm;
@@ -1986,8 +1990,8 @@ out_ret:
 }
 
 static int do_execve(struct filename *filename,
-	const char __user *const __user *__argv,
-	const char __user *const __user *__envp)
+		     const char __user *const __user *__argv,
+		     const char __user *const __user *__envp)
 {
 	struct user_arg_ptr argv = { .ptr.native = __argv };
 	struct user_arg_ptr envp = { .ptr.native = __envp };
@@ -1995,9 +1999,8 @@ static int do_execve(struct filename *filename,
 }
 
 static int do_execveat(int fd, struct filename *filename,
-		const char __user *const __user *__argv,
-		const char __user *const __user *__envp,
-		int flags)
+		       const char __user *const __user *__argv,
+		       const char __user *const __user *__envp, int flags)
 {
 	struct user_arg_ptr argv = { .ptr.native = __argv };
 	struct user_arg_ptr envp = { .ptr.native = __envp };
@@ -2007,8 +2010,8 @@ static int do_execveat(int fd, struct filename *filename,
 
 #ifdef CONFIG_COMPAT
 static int compat_do_execve(struct filename *filename,
-	const compat_uptr_t __user *__argv,
-	const compat_uptr_t __user *__envp)
+			    const compat_uptr_t __user *__argv,
+			    const compat_uptr_t __user *__envp)
 {
 	struct user_arg_ptr argv = {
 		.is_compat = true,
@@ -2023,8 +2026,7 @@ static int compat_do_execve(struct filename *filename,
 
 static int compat_do_execveat(int fd, struct filename *filename,
 			      const compat_uptr_t __user *__argv,
-			      const compat_uptr_t __user *__envp,
-			      int flags)
+			      const compat_uptr_t __user *__envp, int flags)
 {
 	struct user_arg_ptr argv = {
 		.is_compat = true,
@@ -2062,49 +2064,43 @@ void set_dumpable(struct mm_struct *mm, int value)
 	set_mask_bits(&mm->flags, MMF_DUMPABLE_MASK, value);
 }
 
-SYSCALL_DEFINE3(execve,
-		const char __user *, filename,
+SYSCALL_DEFINE3(execve, const char __user *, filename,
 		const char __user *const __user *, argv,
 		const char __user *const __user *, envp)
 {
 	return do_execve(getname(filename), argv, envp);
 }
 
-SYSCALL_DEFINE5(execveat,
-		int, fd, const char __user *, filename,
+SYSCALL_DEFINE5(execveat, int, fd, const char __user *, filename,
 		const char __user *const __user *, argv,
-		const char __user *const __user *, envp,
-		int, flags)
+		const char __user *const __user *, envp, int, flags)
 {
-	return do_execveat(fd,
-			   getname_uflags(filename, flags),
-			   argv, envp, flags);
+	return do_execveat(fd, getname_uflags(filename, flags), argv, envp,
+			   flags);
 }
 
 #ifdef CONFIG_COMPAT
 COMPAT_SYSCALL_DEFINE3(execve, const char __user *, filename,
-	const compat_uptr_t __user *, argv,
-	const compat_uptr_t __user *, envp)
+		       const compat_uptr_t __user *, argv,
+		       const compat_uptr_t __user *, envp)
 {
 	return compat_do_execve(getname(filename), argv, envp);
 }
 
-COMPAT_SYSCALL_DEFINE5(execveat, int, fd,
-		       const char __user *, filename,
+COMPAT_SYSCALL_DEFINE5(execveat, int, fd, const char __user *, filename,
 		       const compat_uptr_t __user *, argv,
-		       const compat_uptr_t __user *, envp,
-		       int,  flags)
+		       const compat_uptr_t __user *, envp, int, flags)
 {
-	return compat_do_execveat(fd,
-				  getname_uflags(filename, flags),
-				  argv, envp, flags);
+	return compat_do_execveat(fd, getname_uflags(filename, flags), argv,
+				  envp, flags);
 }
 #endif
 
 #ifdef CONFIG_SYSCTL
 
 static int proc_dointvec_minmax_coredump(struct ctl_table *table, int write,
-		void *buffer, size_t *lenp, loff_t *ppos)
+					 void *buffer, size_t *lenp,
+					 loff_t *ppos)
 {
 	int error = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
 
@@ -2115,15 +2111,15 @@ static int proc_dointvec_minmax_coredump(struct ctl_table *table, int write,
 
 static struct ctl_table fs_exec_sysctls[] = {
 	{
-		.procname	= "suid_dumpable",
-		.data		= &suid_dumpable,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec_minmax_coredump,
-		.extra1		= SYSCTL_ZERO,
-		.extra2		= SYSCTL_TWO,
+		.procname = "suid_dumpable",
+		.data = &suid_dumpable,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_dointvec_minmax_coredump,
+		.extra1 = SYSCTL_ZERO,
+		.extra2 = SYSCTL_TWO,
 	},
-	{ }
+	{}
 };
 
 static int __init init_fs_exec_sysctls(void)

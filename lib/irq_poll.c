@@ -204,7 +204,7 @@ static __init int irq_poll_setup(void)
 {
 	int i;
 
-	for_each_possible_cpu(i)
+	for_each_possible_cpu (i)
 		INIT_LIST_HEAD(&per_cpu(blk_cpu_iopoll, i));
 
 	open_softirq(IRQ_POLL_SOFTIRQ, irq_poll_softirq);

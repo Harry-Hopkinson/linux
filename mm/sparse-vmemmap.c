@@ -85,8 +85,7 @@ static int split_vmemmap_huge_pmd(pmd_t *pmd, unsigned long start,
 	return 0;
 }
 
-static void vmemmap_pte_range(pmd_t *pmd, unsigned long addr,
-			      unsigned long end,
+static void vmemmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
 			      struct vmemmap_remap_walk *walk)
 {
 	pte_t *pte = pte_offset_kernel(pmd, addr);
@@ -112,8 +111,7 @@ static void vmemmap_pte_range(pmd_t *pmd, unsigned long addr,
 	}
 }
 
-static int vmemmap_pmd_range(pud_t *pud, unsigned long addr,
-			     unsigned long end,
+static int vmemmap_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
 			     struct vmemmap_remap_walk *walk)
 {
 	pmd_t *pmd;
@@ -124,7 +122,8 @@ static int vmemmap_pmd_range(pud_t *pud, unsigned long addr,
 		if (pmd_leaf(*pmd)) {
 			int ret;
 
-			ret = split_vmemmap_huge_pmd(pmd, addr & PMD_MASK, walk);
+			ret = split_vmemmap_huge_pmd(pmd, addr & PMD_MASK,
+						     walk);
 			if (ret)
 				return ret;
 		}
@@ -135,8 +134,7 @@ static int vmemmap_pmd_range(pud_t *pud, unsigned long addr,
 	return 0;
 }
 
-static int vmemmap_pud_range(p4d_t *p4d, unsigned long addr,
-			     unsigned long end,
+static int vmemmap_pud_range(p4d_t *p4d, unsigned long addr, unsigned long end,
 			     struct vmemmap_remap_walk *walk)
 {
 	pud_t *pud;
@@ -155,8 +153,7 @@ static int vmemmap_pud_range(p4d_t *p4d, unsigned long addr,
 	return 0;
 }
 
-static int vmemmap_p4d_range(pgd_t *pgd, unsigned long addr,
-			     unsigned long end,
+static int vmemmap_p4d_range(pgd_t *pgd, unsigned long addr, unsigned long end,
 			     struct vmemmap_remap_walk *walk)
 {
 	p4d_t *p4d;
@@ -224,7 +221,7 @@ static void free_vmemmap_page_list(struct list_head *list)
 {
 	struct page *page, *next;
 
-	list_for_each_entry_safe(page, next, list, lru) {
+	list_for_each_entry_safe (page, next, list, lru) {
 		list_del(&page->lru);
 		free_vmemmap_page(page);
 	}
@@ -280,9 +277,9 @@ int vmemmap_remap_free(unsigned long start, unsigned long end,
 	int ret;
 	LIST_HEAD(vmemmap_pages);
 	struct vmemmap_remap_walk walk = {
-		.remap_pte	= vmemmap_remap_pte,
-		.reuse_addr	= reuse,
-		.vmemmap_pages	= &vmemmap_pages,
+		.remap_pte = vmemmap_remap_pte,
+		.reuse_addr = reuse,
+		.vmemmap_pages = &vmemmap_pages,
 	};
 
 	/*
@@ -312,10 +309,10 @@ int vmemmap_remap_free(unsigned long start, unsigned long end,
 		 * are pages which were removed from the vmemmap.
 		 * They will be restored in the following call.
 		 */
-		walk = (struct vmemmap_remap_walk) {
-			.remap_pte	= vmemmap_restore_pte,
-			.reuse_addr	= reuse,
-			.vmemmap_pages	= &vmemmap_pages,
+		walk = (struct vmemmap_remap_walk){
+			.remap_pte = vmemmap_restore_pte,
+			.reuse_addr = reuse,
+			.vmemmap_pages = &vmemmap_pages,
 		};
 
 		vmemmap_remap_range(reuse, end, &walk);
@@ -343,7 +340,7 @@ static int alloc_vmemmap_page_list(unsigned long start, unsigned long end,
 
 	return 0;
 out:
-	list_for_each_entry_safe(page, next, list, lru)
+	list_for_each_entry_safe (page, next, list, lru)
 		__free_pages(page, 0);
 	return -ENOMEM;
 }
@@ -366,9 +363,9 @@ int vmemmap_remap_alloc(unsigned long start, unsigned long end,
 {
 	LIST_HEAD(vmemmap_pages);
 	struct vmemmap_remap_walk walk = {
-		.remap_pte	= vmemmap_restore_pte,
-		.reuse_addr	= reuse,
-		.vmemmap_pages	= &vmemmap_pages,
+		.remap_pte = vmemmap_restore_pte,
+		.reuse_addr = reuse,
+		.vmemmap_pages = &vmemmap_pages,
 	};
 
 	/* See the comment in the vmemmap_remap_free(). */
@@ -390,20 +387,20 @@ int vmemmap_remap_alloc(unsigned long start, unsigned long end,
  * Uses the main allocators if they are available, else bootmem.
  */
 
-static void * __ref __earlyonly_bootmem_alloc(int node,
-				unsigned long size,
-				unsigned long align,
-				unsigned long goal)
+static void *__ref __earlyonly_bootmem_alloc(int node, unsigned long size,
+					     unsigned long align,
+					     unsigned long goal)
 {
 	return memblock_alloc_try_nid_raw(size, align, goal,
-					       MEMBLOCK_ALLOC_ACCESSIBLE, node);
+					  MEMBLOCK_ALLOC_ACCESSIBLE, node);
 }
 
-void * __meminit vmemmap_alloc_block(unsigned long size, int node)
+void *__meminit vmemmap_alloc_block(unsigned long size, int node)
 {
 	/* If the main allocator is up use that, fallback to bootmem. */
 	if (slab_is_available()) {
-		gfp_t gfp_mask = GFP_KERNEL|__GFP_RETRY_MAYFAIL|__GFP_NOWARN;
+		gfp_t gfp_mask =
+			GFP_KERNEL | __GFP_RETRY_MAYFAIL | __GFP_NOWARN;
 		int order = get_order(size);
 		static bool warned;
 		struct page *page;
@@ -420,15 +417,15 @@ void * __meminit vmemmap_alloc_block(unsigned long size, int node)
 		return NULL;
 	} else
 		return __earlyonly_bootmem_alloc(node, size, size,
-				__pa(MAX_DMA_ADDRESS));
+						 __pa(MAX_DMA_ADDRESS));
 }
 
-static void * __meminit altmap_alloc_block_buf(unsigned long size,
-					       struct vmem_altmap *altmap);
+static void *__meminit altmap_alloc_block_buf(unsigned long size,
+					      struct vmem_altmap *altmap);
 
 /* need to make sure size is all the same during early stage */
-void * __meminit vmemmap_alloc_block_buf(unsigned long size, int node,
-					 struct vmem_altmap *altmap)
+void *__meminit vmemmap_alloc_block_buf(unsigned long size, int node,
+					struct vmem_altmap *altmap)
 {
 	void *ptr;
 
@@ -443,8 +440,8 @@ void * __meminit vmemmap_alloc_block_buf(unsigned long size, int node,
 
 static unsigned long __meminit vmem_altmap_next_pfn(struct vmem_altmap *altmap)
 {
-	return altmap->base_pfn + altmap->reserve + altmap->alloc
-		+ altmap->align;
+	return altmap->base_pfn + altmap->reserve + altmap->alloc +
+	       altmap->align;
 }
 
 static unsigned long __meminit vmem_altmap_nr_free(struct vmem_altmap *altmap)
@@ -456,14 +453,15 @@ static unsigned long __meminit vmem_altmap_nr_free(struct vmem_altmap *altmap)
 	return 0;
 }
 
-static void * __meminit altmap_alloc_block_buf(unsigned long size,
-					       struct vmem_altmap *altmap)
+static void *__meminit altmap_alloc_block_buf(unsigned long size,
+					      struct vmem_altmap *altmap)
 {
 	unsigned long pfn, nr_pfns, nr_align;
 
 	if (size & ~PAGE_MASK) {
-		pr_warn_once("%s: allocations must be multiple of PAGE_SIZE (%ld)\n",
-				__func__, size);
+		pr_warn_once(
+			"%s: allocations must be multiple of PAGE_SIZE (%ld)\n",
+			__func__, size);
 		return NULL;
 	}
 
@@ -478,24 +476,24 @@ static void * __meminit altmap_alloc_block_buf(unsigned long size,
 	altmap->align += nr_align;
 	pfn += nr_align;
 
-	pr_debug("%s: pfn: %#lx alloc: %ld align: %ld nr: %#lx\n",
-			__func__, pfn, altmap->alloc, altmap->align, nr_pfns);
+	pr_debug("%s: pfn: %#lx alloc: %ld align: %ld nr: %#lx\n", __func__,
+		 pfn, altmap->alloc, altmap->align, nr_pfns);
 	return __va(__pfn_to_phys(pfn));
 }
 
-void __meminit vmemmap_verify(pte_t *pte, int node,
-				unsigned long start, unsigned long end)
+void __meminit vmemmap_verify(pte_t *pte, int node, unsigned long start,
+			      unsigned long end)
 {
 	unsigned long pfn = pte_pfn(*pte);
 	int actual_node = early_pfn_to_nid(pfn);
 
 	if (node_distance(actual_node, node) > LOCAL_DISTANCE)
-		pr_warn("[%lx-%lx] potential offnode page_structs\n",
-			start, end - 1);
+		pr_warn("[%lx-%lx] potential offnode page_structs\n", start,
+			end - 1);
 }
 
-pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
-				       struct vmem_altmap *altmap)
+pte_t *__meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
+				      struct vmem_altmap *altmap)
 {
 	pte_t *pte = pte_offset_kernel(pmd, addr);
 	if (pte_none(*pte)) {
@@ -511,7 +509,7 @@ pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
 	return pte;
 }
 
-static void * __meminit vmemmap_alloc_block_zero(unsigned long size, int node)
+static void *__meminit vmemmap_alloc_block_zero(unsigned long size, int node)
 {
 	void *p = vmemmap_alloc_block(size, node);
 
@@ -522,7 +520,7 @@ static void * __meminit vmemmap_alloc_block_zero(unsigned long size, int node)
 	return p;
 }
 
-pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
+pmd_t *__meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
 {
 	pmd_t *pmd = pmd_offset(pud, addr);
 	if (pmd_none(*pmd)) {
@@ -534,7 +532,7 @@ pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
 	return pmd;
 }
 
-pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
+pud_t *__meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
 {
 	pud_t *pud = pud_offset(p4d, addr);
 	if (pud_none(*pud)) {
@@ -546,7 +544,7 @@ pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
 	return pud;
 }
 
-p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
+p4d_t *__meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
 {
 	p4d_t *p4d = p4d_offset(pgd, addr);
 	if (p4d_none(*p4d)) {
@@ -558,7 +556,7 @@ p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
 	return p4d;
 }
 
-pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
+pgd_t *__meminit vmemmap_pgd_populate(unsigned long addr, int node)
 {
 	pgd_t *pgd = pgd_offset_k(addr);
 	if (pgd_none(*pgd)) {
@@ -602,14 +600,16 @@ int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
 	return 0;
 }
 
-struct page * __meminit __populate_section_memmap(unsigned long pfn,
-		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
+struct page *__meminit __populate_section_memmap(unsigned long pfn,
+						 unsigned long nr_pages,
+						 int nid,
+						 struct vmem_altmap *altmap)
 {
-	unsigned long start = (unsigned long) pfn_to_page(pfn);
+	unsigned long start = (unsigned long)pfn_to_page(pfn);
 	unsigned long end = start + nr_pages * sizeof(struct page);
 
 	if (WARN_ON_ONCE(!IS_ALIGNED(pfn, PAGES_PER_SUBSECTION) ||
-		!IS_ALIGNED(nr_pages, PAGES_PER_SUBSECTION)))
+			 !IS_ALIGNED(nr_pages, PAGES_PER_SUBSECTION)))
 		return NULL;
 
 	if (vmemmap_populate(start, end, nid, altmap))

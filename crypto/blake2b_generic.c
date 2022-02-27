@@ -23,18 +23,18 @@
 #include <crypto/internal/hash.h>
 
 static const u8 blake2b_sigma[12][16] = {
-	{  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15 },
-	{ 14, 10,  4,  8,  9, 15, 13,  6,  1, 12,  0,  2, 11,  7,  5,  3 },
-	{ 11,  8, 12,  0,  5,  2, 15, 13, 10, 14,  3,  6,  7,  1,  9,  4 },
-	{  7,  9,  3,  1, 13, 12, 11, 14,  2,  6,  5, 10,  4,  0, 15,  8 },
-	{  9,  0,  5,  7,  2,  4, 10, 15, 14,  1, 11, 12,  6,  8,  3, 13 },
-	{  2, 12,  6, 10,  0, 11,  8,  3,  4, 13,  7,  5, 15, 14,  1,  9 },
-	{ 12,  5,  1, 15, 14, 13,  4, 10,  0,  7,  6,  3,  9,  2,  8, 11 },
-	{ 13, 11,  7, 14, 12,  1,  3,  9,  5,  0, 15,  4,  8,  6,  2, 10 },
-	{  6, 15, 14,  9, 11,  3,  0,  8, 12,  2, 13,  7,  1,  4, 10,  5 },
-	{ 10,  2,  8,  4,  7,  6,  1,  5, 15, 11,  9, 14,  3, 12, 13,  0 },
-	{  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15 },
-	{ 14, 10,  4,  8,  9, 15, 13,  6,  1, 12,  0,  2, 11,  7,  5,  3 }
+	{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
+	{ 14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3 },
+	{ 11, 8, 12, 0, 5, 2, 15, 13, 10, 14, 3, 6, 7, 1, 9, 4 },
+	{ 7, 9, 3, 1, 13, 12, 11, 14, 2, 6, 5, 10, 4, 0, 15, 8 },
+	{ 9, 0, 5, 7, 2, 4, 10, 15, 14, 1, 11, 12, 6, 8, 3, 13 },
+	{ 2, 12, 6, 10, 0, 11, 8, 3, 4, 13, 7, 5, 15, 14, 1, 9 },
+	{ 12, 5, 1, 15, 14, 13, 4, 10, 0, 7, 6, 3, 9, 2, 8, 11 },
+	{ 13, 11, 7, 14, 12, 1, 3, 9, 5, 0, 15, 4, 8, 6, 2, 10 },
+	{ 6, 15, 14, 9, 11, 3, 0, 8, 12, 2, 13, 7, 1, 4, 10, 5 },
+	{ 10, 2, 8, 4, 7, 6, 1, 5, 15, 11, 9, 14, 3, 12, 13, 0 },
+	{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
+	{ 14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3 }
 };
 
 static void blake2b_increment_counter(struct blake2b_state *S, const u64 inc)
@@ -43,28 +43,28 @@ static void blake2b_increment_counter(struct blake2b_state *S, const u64 inc)
 	S->t[1] += (S->t[0] < inc);
 }
 
-#define G(r,i,a,b,c,d)                                  \
-	do {                                            \
-		a = a + b + m[blake2b_sigma[r][2*i+0]]; \
-		d = ror64(d ^ a, 32);                   \
-		c = c + d;                              \
-		b = ror64(b ^ c, 24);                   \
-		a = a + b + m[blake2b_sigma[r][2*i+1]]; \
-		d = ror64(d ^ a, 16);                   \
-		c = c + d;                              \
-		b = ror64(b ^ c, 63);                   \
+#define G(r, i, a, b, c, d)                                                    \
+	do {                                                                   \
+		a = a + b + m[blake2b_sigma[r][2 * i + 0]];                    \
+		d = ror64(d ^ a, 32);                                          \
+		c = c + d;                                                     \
+		b = ror64(b ^ c, 24);                                          \
+		a = a + b + m[blake2b_sigma[r][2 * i + 1]];                    \
+		d = ror64(d ^ a, 16);                                          \
+		c = c + d;                                                     \
+		b = ror64(b ^ c, 63);                                          \
 	} while (0)
 
-#define ROUND(r)                                \
-	do {                                    \
-		G(r,0,v[ 0],v[ 4],v[ 8],v[12]); \
-		G(r,1,v[ 1],v[ 5],v[ 9],v[13]); \
-		G(r,2,v[ 2],v[ 6],v[10],v[14]); \
-		G(r,3,v[ 3],v[ 7],v[11],v[15]); \
-		G(r,4,v[ 0],v[ 5],v[10],v[15]); \
-		G(r,5,v[ 1],v[ 6],v[11],v[12]); \
-		G(r,6,v[ 2],v[ 7],v[ 8],v[13]); \
-		G(r,7,v[ 3],v[ 4],v[ 9],v[14]); \
+#define ROUND(r)                                                               \
+	do {                                                                   \
+		G(r, 0, v[0], v[4], v[8], v[12]);                              \
+		G(r, 1, v[1], v[5], v[9], v[13]);                              \
+		G(r, 2, v[2], v[6], v[10], v[14]);                             \
+		G(r, 3, v[3], v[7], v[11], v[15]);                             \
+		G(r, 4, v[0], v[5], v[10], v[15]);                             \
+		G(r, 5, v[1], v[6], v[11], v[12]);                             \
+		G(r, 6, v[2], v[7], v[8], v[13]);                              \
+		G(r, 7, v[3], v[4], v[9], v[14]);                              \
 	} while (0)
 
 static void blake2b_compress_one_generic(struct blake2b_state *S,
@@ -80,8 +80,8 @@ static void blake2b_compress_one_generic(struct blake2b_state *S,
 	for (i = 0; i < 8; ++i)
 		v[i] = S->h[i];
 
-	v[ 8] = BLAKE2B_IV0;
-	v[ 9] = BLAKE2B_IV1;
+	v[8] = BLAKE2B_IV0;
+	v[9] = BLAKE2B_IV1;
 	v[10] = BLAKE2B_IV2;
 	v[11] = BLAKE2B_IV3;
 	v[12] = BLAKE2B_IV4 ^ S->t[0];
@@ -111,8 +111,8 @@ static void blake2b_compress_one_generic(struct blake2b_state *S,
 #undef G
 #undef ROUND
 
-void blake2b_compress_generic(struct blake2b_state *state,
-			      const u8 *block, size_t nblocks, u32 inc)
+void blake2b_compress_generic(struct blake2b_state *state, const u8 *block,
+			      size_t nblocks, u32 inc)
 {
 	do {
 		blake2b_increment_counter(state, inc);
@@ -122,8 +122,8 @@ void blake2b_compress_generic(struct blake2b_state *state,
 }
 EXPORT_SYMBOL(blake2b_compress_generic);
 
-static int crypto_blake2b_update_generic(struct shash_desc *desc,
-					 const u8 *in, unsigned int inlen)
+static int crypto_blake2b_update_generic(struct shash_desc *desc, const u8 *in,
+					 unsigned int inlen)
 {
 	return crypto_blake2b_update(desc, in, inlen, blake2b_compress_generic);
 }
@@ -133,21 +133,18 @@ static int crypto_blake2b_final_generic(struct shash_desc *desc, u8 *out)
 	return crypto_blake2b_final(desc, out, blake2b_compress_generic);
 }
 
-#define BLAKE2B_ALG(name, driver_name, digest_size)			\
-	{								\
-		.base.cra_name		= name,				\
-		.base.cra_driver_name	= driver_name,			\
-		.base.cra_priority	= 100,				\
-		.base.cra_flags		= CRYPTO_ALG_OPTIONAL_KEY,	\
-		.base.cra_blocksize	= BLAKE2B_BLOCK_SIZE,		\
-		.base.cra_ctxsize	= sizeof(struct blake2b_tfm_ctx), \
-		.base.cra_module	= THIS_MODULE,			\
-		.digestsize		= digest_size,			\
-		.setkey			= crypto_blake2b_setkey,	\
-		.init			= crypto_blake2b_init,		\
-		.update			= crypto_blake2b_update_generic, \
-		.final			= crypto_blake2b_final_generic,	\
-		.descsize		= sizeof(struct blake2b_state),	\
+#define BLAKE2B_ALG(name, driver_name, digest_size)                            \
+	{                                                                      \
+		.base.cra_name = name, .base.cra_driver_name = driver_name,    \
+		.base.cra_priority = 100,                                      \
+		.base.cra_flags = CRYPTO_ALG_OPTIONAL_KEY,                     \
+		.base.cra_blocksize = BLAKE2B_BLOCK_SIZE,                      \
+		.base.cra_ctxsize = sizeof(struct blake2b_tfm_ctx),            \
+		.base.cra_module = THIS_MODULE, .digestsize = digest_size,     \
+		.setkey = crypto_blake2b_setkey, .init = crypto_blake2b_init,  \
+		.update = crypto_blake2b_update_generic,                       \
+		.final = crypto_blake2b_final_generic,                         \
+		.descsize = sizeof(struct blake2b_state),                      \
 	}
 
 static struct shash_alg blake2b_algs[] = {

@@ -39,8 +39,8 @@ static int ecdh_set_secret(struct crypto_kpp *tfm, const void *buf,
 
 	memcpy(ctx->private_key, params.key, params.key_size);
 
-	if (ecc_is_key_valid(ctx->curve_id, ctx->ndigits,
-			     ctx->private_key, params.key_size) < 0) {
+	if (ecc_is_key_valid(ctx->curve_id, ctx->ndigits, ctx->private_key,
+			     params.key_size) < 0) {
 		memzero_explicit(ctx->private_key, params.key_size);
 		return -EINVAL;
 	}
@@ -77,10 +77,9 @@ static int ecdh_compute_value(struct kpp_request *req)
 		if (public_key_sz != req->src_len)
 			goto free_all;
 
-		copied = sg_copy_to_buffer(req->src,
-					   sg_nents_for_len(req->src,
-							    public_key_sz),
-					   public_key, public_key_sz);
+		copied = sg_copy_to_buffer(
+			req->src, sg_nents_for_len(req->src, public_key_sz),
+			public_key, public_key_sz);
 		if (copied != public_key_sz)
 			goto free_all;
 
@@ -101,9 +100,8 @@ static int ecdh_compute_value(struct kpp_request *req)
 
 	/* might want less than we've got */
 	nbytes = min_t(size_t, nbytes, req->dst_len);
-	copied = sg_copy_from_buffer(req->dst, sg_nents_for_len(req->dst,
-								nbytes),
-				     buf, nbytes);
+	copied = sg_copy_from_buffer(
+		req->dst, sg_nents_for_len(req->dst, nbytes), buf, nbytes);
 	if (copied != nbytes)
 		ret = -EINVAL;
 

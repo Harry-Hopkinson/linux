@@ -46,8 +46,8 @@ static int crypto_check_alg(struct crypto_alg *alg)
 		return -EINVAL;
 
 	/* Lower maximums for specific alg types. */
-	if (!alg->cra_type && (alg->cra_flags & CRYPTO_ALG_TYPE_MASK) ==
-			       CRYPTO_ALG_TYPE_CIPHER) {
+	if (!alg->cra_type &&
+	    (alg->cra_flags & CRYPTO_ALG_TYPE_MASK) == CRYPTO_ALG_TYPE_CIPHER) {
 		if (alg->cra_alignmask > MAX_CIPHER_ALIGNMASK)
 			return -EINVAL;
 
@@ -147,7 +147,7 @@ void crypto_remove_spawns(struct crypto_alg *alg, struct list_head *list,
 	LIST_HEAD(top);
 
 	spawns = &alg->cra_users;
-	list_for_each_entry_safe(spawn, n, spawns, list) {
+	list_for_each_entry_safe (spawn, n, spawns, list) {
 		if ((spawn->alg->cra_flags ^ new_type) & spawn->mask)
 			continue;
 
@@ -207,7 +207,7 @@ void crypto_remove_spawns(struct crypto_alg *alg, struct list_head *list,
 	 * complete the resurrection of the others by moving them
 	 * back to the cra_users list.
 	 */
-	list_for_each_entry_safe(spawn, n, &secondary_spawns, list) {
+	list_for_each_entry_safe (spawn, n, &secondary_spawns, list) {
 		if (!spawn->dead)
 			list_move(&spawn->list, &spawn->alg->cra_users);
 		else if (spawn->registered)
@@ -258,7 +258,7 @@ static struct crypto_larval *__crypto_register_alg(struct crypto_alg *alg)
 
 	ret = -EEXIST;
 
-	list_for_each_entry(q, &crypto_alg_list, cra_list) {
+	list_for_each_entry (q, &crypto_alg_list, cra_list) {
 		if (q == alg)
 			goto err;
 
@@ -306,7 +306,7 @@ void crypto_alg_tested(const char *name, int err)
 	bool best;
 
 	down_write(&crypto_alg_sem);
-	list_for_each_entry(q, &crypto_alg_list, cra_list) {
+	list_for_each_entry (q, &crypto_alg_list, cra_list) {
 		if (crypto_is_moribund(q) || !crypto_is_larval(q))
 			continue;
 
@@ -329,7 +329,7 @@ found:
 
 	/* Only satisfy larval waiters if we are the best. */
 	best = true;
-	list_for_each_entry(q, &crypto_alg_list, cra_list) {
+	list_for_each_entry (q, &crypto_alg_list, cra_list) {
 		if (crypto_is_moribund(q) || !crypto_is_larval(q))
 			continue;
 
@@ -342,7 +342,7 @@ found:
 		}
 	}
 
-	list_for_each_entry(q, &crypto_alg_list, cra_list) {
+	list_for_each_entry (q, &crypto_alg_list, cra_list) {
 		if (q == alg)
 			continue;
 
@@ -399,7 +399,7 @@ void crypto_remove_final(struct list_head *list)
 	struct crypto_alg *alg;
 	struct crypto_alg *n;
 
-	list_for_each_entry_safe(alg, n, list, cra_list) {
+	list_for_each_entry_safe (alg, n, list, cra_list) {
 		list_del_init(&alg->cra_list);
 		crypto_alg_put(alg);
 	}
@@ -504,7 +504,7 @@ int crypto_register_template(struct crypto_template *tmpl)
 
 	crypto_check_module_sig(tmpl->module);
 
-	list_for_each_entry(q, &crypto_template_list, list) {
+	list_for_each_entry (q, &crypto_template_list, list) {
 		if (q == tmpl)
 			goto out;
 	}
@@ -548,7 +548,7 @@ void crypto_unregister_template(struct crypto_template *tmpl)
 	list_del_init(&tmpl->list);
 
 	list = &tmpl->instances;
-	hlist_for_each_entry(inst, list, list) {
+	hlist_for_each_entry (inst, list, list) {
 		int err = crypto_remove_alg(&inst->alg, &users);
 
 		BUG_ON(err);
@@ -556,7 +556,7 @@ void crypto_unregister_template(struct crypto_template *tmpl)
 
 	up_write(&crypto_alg_sem);
 
-	hlist_for_each_entry_safe(inst, n, list, list) {
+	hlist_for_each_entry_safe (inst, n, list, list) {
 		BUG_ON(refcount_read(&inst->alg.cra_refcnt) != 1);
 		crypto_free_instance(inst);
 	}
@@ -578,7 +578,7 @@ static struct crypto_template *__crypto_lookup_template(const char *name)
 	struct crypto_template *q, *tmpl = NULL;
 
 	down_read(&crypto_alg_sem);
-	list_for_each_entry(q, &crypto_template_list, list) {
+	list_for_each_entry (q, &crypto_template_list, list) {
 		if (strcmp(q->name, name))
 			continue;
 		if (unlikely(!crypto_tmpl_get(q)))
@@ -1002,7 +1002,7 @@ void __crypto_xor(u8 *dst, const u8 *src1, const u8 *src2, unsigned int len)
 	}
 
 	while (IS_ENABLED(CONFIG_64BIT) && len >= 8 && !(relalign & 7)) {
-		*(u64 *)dst = *(u64 *)src1 ^  *(u64 *)src2;
+		*(u64 *)dst = *(u64 *)src1 ^ *(u64 *)src2;
 		dst += 8;
 		src1 += 8;
 		src2 += 8;
@@ -1273,7 +1273,7 @@ static void __init crypto_start_tests(void)
 
 		down_write(&crypto_alg_sem);
 
-		list_for_each_entry(q, &crypto_alg_list, cra_list) {
+		list_for_each_entry (q, &crypto_alg_list, cra_list) {
 			struct crypto_larval *l;
 
 			if (!crypto_is_larval(q))

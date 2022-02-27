@@ -43,11 +43,11 @@ u64 __blkg_prfill_rwstat(struct seq_file *sf, struct blkg_policy_data *pd,
 			 const struct blkg_rwstat_sample *rwstat)
 {
 	static const char *rwstr[] = {
-		[BLKG_RWSTAT_READ]	= "Read",
-		[BLKG_RWSTAT_WRITE]	= "Write",
-		[BLKG_RWSTAT_SYNC]	= "Sync",
-		[BLKG_RWSTAT_ASYNC]	= "Async",
-		[BLKG_RWSTAT_DISCARD]	= "Discard",
+		[BLKG_RWSTAT_READ] = "Read",
+		[BLKG_RWSTAT_WRITE] = "Write",
+		[BLKG_RWSTAT_SYNC] = "Sync",
+		[BLKG_RWSTAT_ASYNC] = "Async",
+		[BLKG_RWSTAT_DISCARD] = "Discard",
 	};
 	const char *dname = blkg_dev_name(pd->blkg);
 	u64 v;
@@ -57,12 +57,10 @@ u64 __blkg_prfill_rwstat(struct seq_file *sf, struct blkg_policy_data *pd,
 		return 0;
 
 	for (i = 0; i < BLKG_RWSTAT_NR; i++)
-		seq_printf(sf, "%s %s %llu\n", dname, rwstr[i],
-			   rwstat->cnt[i]);
+		seq_printf(sf, "%s %s %llu\n", dname, rwstr[i], rwstat->cnt[i]);
 
-	v = rwstat->cnt[BLKG_RWSTAT_READ] +
-		rwstat->cnt[BLKG_RWSTAT_WRITE] +
-		rwstat->cnt[BLKG_RWSTAT_DISCARD];
+	v = rwstat->cnt[BLKG_RWSTAT_READ] + rwstat->cnt[BLKG_RWSTAT_WRITE] +
+	    rwstat->cnt[BLKG_RWSTAT_DISCARD];
 	seq_printf(sf, "%s Total %llu\n", dname, v);
 	return v;
 }
@@ -79,7 +77,7 @@ EXPORT_SYMBOL_GPL(__blkg_prfill_rwstat);
 u64 blkg_prfill_rwstat(struct seq_file *sf, struct blkg_policy_data *pd,
 		       int off)
 {
-	struct blkg_rwstat_sample rwstat = { };
+	struct blkg_rwstat_sample rwstat = {};
 
 	blkg_rwstat_read((void *)pd + off, &rwstat);
 	return __blkg_prfill_rwstat(sf, pd, &rwstat);
@@ -101,7 +99,7 @@ EXPORT_SYMBOL_GPL(blkg_prfill_rwstat);
  * is at @off bytes into @blkg's blkg_policy_data of the policy.
  */
 void blkg_rwstat_recursive_sum(struct blkcg_gq *blkg, struct blkcg_policy *pol,
-		int off, struct blkg_rwstat_sample *sum)
+			       int off, struct blkg_rwstat_sample *sum)
 {
 	struct blkcg_gq *pos_blkg;
 	struct cgroup_subsys_state *pos_css;
@@ -111,7 +109,7 @@ void blkg_rwstat_recursive_sum(struct blkcg_gq *blkg, struct blkcg_policy *pol,
 
 	memset(sum, 0, sizeof(*sum));
 	rcu_read_lock();
-	blkg_for_each_descendant_pre(pos_blkg, pos_css, blkg) {
+	blkg_for_each_descendant_pre (pos_blkg, pos_css, blkg) {
 		struct blkg_rwstat *rwstat;
 
 		if (!pos_blkg->online)

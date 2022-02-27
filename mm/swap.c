@@ -141,7 +141,7 @@ void put_pages_list(struct list_head *pages)
 {
 	struct page *page, *next;
 
-	list_for_each_entry_safe(page, next, pages, lru) {
+	list_for_each_entry_safe (page, next, pages, lru) {
 		if (!put_page_testzero(page)) {
 			list_del(&page->lru);
 			continue;
@@ -174,7 +174,7 @@ EXPORT_SYMBOL(put_pages_list);
  * with a put_page() call when it is finished with.
  */
 int get_kernel_pages(const struct kvec *kiov, int nr_segs, int write,
-		struct page **pages)
+		     struct page **pages)
 {
 	int seg;
 
@@ -191,7 +191,8 @@ int get_kernel_pages(const struct kvec *kiov, int nr_segs, int write,
 EXPORT_SYMBOL_GPL(get_kernel_pages);
 
 static void pagevec_lru_move_fn(struct pagevec *pvec,
-	void (*move_fn)(struct page *page, struct lruvec *lruvec))
+				void (*move_fn)(struct page *page,
+						struct lruvec *lruvec))
 {
 	int i;
 	struct lruvec *lruvec = NULL;
@@ -234,7 +235,7 @@ static bool pagevec_add_and_need_flush(struct pagevec *pvec, struct page *page)
 	bool ret = false;
 
 	if (!pagevec_add(pvec, page) || PageCompound(page) ||
-			lru_cache_disabled())
+	    lru_cache_disabled())
 		ret = true;
 
 	return ret;
@@ -306,7 +307,7 @@ void lru_note_cost(struct lruvec *lruvec, bool file, unsigned int nr_pages)
 void lru_note_cost_folio(struct folio *folio)
 {
 	lru_note_cost(folio_lruvec(folio), folio_is_file_lru(folio),
-			folio_nr_pages(folio));
+		      folio_nr_pages(folio));
 }
 
 static void __folio_activate(struct folio *folio, struct lruvec *lruvec)
@@ -459,7 +460,9 @@ void folio_add_lru(struct folio *folio)
 {
 	struct pagevec *pvec;
 
-	VM_BUG_ON_FOLIO(folio_test_active(folio) && folio_test_unevictable(folio), folio);
+	VM_BUG_ON_FOLIO(folio_test_active(folio) &&
+				folio_test_unevictable(folio),
+			folio);
 	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
 
 	folio_get(folio);
@@ -480,7 +483,7 @@ EXPORT_SYMBOL(folio_add_lru);
  * evictability.
  */
 void lru_cache_add_inactive_or_unevictable(struct page *page,
-					 struct vm_area_struct *vma)
+					   struct vm_area_struct *vma)
 {
 	bool unevictable;
 
@@ -579,8 +582,8 @@ static void lru_deactivate_fn(struct page *page, struct lruvec *lruvec)
 
 static void lru_lazyfree_fn(struct page *page, struct lruvec *lruvec)
 {
-	if (PageAnon(page) && PageSwapBacked(page) &&
-	    !PageSwapCache(page) && !PageUnevictable(page)) {
+	if (PageAnon(page) && PageSwapBacked(page) && !PageSwapCache(page) &&
+	    !PageUnevictable(page)) {
 		int nr_pages = thp_nr_pages(page);
 
 		del_page_from_lru_list(page, lruvec);
@@ -828,24 +831,24 @@ inline void __lru_add_drain_all(bool force_all_cpus)
 	smp_mb();
 
 	cpumask_clear(&has_work);
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu (cpu) {
 		struct work_struct *work = &per_cpu(lru_add_drain_work, cpu);
 
 		if (force_all_cpus ||
 		    pagevec_count(&per_cpu(lru_pvecs.lru_add, cpu)) ||
 		    data_race(pagevec_count(&per_cpu(lru_rotate.pvec, cpu))) ||
-		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate_file, cpu)) ||
+		    pagevec_count(
+			    &per_cpu(lru_pvecs.lru_deactivate_file, cpu)) ||
 		    pagevec_count(&per_cpu(lru_pvecs.lru_deactivate, cpu)) ||
 		    pagevec_count(&per_cpu(lru_pvecs.lru_lazyfree, cpu)) ||
-		    need_activate_page_drain(cpu) ||
-		    has_bh_in_lru(cpu, NULL)) {
+		    need_activate_page_drain(cpu) || has_bh_in_lru(cpu, NULL)) {
 			INIT_WORK(work, lru_add_drain_per_cpu);
 			queue_work_on(cpu, mm_percpu_wq, work);
 			__cpumask_set_cpu(cpu, &has_work);
 		}
 	}
 
-	for_each_cpu(cpu, &has_work)
+	for_each_cpu (cpu, &has_work)
 		flush_work(&per_cpu(lru_add_drain_work, cpu));
 
 done:
@@ -961,7 +964,7 @@ void release_pages(struct page **pages, int nr)
 			struct lruvec *prev_lruvec = lruvec;
 
 			lruvec = folio_lruvec_relock_irqsave(folio, lruvec,
-									&flags);
+							     &flags);
 			if (prev_lruvec != lruvec)
 				lock_batch = 0;
 
@@ -1118,7 +1121,8 @@ void folio_batch_remove_exceptionals(struct folio_batch *fbatch)
  * reached.
  */
 unsigned pagevec_lookup_range(struct pagevec *pvec,
-		struct address_space *mapping, pgoff_t *start, pgoff_t end)
+			      struct address_space *mapping, pgoff_t *start,
+			      pgoff_t end)
 {
 	pvec->nr = find_get_pages_range(mapping, start, end, PAGEVEC_SIZE,
 					pvec->pages);
@@ -1127,11 +1131,11 @@ unsigned pagevec_lookup_range(struct pagevec *pvec,
 EXPORT_SYMBOL(pagevec_lookup_range);
 
 unsigned pagevec_lookup_range_tag(struct pagevec *pvec,
-		struct address_space *mapping, pgoff_t *index, pgoff_t end,
-		xa_mark_t tag)
+				  struct address_space *mapping, pgoff_t *index,
+				  pgoff_t end, xa_mark_t tag)
 {
 	pvec->nr = find_get_pages_range_tag(mapping, index, end, tag,
-					PAGEVEC_SIZE, pvec->pages);
+					    PAGEVEC_SIZE, pvec->pages);
 	return pagevec_count(pvec);
 }
 EXPORT_SYMBOL(pagevec_lookup_range_tag);

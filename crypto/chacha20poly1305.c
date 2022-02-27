@@ -97,8 +97,7 @@ static int poly_verify_tag(struct aead_request *req)
 	struct chachapoly_req_ctx *rctx = aead_request_ctx(req);
 	u8 tag[sizeof(rctx->tag)];
 
-	scatterwalk_map_and_copy(tag, req->src,
-				 req->assoclen + rctx->cryptlen,
+	scatterwalk_map_and_copy(tag, req->src, req->assoclen + rctx->cryptlen,
 				 sizeof(tag), 0);
 	if (crypto_memneq(tag, rctx->tag, sizeof(tag)))
 		return -EBADMSG;
@@ -141,8 +140,8 @@ static int chacha_decrypt(struct aead_request *req)
 	skcipher_request_set_callback(&creq->req, rctx->flags,
 				      chacha_decrypt_done, req);
 	skcipher_request_set_tfm(&creq->req, ctx->chacha);
-	skcipher_request_set_crypt(&creq->req, src, dst,
-				   rctx->cryptlen, creq->iv);
+	skcipher_request_set_crypt(&creq->req, src, dst, rctx->cryptlen,
+				   creq->iv);
 	err = crypto_skcipher_decrypt(&creq->req);
 	if (err)
 		return err;
@@ -178,11 +177,11 @@ static int poly_tail(struct aead_request *req)
 	preq->tail.cryptlen = cpu_to_le64(rctx->cryptlen);
 	sg_init_one(preq->src, &preq->tail, sizeof(preq->tail));
 
-	ahash_request_set_callback(&preq->req, rctx->flags,
-				   poly_tail_done, req);
+	ahash_request_set_callback(&preq->req, rctx->flags, poly_tail_done,
+				   req);
 	ahash_request_set_tfm(&preq->req, ctx->poly);
-	ahash_request_set_crypt(&preq->req, preq->src,
-				rctx->tag, sizeof(preq->tail));
+	ahash_request_set_crypt(&preq->req, preq->src, rctx->tag,
+				sizeof(preq->tail));
 
 	err = crypto_ahash_finup(&preq->req);
 	if (err)
@@ -208,8 +207,8 @@ static int poly_cipherpad(struct aead_request *req)
 	memset(preq->pad, 0, sizeof(preq->pad));
 	sg_init_one(preq->src, preq->pad, padlen);
 
-	ahash_request_set_callback(&preq->req, rctx->flags,
-				   poly_cipherpad_done, req);
+	ahash_request_set_callback(&preq->req, rctx->flags, poly_cipherpad_done,
+				   req);
 	ahash_request_set_tfm(&preq->req, ctx->poly);
 	ahash_request_set_crypt(&preq->req, preq->src, NULL, padlen);
 
@@ -238,8 +237,8 @@ static int poly_cipher(struct aead_request *req)
 
 	crypt = scatterwalk_ffwd(rctx->src, crypt, req->assoclen);
 
-	ahash_request_set_callback(&preq->req, rctx->flags,
-				   poly_cipher_done, req);
+	ahash_request_set_callback(&preq->req, rctx->flags, poly_cipher_done,
+				   req);
 	ahash_request_set_tfm(&preq->req, ctx->poly);
 	ahash_request_set_crypt(&preq->req, crypt, NULL, rctx->cryptlen);
 
@@ -267,8 +266,8 @@ static int poly_adpad(struct aead_request *req)
 	memset(preq->pad, 0, sizeof(preq->pad));
 	sg_init_one(preq->src, preq->pad, padlen);
 
-	ahash_request_set_callback(&preq->req, rctx->flags,
-				   poly_adpad_done, req);
+	ahash_request_set_callback(&preq->req, rctx->flags, poly_adpad_done,
+				   req);
 	ahash_request_set_tfm(&preq->req, ctx->poly);
 	ahash_request_set_crypt(&preq->req, preq->src, NULL, padlen);
 
@@ -291,8 +290,7 @@ static int poly_ad(struct aead_request *req)
 	struct poly_req *preq = &rctx->u.poly;
 	int err;
 
-	ahash_request_set_callback(&preq->req, rctx->flags,
-				   poly_ad_done, req);
+	ahash_request_set_callback(&preq->req, rctx->flags, poly_ad_done, req);
 	ahash_request_set_tfm(&preq->req, ctx->poly);
 	ahash_request_set_crypt(&preq->req, req->src, NULL, rctx->assoclen);
 
@@ -317,8 +315,8 @@ static int poly_setkey(struct aead_request *req)
 
 	sg_init_one(preq->src, rctx->key, sizeof(rctx->key));
 
-	ahash_request_set_callback(&preq->req, rctx->flags,
-				   poly_setkey_done, req);
+	ahash_request_set_callback(&preq->req, rctx->flags, poly_setkey_done,
+				   req);
 	ahash_request_set_tfm(&preq->req, ctx->poly);
 	ahash_request_set_crypt(&preq->req, preq->src, NULL, sizeof(rctx->key));
 
@@ -341,8 +339,8 @@ static int poly_init(struct aead_request *req)
 	struct poly_req *preq = &rctx->u.poly;
 	int err;
 
-	ahash_request_set_callback(&preq->req, rctx->flags,
-				   poly_init_done, req);
+	ahash_request_set_callback(&preq->req, rctx->flags, poly_init_done,
+				   req);
 	ahash_request_set_tfm(&preq->req, ctx->poly);
 
 	err = crypto_ahash_init(&preq->req);
@@ -378,8 +376,8 @@ static int poly_genkey(struct aead_request *req)
 
 	chacha_iv(creq->iv, req, 0);
 
-	skcipher_request_set_callback(&creq->req, rctx->flags,
-				      poly_genkey_done, req);
+	skcipher_request_set_callback(&creq->req, rctx->flags, poly_genkey_done,
+				      req);
 	skcipher_request_set_tfm(&creq->req, ctx->chacha);
 	skcipher_request_set_crypt(&creq->req, creq->src, creq->src,
 				   POLY1305_KEY_SIZE, creq->iv);
@@ -417,8 +415,8 @@ static int chacha_encrypt(struct aead_request *req)
 	skcipher_request_set_callback(&creq->req, rctx->flags,
 				      chacha_encrypt_done, req);
 	skcipher_request_set_tfm(&creq->req, ctx->chacha);
-	skcipher_request_set_crypt(&creq->req, src, dst,
-				   req->cryptlen, creq->iv);
+	skcipher_request_set_crypt(&creq->req, src, dst, req->cryptlen,
+				   creq->iv);
 	err = crypto_skcipher_encrypt(&creq->req);
 	if (err)
 		return err;
@@ -484,7 +482,7 @@ static int chachapoly_setkey(struct crypto_aead *aead, const u8 *key,
 
 	crypto_skcipher_clear_flags(ctx->chacha, CRYPTO_TFM_REQ_MASK);
 	crypto_skcipher_set_flags(ctx->chacha, crypto_aead_get_flags(aead) &
-					       CRYPTO_TFM_REQ_MASK);
+						       CRYPTO_TFM_REQ_MASK);
 	return crypto_skcipher_setkey(ctx->chacha, key, keylen);
 }
 
@@ -523,14 +521,13 @@ static int chachapoly_init(struct crypto_aead *tfm)
 	align = crypto_aead_alignmask(tfm);
 	align &= ~(crypto_tfm_ctx_alignment() - 1);
 	crypto_aead_set_reqsize(
-		tfm,
-		align + offsetof(struct chachapoly_req_ctx, u) +
-		max(offsetof(struct chacha_req, req) +
-		    sizeof(struct skcipher_request) +
-		    crypto_skcipher_reqsize(chacha),
-		    offsetof(struct poly_req, req) +
-		    sizeof(struct ahash_request) +
-		    crypto_ahash_reqsize(poly)));
+		tfm, align + offsetof(struct chachapoly_req_ctx, u) +
+			     max(offsetof(struct chacha_req, req) +
+					 sizeof(struct skcipher_request) +
+					 crypto_skcipher_reqsize(chacha),
+				 offsetof(struct poly_req, req) +
+					 sizeof(struct ahash_request) +
+					 crypto_ahash_reqsize(poly)));
 
 	return 0;
 }
@@ -598,8 +595,8 @@ static int chachapoly_create(struct crypto_template *tmpl, struct rtattr **tb,
 		goto err_free_inst;
 
 	err = -ENAMETOOLONG;
-	if (snprintf(inst->alg.base.cra_name, CRYPTO_MAX_ALG_NAME,
-		     "%s(%s,%s)", name, chacha->base.cra_name,
+	if (snprintf(inst->alg.base.cra_name, CRYPTO_MAX_ALG_NAME, "%s(%s,%s)",
+		     name, chacha->base.cra_name,
 		     poly->base.cra_name) >= CRYPTO_MAX_ALG_NAME)
 		goto err_free_inst;
 	if (snprintf(inst->alg.base.cra_driver_name, CRYPTO_MAX_ALG_NAME,
@@ -607,13 +604,13 @@ static int chachapoly_create(struct crypto_template *tmpl, struct rtattr **tb,
 		     poly->base.cra_driver_name) >= CRYPTO_MAX_ALG_NAME)
 		goto err_free_inst;
 
-	inst->alg.base.cra_priority = (chacha->base.cra_priority +
-				       poly->base.cra_priority) / 2;
+	inst->alg.base.cra_priority =
+		(chacha->base.cra_priority + poly->base.cra_priority) / 2;
 	inst->alg.base.cra_blocksize = 1;
-	inst->alg.base.cra_alignmask = chacha->base.cra_alignmask |
-				       poly->base.cra_alignmask;
-	inst->alg.base.cra_ctxsize = sizeof(struct chachapoly_ctx) +
-				     ctx->saltlen;
+	inst->alg.base.cra_alignmask =
+		chacha->base.cra_alignmask | poly->base.cra_alignmask;
+	inst->alg.base.cra_ctxsize =
+		sizeof(struct chachapoly_ctx) + ctx->saltlen;
 	inst->alg.ivsize = ivsize;
 	inst->alg.chunksize = crypto_skcipher_alg_chunksize(chacha);
 	inst->alg.maxauthsize = POLY1305_DIGEST_SIZE;
@@ -628,7 +625,7 @@ static int chachapoly_create(struct crypto_template *tmpl, struct rtattr **tb,
 
 	err = aead_register_instance(tmpl, inst);
 	if (err) {
-err_free_inst:
+	err_free_inst:
 		chachapoly_free(inst);
 	}
 	return err;
@@ -649,7 +646,8 @@ static struct crypto_template rfc7539_tmpls[] = {
 		.name = "rfc7539",
 		.create = rfc7539_create,
 		.module = THIS_MODULE,
-	}, {
+	},
+	{
 		.name = "rfc7539esp",
 		.create = rfc7539esp_create,
 		.module = THIS_MODULE,
@@ -664,8 +662,7 @@ static int __init chacha20poly1305_module_init(void)
 
 static void __exit chacha20poly1305_module_exit(void)
 {
-	crypto_unregister_templates(rfc7539_tmpls,
-				    ARRAY_SIZE(rfc7539_tmpls));
+	crypto_unregister_templates(rfc7539_tmpls, ARRAY_SIZE(rfc7539_tmpls));
 }
 
 subsys_initcall(chacha20poly1305_module_init);

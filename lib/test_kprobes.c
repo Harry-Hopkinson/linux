@@ -35,18 +35,16 @@ static int kp_pre_handler(struct kprobe *p, struct pt_regs *regs)
 }
 
 static void kp_post_handler(struct kprobe *p, struct pt_regs *regs,
-		unsigned long flags)
+			    unsigned long flags)
 {
 	KUNIT_EXPECT_FALSE(current_test, preemptible());
 	KUNIT_EXPECT_EQ(current_test, preh_val, (rand1 / div_factor));
 	posth_val = preh_val + div_factor;
 }
 
-static struct kprobe kp = {
-	.symbol_name = "kprobe_target",
-	.pre_handler = kp_pre_handler,
-	.post_handler = kp_post_handler
-};
+static struct kprobe kp = { .symbol_name = "kprobe_target",
+			    .pre_handler = kp_pre_handler,
+			    .post_handler = kp_post_handler };
 
 static void test_kprobe(struct kunit *test)
 {
@@ -66,14 +64,16 @@ static noinline u32 kprobe_target2(u32 value)
 static noinline unsigned long kprobe_stacktrace_internal_target(void)
 {
 	if (!target_return_address[0])
-		target_return_address[0] = (unsigned long)__builtin_return_address(0);
+		target_return_address[0] =
+			(unsigned long)__builtin_return_address(0);
 	return target_return_address[0];
 }
 
 static noinline unsigned long kprobe_stacktrace_target(void)
 {
 	if (!target_return_address[1])
-		target_return_address[1] = (unsigned long)__builtin_return_address(0);
+		target_return_address[1] =
+			(unsigned long)__builtin_return_address(0);
 
 	if (internal_target)
 		internal_target();
@@ -97,21 +97,19 @@ static int kp_pre_handler2(struct kprobe *p, struct pt_regs *regs)
 }
 
 static void kp_post_handler2(struct kprobe *p, struct pt_regs *regs,
-		unsigned long flags)
+			     unsigned long flags)
 {
 	KUNIT_EXPECT_EQ(current_test, preh_val, (rand1 / div_factor) + 1);
 	posth_val = preh_val + div_factor;
 }
 
-static struct kprobe kp2 = {
-	.symbol_name = "kprobe_target2",
-	.pre_handler = kp_pre_handler2,
-	.post_handler = kp_post_handler2
-};
+static struct kprobe kp2 = { .symbol_name = "kprobe_target2",
+			     .pre_handler = kp_pre_handler2,
+			     .post_handler = kp_post_handler2 };
 
 static void test_kprobes(struct kunit *test)
 {
-	struct kprobe *kps[2] = {&kp, &kp2};
+	struct kprobe *kps[2] = { &kp, &kp2 };
 
 	current_test = test;
 
@@ -157,11 +155,9 @@ static int return_handler(struct kretprobe_instance *ri, struct pt_regs *regs)
 	return 0;
 }
 
-static struct kretprobe rp = {
-	.handler	= return_handler,
-	.entry_handler  = entry_handler,
-	.kp.symbol_name = "kprobe_target"
-};
+static struct kretprobe rp = { .handler = return_handler,
+			       .entry_handler = entry_handler,
+			       .kp.symbol_name = "kprobe_target" };
 
 static void test_kretprobe(struct kunit *test)
 {
@@ -182,15 +178,13 @@ static int return_handler2(struct kretprobe_instance *ri, struct pt_regs *regs)
 	return 0;
 }
 
-static struct kretprobe rp2 = {
-	.handler	= return_handler2,
-	.entry_handler  = entry_handler,
-	.kp.symbol_name = "kprobe_target2"
-};
+static struct kretprobe rp2 = { .handler = return_handler2,
+				.entry_handler = entry_handler,
+				.kp.symbol_name = "kprobe_target2" };
 
 static void test_kretprobes(struct kunit *test)
 {
-	struct kretprobe *rps[2] = {&rp, &rp2};
+	struct kretprobe *rps[2] = { &rp, &rp2 };
 
 	current_test = test;
 	/* addr and flags should be cleard for reusing kprobe. */
@@ -212,7 +206,8 @@ static void test_kretprobes(struct kunit *test)
 #define STACK_BUF_SIZE 16
 static unsigned long stack_buf[STACK_BUF_SIZE];
 
-static int stacktrace_return_handler(struct kretprobe_instance *ri, struct pt_regs *regs)
+static int stacktrace_return_handler(struct kretprobe_instance *ri,
+				     struct pt_regs *regs)
 {
 	unsigned long retval = regs_return_value(regs);
 	int i, ret;
@@ -247,10 +242,8 @@ static int stacktrace_return_handler(struct kretprobe_instance *ri, struct pt_re
 	return 0;
 }
 
-static struct kretprobe rp3 = {
-	.handler	= stacktrace_return_handler,
-	.kp.symbol_name = "kprobe_stacktrace_target"
-};
+static struct kretprobe rp3 = { .handler = stacktrace_return_handler,
+				.kp.symbol_name = "kprobe_stacktrace_target" };
 
 static void test_stacktrace_on_kretprobe(struct kunit *test)
 {
@@ -273,7 +266,8 @@ static void test_stacktrace_on_kretprobe(struct kunit *test)
 	unregister_kretprobe(&rp3);
 }
 
-static int stacktrace_internal_return_handler(struct kretprobe_instance *ri, struct pt_regs *regs)
+static int stacktrace_internal_return_handler(struct kretprobe_instance *ri,
+					      struct pt_regs *regs)
 {
 	unsigned long retval = regs_return_value(regs);
 	int i, ret;
@@ -291,7 +285,8 @@ static int stacktrace_internal_return_handler(struct kretprobe_instance *ri, str
 
 	for (i = 0; i < ret - 1; i++) {
 		if (stack_buf[i] == target_return_address[0]) {
-			KUNIT_EXPECT_EQ(current_test, stack_buf[i + 1], target_return_address[1]);
+			KUNIT_EXPECT_EQ(current_test, stack_buf[i + 1],
+					target_return_address[1]);
 			break;
 		}
 	}
@@ -308,15 +303,14 @@ static int stacktrace_internal_return_handler(struct kretprobe_instance *ri, str
 	return 0;
 }
 
-static struct kretprobe rp4 = {
-	.handler	= stacktrace_internal_return_handler,
-	.kp.symbol_name = "kprobe_stacktrace_internal_target"
-};
+static struct kretprobe rp4 = { .handler = stacktrace_internal_return_handler,
+				.kp.symbol_name =
+					"kprobe_stacktrace_internal_target" };
 
 static void test_stacktrace_on_nested_kretprobe(struct kunit *test)
 {
 	unsigned long myretaddr = (unsigned long)__builtin_return_address(0);
-	struct kretprobe *rps[2] = {&rp3, &rp4};
+	struct kretprobe *rps[2] = { &rp3, &rp4 };
 
 	current_test = test;
 	rp3.kp.addr = NULL;

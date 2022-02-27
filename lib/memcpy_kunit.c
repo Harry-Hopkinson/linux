@@ -21,33 +21,38 @@ struct some_bytes {
 		struct {
 			u32 one;
 			u16 two;
-			u8  three;
+			u8 three;
 			/* 1 byte hole */
 			u32 four[4];
 		};
 	};
 };
 
-#define check(instance, v) do {	\
-	int i;	\
-	BUILD_BUG_ON(sizeof(instance.data) != 32);	\
-	for (i = 0; i < sizeof(instance.data); i++) {	\
-		KUNIT_ASSERT_EQ_MSG(test, instance.data[i], v, \
-			"line %d: '%s' not initialized to 0x%02x @ %d (saw 0x%02x)\n", \
-			__LINE__, #instance, v, i, instance.data[i]);	\
-	}	\
-} while (0)
+#define check(instance, v)                                                                     \
+	do {                                                                                   \
+		int i;                                                                         \
+		BUILD_BUG_ON(sizeof(instance.data) != 32);                                     \
+		for (i = 0; i < sizeof(instance.data); i++) {                                  \
+			KUNIT_ASSERT_EQ_MSG(                                                   \
+				test, instance.data[i], v,                                     \
+				"line %d: '%s' not initialized to 0x%02x @ %d (saw 0x%02x)\n", \
+				__LINE__, #instance, v, i, instance.data[i]);                  \
+		}                                                                              \
+	} while (0)
 
-#define compare(name, one, two) do { \
-	int i; \
-	BUILD_BUG_ON(sizeof(one) != sizeof(two)); \
-	for (i = 0; i < sizeof(one); i++) {	\
-		KUNIT_EXPECT_EQ_MSG(test, one.data[i], two.data[i], \
-			"line %d: %s.data[%d] (0x%02x) != %s.data[%d] (0x%02x)\n", \
-			__LINE__, #one, i, one.data[i], #two, i, two.data[i]); \
-	}	\
-	kunit_info(test, "ok: " TEST_OP "() " name "\n");	\
-} while (0)
+#define compare(name, one, two)                                                            \
+	do {                                                                               \
+		int i;                                                                     \
+		BUILD_BUG_ON(sizeof(one) != sizeof(two));                                  \
+		for (i = 0; i < sizeof(one); i++) {                                        \
+			KUNIT_EXPECT_EQ_MSG(                                               \
+				test, one.data[i], two.data[i],                            \
+				"line %d: %s.data[%d] (0x%02x) != %s.data[%d] (0x%02x)\n", \
+				__LINE__, #one, i, one.data[i], #two, i,                   \
+				two.data[i]);                                              \
+		}                                                                          \
+		kunit_info(test, "ok: " TEST_OP "() " name "\n");                          \
+	} while (0)
 
 static void memcpy_test(struct kunit *test)
 {
@@ -59,7 +64,7 @@ static void memcpy_test(struct kunit *test)
 			  0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
 			},
 	};
-	struct some_bytes zero = { };
+	struct some_bytes zero = {};
 	struct some_bytes middle = {
 		.data = { 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
 			  0x20, 0x20, 0x20, 0x20, 0x00, 0x00, 0x00, 0x00,
@@ -74,7 +79,7 @@ static void memcpy_test(struct kunit *test)
 			  0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
 			},
 	};
-	struct some_bytes dest = { };
+	struct some_bytes dest = {};
 	int count;
 	u8 *ptr;
 
@@ -117,7 +122,7 @@ static void memmove_test(struct kunit *test)
 			  0x99, 0x99, 0x99, 0x99, 0x99, 0x99, 0x99, 0x99,
 			},
 	};
-	struct some_bytes zero = { };
+	struct some_bytes zero = {};
 	struct some_bytes middle = {
 		.data = { 0x99, 0x99, 0x99, 0x99, 0x99, 0x99, 0x99, 0x99,
 			  0x99, 0x99, 0x99, 0x99, 0x00, 0x00, 0x00, 0x00,
@@ -146,7 +151,7 @@ static void memmove_test(struct kunit *test)
 			  0x99, 0x99, 0x99, 0x99, 0x99, 0x99, 0x99, 0x99,
 			},
 	};
-	struct some_bytes dest = { };
+	struct some_bytes dest = {};
 	int count;
 	u8 *ptr;
 
@@ -229,7 +234,7 @@ static void memset_test(struct kunit *test)
 			  0x79, 0x79, 0x79, 0x79, 0x79, 0x79, 0x79, 0x79,
 			},
 	};
-	struct some_bytes dest = { };
+	struct some_bytes dest = {};
 	int count, value;
 	u8 *ptr;
 
@@ -272,12 +277,10 @@ static void memset_test(struct kunit *test)
 #undef TEST_OP
 }
 
-static struct kunit_case memcpy_test_cases[] = {
-	KUNIT_CASE(memset_test),
-	KUNIT_CASE(memcpy_test),
-	KUNIT_CASE(memmove_test),
-	{}
-};
+static struct kunit_case memcpy_test_cases[] = { KUNIT_CASE(memset_test),
+						 KUNIT_CASE(memcpy_test),
+						 KUNIT_CASE(memmove_test),
+						 {} };
 
 static struct kunit_suite memcpy_test_suite = {
 	.name = "memcpy",

@@ -8,8 +8,8 @@
 #include <linux/kprobes.h>
 #include <linux/sched.h>
 
-noinstr static
-unsigned int check_preemption_disabled(const char *what1, const char *what2)
+noinstr static unsigned int check_preemption_disabled(const char *what1,
+						      const char *what2)
 {
 	int this_cpu = raw_smp_processor_id();
 
@@ -43,7 +43,7 @@ unsigned int check_preemption_disabled(const char *what1, const char *what2)
 		goto out_enable;
 
 	printk(KERN_ERR "BUG: using %s%s() in preemptible [%08x] code: %s/%d\n",
-		what1, what2, preempt_count() - 1, current->comm, current->pid);
+	       what1, what2, preempt_count() - 1, current->comm, current->pid);
 
 	printk("caller is %pS\n", __builtin_return_address(0));
 	dump_stack();

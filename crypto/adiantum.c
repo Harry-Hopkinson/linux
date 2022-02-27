@@ -44,13 +44,13 @@
  * Size of right-hand part of input data, in bytes; also the size of the block
  * cipher's block size and the hash function's output.
  */
-#define BLOCKCIPHER_BLOCK_SIZE		16
+#define BLOCKCIPHER_BLOCK_SIZE 16
 
 /* Size of the block cipher key (K_E) in bytes */
-#define BLOCKCIPHER_KEY_SIZE		32
+#define BLOCKCIPHER_KEY_SIZE 32
 
 /* Size of the hash key (K_H) in bytes */
-#define HASH_KEY_SIZE		(POLY1305_BLOCK_SIZE + NHPOLY1305_KEY_SIZE)
+#define HASH_KEY_SIZE (POLY1305_BLOCK_SIZE + NHPOLY1305_KEY_SIZE)
 
 /*
  * The specification allows variable-length tweaks, but Linux's crypto API
@@ -59,7 +59,7 @@
  * the best performance.  But longer tweaks are useful for fscrypt, to avoid
  * needing to derive per-file keys.  So instead we use two blocks, or 32 bytes.
  */
-#define TWEAK_SIZE		32
+#define TWEAK_SIZE 32
 
 struct adiantum_instance_ctx {
 	struct crypto_skcipher_spawn streamcipher_spawn;
@@ -75,7 +75,6 @@ struct adiantum_tfm_ctx {
 };
 
 struct adiantum_request_ctx {
-
 	/*
 	 * Buffer for right-hand part of data, i.e.
 	 *
@@ -87,7 +86,7 @@ struct adiantum_request_ctx {
 	union {
 		u8 bytes[XCHACHA_IV_SIZE];
 		__le32 words[XCHACHA_IV_SIZE / sizeof(__le32)];
-		le128 bignum;	/* interpret as element of Z/(2^{128}Z) */
+		le128 bignum; /* interpret as element of Z/(2^{128}Z) */
 	} rbuf;
 
 	bool enc; /* true if encrypting, false if decrypting */
@@ -124,7 +123,7 @@ static int adiantum_setkey(struct crypto_skcipher *tfm, const u8 *key,
 		struct scatterlist sg;
 		struct crypto_wait wait;
 		struct skcipher_request req; /* must be last */
-	} *data;
+	} * data;
 	u8 *keyp;
 	int err;
 
@@ -132,22 +131,24 @@ static int adiantum_setkey(struct crypto_skcipher *tfm, const u8 *key,
 	crypto_skcipher_clear_flags(tctx->streamcipher, CRYPTO_TFM_REQ_MASK);
 	crypto_skcipher_set_flags(tctx->streamcipher,
 				  crypto_skcipher_get_flags(tfm) &
-				  CRYPTO_TFM_REQ_MASK);
+					  CRYPTO_TFM_REQ_MASK);
 	err = crypto_skcipher_setkey(tctx->streamcipher, key, keylen);
 	if (err)
 		return err;
 
 	/* Derive the subkeys */
 	data = kzalloc(sizeof(*data) +
-		       crypto_skcipher_reqsize(tctx->streamcipher), GFP_KERNEL);
+			       crypto_skcipher_reqsize(tctx->streamcipher),
+		       GFP_KERNEL);
 	if (!data)
 		return -ENOMEM;
 	data->iv[0] = 1;
 	sg_init_one(&data->sg, data->derived_keys, sizeof(data->derived_keys));
 	crypto_init_wait(&data->wait);
 	skcipher_request_set_tfm(&data->req, tctx->streamcipher);
-	skcipher_request_set_callback(&data->req, CRYPTO_TFM_REQ_MAY_SLEEP |
-						  CRYPTO_TFM_REQ_MAY_BACKLOG,
+	skcipher_request_set_callback(&data->req,
+				      CRYPTO_TFM_REQ_MAY_SLEEP |
+					      CRYPTO_TFM_REQ_MAY_BACKLOG,
 				      crypto_req_done, &data->wait);
 	skcipher_request_set_crypt(&data->req, &data->sg, &data->sg,
 				   sizeof(data->derived_keys), data->iv);
@@ -160,7 +161,7 @@ static int adiantum_setkey(struct crypto_skcipher *tfm, const u8 *key,
 	crypto_cipher_clear_flags(tctx->blockcipher, CRYPTO_TFM_REQ_MASK);
 	crypto_cipher_set_flags(tctx->blockcipher,
 				crypto_skcipher_get_flags(tfm) &
-				CRYPTO_TFM_REQ_MASK);
+					CRYPTO_TFM_REQ_MASK);
 	err = crypto_cipher_setkey(tctx->blockcipher, keyp,
 				   BLOCKCIPHER_KEY_SIZE);
 	if (err)
@@ -173,7 +174,7 @@ static int adiantum_setkey(struct crypto_skcipher *tfm, const u8 *key,
 
 	crypto_shash_clear_flags(tctx->hash, CRYPTO_TFM_REQ_MASK);
 	crypto_shash_set_flags(tctx->hash, crypto_skcipher_get_flags(tfm) &
-					   CRYPTO_TFM_REQ_MASK);
+						   CRYPTO_TFM_REQ_MASK);
 	err = crypto_shash_setkey(tctx->hash, keyp, NHPOLY1305_KEY_SIZE);
 	keyp += NHPOLY1305_KEY_SIZE;
 	WARN_ON(keyp != &data->derived_keys[ARRAY_SIZE(data->derived_keys)]);
@@ -225,16 +226,14 @@ static void adiantum_hash_header(struct skcipher_request *req)
 	struct {
 		__le64 message_bits;
 		__le64 padding;
-	} header = {
-		.message_bits = cpu_to_le64((u64)bulk_len * 8)
-	};
+	} header = { .message_bits = cpu_to_le64((u64)bulk_len * 8) };
 	struct poly1305_state state;
 
 	poly1305_core_init(&state);
 
 	BUILD_BUG_ON(sizeof(header) % POLY1305_BLOCK_SIZE != 0);
-	poly1305_core_blocks(&state, &tctx->header_hash_key,
-			     &header, sizeof(header) / POLY1305_BLOCK_SIZE, 1);
+	poly1305_core_blocks(&state, &tctx->header_hash_key, &header,
+			     sizeof(header) / POLY1305_BLOCK_SIZE, 1);
 
 	BUILD_BUG_ON(TWEAK_SIZE % POLY1305_BLOCK_SIZE != 0);
 	poly1305_core_blocks(&state, &tctx->header_hash_key, req->iv,
@@ -303,8 +302,8 @@ static int adiantum_finish(struct skcipher_request *req)
 		return err;
 	le128_add(&digest, &digest, &rctx->header_hash);
 	le128_sub(&rctx->rbuf.bignum, &rctx->rbuf.bignum, &digest);
-	scatterwalk_map_and_copy(&rctx->rbuf.bignum, req->dst,
-				 bulk_len, BLOCKCIPHER_BLOCK_SIZE, 1);
+	scatterwalk_map_and_copy(&rctx->rbuf.bignum, req->dst, bulk_len,
+				 BLOCKCIPHER_BLOCK_SIZE, 1);
 	return 0;
 }
 
@@ -344,8 +343,8 @@ static int adiantum_crypt(struct skcipher_request *req, bool enc)
 	if (err)
 		return err;
 	le128_add(&digest, &digest, &rctx->header_hash);
-	scatterwalk_map_and_copy(&rctx->rbuf.bignum, req->src,
-				 bulk_len, BLOCKCIPHER_BLOCK_SIZE, 0);
+	scatterwalk_map_and_copy(&rctx->rbuf.bignum, req->src, bulk_len,
+				 BLOCKCIPHER_BLOCK_SIZE, 0);
 	le128_add(&rctx->rbuf.bignum, &rctx->rbuf.bignum, &digest);
 
 	/* If encrypting, encrypt P_M with the block cipher to get C_M */
@@ -355,7 +354,7 @@ static int adiantum_crypt(struct skcipher_request *req, bool enc)
 
 	/* Initialize the rest of the XChaCha IV (first part is C_M) */
 	BUILD_BUG_ON(BLOCKCIPHER_BLOCK_SIZE != 16);
-	BUILD_BUG_ON(XCHACHA_IV_SIZE != 32);	/* nonce || stream position */
+	BUILD_BUG_ON(XCHACHA_IV_SIZE != 32); /* nonce || stream position */
 	rctx->rbuf.words[4] = cpu_to_le32(1);
 	rctx->rbuf.words[5] = 0;
 	rctx->rbuf.words[6] = 0;
@@ -381,7 +380,7 @@ static int adiantum_crypt(struct skcipher_request *req, bool enc)
 				      req->base.flags,
 				      adiantum_streamcipher_done, req);
 	return crypto_skcipher_encrypt(&rctx->u.streamcipher_req) ?:
-		adiantum_finish(req);
+		       adiantum_finish(req);
 }
 
 static int adiantum_encrypt(struct skcipher_request *req)
@@ -427,16 +426,14 @@ static int adiantum_init_tfm(struct crypto_skcipher *tfm)
 
 	BUILD_BUG_ON(offsetofend(struct adiantum_request_ctx, u) !=
 		     sizeof(struct adiantum_request_ctx));
-	subreq_size = max(sizeof_field(struct adiantum_request_ctx,
-				       u.hash_desc) +
-			  crypto_shash_descsize(hash),
-			  sizeof_field(struct adiantum_request_ctx,
-				       u.streamcipher_req) +
-			  crypto_skcipher_reqsize(streamcipher));
+	subreq_size = max(
+		sizeof_field(struct adiantum_request_ctx, u.hash_desc) +
+			crypto_shash_descsize(hash),
+		sizeof_field(struct adiantum_request_ctx, u.streamcipher_req) +
+			crypto_skcipher_reqsize(streamcipher));
 
-	crypto_skcipher_set_reqsize(tfm,
-				    offsetof(struct adiantum_request_ctx, u) +
-				    subreq_size);
+	crypto_skcipher_set_reqsize(
+		tfm, offsetof(struct adiantum_request_ctx, u) + subreq_size);
 	return 0;
 
 err_free_blockcipher:
@@ -477,7 +474,8 @@ static bool adiantum_supported_algorithms(struct skcipher_alg *streamcipher_alg,
 	    strcmp(streamcipher_alg->base.cra_name, "xchacha20") != 0)
 		return false;
 
-	if (blockcipher_alg->cra_cipher.cia_min_keysize > BLOCKCIPHER_KEY_SIZE ||
+	if (blockcipher_alg->cra_cipher.cia_min_keysize >
+		    BLOCKCIPHER_KEY_SIZE ||
 	    blockcipher_alg->cra_cipher.cia_max_keysize < BLOCKCIPHER_KEY_SIZE)
 		return false;
 	if (blockcipher_alg->cra_blocksize != BLOCKCIPHER_BLOCK_SIZE)
@@ -530,8 +528,8 @@ static int adiantum_create(struct crypto_template *tmpl, struct rtattr **tb)
 	if (nhpoly1305_name == ERR_PTR(-ENOENT))
 		nhpoly1305_name = "nhpoly1305";
 	err = crypto_grab_shash(&ictx->hash_spawn,
-				skcipher_crypto_instance(inst),
-				nhpoly1305_name, 0, mask);
+				skcipher_crypto_instance(inst), nhpoly1305_name,
+				0, mask);
 	if (err)
 		goto err_free_inst;
 	hash_alg = crypto_spawn_shash_alg(&ictx->hash_spawn);
@@ -572,22 +570,25 @@ static int adiantum_create(struct crypto_template *tmpl, struct rtattr **tb)
 	 */
 	inst->alg.base.cra_priority = (4 * streamcipher_alg->base.cra_priority +
 				       2 * hash_alg->base.cra_priority +
-				       blockcipher_alg->cra_priority) / 7;
+				       blockcipher_alg->cra_priority) /
+				      7;
 
 	inst->alg.setkey = adiantum_setkey;
 	inst->alg.encrypt = adiantum_encrypt;
 	inst->alg.decrypt = adiantum_decrypt;
 	inst->alg.init = adiantum_init_tfm;
 	inst->alg.exit = adiantum_exit_tfm;
-	inst->alg.min_keysize = crypto_skcipher_alg_min_keysize(streamcipher_alg);
-	inst->alg.max_keysize = crypto_skcipher_alg_max_keysize(streamcipher_alg);
+	inst->alg.min_keysize =
+		crypto_skcipher_alg_min_keysize(streamcipher_alg);
+	inst->alg.max_keysize =
+		crypto_skcipher_alg_max_keysize(streamcipher_alg);
 	inst->alg.ivsize = TWEAK_SIZE;
 
 	inst->free = adiantum_free_instance;
 
 	err = skcipher_register_instance(tmpl, inst);
 	if (err) {
-err_free_inst:
+	err_free_inst:
 		adiantum_free_instance(inst);
 	}
 	return err;

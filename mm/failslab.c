@@ -23,8 +23,7 @@ bool __should_failslab(struct kmem_cache *s, gfp_t gfpflags)
 	if (gfpflags & __GFP_NOFAIL)
 		return false;
 
-	if (failslab.ignore_gfp_reclaim &&
-			(gfpflags & __GFP_DIRECT_RECLAIM))
+	if (failslab.ignore_gfp_reclaim && (gfpflags & __GFP_DIRECT_RECLAIM))
 		return false;
 
 	if (failslab.cache_filter && !(s->flags & SLAB_FAILSLAB))
@@ -51,8 +50,7 @@ static int __init failslab_debugfs_init(void)
 
 	debugfs_create_bool("ignore-gfp-wait", mode, dir,
 			    &failslab.ignore_gfp_reclaim);
-	debugfs_create_bool("cache-filter", mode, dir,
-			    &failslab.cache_filter);
+	debugfs_create_bool("cache-filter", mode, dir, &failslab.cache_filter);
 
 	return 0;
 }

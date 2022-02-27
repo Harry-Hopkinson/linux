@@ -9,7 +9,8 @@
 #include <linux/task_work.h>
 #include <linux/usermode_driver.h>
 
-static struct vfsmount *blob_to_mnt(const void *data, size_t len, const char *name)
+static struct vfsmount *blob_to_mnt(const void *data, size_t len,
+				    const char *name)
 {
 	struct file_system_type *type;
 	struct vfsmount *mnt;
@@ -81,8 +82,7 @@ EXPORT_SYMBOL_GPL(umd_load_blob);
  */
 int umd_unload_blob(struct umd_info *info)
 {
-	if (WARN_ON_ONCE(!info->wd.mnt ||
-			 !info->wd.dentry ||
+	if (WARN_ON_ONCE(!info->wd.mnt || !info->wd.dentry ||
 			 info->wd.mnt->mnt_root != info->wd.dentry))
 		return -EINVAL;
 
@@ -176,9 +176,9 @@ int fork_usermode_driver(struct umd_info *info)
 		return -EBUSY;
 
 	err = -ENOMEM;
-	sub_info = call_usermodehelper_setup(info->driver_name,
-					     (char **)argv, NULL, GFP_KERNEL,
-					     umd_setup, umd_cleanup, info);
+	sub_info = call_usermodehelper_setup(info->driver_name, (char **)argv,
+					     NULL, GFP_KERNEL, umd_setup,
+					     umd_cleanup, info);
 	if (!sub_info)
 		goto out;
 
@@ -187,5 +187,3 @@ out:
 	return err;
 }
 EXPORT_SYMBOL_GPL(fork_usermode_driver);
-
-

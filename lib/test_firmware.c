@@ -28,9 +28,9 @@
 
 MODULE_IMPORT_NS(TEST_FIRMWARE);
 
-#define TEST_FIRMWARE_NAME	"test-firmware.bin"
-#define TEST_FIRMWARE_NUM_REQS	4
-#define TEST_FIRMWARE_BUF_SIZE	SZ_1K
+#define TEST_FIRMWARE_NAME "test-firmware.bin"
+#define TEST_FIRMWARE_NUM_REQS 4
+#define TEST_FIRMWARE_BUF_SIZE SZ_1K
 
 static DEFINE_MUTEX(test_fw_mutex);
 static const struct firmware *test_firmware;
@@ -114,8 +114,8 @@ struct test_config {
 
 static struct test_config *test_fw_config;
 
-static ssize_t test_fw_misc_read(struct file *f, char __user *buf,
-				 size_t size, loff_t *offset)
+static ssize_t test_fw_misc_read(struct file *f, char __user *buf, size_t size,
+				 loff_t *offset)
 {
 	ssize_t rc = 0;
 
@@ -129,8 +129,8 @@ static ssize_t test_fw_misc_read(struct file *f, char __user *buf,
 }
 
 static const struct file_operations test_fw_fops = {
-	.owner          = THIS_MODULE,
-	.read           = test_fw_misc_read,
+	.owner = THIS_MODULE,
+	.read = test_fw_misc_read,
 };
 
 static void __test_release_all_firmware(void)
@@ -157,7 +157,6 @@ static void test_release_all_firmware(void)
 	__test_release_all_firmware();
 	mutex_unlock(&test_fw_mutex);
 }
-
 
 static void __test_firmware_config_free(void)
 {
@@ -206,8 +205,7 @@ out:
 	return ret;
 }
 
-static ssize_t reset_store(struct device *dev,
-			   struct device_attribute *attr,
+static ssize_t reset_store(struct device *dev, struct device_attribute *attr,
 			   const char *buf, size_t count)
 {
 	int ret;
@@ -234,8 +232,7 @@ out:
 }
 static DEVICE_ATTR_WO(reset);
 
-static ssize_t config_show(struct device *dev,
-			   struct device_attribute *attr,
+static ssize_t config_show(struct device *dev, struct device_attribute *attr,
 			   char *buf)
 {
 	int len = 0;
@@ -243,40 +240,33 @@ static ssize_t config_show(struct device *dev,
 	mutex_lock(&test_fw_mutex);
 
 	len += scnprintf(buf, PAGE_SIZE - len,
-			"Custom trigger configuration for: %s\n",
-			dev_name(dev));
+			 "Custom trigger configuration for: %s\n",
+			 dev_name(dev));
 
 	if (test_fw_config->name)
-		len += scnprintf(buf + len, PAGE_SIZE - len,
-				"name:\t%s\n",
-				test_fw_config->name);
+		len += scnprintf(buf + len, PAGE_SIZE - len, "name:\t%s\n",
+				 test_fw_config->name);
 	else
-		len += scnprintf(buf + len, PAGE_SIZE - len,
-				"name:\tEMTPY\n");
+		len += scnprintf(buf + len, PAGE_SIZE - len, "name:\tEMTPY\n");
 
-	len += scnprintf(buf + len, PAGE_SIZE - len,
-			"num_requests:\t%u\n", test_fw_config->num_requests);
+	len += scnprintf(buf + len, PAGE_SIZE - len, "num_requests:\t%u\n",
+			 test_fw_config->num_requests);
 
-	len += scnprintf(buf + len, PAGE_SIZE - len,
-			"send_uevent:\t\t%s\n",
-			test_fw_config->send_uevent ?
-			"FW_ACTION_UEVENT" :
-			"FW_ACTION_NOUEVENT");
-	len += scnprintf(buf + len, PAGE_SIZE - len,
-			"into_buf:\t\t%s\n",
-			test_fw_config->into_buf ? "true" : "false");
-	len += scnprintf(buf + len, PAGE_SIZE - len,
-			"buf_size:\t%zu\n", test_fw_config->buf_size);
-	len += scnprintf(buf + len, PAGE_SIZE - len,
-			"file_offset:\t%zu\n", test_fw_config->file_offset);
-	len += scnprintf(buf + len, PAGE_SIZE - len,
-			"partial:\t\t%s\n",
-			test_fw_config->partial ? "true" : "false");
-	len += scnprintf(buf + len, PAGE_SIZE - len,
-			"sync_direct:\t\t%s\n",
-			test_fw_config->sync_direct ? "true" : "false");
-	len += scnprintf(buf + len, PAGE_SIZE - len,
-			"read_fw_idx:\t%u\n", test_fw_config->read_fw_idx);
+	len += scnprintf(buf + len, PAGE_SIZE - len, "send_uevent:\t\t%s\n",
+			 test_fw_config->send_uevent ? "FW_ACTION_UEVENT" :
+						       "FW_ACTION_NOUEVENT");
+	len += scnprintf(buf + len, PAGE_SIZE - len, "into_buf:\t\t%s\n",
+			 test_fw_config->into_buf ? "true" : "false");
+	len += scnprintf(buf + len, PAGE_SIZE - len, "buf_size:\t%zu\n",
+			 test_fw_config->buf_size);
+	len += scnprintf(buf + len, PAGE_SIZE - len, "file_offset:\t%zu\n",
+			 test_fw_config->file_offset);
+	len += scnprintf(buf + len, PAGE_SIZE - len, "partial:\t\t%s\n",
+			 test_fw_config->partial ? "true" : "false");
+	len += scnprintf(buf + len, PAGE_SIZE - len, "sync_direct:\t\t%s\n",
+			 test_fw_config->sync_direct ? "true" : "false");
+	len += scnprintf(buf + len, PAGE_SIZE - len, "read_fw_idx:\t%u\n",
+			 test_fw_config->read_fw_idx);
 
 	mutex_unlock(&test_fw_mutex);
 
@@ -285,8 +275,8 @@ static ssize_t config_show(struct device *dev,
 static DEVICE_ATTR_RO(config);
 
 static ssize_t config_name_store(struct device *dev,
-				 struct device_attribute *attr,
-				 const char *buf, size_t count)
+				 struct device_attribute *attr, const char *buf,
+				 size_t count)
 {
 	int ret;
 
@@ -301,8 +291,7 @@ static ssize_t config_name_store(struct device *dev,
 /*
  * As per sysfs_kf_seq_show() the buf is max PAGE_SIZE.
  */
-static ssize_t config_test_show_str(char *dst,
-				    char *src)
+static ssize_t config_test_show_str(char *dst, char *src)
 {
 	int len;
 
@@ -313,8 +302,7 @@ static ssize_t config_test_show_str(char *dst,
 	return len;
 }
 
-static int test_dev_config_update_bool(const char *buf, size_t size,
-				       bool *cfg)
+static int test_dev_config_update_bool(const char *buf, size_t size, bool *cfg)
 {
 	int ret;
 
@@ -333,8 +321,7 @@ static ssize_t test_dev_config_show_bool(char *buf, bool val)
 	return snprintf(buf, PAGE_SIZE, "%d\n", val);
 }
 
-static int test_dev_config_update_size_t(const char *buf,
-					 size_t size,
+static int test_dev_config_update_size_t(const char *buf, size_t size,
 					 size_t *cfg)
 {
 	int ret;
@@ -385,8 +372,7 @@ static ssize_t test_dev_config_show_u8(char *buf, u8 val)
 }
 
 static ssize_t config_name_show(struct device *dev,
-				struct device_attribute *attr,
-				char *buf)
+				struct device_attribute *attr, char *buf)
 {
 	return config_test_show_str(buf, test_fw_config->name);
 }
@@ -426,14 +412,12 @@ static ssize_t config_into_buf_store(struct device *dev,
 				     struct device_attribute *attr,
 				     const char *buf, size_t count)
 {
-	return test_dev_config_update_bool(buf,
-					   count,
+	return test_dev_config_update_bool(buf, count,
 					   &test_fw_config->into_buf);
 }
 
 static ssize_t config_into_buf_show(struct device *dev,
-				    struct device_attribute *attr,
-				    char *buf)
+				    struct device_attribute *attr, char *buf)
 {
 	return test_dev_config_show_bool(buf, test_fw_config->into_buf);
 }
@@ -462,8 +446,7 @@ out:
 }
 
 static ssize_t config_buf_size_show(struct device *dev,
-				    struct device_attribute *attr,
-				    char *buf)
+				    struct device_attribute *attr, char *buf)
 {
 	return test_dev_config_show_size_t(buf, test_fw_config->buf_size);
 }
@@ -492,8 +475,7 @@ out:
 }
 
 static ssize_t config_file_offset_show(struct device *dev,
-				       struct device_attribute *attr,
-				       char *buf)
+				       struct device_attribute *attr, char *buf)
 {
 	return test_dev_config_show_size_t(buf, test_fw_config->file_offset);
 }
@@ -503,14 +485,12 @@ static ssize_t config_partial_store(struct device *dev,
 				    struct device_attribute *attr,
 				    const char *buf, size_t count)
 {
-	return test_dev_config_update_bool(buf,
-					   count,
+	return test_dev_config_update_bool(buf, count,
 					   &test_fw_config->partial);
 }
 
 static ssize_t config_partial_show(struct device *dev,
-				   struct device_attribute *attr,
-				   char *buf)
+				   struct device_attribute *attr, char *buf)
 {
 	return test_dev_config_show_bool(buf, test_fw_config->partial);
 }
@@ -525,14 +505,13 @@ static ssize_t config_sync_direct_store(struct device *dev,
 
 	if (rc == count)
 		test_fw_config->req_firmware = test_fw_config->sync_direct ?
-				       request_firmware_direct :
-				       request_firmware;
+						       request_firmware_direct :
+						       request_firmware;
 	return rc;
 }
 
 static ssize_t config_sync_direct_show(struct device *dev,
-				       struct device_attribute *attr,
-				       char *buf)
+				       struct device_attribute *attr, char *buf)
 {
 	return test_dev_config_show_bool(buf, test_fw_config->sync_direct);
 }
@@ -547,8 +526,7 @@ static ssize_t config_send_uevent_store(struct device *dev,
 }
 
 static ssize_t config_send_uevent_show(struct device *dev,
-				       struct device_attribute *attr,
-				       char *buf)
+				       struct device_attribute *attr, char *buf)
 {
 	return test_dev_config_show_bool(buf, test_fw_config->send_uevent);
 }
@@ -563,13 +541,11 @@ static ssize_t config_read_fw_idx_store(struct device *dev,
 }
 
 static ssize_t config_read_fw_idx_show(struct device *dev,
-				       struct device_attribute *attr,
-				       char *buf)
+				       struct device_attribute *attr, char *buf)
 {
 	return test_dev_config_show_u8(buf, test_fw_config->read_fw_idx);
 }
 static DEVICE_ATTR_RW(config_read_fw_idx);
-
 
 static ssize_t trigger_request_store(struct device *dev,
 				     struct device_attribute *attr,
@@ -612,12 +588,12 @@ static ssize_t trigger_request_platform_store(struct device *dev,
 					      struct device_attribute *attr,
 					      const char *buf, size_t count)
 {
-	static const u8 test_data[] = {
-		0x55, 0xaa, 0x55, 0xaa, 0x01, 0x02, 0x03, 0x04,
-		0x55, 0xaa, 0x55, 0xaa, 0x05, 0x06, 0x07, 0x08,
-		0x55, 0xaa, 0x55, 0xaa, 0x10, 0x20, 0x30, 0x40,
-		0x55, 0xaa, 0x55, 0xaa, 0x50, 0x60, 0x70, 0x80
-	};
+	static const u8 test_data[] = { 0x55, 0xaa, 0x55, 0xaa, 0x01, 0x02,
+					0x03, 0x04, 0x55, 0xaa, 0x55, 0xaa,
+					0x05, 0x06, 0x07, 0x08, 0x55, 0xaa,
+					0x55, 0xaa, 0x10, 0x20, 0x30, 0x40,
+					0x55, 0xaa, 0x55, 0xaa, 0x50, 0x60,
+					0x70, 0x80 };
 	struct efi_embedded_fw efi_embedded_fw;
 	const struct firmware *firmware = NULL;
 	bool saved_efi_embedded_fw_checked;
@@ -729,8 +705,8 @@ static ssize_t trigger_custom_fallback_store(struct device *dev,
 	mutex_lock(&test_fw_mutex);
 	release_firmware(test_firmware);
 	test_firmware = NULL;
-	rc = request_firmware_nowait(THIS_MODULE, FW_ACTION_NOUEVENT, name,
-				     dev, GFP_KERNEL, NULL,
+	rc = request_firmware_nowait(THIS_MODULE, FW_ACTION_NOUEVENT, name, dev,
+				     GFP_KERNEL, NULL,
 				     trigger_async_request_cb);
 	if (rc) {
 		pr_info("async load of '%s' failed: %d\n", name, rc);
@@ -774,37 +750,30 @@ static int test_fw_run_batch_request(void *data)
 			return -ENOSPC;
 
 		if (test_fw_config->partial)
-			req->rc = request_partial_firmware_into_buf
-						(&req->fw,
-						 req->name,
-						 req->dev,
-						 test_buf,
-						 test_fw_config->buf_size,
-						 test_fw_config->file_offset);
+			req->rc = request_partial_firmware_into_buf(
+				&req->fw, req->name, req->dev, test_buf,
+				test_fw_config->buf_size,
+				test_fw_config->file_offset);
 		else
-			req->rc = request_firmware_into_buf
-						(&req->fw,
-						 req->name,
-						 req->dev,
-						 test_buf,
-						 test_fw_config->buf_size);
+			req->rc = request_firmware_into_buf(
+				&req->fw, req->name, req->dev, test_buf,
+				test_fw_config->buf_size);
 		if (!req->fw)
 			kfree(test_buf);
 	} else {
-		req->rc = test_fw_config->req_firmware(&req->fw,
-						       req->name,
+		req->rc = test_fw_config->req_firmware(&req->fw, req->name,
 						       req->dev);
 	}
 
 	if (req->rc) {
-		pr_info("#%u: batched sync load failed: %d\n",
-			req->idx, req->rc);
+		pr_info("#%u: batched sync load failed: %d\n", req->idx,
+			req->rc);
 		if (!test_fw_config->test_result)
 			test_fw_config->test_result = req->rc;
 	} else if (req->fw) {
 		req->sent = true;
-		pr_info("#%u: batched sync loaded %zu\n",
-			req->idx, req->fw->size);
+		pr_info("#%u: batched sync loaded %zu\n", req->idx,
+			req->fw->size);
 	}
 	complete(&req->completion);
 
@@ -847,8 +816,8 @@ static ssize_t trigger_batched_requests_store(struct device *dev,
 		req->name = test_fw_config->name;
 		req->dev = dev;
 		init_completion(&req->completion);
-		req->task = kthread_run(test_fw_run_batch_request, req,
-					     "%s-%u", KBUILD_MODNAME, req->idx);
+		req->task = kthread_run(test_fw_run_batch_request, req, "%s-%u",
+					KBUILD_MODNAME, req->idx);
 		if (!req->task || IS_ERR(req->task)) {
 			pr_err("Setting up thread %u failed\n", req->idx);
 			req->task = NULL;
@@ -915,10 +884,10 @@ static void trigger_batched_cb(const struct firmware *fw, void *context)
 	complete(&req->completion);
 }
 
-static
-ssize_t trigger_batched_requests_async_store(struct device *dev,
-					     struct device_attribute *attr,
-					     const char *buf, size_t count)
+static ssize_t
+trigger_batched_requests_async_store(struct device *dev,
+				     struct device_attribute *attr,
+				     const char *buf, size_t count)
 {
 	struct test_batched_req *req;
 	bool send_uevent;
@@ -939,7 +908,7 @@ ssize_t trigger_batched_requests_async_store(struct device *dev,
 		test_fw_config->name, test_fw_config->num_requests);
 
 	send_uevent = test_fw_config->send_uevent ? FW_ACTION_UEVENT :
-		FW_ACTION_NOUEVENT;
+						    FW_ACTION_NOUEVENT;
 
 	for (i = 0; i < test_fw_config->num_requests; i++) {
 		req = &test_fw_config->reqs[i];
@@ -948,12 +917,11 @@ ssize_t trigger_batched_requests_async_store(struct device *dev,
 		req->idx = i;
 		init_completion(&req->completion);
 		rc = request_firmware_nowait(THIS_MODULE, send_uevent,
-					     req->name,
-					     dev, GFP_KERNEL, req,
+					     req->name, dev, GFP_KERNEL, req,
 					     trigger_batched_cb);
 		if (rc) {
-			pr_info("#%u: batched async load failed setup: %d\n",
-				i, rc);
+			pr_info("#%u: batched async load failed setup: %d\n", i,
+				rc);
 			req->rc = rc;
 			goto out_bail;
 		} else
@@ -990,8 +958,7 @@ out:
 static DEVICE_ATTR_WO(trigger_batched_requests_async);
 
 static ssize_t test_result_show(struct device *dev,
-				struct device_attribute *attr,
-				char *buf)
+				struct device_attribute *attr, char *buf)
 {
 	return test_dev_config_show_int(buf, test_fw_config->test_result);
 }
@@ -1007,8 +974,7 @@ static ssize_t release_all_firmware_store(struct device *dev,
 static DEVICE_ATTR_WO(release_all_firmware);
 
 static ssize_t read_firmware_show(struct device *dev,
-				  struct device_attribute *attr,
-				  char *buf)
+				  struct device_attribute *attr, char *buf)
 {
 	struct test_batched_req *req;
 	u8 idx;
@@ -1051,7 +1017,7 @@ out:
 }
 static DEVICE_ATTR_RO(read_firmware);
 
-#define TEST_FW_DEV_ATTR(name)          &dev_attr_##name.attr
+#define TEST_FW_DEV_ATTR(name) &dev_attr_##name.attr
 
 static struct attribute *test_dev_attrs[] = {
 	TEST_FW_DEV_ATTR(reset),
@@ -1088,10 +1054,10 @@ static struct attribute *test_dev_attrs[] = {
 ATTRIBUTE_GROUPS(test_dev);
 
 static struct miscdevice test_fw_misc_device = {
-	.minor          = MISC_DYNAMIC_MINOR,
-	.name           = "test_firmware",
-	.fops           = &test_fw_fops,
-	.groups 	= test_dev_groups,
+	.minor = MISC_DYNAMIC_MINOR,
+	.name = "test_firmware",
+	.fops = &test_fw_fops,
+	.groups = test_dev_groups,
 };
 
 static int __init test_firmware_init(void)

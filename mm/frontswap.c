@@ -57,10 +57,18 @@ static inline void inc_frontswap_invalidates(void)
 	data_race(frontswap_invalidates++);
 }
 #else
-static inline void inc_frontswap_loads(void) { }
-static inline void inc_frontswap_succ_stores(void) { }
-static inline void inc_frontswap_failed_stores(void) { }
-static inline void inc_frontswap_invalidates(void) { }
+static inline void inc_frontswap_loads(void)
+{
+}
+static inline void inc_frontswap_succ_stores(void)
+{
+}
+static inline void inc_frontswap_failed_stores(void)
+{
+}
+static inline void inc_frontswap_invalidates(void)
+{
+}
 #endif
 
 /*
@@ -128,16 +136,14 @@ void frontswap_init(unsigned type, unsigned long *map)
 	frontswap_ops->init(type);
 }
 
-static bool __frontswap_test(struct swap_info_struct *sis,
-				pgoff_t offset)
+static bool __frontswap_test(struct swap_info_struct *sis, pgoff_t offset)
 {
 	if (sis->frontswap_map)
 		return test_bit(offset, sis->frontswap_map);
 	return false;
 }
 
-static inline void __frontswap_set(struct swap_info_struct *sis,
-				   pgoff_t offset)
+static inline void __frontswap_set(struct swap_info_struct *sis, pgoff_t offset)
 {
 	set_bit(offset, sis->frontswap_map);
 	atomic_inc(&sis->frontswap_pages);
@@ -160,7 +166,9 @@ static inline void __frontswap_clear(struct swap_info_struct *sis,
 int __frontswap_store(struct page *page)
 {
 	int ret = -1;
-	swp_entry_t entry = { .val = page_private(page), };
+	swp_entry_t entry = {
+		.val = page_private(page),
+	};
 	int type = swp_type(entry);
 	struct swap_info_struct *sis = swap_info[type];
 	pgoff_t offset = swp_offset(entry);
@@ -199,7 +207,9 @@ int __frontswap_store(struct page *page)
 int __frontswap_load(struct page *page)
 {
 	int ret = -1;
-	swp_entry_t entry = { .val = page_private(page), };
+	swp_entry_t entry = {
+		.val = page_private(page),
+	};
 	int type = swp_type(entry);
 	struct swap_info_struct *sis = swap_info[type];
 	pgoff_t offset = swp_offset(entry);

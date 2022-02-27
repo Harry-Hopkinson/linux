@@ -39,7 +39,8 @@ static noinstr bool context_tracking_recursion_enter(void)
 	if (recursion == 1)
 		return true;
 
-	WARN_ONCE((recursion < 1), "Invalid context tracking recursion value %d\n", recursion);
+	WARN_ONCE((recursion < 1),
+		  "Invalid context tracking recursion value %d\n", recursion);
 	__this_cpu_dec(context_tracking.recursion);
 
 	return false;
@@ -67,7 +68,7 @@ void noinstr __context_tracking_enter(enum ctx_state state)
 	if (!context_tracking_recursion_enter())
 		return;
 
-	if ( __this_cpu_read(context_tracking.state) != state) {
+	if (__this_cpu_read(context_tracking.state) != state) {
 		if (__this_cpu_read(context_tracking.active)) {
 			/*
 			 * At this stage, only low level arch entry code remains and
@@ -217,7 +218,7 @@ void __init context_tracking_init(void)
 {
 	int cpu;
 
-	for_each_possible_cpu(cpu)
+	for_each_possible_cpu (cpu)
 		context_tracking_cpu_set(cpu);
 }
 #endif

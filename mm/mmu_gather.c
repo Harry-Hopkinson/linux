@@ -33,8 +33,8 @@ static bool tlb_next_batch(struct mmu_gather *tlb)
 
 	tlb->batch_count++;
 	batch->next = NULL;
-	batch->nr   = 0;
-	batch->max  = MAX_GATHER_BATCH;
+	batch->nr = 0;
+	batch->max = MAX_GATHER_BATCH;
 
 	tlb->active->next = batch;
 	tlb->active = batch;
@@ -64,7 +64,8 @@ static void tlb_batch_list_free(struct mmu_gather *tlb)
 	tlb->local.next = NULL;
 }
 
-bool __tlb_remove_page_size(struct mmu_gather *tlb, struct page *page, int page_size)
+bool __tlb_remove_page_size(struct mmu_gather *tlb, struct page *page,
+			    int page_size)
 {
 	struct mmu_gather_batch *batch;
 
@@ -154,7 +155,8 @@ static void tlb_remove_table_sync_one(void)
 
 static void tlb_remove_table_rcu(struct rcu_head *head)
 {
-	__tlb_remove_table_free(container_of(head, struct mmu_table_batch, rcu));
+	__tlb_remove_table_free(
+		container_of(head, struct mmu_table_batch, rcu));
 }
 
 static void tlb_remove_table_free(struct mmu_table_batch *batch)
@@ -164,7 +166,9 @@ static void tlb_remove_table_free(struct mmu_table_batch *batch)
 
 #else /* !CONFIG_MMU_GATHER_RCU_TABLE_FREE */
 
-static void tlb_remove_table_sync_one(void) { }
+static void tlb_remove_table_sync_one(void)
+{
+}
 
 static void tlb_remove_table_free(struct mmu_table_batch *batch)
 {
@@ -210,7 +214,8 @@ void tlb_remove_table(struct mmu_gather *tlb, void *table)
 	struct mmu_table_batch **batch = &tlb->batch;
 
 	if (*batch == NULL) {
-		*batch = (struct mmu_table_batch *)__get_free_page(GFP_NOWAIT | __GFP_NOWARN);
+		*batch = (struct mmu_table_batch *)__get_free_page(
+			GFP_NOWAIT | __GFP_NOWARN);
 		if (*batch == NULL) {
 			tlb_table_invalidate(tlb);
 			tlb_remove_table_one(table);
@@ -231,8 +236,12 @@ static inline void tlb_table_init(struct mmu_gather *tlb)
 
 #else /* !CONFIG_MMU_GATHER_TABLE_FREE */
 
-static inline void tlb_table_flush(struct mmu_gather *tlb) { }
-static inline void tlb_table_init(struct mmu_gather *tlb) { }
+static inline void tlb_table_flush(struct mmu_gather *tlb)
+{
+}
+static inline void tlb_table_init(struct mmu_gather *tlb)
+{
+}
 
 #endif /* CONFIG_MMU_GATHER_TABLE_FREE */
 
@@ -259,9 +268,9 @@ static void __tlb_gather_mmu(struct mmu_gather *tlb, struct mm_struct *mm,
 #ifndef CONFIG_MMU_GATHER_NO_GATHER
 	tlb->need_flush_all = 0;
 	tlb->local.next = NULL;
-	tlb->local.nr   = 0;
-	tlb->local.max  = ARRAY_SIZE(tlb->__pages);
-	tlb->active     = &tlb->local;
+	tlb->local.nr = 0;
+	tlb->local.max = ARRAY_SIZE(tlb->__pages);
+	tlb->active = &tlb->local;
 	tlb->batch_count = 0;
 #endif
 

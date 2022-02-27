@@ -15,8 +15,8 @@
 #include <linux/export.h>
 #include <linux/stmp_device.h>
 
-#define STMP_MODULE_CLKGATE	(1 << 30)
-#define STMP_MODULE_SFTRST	(1 << 31)
+#define STMP_MODULE_CLKGATE (1 << 30)
+#define STMP_MODULE_SFTRST (1 << 31)
 
 /*
  * Clear the bit and poll it cleared.  This is usually called with

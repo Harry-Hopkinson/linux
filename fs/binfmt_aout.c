@@ -32,15 +32,15 @@
 #include <asm/cacheflush.h>
 
 static int load_aout_binary(struct linux_binprm *);
-static int load_aout_library(struct file*);
+static int load_aout_library(struct file *);
 
 static struct linux_binfmt aout_format = {
-	.module		= THIS_MODULE,
-	.load_binary	= load_aout_binary,
-	.load_shlib	= load_aout_library,
+	.module = THIS_MODULE,
+	.load_binary = load_aout_binary,
+	.load_shlib = load_aout_library,
 };
 
-#define BAD_ADDR(x)	((unsigned long)(x) >= TASK_SIZE)
+#define BAD_ADDR(x) ((unsigned long)(x) >= TASK_SIZE)
 
 static int set_brk(unsigned long start, unsigned long end)
 {
@@ -56,17 +56,19 @@ static int set_brk(unsigned long start, unsigned long end)
  * memory and creates the pointer tables from them, and puts their
  * addresses on the "stack", returning the new stack pointer value.
  */
-static unsigned long __user *create_aout_tables(char __user *p, struct linux_binprm * bprm)
+static unsigned long __user *create_aout_tables(char __user *p,
+						struct linux_binprm *bprm)
 {
-	char __user * __user *argv;
-	char __user * __user *envp;
+	char __user *__user *argv;
+	char __user *__user *envp;
 	unsigned long __user *sp;
 	int argc = bprm->argc;
 	int envc = bprm->envc;
 
-	sp = (void __user *)((-(unsigned long)sizeof(char *)) & (unsigned long) p);
+	sp = (void __user *)((-(unsigned long)sizeof(char *)) &
+			     (unsigned long)p);
 #ifdef __alpha__
-/* whee.. test-programs are so much fun. */
+	/* whee.. test-programs are so much fun. */
 	put_user(0, --sp);
 	put_user(0, --sp);
 	if (bprm->loader) {
@@ -78,34 +80,34 @@ static unsigned long __user *create_aout_tables(char __user *p, struct linux_bin
 	put_user(bprm->exec, --sp);
 	put_user(1001, --sp);
 #endif
-	sp -= envc+1;
-	envp = (char __user * __user *) sp;
-	sp -= argc+1;
-	argv = (char __user * __user *) sp;
+	sp -= envc + 1;
+	envp = (char __user *__user *)sp;
+	sp -= argc + 1;
+	argv = (char __user *__user *)sp;
 #ifndef __alpha__
-	put_user((unsigned long) envp,--sp);
-	put_user((unsigned long) argv,--sp);
+	put_user((unsigned long)envp, --sp);
+	put_user((unsigned long)argv, --sp);
 #endif
-	put_user(argc,--sp);
-	current->mm->arg_start = (unsigned long) p;
-	while (argc-->0) {
+	put_user(argc, --sp);
+	current->mm->arg_start = (unsigned long)p;
+	while (argc-- > 0) {
 		char c;
-		put_user(p,argv++);
+		put_user(p, argv++);
 		do {
-			get_user(c,p++);
+			get_user(c, p++);
 		} while (c);
 	}
-	put_user(NULL,argv);
-	current->mm->arg_end = current->mm->env_start = (unsigned long) p;
-	while (envc-->0) {
+	put_user(NULL, argv);
+	current->mm->arg_end = current->mm->env_start = (unsigned long)p;
+	while (envc-- > 0) {
 		char c;
-		put_user(p,envp++);
+		put_user(p, envp++);
 		do {
-			get_user(c,p++);
+			get_user(c, p++);
 		} while (c);
 	}
-	put_user(NULL,envp);
-	current->mm->env_end = (unsigned long) p;
+	put_user(NULL, envp);
+	current->mm->env_end = (unsigned long)p;
 	return sp;
 }
 
@@ -114,7 +116,7 @@ static unsigned long __user *create_aout_tables(char __user *p, struct linux_bin
  * libraries.  There is no binary dependent code anywhere else.
  */
 
-static int load_aout_binary(struct linux_binprm * bprm)
+static int load_aout_binary(struct linux_binprm *bprm)
 {
 	struct pt_regs *regs = current_pt_regs();
 	struct exec ex;
@@ -123,11 +125,12 @@ static int load_aout_binary(struct linux_binprm * bprm)
 	unsigned long rlim;
 	int retval;
 
-	ex = *((struct exec *) bprm->buf);		/* exec-header */
+	ex = *((struct exec *)bprm->buf); /* exec-header */
 	if ((N_MAGIC(ex) != ZMAGIC && N_MAGIC(ex) != OMAGIC &&
 	     N_MAGIC(ex) != QMAGIC && N_MAGIC(ex) != NMAGIC) ||
 	    N_TRSIZE(ex) || N_DRSIZE(ex) ||
-	    i_size_read(file_inode(bprm->file)) < ex.a_text+ex.a_data+N_SYMSIZE(ex)+N_TXTOFF(ex)) {
+	    i_size_read(file_inode(bprm->file)) <
+		    ex.a_text + ex.a_data + N_SYMSIZE(ex) + N_TXTOFF(ex)) {
 		return -ENOEXEC;
 	}
 
@@ -155,7 +158,7 @@ static int load_aout_binary(struct linux_binprm * bprm)
 	if (retval)
 		return retval;
 
-	/* OK, This is the point of no return */
+		/* OK, This is the point of no return */
 #ifdef __alpha__
 	SET_AOUT_PERSONALITY(bprm, ex);
 #else
@@ -163,17 +166,15 @@ static int load_aout_binary(struct linux_binprm * bprm)
 #endif
 	setup_new_exec(bprm);
 
-	current->mm->end_code = ex.a_text +
-		(current->mm->start_code = N_TXTADDR(ex));
-	current->mm->end_data = ex.a_data +
-		(current->mm->start_data = N_DATADDR(ex));
-	current->mm->brk = ex.a_bss +
-		(current->mm->start_brk = N_BSSADDR(ex));
+	current->mm->end_code =
+		ex.a_text + (current->mm->start_code = N_TXTADDR(ex));
+	current->mm->end_data =
+		ex.a_data + (current->mm->start_data = N_DATADDR(ex));
+	current->mm->brk = ex.a_bss + (current->mm->start_brk = N_BSSADDR(ex));
 
 	retval = setup_arg_pages(bprm, STACK_TOP, EXSTACK_DEFAULT);
 	if (retval < 0)
 		return retval;
-
 
 	if (N_MAGIC(ex) == OMAGIC) {
 		unsigned long text_addr, map_size;
@@ -183,35 +184,34 @@ static int load_aout_binary(struct linux_binprm * bprm)
 
 #ifdef __alpha__
 		pos = fd_offset;
-		map_size = ex.a_text+ex.a_data + PAGE_SIZE - 1;
+		map_size = ex.a_text + ex.a_data + PAGE_SIZE - 1;
 #else
 		pos = 32;
-		map_size = ex.a_text+ex.a_data;
+		map_size = ex.a_text + ex.a_data;
 #endif
 		error = vm_brk(text_addr & PAGE_MASK, map_size);
 		if (error)
 			return error;
 
 		error = read_code(bprm->file, text_addr, pos,
-				  ex.a_text+ex.a_data);
+				  ex.a_text + ex.a_data);
 		if ((signed long)error < 0)
 			return error;
 	} else {
 		if ((ex.a_text & 0xfff || ex.a_data & 0xfff) &&
-		    (N_MAGIC(ex) != NMAGIC) && printk_ratelimit())
-		{
+		    (N_MAGIC(ex) != NMAGIC) && printk_ratelimit()) {
 			printk(KERN_NOTICE "executable not page aligned\n");
 		}
 
-		if ((fd_offset & ~PAGE_MASK) != 0 && printk_ratelimit())
-		{
-			printk(KERN_WARNING 
+		if ((fd_offset & ~PAGE_MASK) != 0 && printk_ratelimit()) {
+			printk(KERN_WARNING
 			       "fd_offset is not page aligned. Please convert program: %pD\n",
 			       bprm->file);
 		}
 
-		if (!bprm->file->f_op->mmap||((fd_offset & ~PAGE_MASK) != 0)) {
-			error = vm_brk(N_TXTADDR(ex), ex.a_text+ex.a_data);
+		if (!bprm->file->f_op->mmap ||
+		    ((fd_offset & ~PAGE_MASK) != 0)) {
+			error = vm_brk(N_TXTADDR(ex), ex.a_text + ex.a_data);
 			if (error)
 				return error;
 
@@ -221,16 +221,15 @@ static int load_aout_binary(struct linux_binprm * bprm)
 		}
 
 		error = vm_mmap(bprm->file, N_TXTADDR(ex), ex.a_text,
-			PROT_READ | PROT_EXEC, MAP_FIXED | MAP_PRIVATE,
-			fd_offset);
+				PROT_READ | PROT_EXEC, MAP_FIXED | MAP_PRIVATE,
+				fd_offset);
 
 		if (error != N_TXTADDR(ex))
 			return error;
 
 		error = vm_mmap(bprm->file, N_DATADDR(ex), ex.a_data,
 				PROT_READ | PROT_WRITE | PROT_EXEC,
-				MAP_FIXED | MAP_PRIVATE,
-				fd_offset + ex.a_text);
+				MAP_FIXED | MAP_PRIVATE, fd_offset + ex.a_text);
 		if (error != N_DATADDR(ex))
 			return error;
 	}
@@ -242,7 +241,7 @@ beyond_if:
 		return retval;
 
 	current->mm->start_stack =
-		(unsigned long) create_aout_tables((char __user *) bprm->p, bprm);
+		(unsigned long)create_aout_tables((char __user *)bprm->p, bprm);
 #ifdef __alpha__
 	regs->gp = ex.a_gpvalue;
 #endif
@@ -253,7 +252,7 @@ beyond_if:
 
 static int load_aout_library(struct file *file)
 {
-	struct inode * inode;
+	struct inode *inode;
 	unsigned long bss, start_addr, len;
 	unsigned long error;
 	int retval;
@@ -270,7 +269,8 @@ static int load_aout_library(struct file *file)
 	/* We come in here for the regular a.out style of shared libraries */
 	if ((N_MAGIC(ex) != ZMAGIC && N_MAGIC(ex) != QMAGIC) || N_TRSIZE(ex) ||
 	    N_DRSIZE(ex) || ((ex.a_entry & 0xfff) && N_MAGIC(ex) == ZMAGIC) ||
-	    i_size_read(inode) < ex.a_text+ex.a_data+N_SYMSIZE(ex)+N_TXTOFF(ex)) {
+	    i_size_read(inode) <
+		    ex.a_text + ex.a_data + N_SYMSIZE(ex) + N_TXTOFF(ex)) {
 		goto out;
 	}
 
@@ -287,12 +287,11 @@ static int load_aout_library(struct file *file)
 	/* For  QMAGIC, the starting address is 0x20 into the page.  We mask
 	   this off to get the starting address for the page */
 
-	start_addr =  ex.a_entry & 0xfffff000;
+	start_addr = ex.a_entry & 0xfffff000;
 
 	if ((N_TXTOFF(ex) & ~PAGE_MASK) != 0) {
-		if (printk_ratelimit())
-		{
-			printk(KERN_WARNING 
+		if (printk_ratelimit()) {
+			printk(KERN_WARNING
 			       "N_TXTOFF is not page aligned. Please convert library: %pD\n",
 			       file);
 		}
@@ -308,8 +307,7 @@ static int load_aout_library(struct file *file)
 	/* Now use mmap to map the library into memory. */
 	error = vm_mmap(file, start_addr, ex.a_text + ex.a_data,
 			PROT_READ | PROT_WRITE | PROT_EXEC,
-			MAP_FIXED | MAP_PRIVATE,
-			N_TXTOFF(ex));
+			MAP_FIXED | MAP_PRIVATE, N_TXTOFF(ex));
 	retval = error;
 	if (error != start_addr)
 		goto out;

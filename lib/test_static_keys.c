@@ -12,8 +12,8 @@
 #include <linux/jump_label.h>
 
 /* old keys */
-struct static_key old_true_key	= STATIC_KEY_INIT_TRUE;
-struct static_key old_false_key	= STATIC_KEY_INIT_FALSE;
+struct static_key old_true_key = STATIC_KEY_INIT_TRUE;
+struct static_key old_false_key = STATIC_KEY_INIT_FALSE;
 
 /* new api */
 DEFINE_STATIC_KEY_TRUE(true_key);
@@ -31,18 +31,17 @@ extern struct static_key_true base_inv_true_key;
 extern struct static_key_false base_false_key;
 extern struct static_key_false base_inv_false_key;
 
-
 struct test_key {
-	bool			init_state;
-	struct static_key	*key;
-	bool			(*test_key)(void);
+	bool init_state;
+	struct static_key *key;
+	bool (*test_key)(void);
 };
 
-#define test_key_func(key, branch)	\
-static bool key ## _ ## branch(void)	\
-{					\
-	return branch(&key);		\
-}
+#define test_key_func(key, branch)                                             \
+	static bool key##_##branch(void)                                       \
+	{                                                                      \
+		return branch(&key);                                           \
+	}
 
 static void invert_key(struct static_key *key)
 {
@@ -87,26 +86,38 @@ static int verify_keys(struct test_key *keys, int size, bool invert)
 	return 0;
 }
 
-test_key_func(old_true_key, static_key_true)
-test_key_func(old_false_key, static_key_false)
-test_key_func(true_key, static_branch_likely)
-test_key_func(true_key, static_branch_unlikely)
-test_key_func(false_key, static_branch_likely)
-test_key_func(false_key, static_branch_unlikely)
-test_key_func(base_old_true_key, static_key_true)
-test_key_func(base_inv_old_true_key, static_key_true)
-test_key_func(base_old_false_key, static_key_false)
-test_key_func(base_inv_old_false_key, static_key_false)
-test_key_func(base_true_key, static_branch_likely)
-test_key_func(base_true_key, static_branch_unlikely)
-test_key_func(base_inv_true_key, static_branch_likely)
-test_key_func(base_inv_true_key, static_branch_unlikely)
-test_key_func(base_false_key, static_branch_likely)
-test_key_func(base_false_key, static_branch_unlikely)
-test_key_func(base_inv_false_key, static_branch_likely)
-test_key_func(base_inv_false_key, static_branch_unlikely)
+test_key_func(old_true_key, static_key_true) test_key_func(
+	old_false_key, static_key_false) test_key_func(true_key,
+						       static_branch_likely)
+	test_key_func(true_key, static_branch_unlikely) test_key_func(
+		false_key,
+		static_branch_likely) test_key_func(false_key,
+						    static_branch_unlikely)
+		test_key_func(base_old_true_key, static_key_true) test_key_func(
+			base_inv_old_true_key,
+			static_key_true) test_key_func(base_old_false_key,
+						       static_key_false)
+			test_key_func(base_inv_old_false_key, static_key_false) test_key_func(
+				base_true_key,
+				static_branch_likely) test_key_func(base_true_key,
+								    static_branch_unlikely)
+				test_key_func(base_inv_true_key, static_branch_likely) test_key_func(
+					base_inv_true_key,
+					static_branch_unlikely)
+					test_key_func(base_false_key,
+						      static_branch_likely)
+						test_key_func(
+							base_false_key,
+							static_branch_unlikely)
+							test_key_func(
+								base_inv_false_key,
+								static_branch_likely)
+								test_key_func(
+									base_inv_false_key,
+									static_branch_unlikely)
 
-static int __init test_static_key_init(void)
+									static int __init
+	test_static_key_init(void)
 {
 	int ret;
 	int size;
@@ -114,97 +125,97 @@ static int __init test_static_key_init(void)
 	struct test_key static_key_tests[] = {
 		/* internal keys - old keys */
 		{
-			.init_state	= true,
-			.key		= &old_true_key,
-			.test_key	= &old_true_key_static_key_true,
+			.init_state = true,
+			.key = &old_true_key,
+			.test_key = &old_true_key_static_key_true,
 		},
 		{
-			.init_state	= false,
-			.key		= &old_false_key,
-			.test_key	= &old_false_key_static_key_false,
+			.init_state = false,
+			.key = &old_false_key,
+			.test_key = &old_false_key_static_key_false,
 		},
 		/* internal keys - new keys */
 		{
-			.init_state	= true,
-			.key		= &true_key.key,
-			.test_key	= &true_key_static_branch_likely,
+			.init_state = true,
+			.key = &true_key.key,
+			.test_key = &true_key_static_branch_likely,
 		},
 		{
-			.init_state	= true,
-			.key		= &true_key.key,
-			.test_key	= &true_key_static_branch_unlikely,
+			.init_state = true,
+			.key = &true_key.key,
+			.test_key = &true_key_static_branch_unlikely,
 		},
 		{
-			.init_state	= false,
-			.key		= &false_key.key,
-			.test_key	= &false_key_static_branch_likely,
+			.init_state = false,
+			.key = &false_key.key,
+			.test_key = &false_key_static_branch_likely,
 		},
 		{
-			.init_state	= false,
-			.key		= &false_key.key,
-			.test_key	= &false_key_static_branch_unlikely,
+			.init_state = false,
+			.key = &false_key.key,
+			.test_key = &false_key_static_branch_unlikely,
 		},
 		/* external keys - old keys */
 		{
-			.init_state	= true,
-			.key		= &base_old_true_key,
-			.test_key	= &base_old_true_key_static_key_true,
+			.init_state = true,
+			.key = &base_old_true_key,
+			.test_key = &base_old_true_key_static_key_true,
 		},
 		{
-			.init_state	= false,
-			.key		= &base_inv_old_true_key,
-			.test_key	= &base_inv_old_true_key_static_key_true,
+			.init_state = false,
+			.key = &base_inv_old_true_key,
+			.test_key = &base_inv_old_true_key_static_key_true,
 		},
 		{
-			.init_state	= false,
-			.key		= &base_old_false_key,
-			.test_key	= &base_old_false_key_static_key_false,
+			.init_state = false,
+			.key = &base_old_false_key,
+			.test_key = &base_old_false_key_static_key_false,
 		},
 		{
-			.init_state	= true,
-			.key		= &base_inv_old_false_key,
-			.test_key	= &base_inv_old_false_key_static_key_false,
+			.init_state = true,
+			.key = &base_inv_old_false_key,
+			.test_key = &base_inv_old_false_key_static_key_false,
 		},
 		/* external keys - new keys */
 		{
-			.init_state	= true,
-			.key		= &base_true_key.key,
-			.test_key	= &base_true_key_static_branch_likely,
+			.init_state = true,
+			.key = &base_true_key.key,
+			.test_key = &base_true_key_static_branch_likely,
 		},
 		{
-			.init_state	= true,
-			.key		= &base_true_key.key,
-			.test_key	= &base_true_key_static_branch_unlikely,
+			.init_state = true,
+			.key = &base_true_key.key,
+			.test_key = &base_true_key_static_branch_unlikely,
 		},
 		{
-			.init_state	= false,
-			.key		= &base_inv_true_key.key,
-			.test_key	= &base_inv_true_key_static_branch_likely,
+			.init_state = false,
+			.key = &base_inv_true_key.key,
+			.test_key = &base_inv_true_key_static_branch_likely,
 		},
 		{
-			.init_state	= false,
-			.key		= &base_inv_true_key.key,
-			.test_key	= &base_inv_true_key_static_branch_unlikely,
+			.init_state = false,
+			.key = &base_inv_true_key.key,
+			.test_key = &base_inv_true_key_static_branch_unlikely,
 		},
 		{
-			.init_state	= false,
-			.key		= &base_false_key.key,
-			.test_key	= &base_false_key_static_branch_likely,
+			.init_state = false,
+			.key = &base_false_key.key,
+			.test_key = &base_false_key_static_branch_likely,
 		},
 		{
-			.init_state	= false,
-			.key		= &base_false_key.key,
-			.test_key	= &base_false_key_static_branch_unlikely,
+			.init_state = false,
+			.key = &base_false_key.key,
+			.test_key = &base_false_key_static_branch_unlikely,
 		},
 		{
-			.init_state	= true,
-			.key		= &base_inv_false_key.key,
-			.test_key	= &base_inv_false_key_static_branch_likely,
+			.init_state = true,
+			.key = &base_inv_false_key.key,
+			.test_key = &base_inv_false_key_static_branch_likely,
 		},
 		{
-			.init_state	= true,
-			.key		= &base_inv_false_key.key,
-			.test_key	= &base_inv_false_key_static_branch_unlikely,
+			.init_state = true,
+			.key = &base_inv_false_key.key,
+			.test_key = &base_inv_false_key_static_branch_unlikely,
 		},
 	};
 

@@ -96,13 +96,13 @@ enum vmpressure_modes {
 	VMPRESSURE_NUM_MODES,
 };
 
-static const char * const vmpressure_str_levels[] = {
+static const char *const vmpressure_str_levels[] = {
 	[VMPRESSURE_LOW] = "low",
 	[VMPRESSURE_MEDIUM] = "medium",
 	[VMPRESSURE_CRITICAL] = "critical",
 };
 
-static const char * const vmpressure_str_modes[] = {
+static const char *const vmpressure_str_modes[] = {
 	[VMPRESSURE_NO_PASSTHROUGH] = "default",
 	[VMPRESSURE_HIERARCHY] = "hierarchy",
 	[VMPRESSURE_LOCAL] = "local",
@@ -141,8 +141,8 @@ static enum vmpressure_levels vmpressure_calc_level(unsigned long scanned,
 	pressure = pressure * 100 / scale;
 
 out:
-	pr_debug("%s: %3lu  (s: %lu  r: %lu)\n", __func__, pressure,
-		 scanned, reclaimed);
+	pr_debug("%s: %3lu  (s: %lu  r: %lu)\n", __func__, pressure, scanned,
+		 reclaimed);
 
 	return vmpressure_level(pressure);
 }
@@ -155,14 +155,14 @@ struct vmpressure_event {
 };
 
 static bool vmpressure_event(struct vmpressure *vmpr,
-			     const enum vmpressure_levels level,
-			     bool ancestor, bool signalled)
+			     const enum vmpressure_levels level, bool ancestor,
+			     bool signalled)
 {
 	struct vmpressure_event *ev;
 	bool ret = false;
 
 	mutex_lock(&vmpr->events_lock);
-	list_for_each_entry(ev, &vmpr->events, node) {
+	list_for_each_entry (ev, &vmpr->events, node) {
 		if (ancestor && ev->mode == VMPRESSURE_LOCAL)
 			continue;
 		if (signalled && ev->mode == VMPRESSURE_NO_PASSTHROUGH)
@@ -343,7 +343,7 @@ void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg, int prio)
 	vmpressure(gfp, memcg, true, vmpressure_win, 0);
 }
 
-#define MAX_VMPRESSURE_ARGS_LEN	(strlen("critical") + strlen("hierarchy") + 2)
+#define MAX_VMPRESSURE_ARGS_LEN (strlen("critical") + strlen("hierarchy") + 2)
 
 /**
  * vmpressure_register_event() - Bind vmpressure notifications to an eventfd
@@ -388,7 +388,8 @@ int vmpressure_register_event(struct mem_cgroup *memcg,
 	/* Find optional mode */
 	token = strsep(&spec, ",");
 	if (token) {
-		ret = match_string(vmpressure_str_modes, VMPRESSURE_NUM_MODES, token);
+		ret = match_string(vmpressure_str_modes, VMPRESSURE_NUM_MODES,
+				   token);
 		if (ret < 0)
 			goto out;
 		mode = ret;
@@ -431,7 +432,7 @@ void vmpressure_unregister_event(struct mem_cgroup *memcg,
 	struct vmpressure_event *ev;
 
 	mutex_lock(&vmpr->events_lock);
-	list_for_each_entry(ev, &vmpr->events, node) {
+	list_for_each_entry (ev, &vmpr->events, node) {
 		if (ev->efd != eventfd)
 			continue;
 		list_del(&ev->node);

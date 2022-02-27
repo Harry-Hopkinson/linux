@@ -120,15 +120,16 @@ EXPORT_SYMBOL(blk_queue_bounce_limit);
  *    per-device basis in /sys/block/<device>/queue/max_sectors_kb.
  *    The soft limit can not exceed max_hw_sectors.
  **/
-void blk_queue_max_hw_sectors(struct request_queue *q, unsigned int max_hw_sectors)
+void blk_queue_max_hw_sectors(struct request_queue *q,
+			      unsigned int max_hw_sectors)
 {
 	struct queue_limits *limits = &q->limits;
 	unsigned int max_sectors;
 
 	if ((max_hw_sectors << 9) < PAGE_SIZE) {
 		max_hw_sectors = 1 << (PAGE_SHIFT - 9);
-		printk(KERN_INFO "%s: set to minimum %d\n",
-		       __func__, max_hw_sectors);
+		printk(KERN_INFO "%s: set to minimum %d\n", __func__,
+		       max_hw_sectors);
 	}
 
 	max_hw_sectors = round_down(max_hw_sectors,
@@ -159,7 +160,8 @@ EXPORT_SYMBOL(blk_queue_max_hw_sectors);
  *    chunks is a hard limitation in the driver, it must still be prepared
  *    to split single page bios.
  **/
-void blk_queue_chunk_sectors(struct request_queue *q, unsigned int chunk_sectors)
+void blk_queue_chunk_sectors(struct request_queue *q,
+			     unsigned int chunk_sectors)
 {
 	q->limits.chunk_sectors = chunk_sectors;
 }
@@ -171,7 +173,7 @@ EXPORT_SYMBOL(blk_queue_chunk_sectors);
  * @max_discard_sectors: maximum number of sectors to discard
  **/
 void blk_queue_max_discard_sectors(struct request_queue *q,
-		unsigned int max_discard_sectors)
+				   unsigned int max_discard_sectors)
 {
 	q->limits.max_hw_discard_sectors = max_discard_sectors;
 	q->limits.max_discard_sectors = max_discard_sectors;
@@ -197,7 +199,7 @@ EXPORT_SYMBOL(blk_queue_max_write_same_sectors);
  * @max_write_zeroes_sectors: maximum number of sectors to write per command
  **/
 void blk_queue_max_write_zeroes_sectors(struct request_queue *q,
-		unsigned int max_write_zeroes_sectors)
+					unsigned int max_write_zeroes_sectors)
 {
 	q->limits.max_write_zeroes_sectors = max_write_zeroes_sectors;
 }
@@ -209,7 +211,7 @@ EXPORT_SYMBOL(blk_queue_max_write_zeroes_sectors);
  * @max_zone_append_sectors: maximum number of sectors to write per command
  **/
 void blk_queue_max_zone_append_sectors(struct request_queue *q,
-		unsigned int max_zone_append_sectors)
+				       unsigned int max_zone_append_sectors)
 {
 	unsigned int max_sectors;
 
@@ -239,12 +241,13 @@ EXPORT_SYMBOL_GPL(blk_queue_max_zone_append_sectors);
  *    Enables a low level driver to set an upper limit on the number of
  *    hw data segments in a request.
  **/
-void blk_queue_max_segments(struct request_queue *q, unsigned short max_segments)
+void blk_queue_max_segments(struct request_queue *q,
+			    unsigned short max_segments)
 {
 	if (!max_segments) {
 		max_segments = 1;
-		printk(KERN_INFO "%s: set to minimum %d\n",
-		       __func__, max_segments);
+		printk(KERN_INFO "%s: set to minimum %d\n", __func__,
+		       max_segments);
 	}
 
 	q->limits.max_segments = max_segments;
@@ -261,7 +264,7 @@ EXPORT_SYMBOL(blk_queue_max_segments);
  *    segments in a discard request.
  **/
 void blk_queue_max_discard_segments(struct request_queue *q,
-		unsigned short max_segments)
+				    unsigned short max_segments)
 {
 	q->limits.max_discard_segments = max_segments;
 }
@@ -280,8 +283,7 @@ void blk_queue_max_segment_size(struct request_queue *q, unsigned int max_size)
 {
 	if (max_size < PAGE_SIZE) {
 		max_size = PAGE_SIZE;
-		printk(KERN_INFO "%s: set to minimum %d\n",
-		       __func__, max_size);
+		printk(KERN_INFO "%s: set to minimum %d\n", __func__, max_size);
 	}
 
 	/* see blk_queue_virt_boundary() for the explanation */
@@ -482,7 +484,8 @@ void blk_queue_io_opt(struct request_queue *q, unsigned int opt)
 }
 EXPORT_SYMBOL(blk_queue_io_opt);
 
-static unsigned int blk_round_down_sectors(unsigned int sectors, unsigned int lbs)
+static unsigned int blk_round_down_sectors(unsigned int sectors,
+					   unsigned int lbs)
 {
 	sectors = round_down(sectors, lbs >> SECTOR_SHIFT);
 	if (sectors < PAGE_SIZE >> SECTOR_SHIFT)
@@ -518,28 +521,29 @@ int blk_stack_limits(struct queue_limits *t, struct queue_limits *b,
 
 	t->max_sectors = min_not_zero(t->max_sectors, b->max_sectors);
 	t->max_hw_sectors = min_not_zero(t->max_hw_sectors, b->max_hw_sectors);
-	t->max_dev_sectors = min_not_zero(t->max_dev_sectors, b->max_dev_sectors);
-	t->max_write_same_sectors = min(t->max_write_same_sectors,
-					b->max_write_same_sectors);
-	t->max_write_zeroes_sectors = min(t->max_write_zeroes_sectors,
-					b->max_write_zeroes_sectors);
-	t->max_zone_append_sectors = min(t->max_zone_append_sectors,
-					b->max_zone_append_sectors);
+	t->max_dev_sectors =
+		min_not_zero(t->max_dev_sectors, b->max_dev_sectors);
+	t->max_write_same_sectors =
+		min(t->max_write_same_sectors, b->max_write_same_sectors);
+	t->max_write_zeroes_sectors =
+		min(t->max_write_zeroes_sectors, b->max_write_zeroes_sectors);
+	t->max_zone_append_sectors =
+		min(t->max_zone_append_sectors, b->max_zone_append_sectors);
 	t->bounce = max(t->bounce, b->bounce);
 
-	t->seg_boundary_mask = min_not_zero(t->seg_boundary_mask,
-					    b->seg_boundary_mask);
-	t->virt_boundary_mask = min_not_zero(t->virt_boundary_mask,
-					    b->virt_boundary_mask);
+	t->seg_boundary_mask =
+		min_not_zero(t->seg_boundary_mask, b->seg_boundary_mask);
+	t->virt_boundary_mask =
+		min_not_zero(t->virt_boundary_mask, b->virt_boundary_mask);
 
 	t->max_segments = min_not_zero(t->max_segments, b->max_segments);
-	t->max_discard_segments = min_not_zero(t->max_discard_segments,
-					       b->max_discard_segments);
+	t->max_discard_segments =
+		min_not_zero(t->max_discard_segments, b->max_discard_segments);
 	t->max_integrity_segments = min_not_zero(t->max_integrity_segments,
 						 b->max_integrity_segments);
 
-	t->max_segment_size = min_not_zero(t->max_segment_size,
-					   b->max_segment_size);
+	t->max_segment_size =
+		min_not_zero(t->max_segment_size, b->max_segment_size);
 
 	t->misaligned |= b->misaligned;
 
@@ -549,9 +553,8 @@ int blk_stack_limits(struct queue_limits *t, struct queue_limits *b,
 	 * compatible with the current top alignment.
 	 */
 	if (t->alignment_offset != alignment) {
-
-		top = max(t->physical_block_size, t->io_min)
-			+ t->alignment_offset;
+		top = max(t->physical_block_size, t->io_min) +
+		      t->alignment_offset;
 		bottom = max(b->physical_block_size, b->io_min) + alignment;
 
 		/* Verify that top and bottom intervals line up */
@@ -561,11 +564,11 @@ int blk_stack_limits(struct queue_limits *t, struct queue_limits *b,
 		}
 	}
 
-	t->logical_block_size = max(t->logical_block_size,
-				    b->logical_block_size);
+	t->logical_block_size =
+		max(t->logical_block_size, b->logical_block_size);
 
-	t->physical_block_size = max(t->physical_block_size,
-				     b->physical_block_size);
+	t->physical_block_size =
+		max(t->physical_block_size, b->physical_block_size);
 
 	t->io_min = max(t->io_min, b->io_min);
 	t->io_opt = lcm_not_zero(t->io_opt, b->io_opt);
@@ -607,8 +610,8 @@ int blk_stack_limits(struct queue_limits *t, struct queue_limits *b,
 		    b->raid_partial_stripes_expensive);
 
 	/* Find lowest common alignment_offset */
-	t->alignment_offset = lcm_not_zero(t->alignment_offset, alignment)
-		% max(t->physical_block_size, t->io_min);
+	t->alignment_offset = lcm_not_zero(t->alignment_offset, alignment) %
+			      max(t->physical_block_size, t->io_min);
 
 	/* Verify that new alignment_offset is on a logical block boundary */
 	if (t->alignment_offset & (t->logical_block_size - 1)) {
@@ -616,9 +619,12 @@ int blk_stack_limits(struct queue_limits *t, struct queue_limits *b,
 		ret = -1;
 	}
 
-	t->max_sectors = blk_round_down_sectors(t->max_sectors, t->logical_block_size);
-	t->max_hw_sectors = blk_round_down_sectors(t->max_hw_sectors, t->logical_block_size);
-	t->max_dev_sectors = blk_round_down_sectors(t->max_dev_sectors, t->logical_block_size);
+	t->max_sectors =
+		blk_round_down_sectors(t->max_sectors, t->logical_block_size);
+	t->max_hw_sectors = blk_round_down_sectors(t->max_hw_sectors,
+						   t->logical_block_size);
+	t->max_dev_sectors = blk_round_down_sectors(t->max_dev_sectors,
+						    t->logical_block_size);
 
 	/* Discard alignment and granularity */
 	if (b->discard_granularity) {
@@ -636,16 +642,17 @@ int blk_stack_limits(struct queue_limits *t, struct queue_limits *b,
 
 		t->max_discard_sectors = min_not_zero(t->max_discard_sectors,
 						      b->max_discard_sectors);
-		t->max_hw_discard_sectors = min_not_zero(t->max_hw_discard_sectors,
-							 b->max_hw_discard_sectors);
-		t->discard_granularity = max(t->discard_granularity,
-					     b->discard_granularity);
-		t->discard_alignment = lcm_not_zero(t->discard_alignment, alignment) %
+		t->max_hw_discard_sectors = min_not_zero(
+			t->max_hw_discard_sectors, b->max_hw_discard_sectors);
+		t->discard_granularity =
+			max(t->discard_granularity, b->discard_granularity);
+		t->discard_alignment =
+			lcm_not_zero(t->discard_alignment, alignment) %
 			t->discard_granularity;
 	}
 
-	t->zone_write_granularity = max(t->zone_write_granularity,
-					b->zone_write_granularity);
+	t->zone_write_granularity =
+		max(t->zone_write_granularity, b->zone_write_granularity);
 	t->zoned = max(t->zoned, b->zoned);
 	return ret;
 }
@@ -667,9 +674,9 @@ void disk_stack_limits(struct gendisk *disk, struct block_device *bdev,
 	struct request_queue *t = disk->queue;
 
 	if (blk_stack_limits(&t->limits, &bdev_get_queue(bdev)->limits,
-			get_start_sect(bdev) + (offset >> 9)) < 0)
+			     get_start_sect(bdev) + (offset >> 9)) < 0)
 		pr_notice("%s: Warning: Device %pg is misaligned\n",
-			disk->disk_name, bdev);
+			  disk->disk_name, bdev);
 
 	disk_update_readahead(disk);
 }
@@ -701,8 +708,7 @@ void blk_queue_segment_boundary(struct request_queue *q, unsigned long mask)
 {
 	if (mask < PAGE_SIZE - 1) {
 		mask = PAGE_SIZE - 1;
-		printk(KERN_INFO "%s: set to minimum %lx\n",
-		       __func__, mask);
+		printk(KERN_INFO "%s: set to minimum %lx\n", __func__, mask);
 	}
 
 	q->limits.seg_boundary_mask = mask;
@@ -849,7 +855,7 @@ static bool disk_has_partitions(struct gendisk *disk)
 	bool ret = false;
 
 	rcu_read_lock();
-	xa_for_each(&disk->part_tbl, idx, part) {
+	xa_for_each (&disk->part_tbl, idx, part) {
 		if (bdev_is_partition(part)) {
 			ret = true;
 			break;
@@ -911,7 +917,7 @@ void blk_queue_set_zoned(struct gendisk *disk, enum blk_zoned_model model)
 		 * size by default. The driver can change this value if needed.
 		 */
 		blk_queue_zone_write_granularity(q,
-						queue_logical_block_size(q));
+						 queue_logical_block_size(q));
 	} else {
 		blk_queue_clear_zone_settings(q);
 	}

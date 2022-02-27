@@ -6,27 +6,27 @@
 
 unsigned compat_dir_class[] = {
 #include <asm-generic/audit_dir_write.h>
-~0U
+	~0U
 };
 
 unsigned compat_read_class[] = {
 #include <asm-generic/audit_read.h>
-~0U
+	~0U
 };
 
 unsigned compat_write_class[] = {
 #include <asm-generic/audit_write.h>
-~0U
+	~0U
 };
 
 unsigned compat_chattr_class[] = {
 #include <asm-generic/audit_change_attr.h>
-~0U
+	~0U
 };
 
 unsigned compat_signal_class[] = {
 #include <asm-generic/audit_signal.h>
-~0U
+	~0U
 };
 
 int audit_classify_compat_syscall(int abi, unsigned syscall)

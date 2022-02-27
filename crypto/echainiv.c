@@ -45,21 +45,19 @@ static int echainiv_encrypt(struct aead_request *req)
 		SYNC_SKCIPHER_REQUEST_ON_STACK(nreq, ctx->sknull);
 
 		skcipher_request_set_sync_tfm(nreq, ctx->sknull);
-		skcipher_request_set_callback(nreq, req->base.flags,
-					      NULL, NULL);
+		skcipher_request_set_callback(nreq, req->base.flags, NULL,
+					      NULL);
 		skcipher_request_set_crypt(nreq, req->src, req->dst,
-					   req->assoclen + req->cryptlen,
-					   NULL);
+					   req->assoclen + req->cryptlen, NULL);
 
 		err = crypto_skcipher_encrypt(nreq);
 		if (err)
 			return err;
 	}
 
-	aead_request_set_callback(subreq, req->base.flags,
-				  req->base.complete, req->base.data);
-	aead_request_set_crypt(subreq, req->dst, req->dst,
-			       req->cryptlen, info);
+	aead_request_set_callback(subreq, req->base.flags, req->base.complete,
+				  req->base.data);
+	aead_request_set_crypt(subreq, req->dst, req->dst, req->cryptlen, info);
 	aead_request_set_ad(subreq, req->assoclen);
 
 	memcpy(&nseqno, info + ivsize - 8, 8);
@@ -87,7 +85,7 @@ static int echainiv_decrypt(struct aead_request *req)
 	struct crypto_aead *geniv = crypto_aead_reqtfm(req);
 	struct aead_geniv_ctx *ctx = crypto_aead_ctx(geniv);
 	struct aead_request *subreq = aead_request_ctx(req);
-	crypto_completion_t compl;
+	crypto_completion_t compl ;
 	void *data;
 	unsigned int ivsize = crypto_aead_ivsize(geniv);
 
@@ -135,7 +133,7 @@ static int echainiv_aead_create(struct crypto_template *tmpl,
 
 	err = aead_register_instance(tmpl, inst);
 	if (err) {
-free_inst:
+	free_inst:
 		inst->free(inst);
 	}
 	return err;

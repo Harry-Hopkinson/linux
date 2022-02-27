@@ -23,7 +23,7 @@ static struct {
 	raw_spinlock_t lock;
 } cpu_pm_notifier = {
 	.chain = RAW_NOTIFIER_INIT(cpu_pm_notifier.chain),
-	.lock  = __RAW_SPIN_LOCK_UNLOCKED(cpu_pm_notifier.lock),
+	.lock = __RAW_SPIN_LOCK_UNLOCKED(cpu_pm_notifier.lock),
 };
 
 static int cpu_pm_notify(enum cpu_pm_event event)
@@ -44,14 +44,16 @@ static int cpu_pm_notify(enum cpu_pm_event event)
 	return notifier_to_errno(ret);
 }
 
-static int cpu_pm_notify_robust(enum cpu_pm_event event_up, enum cpu_pm_event event_down)
+static int cpu_pm_notify_robust(enum cpu_pm_event event_up,
+				enum cpu_pm_event event_down)
 {
 	unsigned long flags;
 	int ret;
 
 	rcu_irq_enter_irqson();
 	raw_spin_lock_irqsave(&cpu_pm_notifier.lock, flags);
-	ret = raw_notifier_call_chain_robust(&cpu_pm_notifier.chain, event_up, event_down, NULL);
+	ret = raw_notifier_call_chain_robust(&cpu_pm_notifier.chain, event_up,
+					     event_down, NULL);
 	raw_spin_unlock_irqrestore(&cpu_pm_notifier.lock, flags);
 	rcu_irq_exit_irqson();
 
@@ -156,7 +158,8 @@ EXPORT_SYMBOL_GPL(cpu_pm_exit);
  */
 int cpu_cluster_pm_enter(void)
 {
-	return cpu_pm_notify_robust(CPU_CLUSTER_PM_ENTER, CPU_CLUSTER_PM_ENTER_FAILED);
+	return cpu_pm_notify_robust(CPU_CLUSTER_PM_ENTER,
+				    CPU_CLUSTER_PM_ENTER_FAILED);
 }
 EXPORT_SYMBOL_GPL(cpu_cluster_pm_enter);
 

@@ -6,9 +6,9 @@
 #include <linux/slab.h>
 #include <asm/timex.h>
 
-#define __param(type, name, init, msg)		\
-	static type name = init;		\
-	module_param(name, type, 0444);		\
+#define __param(type, name, init, msg)                                         \
+	static type name = init;                                               \
+	module_param(name, type, 0444);                                        \
 	MODULE_PARM_DESC(name, msg);
 
 __param(int, nnodes, 100, "Number of nodes in the interval tree");
@@ -26,8 +26,8 @@ static u32 *queries = NULL;
 
 static struct rnd_state rnd;
 
-static inline unsigned long
-search(struct rb_root_cached *root, unsigned long start, unsigned long last)
+static inline unsigned long search(struct rb_root_cached *root,
+				   unsigned long start, unsigned long last)
 {
 	struct interval_tree_node *node;
 	unsigned long results = 0;
@@ -107,7 +107,8 @@ static int interval_tree_test_init(void)
 	for (i = 0; i < search_loops; i++)
 		for (j = 0; j < nsearches; j++) {
 			unsigned long start = search_all ? 0 : queries[j];
-			unsigned long last = search_all ? max_endpoint : queries[j];
+			unsigned long last =
+				search_all ? max_endpoint : queries[j];
 
 			results += search(&root, start, last);
 		}
@@ -117,8 +118,8 @@ static int interval_tree_test_init(void)
 
 	time = div_u64(time, search_loops);
 	results = div_u64(results, search_loops);
-	printk(" -> %llu cycles (%lu results)\n",
-	       (unsigned long long)time, results);
+	printk(" -> %llu cycles (%lu results)\n", (unsigned long long)time,
+	       results);
 
 	kfree(queries);
 	kfree(nodes);
@@ -131,9 +132,8 @@ static void interval_tree_test_exit(void)
 	printk(KERN_ALERT "test exit\n");
 }
 
-module_init(interval_tree_test_init)
-module_exit(interval_tree_test_exit)
+module_init(interval_tree_test_init) module_exit(interval_tree_test_exit)
 
-MODULE_LICENSE("GPL");
+	MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Michel Lespinasse");
 MODULE_DESCRIPTION("Interval Tree test");

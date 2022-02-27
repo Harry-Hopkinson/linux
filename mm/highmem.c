@@ -108,7 +108,7 @@ unsigned int __nr_free_highpages(void)
 	struct zone *zone;
 	unsigned int pages = 0;
 
-	for_each_populated_zone(zone) {
+	for_each_populated_zone (zone) {
 		if (is_highmem(zone))
 			pages += zone_page_state(zone, NR_FREE_PAGES);
 	}
@@ -117,7 +117,7 @@ unsigned int __nr_free_highpages(void)
 }
 
 static int pkmap_count[LAST_PKMAP];
-static  __cacheline_aligned_in_smp DEFINE_SPINLOCK(kmap_lock);
+static __cacheline_aligned_in_smp DEFINE_SPINLOCK(kmap_lock);
 
 pte_t *pkmap_page_table;
 
@@ -127,17 +127,23 @@ pte_t *pkmap_page_table;
  * potential useless overhead.
  */
 #ifdef ARCH_NEEDS_KMAP_HIGH_GET
-#define lock_kmap()             spin_lock_irq(&kmap_lock)
-#define unlock_kmap()           spin_unlock_irq(&kmap_lock)
-#define lock_kmap_any(flags)    spin_lock_irqsave(&kmap_lock, flags)
-#define unlock_kmap_any(flags)  spin_unlock_irqrestore(&kmap_lock, flags)
+#define lock_kmap() spin_lock_irq(&kmap_lock)
+#define unlock_kmap() spin_unlock_irq(&kmap_lock)
+#define lock_kmap_any(flags) spin_lock_irqsave(&kmap_lock, flags)
+#define unlock_kmap_any(flags) spin_unlock_irqrestore(&kmap_lock, flags)
 #else
-#define lock_kmap()             spin_lock(&kmap_lock)
-#define unlock_kmap()           spin_unlock(&kmap_lock)
-#define lock_kmap_any(flags)    \
-		do { spin_lock(&kmap_lock); (void)(flags); } while (0)
-#define unlock_kmap_any(flags)  \
-		do { spin_unlock(&kmap_lock); (void)(flags); } while (0)
+#define lock_kmap() spin_lock(&kmap_lock)
+#define unlock_kmap() spin_unlock(&kmap_lock)
+#define lock_kmap_any(flags)                                                   \
+	do {                                                                   \
+		spin_lock(&kmap_lock);                                         \
+		(void)(flags);                                                 \
+	} while (0)
+#define unlock_kmap_any(flags)                                                 \
+	do {                                                                   \
+		spin_unlock(&kmap_lock);                                       \
+		(void)(flags);                                                 \
+	} while (0)
 #endif
 
 struct page *__kmap_to_page(void *vaddr)
@@ -218,7 +224,7 @@ start:
 			count = get_pkmap_entries_count(color);
 		}
 		if (!pkmap_count[last_pkmap_nr])
-			break;	/* Found a usable entry */
+			break; /* Found a usable entry */
 		if (--count)
 			continue;
 
@@ -246,8 +252,8 @@ start:
 		}
 	}
 	vaddr = PKMAP_ADDR(last_pkmap_nr);
-	set_pte_at(&init_mm, vaddr,
-		   &(pkmap_page_table[last_pkmap_nr]), mk_pte(page, kmap_prot));
+	set_pte_at(&init_mm, vaddr, &(pkmap_page_table[last_pkmap_nr]),
+		   mk_pte(page, kmap_prot));
 
 	pkmap_count[last_pkmap_nr] = 1;
 	set_page_address(page, (void *)vaddr);
@@ -278,7 +284,7 @@ void *kmap_high(struct page *page)
 	pkmap_count[PKMAP_NR(vaddr)]++;
 	BUG_ON(pkmap_count[PKMAP_NR(vaddr)] < 2);
 	unlock_kmap();
-	return (void *) vaddr;
+	return (void *)vaddr;
 }
 EXPORT_SYMBOL(kmap_high);
 
@@ -304,7 +310,7 @@ void *kmap_high_get(struct page *page)
 		pkmap_count[PKMAP_NR(vaddr)]++;
 	}
 	unlock_kmap_any(flags);
-	return (void *) vaddr;
+	return (void *)vaddr;
 }
 #endif
 
@@ -360,7 +366,7 @@ void kunmap_high(struct page *page)
 EXPORT_SYMBOL(kunmap_high);
 
 void zero_user_segments(struct page *page, unsigned start1, unsigned end1,
-		unsigned start2, unsigned end2)
+			unsigned start2, unsigned end2)
 {
 	unsigned int i;
 
@@ -426,9 +432,9 @@ EXPORT_SYMBOL(zero_user_segments);
  * slot is unused which acts as a guard page
  */
 #ifdef CONFIG_DEBUG_KMAP_LOCAL
-# define KM_INCR	2
+#define KM_INCR 2
 #else
-# define KM_INCR	1
+#define KM_INCR 1
 #endif
 
 static inline int kmap_local_idx_push(void)
@@ -451,23 +457,29 @@ static inline void kmap_local_idx_pop(void)
 }
 
 #ifndef arch_kmap_local_post_map
-# define arch_kmap_local_post_map(vaddr, pteval)	do { } while (0)
+#define arch_kmap_local_post_map(vaddr, pteval)                                \
+	do {                                                                   \
+	} while (0)
 #endif
 
 #ifndef arch_kmap_local_pre_unmap
-# define arch_kmap_local_pre_unmap(vaddr)		do { } while (0)
+#define arch_kmap_local_pre_unmap(vaddr)                                       \
+	do {                                                                   \
+	} while (0)
 #endif
 
 #ifndef arch_kmap_local_post_unmap
-# define arch_kmap_local_post_unmap(vaddr)		do { } while (0)
+#define arch_kmap_local_post_unmap(vaddr)                                      \
+	do {                                                                   \
+	} while (0)
 #endif
 
 #ifndef arch_kmap_local_map_idx
-#define arch_kmap_local_map_idx(idx, pfn)	kmap_local_calc_idx(idx)
+#define arch_kmap_local_map_idx(idx, pfn) kmap_local_calc_idx(idx)
 #endif
 
 #ifndef arch_kmap_local_unmap_idx
-#define arch_kmap_local_unmap_idx(idx, vaddr)	kmap_local_calc_idx(idx)
+#define arch_kmap_local_unmap_idx(idx, vaddr) kmap_local_calc_idx(idx)
 #endif
 
 #ifndef arch_kmap_local_high_get
@@ -478,7 +490,7 @@ static inline void *arch_kmap_local_high_get(struct page *page)
 #endif
 
 #ifndef arch_kmap_local_set_pte
-#define arch_kmap_local_set_pte(mm, vaddr, ptep, ptev)	\
+#define arch_kmap_local_set_pte(mm, vaddr, ptep, ptev)                         \
 	set_pte_at(mm, vaddr, ptep, ptev)
 #endif
 
@@ -549,7 +561,8 @@ void *__kmap_local_page_prot(struct page *page, pgprot_t prot)
 	 * pages when debugging is enabled and the architecture has no problems
 	 * with alias mappings.
 	 */
-	if (!IS_ENABLED(CONFIG_DEBUG_KMAP_LOCAL_FORCE_MAP) && !PageHighMem(page))
+	if (!IS_ENABLED(CONFIG_DEBUG_KMAP_LOCAL_FORCE_MAP) &&
+	    !PageHighMem(page))
 		return page_address(page);
 
 	/* Try kmap_high_get() if architecture has it enabled */
@@ -563,7 +576,7 @@ EXPORT_SYMBOL(__kmap_local_page_prot);
 
 void kunmap_local_indexed(void *vaddr)
 {
-	unsigned long addr = (unsigned long) vaddr & PAGE_MASK;
+	unsigned long addr = (unsigned long)vaddr & PAGE_MASK;
 	pte_t *kmap_pte;
 	int idx;
 
@@ -686,7 +699,7 @@ void kmap_local_fork(struct task_struct *tsk)
 
 #if defined(HASHED_PAGE_VIRTUAL)
 
-#define PA_HASH_ORDER	7
+#define PA_HASH_ORDER 7
 
 /*
  * Describes one page->virtual association
@@ -703,9 +716,9 @@ static struct page_address_map page_address_maps[LAST_PKMAP];
  * Hash table bucket
  */
 static struct page_address_slot {
-	struct list_head lh;			/* List of page_address_maps */
-	spinlock_t lock;			/* Protect this bucket's list */
-} ____cacheline_aligned_in_smp page_address_htable[1<<PA_HASH_ORDER];
+	struct list_head lh; /* List of page_address_maps */
+	spinlock_t lock; /* Protect this bucket's list */
+} ____cacheline_aligned_in_smp page_address_htable[1 << PA_HASH_ORDER];
 
 static struct page_address_slot *page_slot(const struct page *page)
 {
@@ -733,7 +746,7 @@ void *page_address(const struct page *page)
 	if (!list_empty(&pas->lh)) {
 		struct page_address_map *pam;
 
-		list_for_each_entry(pam, &pas->lh, list) {
+		list_for_each_entry (pam, &pas->lh, list) {
 			if (pam->page == page) {
 				ret = pam->virtual;
 				goto done;
@@ -760,7 +773,7 @@ void set_page_address(struct page *page, void *virtual)
 	BUG_ON(!PageHighMem(page));
 
 	pas = page_slot(page);
-	if (virtual) {		/* Add */
+	if (virtual) { /* Add */
 		pam = &page_address_maps[PKMAP_NR((unsigned long)virtual)];
 		pam->page = page;
 		pam->virtual = virtual;
@@ -768,9 +781,9 @@ void set_page_address(struct page *page, void *virtual)
 		spin_lock_irqsave(&pas->lock, flags);
 		list_add_tail(&pam->list, &pas->lh);
 		spin_unlock_irqrestore(&pas->lock, flags);
-	} else {		/* Remove */
+	} else { /* Remove */
 		spin_lock_irqsave(&pas->lock, flags);
-		list_for_each_entry(pam, &pas->lh, list) {
+		list_for_each_entry (pam, &pas->lh, list) {
 			if (pam->page == page) {
 				list_del(&pam->list);
 				spin_unlock_irqrestore(&pas->lock, flags);
@@ -793,4 +806,4 @@ void __init page_address_init(void)
 	}
 }
 
-#endif	/* defined(HASHED_PAGE_VIRTUAL) */
+#endif /* defined(HASHED_PAGE_VIRTUAL) */

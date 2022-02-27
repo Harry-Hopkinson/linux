@@ -23,8 +23,8 @@ static inline void memcpy_dir(void *buf, void *sgdata, size_t nbytes, int out)
 	memcpy(dst, src, nbytes);
 }
 
-void scatterwalk_copychunks(void *buf, struct scatter_walk *walk,
-			    size_t nbytes, int out)
+void scatterwalk_copychunks(void *buf, struct scatter_walk *walk, size_t nbytes,
+			    int out)
 {
 	for (;;) {
 		unsigned int len_this_page = scatterwalk_pagelen(walk);
@@ -70,8 +70,7 @@ void scatterwalk_map_and_copy(void *buf, struct scatterlist *sg,
 EXPORT_SYMBOL_GPL(scatterwalk_map_and_copy);
 
 struct scatterlist *scatterwalk_ffwd(struct scatterlist dst[2],
-				     struct scatterlist *src,
-				     unsigned int len)
+				     struct scatterlist *src, unsigned int len)
 {
 	for (;;) {
 		if (!len)

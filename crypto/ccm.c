@@ -58,8 +58,8 @@ struct cbcmac_desc_ctx {
 	unsigned int len;
 };
 
-static inline struct crypto_ccm_req_priv_ctx *crypto_ccm_reqctx(
-	struct aead_request *req)
+static inline struct crypto_ccm_req_priv_ctx *
+crypto_ccm_reqctx(struct aead_request *req)
 {
 	unsigned long align = crypto_aead_alignmask(crypto_aead_reqtfm(req));
 
@@ -94,14 +94,14 @@ static int crypto_ccm_setkey(struct crypto_aead *aead, const u8 *key,
 
 	crypto_skcipher_clear_flags(ctr, CRYPTO_TFM_REQ_MASK);
 	crypto_skcipher_set_flags(ctr, crypto_aead_get_flags(aead) &
-				       CRYPTO_TFM_REQ_MASK);
+					       CRYPTO_TFM_REQ_MASK);
 	err = crypto_skcipher_setkey(ctr, key, keylen);
 	if (err)
 		return err;
 
 	crypto_ahash_clear_flags(mac, CRYPTO_TFM_REQ_MASK);
 	crypto_ahash_set_flags(mac, crypto_aead_get_flags(aead) &
-				    CRYPTO_TFM_REQ_MASK);
+					    CRYPTO_TFM_REQ_MASK);
 	return crypto_ahash_setkey(mac, key, keylen);
 }
 
@@ -156,7 +156,7 @@ static int format_adata(u8 *adata, unsigned int a)
 	if (a < 65280) {
 		*(__be16 *)adata = cpu_to_be16(a);
 		len = 2;
-	} else  {
+	} else {
 		*(__be16 *)adata = cpu_to_be16(0xfffe);
 		*(__be32 *)&adata[2] = cpu_to_be32(a);
 		len = 6;
@@ -260,7 +260,7 @@ static int crypto_ccm_init_crypt(struct aead_request *req, u8 *tag)
 
 	pctx->flags = aead_request_flags(req);
 
-	 /* Note: rfc 3610 and NIST 800-38C require counter of
+	/* Note: rfc 3610 and NIST 800-38C require counter of
 	 * zero to encrypt auth tag.
 	 */
 	memset(iv + 15 - iv[0], 0, iv[0] + 1);
@@ -320,8 +320,7 @@ static int crypto_ccm_encrypt(struct aead_request *req)
 	return err;
 }
 
-static void crypto_ccm_decrypt_done(struct crypto_async_request *areq,
-				   int err)
+static void crypto_ccm_decrypt_done(struct crypto_async_request *areq, int err)
 {
 	struct aead_request *req = areq->data;
 	struct crypto_ccm_req_priv_ctx *pctx = crypto_ccm_reqctx(req);
@@ -336,7 +335,8 @@ static void crypto_ccm_decrypt_done(struct crypto_async_request *areq,
 
 	if (!err) {
 		err = crypto_ccm_auth(req, dst, cryptlen);
-		if (!err && crypto_memneq(pctx->auth_tag, pctx->odata, authsize))
+		if (!err &&
+		    crypto_memneq(pctx->auth_tag, pctx->odata, authsize))
 			err = -EBADMSG;
 	}
 	aead_request_complete(req, err);
@@ -414,10 +414,10 @@ static int crypto_ccm_init_tfm(struct crypto_aead *tfm)
 
 	align = crypto_aead_alignmask(tfm);
 	align &= ~(crypto_tfm_ctx_alignment() - 1);
-	crypto_aead_set_reqsize(
-		tfm,
-		align + sizeof(struct crypto_ccm_req_priv_ctx) +
-		max(crypto_ahash_reqsize(mac), crypto_skcipher_reqsize(ctr)));
+	crypto_aead_set_reqsize(tfm,
+				align + sizeof(struct crypto_ccm_req_priv_ctx) +
+					max(crypto_ahash_reqsize(mac),
+					    crypto_skcipher_reqsize(ctr)));
 
 	return 0;
 
@@ -444,8 +444,7 @@ static void crypto_ccm_free(struct aead_instance *inst)
 }
 
 static int crypto_ccm_create_common(struct crypto_template *tmpl,
-				    struct rtattr **tb,
-				    const char *ctr_name,
+				    struct rtattr **tb, const char *ctr_name,
 				    const char *mac_name)
 {
 	u32 mask;
@@ -493,8 +492,8 @@ static int crypto_ccm_create_common(struct crypto_template *tmpl,
 		goto err_free_inst;
 
 	err = -ENAMETOOLONG;
-	if (snprintf(inst->alg.base.cra_name, CRYPTO_MAX_ALG_NAME,
-		     "ccm(%s", ctr->base.cra_name + 4) >= CRYPTO_MAX_ALG_NAME)
+	if (snprintf(inst->alg.base.cra_name, CRYPTO_MAX_ALG_NAME, "ccm(%s",
+		     ctr->base.cra_name + 4) >= CRYPTO_MAX_ALG_NAME)
 		goto err_free_inst;
 
 	if (snprintf(inst->alg.base.cra_driver_name, CRYPTO_MAX_ALG_NAME,
@@ -502,11 +501,11 @@ static int crypto_ccm_create_common(struct crypto_template *tmpl,
 		     mac->base.cra_driver_name) >= CRYPTO_MAX_ALG_NAME)
 		goto err_free_inst;
 
-	inst->alg.base.cra_priority = (mac->base.cra_priority +
-				       ctr->base.cra_priority) / 2;
+	inst->alg.base.cra_priority =
+		(mac->base.cra_priority + ctr->base.cra_priority) / 2;
 	inst->alg.base.cra_blocksize = 1;
-	inst->alg.base.cra_alignmask = mac->base.cra_alignmask |
-				       ctr->base.cra_alignmask;
+	inst->alg.base.cra_alignmask =
+		mac->base.cra_alignmask | ctr->base.cra_alignmask;
 	inst->alg.ivsize = 16;
 	inst->alg.chunksize = crypto_skcipher_alg_chunksize(ctr);
 	inst->alg.maxauthsize = 16;
@@ -522,7 +521,7 @@ static int crypto_ccm_create_common(struct crypto_template *tmpl,
 
 	err = aead_register_instance(tmpl, inst);
 	if (err) {
-err_free_inst:
+	err_free_inst:
 		crypto_ccm_free(inst);
 	}
 	return err;
@@ -538,8 +537,8 @@ static int crypto_ccm_create(struct crypto_template *tmpl, struct rtattr **tb)
 	if (IS_ERR(cipher_name))
 		return PTR_ERR(cipher_name);
 
-	if (snprintf(ctr_name, CRYPTO_MAX_ALG_NAME, "ctr(%s)",
-		     cipher_name) >= CRYPTO_MAX_ALG_NAME)
+	if (snprintf(ctr_name, CRYPTO_MAX_ALG_NAME, "ctr(%s)", cipher_name) >=
+	    CRYPTO_MAX_ALG_NAME)
 		return -ENAMETOOLONG;
 
 	if (snprintf(mac_name, CRYPTO_MAX_ALG_NAME, "cbcmac(%s)",
@@ -580,7 +579,7 @@ static int crypto_rfc4309_setkey(struct crypto_aead *parent, const u8 *key,
 
 	crypto_aead_clear_flags(child, CRYPTO_TFM_REQ_MASK);
 	crypto_aead_set_flags(child, crypto_aead_get_flags(parent) &
-				     CRYPTO_TFM_REQ_MASK);
+					     CRYPTO_TFM_REQ_MASK);
 	return crypto_aead_setkey(child, key, keylen);
 }
 
@@ -681,11 +680,10 @@ static int crypto_rfc4309_init_tfm(struct crypto_aead *tfm)
 
 	align = crypto_aead_alignmask(aead);
 	align &= ~(crypto_tfm_ctx_alignment() - 1);
-	crypto_aead_set_reqsize(
-		tfm,
-		sizeof(struct crypto_rfc4309_req_ctx) +
-		ALIGN(crypto_aead_reqsize(aead), crypto_tfm_ctx_alignment()) +
-		align + 32);
+	crypto_aead_set_reqsize(tfm, sizeof(struct crypto_rfc4309_req_ctx) +
+					     ALIGN(crypto_aead_reqsize(aead),
+						   crypto_tfm_ctx_alignment()) +
+					     align + 32);
 
 	return 0;
 }
@@ -740,11 +738,11 @@ static int crypto_rfc4309_create(struct crypto_template *tmpl,
 
 	err = -ENAMETOOLONG;
 	if (snprintf(inst->alg.base.cra_name, CRYPTO_MAX_ALG_NAME,
-		     "rfc4309(%s)", alg->base.cra_name) >=
-	    CRYPTO_MAX_ALG_NAME ||
+		     "rfc4309(%s)",
+		     alg->base.cra_name) >= CRYPTO_MAX_ALG_NAME ||
 	    snprintf(inst->alg.base.cra_driver_name, CRYPTO_MAX_ALG_NAME,
-		     "rfc4309(%s)", alg->base.cra_driver_name) >=
-	    CRYPTO_MAX_ALG_NAME)
+		     "rfc4309(%s)",
+		     alg->base.cra_driver_name) >= CRYPTO_MAX_ALG_NAME)
 		goto err_free_inst;
 
 	inst->alg.base.cra_priority = alg->base.cra_priority;
@@ -769,14 +767,14 @@ static int crypto_rfc4309_create(struct crypto_template *tmpl,
 
 	err = aead_register_instance(tmpl, inst);
 	if (err) {
-err_free_inst:
+	err_free_inst:
 		crypto_rfc4309_free(inst);
 	}
 	return err;
 }
 
 static int crypto_cbcmac_digest_setkey(struct crypto_shash *parent,
-				     const u8 *inkey, unsigned int keylen)
+				       const u8 *inkey, unsigned int keylen)
 {
 	struct cbcmac_tfm_ctx *ctx = crypto_shash_ctx(parent);
 
@@ -809,7 +807,7 @@ static int crypto_cbcmac_digest_update(struct shash_desc *pdesc, const u8 *p,
 		unsigned int l = min(len, bs - ctx->len);
 
 		crypto_xor(dg + ctx->len, p, l);
-		ctx->len +=l;
+		ctx->len += l;
 		len -= l;
 		p += l;
 
@@ -891,9 +889,9 @@ static int cbcmac_create(struct crypto_template *tmpl, struct rtattr **tb)
 	inst->alg.base.cra_blocksize = 1;
 
 	inst->alg.digestsize = alg->cra_blocksize;
-	inst->alg.descsize = ALIGN(sizeof(struct cbcmac_desc_ctx),
-				   alg->cra_alignmask + 1) +
-			     alg->cra_blocksize;
+	inst->alg.descsize =
+		ALIGN(sizeof(struct cbcmac_desc_ctx), alg->cra_alignmask + 1) +
+		alg->cra_blocksize;
 
 	inst->alg.base.cra_ctxsize = sizeof(struct cbcmac_tfm_ctx);
 	inst->alg.base.cra_init = cbcmac_init_tfm;
@@ -908,7 +906,7 @@ static int cbcmac_create(struct crypto_template *tmpl, struct rtattr **tb)
 
 	err = shash_register_instance(tmpl, inst);
 	if (err) {
-err_free_inst:
+	err_free_inst:
 		shash_free_singlespawn_instance(inst);
 	}
 	return err;
@@ -919,15 +917,18 @@ static struct crypto_template crypto_ccm_tmpls[] = {
 		.name = "cbcmac",
 		.create = cbcmac_create,
 		.module = THIS_MODULE,
-	}, {
+	},
+	{
 		.name = "ccm_base",
 		.create = crypto_ccm_base_create,
 		.module = THIS_MODULE,
-	}, {
+	},
+	{
 		.name = "ccm",
 		.create = crypto_ccm_create,
 		.module = THIS_MODULE,
-	}, {
+	},
+	{
 		.name = "rfc4309",
 		.create = crypto_rfc4309_create,
 		.module = THIS_MODULE,

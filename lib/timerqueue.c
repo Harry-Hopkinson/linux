@@ -14,8 +14,7 @@
 #include <linux/rbtree.h>
 #include <linux/export.h>
 
-#define __node_2_tq(_n) \
-	rb_entry((_n), struct timerqueue_node, node)
+#define __node_2_tq(_n) rb_entry((_n), struct timerqueue_node, node)
 
 static inline bool __timerqueue_less(struct rb_node *a, const struct rb_node *b)
 {

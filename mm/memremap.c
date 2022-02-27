@@ -65,8 +65,8 @@ static void devmap_managed_enable_put(struct dev_pagemap *pgmap)
 
 static void pgmap_array_delete(struct range *range)
 {
-	xa_store_range(&pgmap_array, PHYS_PFN(range->start), PHYS_PFN(range->end),
-			NULL, GFP_KERNEL);
+	xa_store_range(&pgmap_array, PHYS_PFN(range->start),
+		       PHYS_PFN(range->end), NULL, GFP_KERNEL);
 	synchronize_rcu();
 }
 
@@ -111,12 +111,12 @@ static unsigned long pfn_next(struct dev_pagemap *pgmap, unsigned long pfn)
 
 static unsigned long pfn_len(struct dev_pagemap *pgmap, unsigned long range_id)
 {
-	return (pfn_end(pgmap, range_id) -
-		pfn_first(pgmap, range_id)) >> pgmap->vmemmap_shift;
+	return (pfn_end(pgmap, range_id) - pfn_first(pgmap, range_id)) >>
+	       pgmap->vmemmap_shift;
 }
 
-#define for_each_device_pfn(pfn, map, i) \
-	for (pfn = pfn_first(map, i); pfn < pfn_end(map, i); \
+#define for_each_device_pfn(pfn, map, i)                                       \
+	for (pfn = pfn_first(map, i); pfn < pfn_end(map, i);                   \
 	     pfn = pfn_next(map, pfn))
 
 static void pageunmap_range(struct dev_pagemap *pgmap, int range_id)
@@ -129,14 +129,15 @@ static void pageunmap_range(struct dev_pagemap *pgmap, int range_id)
 
 	/* pages are dead and unused, undo the arch mapping */
 	mem_hotplug_begin();
-	remove_pfn_range_from_zone(page_zone(first_page), PHYS_PFN(range->start),
+	remove_pfn_range_from_zone(page_zone(first_page),
+				   PHYS_PFN(range->start),
 				   PHYS_PFN(range_len(range)));
 	if (pgmap->type == MEMORY_DEVICE_PRIVATE) {
 		__remove_pages(PHYS_PFN(range->start),
 			       PHYS_PFN(range_len(range)), NULL);
 	} else {
 		arch_remove_memory(range->start, range_len(range),
-				pgmap_altmap(pgmap));
+				   pgmap_altmap(pgmap));
 		kasan_remove_zero_shadow(__va(range->start), range_len(range));
 	}
 	mem_hotplug_done();
@@ -152,8 +153,7 @@ void memunmap_pages(struct dev_pagemap *pgmap)
 
 	percpu_ref_kill(&pgmap->ref);
 	for (i = 0; i < pgmap->nr_range; i++)
-		for_each_device_pfn(pfn, pgmap, i)
-			put_page(pfn_to_page(pfn));
+		for_each_device_pfn(pfn, pgmap, i) put_page(pfn_to_page(pfn));
 	wait_for_completion(&pgmap->done);
 	percpu_ref_exit(&pgmap->ref);
 
@@ -178,7 +178,7 @@ static void dev_pagemap_percpu_release(struct percpu_ref *ref)
 }
 
 static int pagemap_range(struct dev_pagemap *pgmap, struct mhp_params *params,
-		int range_id, int nid)
+			 int range_id, int nid)
 {
 	const bool is_private = pgmap->type == MEMORY_DEVICE_PRIVATE;
 	struct range *range = &pgmap->ranges[range_id];
@@ -186,7 +186,7 @@ static int pagemap_range(struct dev_pagemap *pgmap, struct mhp_params *params,
 	int error, is_ram;
 
 	if (WARN_ONCE(pgmap_altmap(pgmap) && range_id > 0,
-				"altmap not supported for multiple ranges\n"))
+		      "altmap not supported for multiple ranges\n"))
 		return -EINVAL;
 
 	conflict_pgmap = get_dev_pagemap(PHYS_PFN(range->start), NULL);
@@ -204,25 +204,25 @@ static int pagemap_range(struct dev_pagemap *pgmap, struct mhp_params *params,
 	}
 
 	is_ram = region_intersects(range->start, range_len(range),
-		IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
+				   IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
 
 	if (is_ram != REGION_DISJOINT) {
 		WARN_ONCE(1, "attempted on %s region %#llx-%#llx\n",
-				is_ram == REGION_MIXED ? "mixed" : "ram",
-				range->start, range->end);
+			  is_ram == REGION_MIXED ? "mixed" : "ram",
+			  range->start, range->end);
 		return -ENXIO;
 	}
 
 	error = xa_err(xa_store_range(&pgmap_array, PHYS_PFN(range->start),
-				PHYS_PFN(range->end), pgmap, GFP_KERNEL));
+				      PHYS_PFN(range->end), pgmap, GFP_KERNEL));
 	if (error)
 		return error;
 
 	if (nid < 0)
 		nid = numa_mem_id();
 
-	error = track_pfn_remap(NULL, &params->pgprot, PHYS_PFN(range->start), 0,
-			range_len(range));
+	error = track_pfn_remap(NULL, &params->pgprot, PHYS_PFN(range->start),
+				0, range_len(range));
 	if (error)
 		goto err_pfn_remap;
 
@@ -246,9 +246,10 @@ static int pagemap_range(struct dev_pagemap *pgmap, struct mhp_params *params,
 	 */
 	if (is_private) {
 		error = add_pages(nid, PHYS_PFN(range->start),
-				PHYS_PFN(range_len(range)), params);
+				  PHYS_PFN(range_len(range)), params);
 	} else {
-		error = kasan_add_zero_shadow(__va(range->start), range_len(range));
+		error = kasan_add_zero_shadow(__va(range->start),
+					      range_len(range));
 		if (error) {
 			mem_hotplug_done();
 			goto err_kasan;
@@ -263,8 +264,8 @@ static int pagemap_range(struct dev_pagemap *pgmap, struct mhp_params *params,
 
 		zone = &NODE_DATA(nid)->node_zones[ZONE_DEVICE];
 		move_pfn_range_to_zone(zone, PHYS_PFN(range->start),
-				PHYS_PFN(range_len(range)), params->altmap,
-				MIGRATE_MOVABLE);
+				       PHYS_PFN(range_len(range)),
+				       params->altmap, MIGRATE_MOVABLE);
 	}
 
 	mem_hotplug_done();
@@ -289,7 +290,6 @@ err_pfn_remap:
 	pgmap_array_delete(range);
 	return error;
 }
-
 
 /*
  * Not device managed version of dev_memremap_pages, undone by
@@ -406,7 +406,7 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
 		return ret;
 
 	error = devm_add_action_or_reset(dev, devm_memremap_pages_release,
-			pgmap);
+					 pgmap);
 	if (error)
 		return ERR_PTR(error);
 	return ret;
@@ -441,7 +441,7 @@ void vmem_altmap_free(struct vmem_altmap *altmap, unsigned long nr_pfns)
  * is non-NULL but does not cover @pfn the reference to it will be released.
  */
 struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
-		struct dev_pagemap *pgmap)
+				    struct dev_pagemap *pgmap)
 {
 	resource_size_t phys = PFN_PHYS(pfn);
 

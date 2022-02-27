@@ -69,7 +69,7 @@ void __init idle_threads_init(void)
 
 	boot_cpu = smp_processor_id();
 
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu (cpu) {
 		if (cpu != boot_cpu)
 			idle_init(cpu);
 	}
@@ -82,9 +82,9 @@ static LIST_HEAD(hotplug_threads);
 static DEFINE_MUTEX(smpboot_threads_lock);
 
 struct smpboot_thread_data {
-	unsigned int			cpu;
-	unsigned int			status;
-	struct smp_hotplug_thread	*ht;
+	unsigned int cpu;
+	unsigned int status;
+	struct smp_hotplug_thread *ht;
 };
 
 enum {
@@ -166,8 +166,8 @@ static int smpboot_thread_fn(void *data)
 	}
 }
 
-static int
-__smpboot_create_thread(struct smp_hotplug_thread *ht, unsigned int cpu)
+static int __smpboot_create_thread(struct smp_hotplug_thread *ht,
+				   unsigned int cpu)
 {
 	struct task_struct *tsk = *per_cpu_ptr(ht->store, cpu);
 	struct smpboot_thread_data *td;
@@ -216,7 +216,7 @@ int smpboot_create_threads(unsigned int cpu)
 	int ret = 0;
 
 	mutex_lock(&smpboot_threads_lock);
-	list_for_each_entry(cur, &hotplug_threads, list) {
+	list_for_each_entry (cur, &hotplug_threads, list) {
 		ret = __smpboot_create_thread(cur, cpu);
 		if (ret)
 			break;
@@ -225,7 +225,8 @@ int smpboot_create_threads(unsigned int cpu)
 	return ret;
 }
 
-static void smpboot_unpark_thread(struct smp_hotplug_thread *ht, unsigned int cpu)
+static void smpboot_unpark_thread(struct smp_hotplug_thread *ht,
+				  unsigned int cpu)
 {
 	struct task_struct *tsk = *per_cpu_ptr(ht->store, cpu);
 
@@ -238,7 +239,7 @@ int smpboot_unpark_threads(unsigned int cpu)
 	struct smp_hotplug_thread *cur;
 
 	mutex_lock(&smpboot_threads_lock);
-	list_for_each_entry(cur, &hotplug_threads, list)
+	list_for_each_entry (cur, &hotplug_threads, list)
 		smpboot_unpark_thread(cur, cpu);
 	mutex_unlock(&smpboot_threads_lock);
 	return 0;
@@ -257,7 +258,7 @@ int smpboot_park_threads(unsigned int cpu)
 	struct smp_hotplug_thread *cur;
 
 	mutex_lock(&smpboot_threads_lock);
-	list_for_each_entry_reverse(cur, &hotplug_threads, list)
+	list_for_each_entry_reverse (cur, &hotplug_threads, list)
 		smpboot_park_thread(cur, cpu);
 	mutex_unlock(&smpboot_threads_lock);
 	return 0;
@@ -268,7 +269,7 @@ static void smpboot_destroy_threads(struct smp_hotplug_thread *ht)
 	unsigned int cpu;
 
 	/* We need to destroy also the parked threads of offline cpus */
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu (cpu) {
 		struct task_struct *tsk = *per_cpu_ptr(ht->store, cpu);
 
 		if (tsk) {
@@ -293,7 +294,7 @@ int smpboot_register_percpu_thread(struct smp_hotplug_thread *plug_thread)
 
 	cpus_read_lock();
 	mutex_lock(&smpboot_threads_lock);
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu (cpu) {
 		ret = __smpboot_create_thread(plug_thread, cpu);
 		if (ret) {
 			smpboot_destroy_threads(plug_thread);
@@ -357,7 +358,6 @@ int cpu_check_up_prepare(int cpu)
 	}
 
 	switch (atomic_read(&per_cpu(cpu_hotplug_state, cpu))) {
-
 	case CPU_POST_DEAD:
 
 		/* The CPU died properly, so just start it up again. */
@@ -445,8 +445,8 @@ update_state:
 		atomic_set(&per_cpu(cpu_hotplug_state, cpu), CPU_POST_DEAD);
 	} else {
 		/* Outgoing CPU still hasn't died, set state accordingly. */
-		if (atomic_cmpxchg(&per_cpu(cpu_hotplug_state, cpu),
-				   oldstate, CPU_BROKEN) != oldstate)
+		if (atomic_cmpxchg(&per_cpu(cpu_hotplug_state, cpu), oldstate,
+				   CPU_BROKEN) != oldstate)
 			goto update_state;
 		ret = false;
 	}
@@ -474,8 +474,8 @@ bool cpu_report_death(void)
 			newstate = CPU_DEAD;
 		else
 			newstate = CPU_DEAD_FROZEN;
-	} while (atomic_cmpxchg(&per_cpu(cpu_hotplug_state, cpu),
-				oldstate, newstate) != oldstate);
+	} while (atomic_cmpxchg(&per_cpu(cpu_hotplug_state, cpu), oldstate,
+				newstate) != oldstate);
 	return newstate == CPU_DEAD;
 }
 

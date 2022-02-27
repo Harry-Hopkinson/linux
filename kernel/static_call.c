@@ -11,9 +11,9 @@
 #include <asm/sections.h>
 
 extern struct static_call_site __start_static_call_sites[],
-			       __stop_static_call_sites[];
+	__stop_static_call_sites[];
 extern struct static_call_tramp_key __start_static_call_tramp_key[],
-				    __stop_static_call_tramp_key[];
+	__stop_static_call_tramp_key[];
 
 static bool static_call_initialized;
 
@@ -35,12 +35,14 @@ static inline void *static_call_addr(struct static_call_site *site)
 	return (void *)((long)site->addr + (long)&site->addr);
 }
 
-static inline unsigned long __static_call_key(const struct static_call_site *site)
+static inline unsigned long
+__static_call_key(const struct static_call_site *site)
 {
 	return (long)site->key + (long)&site->key;
 }
 
-static inline struct static_call_key *static_call_key(const struct static_call_site *site)
+static inline struct static_call_key *
+static_call_key(const struct static_call_site *site)
 {
 	return (void *)(__static_call_key(site) & ~STATIC_CALL_SITE_FLAGS);
 }
@@ -85,11 +87,11 @@ static void static_call_site_swap(void *_a, void *_b, int size)
 	struct static_call_site *b = _b;
 	struct static_call_site tmp = *a;
 
-	a->addr = b->addr  - delta;
-	a->key  = b->key   - delta;
+	a->addr = b->addr - delta;
+	a->key = b->key - delta;
 
 	b->addr = tmp.addr + delta;
-	b->key  = tmp.key  + delta;
+	b->key = tmp.key + delta;
 }
 
 static inline void static_call_sort_entries(struct static_call_site *start,
@@ -104,7 +106,8 @@ static inline bool static_call_key_has_mods(struct static_call_key *key)
 	return !(key->type & 1);
 }
 
-static inline struct static_call_mod *static_call_key_next(struct static_call_key *key)
+static inline struct static_call_mod *
+static_call_key_next(struct static_call_key *key)
 {
 	if (!static_call_key_has_mods(key))
 		return NULL;
@@ -112,7 +115,8 @@ static inline struct static_call_mod *static_call_key_next(struct static_call_ke
 	return key->mods;
 }
 
-static inline struct static_call_site *static_call_key_sites(struct static_call_key *key)
+static inline struct static_call_site *
+static_call_key_sites(struct static_call_key *key)
 {
 	if (static_call_key_has_mods(key))
 		return NULL;
@@ -222,7 +226,8 @@ static int __static_call_init(struct module *mod,
 	for (site = start; site < stop; site++) {
 		void *site_addr = static_call_addr(site);
 
-		if ((mod && within_module_init((unsigned long)site_addr, mod)) ||
+		if ((mod &&
+		     within_module_init((unsigned long)site_addr, mod)) ||
 		    (!mod && init_section_contains(site_addr, 1)))
 			static_call_set_init(site);
 
@@ -260,7 +265,8 @@ static int __static_call_init(struct module *mod,
 
 				key->mods = site_mod;
 
-				site_mod = kzalloc(sizeof(*site_mod), GFP_KERNEL);
+				site_mod =
+					kzalloc(sizeof(*site_mod), GFP_KERNEL);
 				if (!site_mod)
 					return -ENOMEM;
 			}
@@ -271,9 +277,9 @@ static int __static_call_init(struct module *mod,
 			key->mods = site_mod;
 		}
 
-do_transform:
+	do_transform:
 		arch_static_call_transform(site_addr, NULL, key->func,
-				static_call_is_tail(site));
+					   static_call_is_tail(site));
 	}
 
 	return 0;
@@ -324,9 +330,10 @@ static int __static_call_mod_text_reserved(void *start, void *end)
 	if (!mod)
 		return 0;
 
-	ret = __static_call_text_reserved(mod->static_call_sites,
-			mod->static_call_sites + mod->num_static_call_sites,
-			start, end, mod->state == MODULE_STATE_COMING);
+	ret = __static_call_text_reserved(
+		mod->static_call_sites,
+		mod->static_call_sites + mod->num_static_call_sites, start, end,
+		mod->state == MODULE_STATE_COMING);
 
 	module_put(mod);
 
@@ -392,8 +399,8 @@ static int static_call_add_module(struct module *mod)
 static void static_call_del_module(struct module *mod)
 {
 	struct static_call_site *start = mod->static_call_sites;
-	struct static_call_site *stop = mod->static_call_sites +
-					mod->num_static_call_sites;
+	struct static_call_site *stop =
+		mod->static_call_sites + mod->num_static_call_sites;
 	struct static_call_key *key, *prev_key = NULL;
 	struct static_call_mod *site_mod, **prev;
 	struct static_call_site *site;
@@ -463,7 +470,8 @@ int static_call_text_reserved(void *start, void *end)
 {
 	bool init = system_state < SYSTEM_RUNNING;
 	int ret = __static_call_text_reserved(__start_static_call_sites,
-			__stop_static_call_sites, start, end, init);
+					      __stop_static_call_sites, start,
+					      end, init);
 
 	if (ret)
 		return ret;
@@ -508,40 +516,38 @@ long __static_call_return0(void)
 
 static int func_a(int x)
 {
-	return x+1;
+	return x + 1;
 }
 
 static int func_b(int x)
 {
-	return x+2;
+	return x + 2;
 }
 
 DEFINE_STATIC_CALL(sc_selftest, func_a);
 
 static struct static_call_data {
-      int (*func)(int);
-      int val;
-      int expect;
-} static_call_data [] __initdata = {
-      { NULL,   2, 3 },
-      { func_b, 2, 4 },
-      { func_a, 2, 3 }
-};
+	int (*func)(int);
+	int val;
+	int expect;
+} static_call_data[] __initdata = { { NULL, 2, 3 },
+				    { func_b, 2, 4 },
+				    { func_a, 2, 3 } };
 
 static int __init test_static_call_init(void)
 {
-      int i;
+	int i;
 
-      for (i = 0; i < ARRAY_SIZE(static_call_data); i++ ) {
-	      struct static_call_data *scd = &static_call_data[i];
+	for (i = 0; i < ARRAY_SIZE(static_call_data); i++) {
+		struct static_call_data *scd = &static_call_data[i];
 
-              if (scd->func)
-                      static_call_update(sc_selftest, scd->func);
+		if (scd->func)
+			static_call_update(sc_selftest, scd->func);
 
-              WARN_ON(static_call(sc_selftest)(scd->val) != scd->expect);
-      }
+		WARN_ON(static_call(sc_selftest)(scd->val) != scd->expect);
+	}
 
-      return 0;
+	return 0;
 }
 early_initcall(test_static_call_init);
 

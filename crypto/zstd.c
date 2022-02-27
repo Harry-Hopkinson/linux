@@ -14,8 +14,7 @@
 #include <linux/zstd.h>
 #include <crypto/internal/scompress.h>
 
-
-#define ZSTD_DEF_LEVEL	3
+#define ZSTD_DEF_LEVEL 3
 
 struct zstd_ctx {
 	zstd_cctx *cctx;
@@ -147,14 +146,15 @@ static void zstd_exit(struct crypto_tfm *tfm)
 	__zstd_exit(ctx);
 }
 
-static int __zstd_compress(const u8 *src, unsigned int slen,
-			   u8 *dst, unsigned int *dlen, void *ctx)
+static int __zstd_compress(const u8 *src, unsigned int slen, u8 *dst,
+			   unsigned int *dlen, void *ctx)
 {
 	size_t out_len;
 	struct zstd_ctx *zctx = ctx;
 	const zstd_parameters params = zstd_params();
 
-	out_len = zstd_compress_cctx(zctx->cctx, dst, *dlen, src, slen, &params);
+	out_len =
+		zstd_compress_cctx(zctx->cctx, dst, *dlen, src, slen, &params);
 	if (zstd_is_error(out_len))
 		return -EINVAL;
 	*dlen = out_len;
@@ -176,8 +176,8 @@ static int zstd_scompress(struct crypto_scomp *tfm, const u8 *src,
 	return __zstd_compress(src, slen, dst, dlen, ctx);
 }
 
-static int __zstd_decompress(const u8 *src, unsigned int slen,
-			     u8 *dst, unsigned int *dlen, void *ctx)
+static int __zstd_decompress(const u8 *src, unsigned int slen, u8 *dst,
+			     unsigned int *dlen, void *ctx)
 {
 	size_t out_len;
 	struct zstd_ctx *zctx = ctx;
@@ -205,29 +205,26 @@ static int zstd_sdecompress(struct crypto_scomp *tfm, const u8 *src,
 }
 
 static struct crypto_alg alg = {
-	.cra_name		= "zstd",
-	.cra_driver_name	= "zstd-generic",
-	.cra_flags		= CRYPTO_ALG_TYPE_COMPRESS,
-	.cra_ctxsize		= sizeof(struct zstd_ctx),
-	.cra_module		= THIS_MODULE,
-	.cra_init		= zstd_init,
-	.cra_exit		= zstd_exit,
-	.cra_u			= { .compress = {
-	.coa_compress		= zstd_compress,
-	.coa_decompress		= zstd_decompress } }
+	.cra_name = "zstd",
+	.cra_driver_name = "zstd-generic",
+	.cra_flags = CRYPTO_ALG_TYPE_COMPRESS,
+	.cra_ctxsize = sizeof(struct zstd_ctx),
+	.cra_module = THIS_MODULE,
+	.cra_init = zstd_init,
+	.cra_exit = zstd_exit,
+	.cra_u = { .compress = { .coa_compress = zstd_compress,
+				 .coa_decompress = zstd_decompress } }
 };
 
-static struct scomp_alg scomp = {
-	.alloc_ctx		= zstd_alloc_ctx,
-	.free_ctx		= zstd_free_ctx,
-	.compress		= zstd_scompress,
-	.decompress		= zstd_sdecompress,
-	.base			= {
-		.cra_name	= "zstd",
-		.cra_driver_name = "zstd-scomp",
-		.cra_module	 = THIS_MODULE,
-	}
-};
+static struct scomp_alg scomp = { .alloc_ctx = zstd_alloc_ctx,
+				  .free_ctx = zstd_free_ctx,
+				  .compress = zstd_scompress,
+				  .decompress = zstd_sdecompress,
+				  .base = {
+					  .cra_name = "zstd",
+					  .cra_driver_name = "zstd-scomp",
+					  .cra_module = THIS_MODULE,
+				  } };
 
 static int __init zstd_mod_init(void)
 {

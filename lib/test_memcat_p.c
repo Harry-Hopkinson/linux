@@ -9,15 +9,15 @@
 #include <linux/module.h>
 
 struct test_struct {
-	int		num;
-	unsigned int	magic;
+	int num;
+	unsigned int magic;
 };
 
-#define MAGIC		0xf00ff00f
+#define MAGIC 0xf00ff00f
 /* Size of each of the NULL-terminated input arrays */
-#define INPUT_MAX	128
+#define INPUT_MAX 128
 /* Expected number of non-NULL elements in the output array */
-#define EXPECT		(INPUT_MAX * 2 - 2)
+#define EXPECT (INPUT_MAX * 2 - 2)
 
 static int __init test_memcat_p_init(void)
 {
@@ -74,8 +74,8 @@ static int __init test_memcat_p_init(void)
 	}
 
 	if (i != EXPECT) {
-		pr_err("test failed: expected output size %d, got %d\n",
-		       EXPECT, i);
+		pr_err("test failed: expected output size %d, got %d\n", EXPECT,
+		       i);
 		goto err_free_out;
 	}
 

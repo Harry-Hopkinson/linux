@@ -18,10 +18,9 @@
 #include <asm/tlbflush.h>
 #include "internal.h"
 
-static __always_inline
-struct vm_area_struct *find_dst_vma(struct mm_struct *dst_mm,
-				    unsigned long dst_start,
-				    unsigned long len)
+static __always_inline struct vm_area_struct *
+find_dst_vma(struct mm_struct *dst_mm, unsigned long dst_start,
+	     unsigned long len)
 {
 	/*
 	 * Make sure that the dst range is both valid and fully within a
@@ -33,8 +32,7 @@ struct vm_area_struct *find_dst_vma(struct mm_struct *dst_mm,
 	if (!dst_vma)
 		return NULL;
 
-	if (dst_start < dst_vma->vm_start ||
-	    dst_start + len > dst_vma->vm_end)
+	if (dst_start < dst_vma->vm_start || dst_start + len > dst_vma->vm_end)
 		return NULL;
 
 	/*
@@ -119,13 +117,10 @@ out_unlock:
 	return ret;
 }
 
-static int mcopy_atomic_pte(struct mm_struct *dst_mm,
-			    pmd_t *dst_pmd,
+static int mcopy_atomic_pte(struct mm_struct *dst_mm, pmd_t *dst_pmd,
 			    struct vm_area_struct *dst_vma,
-			    unsigned long dst_addr,
-			    unsigned long src_addr,
-			    struct page **pagep,
-			    bool wp_copy)
+			    unsigned long dst_addr, unsigned long src_addr,
+			    struct page **pagep, bool wp_copy)
 {
 	void *page_kaddr;
 	int ret;
@@ -138,8 +133,7 @@ static int mcopy_atomic_pte(struct mm_struct *dst_mm,
 			goto out;
 
 		page_kaddr = kmap_atomic(page);
-		ret = copy_from_user(page_kaddr,
-				     (const void __user *) src_addr,
+		ret = copy_from_user(page_kaddr, (const void __user *)src_addr,
 				     PAGE_SIZE);
 		kunmap_atomic(page_kaddr);
 
@@ -166,8 +160,8 @@ static int mcopy_atomic_pte(struct mm_struct *dst_mm,
 	if (mem_cgroup_charge(page_folio(page), dst_mm, GFP_KERNEL))
 		goto out_release;
 
-	ret = mfill_atomic_install_pte(dst_mm, dst_pmd, dst_vma, dst_addr,
-				       page, true, wp_copy);
+	ret = mfill_atomic_install_pte(dst_mm, dst_pmd, dst_vma, dst_addr, page,
+				       true, wp_copy);
 	if (ret)
 		goto out_release;
 out:
@@ -177,8 +171,7 @@ out_release:
 	goto out;
 }
 
-static int mfill_zeropage_pte(struct mm_struct *dst_mm,
-			      pmd_t *dst_pmd,
+static int mfill_zeropage_pte(struct mm_struct *dst_mm, pmd_t *dst_pmd,
 			      struct vm_area_struct *dst_vma,
 			      unsigned long dst_addr)
 {
@@ -188,8 +181,8 @@ static int mfill_zeropage_pte(struct mm_struct *dst_mm,
 	pgoff_t offset, max_off;
 	struct inode *inode;
 
-	_dst_pte = pte_mkspecial(pfn_pte(my_zero_pfn(dst_addr),
-					 dst_vma->vm_page_prot));
+	_dst_pte = pte_mkspecial(
+		pfn_pte(my_zero_pfn(dst_addr), dst_vma->vm_page_prot));
 	dst_pte = pte_offset_map_lock(dst_mm, dst_pmd, dst_addr, &ptl);
 	if (dst_vma->vm_file) {
 		/* the shmem MAP_PRIVATE case requires checking the i_size */
@@ -213,11 +206,9 @@ out_unlock:
 }
 
 /* Handles UFFDIO_CONTINUE for all shmem VMAs (shared or private). */
-static int mcontinue_atomic_pte(struct mm_struct *dst_mm,
-				pmd_t *dst_pmd,
+static int mcontinue_atomic_pte(struct mm_struct *dst_mm, pmd_t *dst_pmd,
 				struct vm_area_struct *dst_vma,
-				unsigned long dst_addr,
-				bool wp_copy)
+				unsigned long dst_addr, bool wp_copy)
 {
 	struct inode *inode = file_inode(dst_vma->vm_file);
 	pgoff_t pgoff = linear_page_index(dst_vma, dst_addr);
@@ -237,8 +228,8 @@ static int mcontinue_atomic_pte(struct mm_struct *dst_mm,
 		goto out_release;
 	}
 
-	ret = mfill_atomic_install_pte(dst_mm, dst_pmd, dst_vma, dst_addr,
-				       page, false, wp_copy);
+	ret = mfill_atomic_install_pte(dst_mm, dst_pmd, dst_vma, dst_addr, page,
+				       false, wp_copy);
 	if (ret)
 		goto out_release;
 
@@ -278,12 +269,10 @@ static pmd_t *mm_alloc_pmd(struct mm_struct *mm, unsigned long address)
  * __mcopy_atomic processing for HUGETLB vmas.  Note that this routine is
  * called with mmap_lock held, it will release mmap_lock before returning.
  */
-static __always_inline ssize_t __mcopy_atomic_hugetlb(struct mm_struct *dst_mm,
-					      struct vm_area_struct *dst_vma,
-					      unsigned long dst_start,
-					      unsigned long src_start,
-					      unsigned long len,
-					      enum mcopy_atomic_mode mode)
+static __always_inline ssize_t
+__mcopy_atomic_hugetlb(struct mm_struct *dst_mm, struct vm_area_struct *dst_vma,
+		       unsigned long dst_start, unsigned long src_start,
+		       unsigned long len, enum mcopy_atomic_mode mode)
 {
 	int vm_shared = dst_vma->vm_flags & VM_SHARED;
 	ssize_t err;
@@ -363,7 +352,8 @@ retry:
 		mutex_lock(&hugetlb_fault_mutex_table[hash]);
 
 		err = -ENOMEM;
-		dst_pte = huge_pte_alloc(dst_mm, dst_vma, dst_addr, vma_hpagesize);
+		dst_pte = huge_pte_alloc(dst_mm, dst_vma, dst_addr,
+					 vma_hpagesize);
 		if (!dst_pte) {
 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
 			i_mmap_unlock_read(mapping);
@@ -390,10 +380,9 @@ retry:
 			mmap_read_unlock(dst_mm);
 			BUG_ON(!page);
 
-			err = copy_huge_page_from_user(page,
-						(const void __user *)src_addr,
-						vma_hpagesize / PAGE_SIZE,
-						true);
+			err = copy_huge_page_from_user(
+				page, (const void __user *)src_addr,
+				vma_hpagesize / PAGE_SIZE, true);
 			if (unlikely(err)) {
 				err = -EFAULT;
 				goto out;
@@ -429,22 +418,17 @@ out:
 }
 #else /* !CONFIG_HUGETLB_PAGE */
 /* fail at build time if gcc attempts to use this */
-extern ssize_t __mcopy_atomic_hugetlb(struct mm_struct *dst_mm,
-				      struct vm_area_struct *dst_vma,
-				      unsigned long dst_start,
-				      unsigned long src_start,
-				      unsigned long len,
-				      enum mcopy_atomic_mode mode);
+extern ssize_t
+__mcopy_atomic_hugetlb(struct mm_struct *dst_mm, struct vm_area_struct *dst_vma,
+		       unsigned long dst_start, unsigned long src_start,
+		       unsigned long len, enum mcopy_atomic_mode mode);
 #endif /* CONFIG_HUGETLB_PAGE */
 
-static __always_inline ssize_t mfill_atomic_pte(struct mm_struct *dst_mm,
-						pmd_t *dst_pmd,
-						struct vm_area_struct *dst_vma,
-						unsigned long dst_addr,
-						unsigned long src_addr,
-						struct page **page,
-						enum mcopy_atomic_mode mode,
-						bool wp_copy)
+static __always_inline ssize_t
+mfill_atomic_pte(struct mm_struct *dst_mm, pmd_t *dst_pmd,
+		 struct vm_area_struct *dst_vma, unsigned long dst_addr,
+		 unsigned long src_addr, struct page **page,
+		 enum mcopy_atomic_mode mode, bool wp_copy)
 {
 	ssize_t err;
 
@@ -469,26 +453,22 @@ static __always_inline ssize_t mfill_atomic_pte(struct mm_struct *dst_mm,
 					       dst_addr, src_addr, page,
 					       wp_copy);
 		else
-			err = mfill_zeropage_pte(dst_mm, dst_pmd,
-						 dst_vma, dst_addr);
+			err = mfill_zeropage_pte(dst_mm, dst_pmd, dst_vma,
+						 dst_addr);
 	} else {
 		VM_WARN_ON_ONCE(wp_copy);
-		err = shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma,
-					     dst_addr, src_addr,
-					     mode != MCOPY_ATOMIC_NORMAL,
-					     page);
+		err = shmem_mfill_atomic_pte(dst_mm, dst_pmd, dst_vma, dst_addr,
+					     src_addr,
+					     mode != MCOPY_ATOMIC_NORMAL, page);
 	}
 
 	return err;
 }
 
-static __always_inline ssize_t __mcopy_atomic(struct mm_struct *dst_mm,
-					      unsigned long dst_start,
-					      unsigned long src_start,
-					      unsigned long len,
-					      enum mcopy_atomic_mode mcopy_mode,
-					      atomic_t *mmap_changing,
-					      __u64 mode)
+static __always_inline ssize_t __mcopy_atomic(
+	struct mm_struct *dst_mm, unsigned long dst_start,
+	unsigned long src_start, unsigned long len,
+	enum mcopy_atomic_mode mcopy_mode, atomic_t *mmap_changing, __u64 mode)
 {
 	struct vm_area_struct *dst_vma;
 	ssize_t err;
@@ -539,7 +519,7 @@ retry:
 	 * it will overwrite vm_ops, so vma_is_anonymous must return false.
 	 */
 	if (WARN_ON_ONCE(vma_is_anonymous(dst_vma) &&
-	    dst_vma->vm_flags & VM_SHARED))
+			 dst_vma->vm_flags & VM_SHARED))
 		goto out_unlock;
 
 	/*
@@ -554,8 +534,8 @@ retry:
 	 * If this is a HUGETLB vma, pass off to appropriate routine
 	 */
 	if (is_vm_hugetlb_page(dst_vma))
-		return  __mcopy_atomic_hugetlb(dst_mm, dst_vma, dst_start,
-						src_start, len, mcopy_mode);
+		return __mcopy_atomic_hugetlb(dst_mm, dst_vma, dst_start,
+					      src_start, len, mcopy_mode);
 
 	if (!vma_is_anonymous(dst_vma) && !vma_is_shmem(dst_vma))
 		goto out_unlock;
@@ -618,7 +598,7 @@ retry:
 
 			page_kaddr = kmap(page);
 			err = copy_from_user(page_kaddr,
-					     (const void __user *) src_addr,
+					     (const void __user *)src_addr,
 					     PAGE_SIZE);
 			kunmap(page);
 			if (unlikely(err)) {

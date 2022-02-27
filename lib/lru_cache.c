@@ -25,24 +25,28 @@ MODULE_LICENSE("GPL");
 
 /* this is developers aid only.
  * it catches concurrent access (lack of locking on the users part) */
-#define PARANOIA_ENTRY() do {		\
-	BUG_ON(!lc);			\
-	BUG_ON(!lc->nr_elements);	\
-	BUG_ON(test_and_set_bit(__LC_PARANOIA, &lc->flags)); \
-} while (0)
+#define PARANOIA_ENTRY()                                                       \
+	do {                                                                   \
+		BUG_ON(!lc);                                                   \
+		BUG_ON(!lc->nr_elements);                                      \
+		BUG_ON(test_and_set_bit(__LC_PARANOIA, &lc->flags));           \
+	} while (0)
 
-#define RETURN(x...)     do { \
-	clear_bit_unlock(__LC_PARANOIA, &lc->flags); \
-	return x ; } while (0)
+#define RETURN(x...)                                                           \
+	do {                                                                   \
+		clear_bit_unlock(__LC_PARANOIA, &lc->flags);                   \
+		return x;                                                      \
+	} while (0)
 
 /* BUG() if e is not one of the elements tracked by lc */
-#define PARANOIA_LC_ELEMENT(lc, e) do {	\
-	struct lru_cache *lc_ = (lc);	\
-	struct lc_element *e_ = (e);	\
-	unsigned i = e_->lc_index;	\
-	BUG_ON(i >= lc_->nr_elements);	\
-	BUG_ON(lc_->lc_element[i] != e_); } while (0)
-
+#define PARANOIA_LC_ELEMENT(lc, e)                                             \
+	do {                                                                   \
+		struct lru_cache *lc_ = (lc);                                  \
+		struct lc_element *e_ = (e);                                   \
+		unsigned i = e_->lc_index;                                     \
+		BUG_ON(i >= lc_->nr_elements);                                 \
+		BUG_ON(lc_->lc_element[i] != e_);                              \
+	} while (0)
 
 /* We need to atomically
  *  - try to grab the lock (set LC_LOCKED)
@@ -57,7 +61,7 @@ int lc_try_lock(struct lru_cache *lc)
 	unsigned long val;
 	do {
 		val = cmpxchg(&lc->flags, 0, LC_LOCKED);
-	} while (unlikely (val == LC_PARANOIA));
+	} while (unlikely(val == LC_PARANOIA));
 	/* Spin until no-one is inside a PARANOIA_ENTRY()/RETURN() section. */
 	return 0 == val;
 #if 0
@@ -86,8 +90,8 @@ int lc_try_lock(struct lru_cache *lc)
  * or NULL on (allocation) failure.
  */
 struct lru_cache *lc_create(const char *name, struct kmem_cache *cache,
-		unsigned max_pending_changes,
-		unsigned e_count, size_t e_size, size_t e_off)
+			    unsigned max_pending_changes, unsigned e_count,
+			    size_t e_size, size_t e_off)
 {
 	struct hlist_head *slot = NULL;
 	struct lc_element **element = NULL;
@@ -236,25 +240,26 @@ void lc_seq_printf_stats(struct seq_file *seq, struct lru_cache *lc)
 	 * progress) and "changed", when this in fact lead to an successful
 	 * update of the cache.
 	 */
-	seq_printf(seq, "\t%s: used:%u/%u hits:%lu misses:%lu starving:%lu locked:%lu changed:%lu\n",
-		   lc->name, lc->used, lc->nr_elements,
-		   lc->hits, lc->misses, lc->starving, lc->locked, lc->changed);
+	seq_printf(
+		seq,
+		"\t%s: used:%u/%u hits:%lu misses:%lu starving:%lu locked:%lu changed:%lu\n",
+		lc->name, lc->used, lc->nr_elements, lc->hits, lc->misses,
+		lc->starving, lc->locked, lc->changed);
 }
 
 static struct hlist_head *lc_hash_slot(struct lru_cache *lc, unsigned int enr)
 {
-	return  lc->lc_slot + (enr % lc->nr_elements);
+	return lc->lc_slot + (enr % lc->nr_elements);
 }
 
-
 static struct lc_element *__lc_find(struct lru_cache *lc, unsigned int enr,
-		bool include_changing)
+				    bool include_changing)
 {
 	struct lc_element *e;
 
 	BUG_ON(!lc);
 	BUG_ON(!lc->nr_elements);
-	hlist_for_each_entry(e, lc_hash_slot(lc, enr), colision) {
+	hlist_for_each_entry (e, lc_hash_slot(lc, enr), colision) {
 		/* "about to be changed" elements, pending transaction commit,
 		 * are hashed by their "new number". "Normal" elements have
 		 * lc_number == lc_new_number. */
@@ -319,7 +324,8 @@ void lc_del(struct lru_cache *lc, struct lc_element *e)
 	RETURN();
 }
 
-static struct lc_element *lc_prepare_for_change(struct lru_cache *lc, unsigned new_number)
+static struct lc_element *lc_prepare_for_change(struct lru_cache *lc,
+						unsigned new_number)
 {
 	struct list_head *n;
 	struct lc_element *e;
@@ -348,7 +354,7 @@ static int lc_unused_element_available(struct lru_cache *lc)
 	if (!list_empty(&lc->free))
 		return 1; /* something on the free list */
 	if (!list_empty(&lc->lru))
-		return 1;  /* something to evict */
+		return 1; /* something to evict */
 
 	return 0;
 }
@@ -359,7 +365,8 @@ enum {
 	LC_GET_MAY_USE_UNCOMMITTED = 2,
 };
 
-static struct lc_element *__lc_get(struct lru_cache *lc, unsigned int enr, unsigned int flags)
+static struct lc_element *__lc_get(struct lru_cache *lc, unsigned int enr,
+				   unsigned int flags)
 {
 	struct lc_element *e;
 
@@ -500,7 +507,8 @@ struct lc_element *lc_get(struct lru_cache *lc, unsigned int enr)
  */
 struct lc_element *lc_get_cumulative(struct lru_cache *lc, unsigned int enr)
 {
-	return __lc_get(lc, enr, LC_GET_MAY_CHANGE|LC_GET_MAY_USE_UNCOMMITTED);
+	return __lc_get(lc, enr,
+			LC_GET_MAY_CHANGE | LC_GET_MAY_USE_UNCOMMITTED);
 }
 
 /**
@@ -537,7 +545,7 @@ void lc_committed(struct lru_cache *lc)
 	struct lc_element *e, *tmp;
 
 	PARANOIA_ENTRY();
-	list_for_each_entry_safe(e, tmp, &lc->to_be_changed, list) {
+	list_for_each_entry_safe (e, tmp, &lc->to_be_changed, list) {
 		/* count number of changes, not number of transactions */
 		++lc->changed;
 		e->lc_number = e->lc_new_number;
@@ -546,7 +554,6 @@ void lc_committed(struct lru_cache *lc)
 	lc->pending_changes = 0;
 	RETURN();
 }
-
 
 /**
  * lc_put - give up refcnt of @e
@@ -636,8 +643,9 @@ void lc_set(struct lru_cache *lc, unsigned int enr, int index)
  * of the object the lc_element is embedded in. May be NULL.
  * Note: a leading space ' ' and trailing newline '\n' is implied.
  */
-void lc_seq_dump_details(struct seq_file *seq, struct lru_cache *lc, char *utext,
-	     void (*detail) (struct seq_file *, struct lc_element *))
+void lc_seq_dump_details(struct seq_file *seq, struct lru_cache *lc,
+			 char *utext,
+			 void (*detail)(struct seq_file *, struct lc_element *))
 {
 	unsigned int nr_elements = lc->nr_elements;
 	struct lc_element *e;
@@ -647,11 +655,11 @@ void lc_seq_dump_details(struct seq_file *seq, struct lru_cache *lc, char *utext
 	for (i = 0; i < nr_elements; i++) {
 		e = lc_element_by_index(lc, i);
 		if (e->lc_number != e->lc_new_number)
-			seq_printf(seq, "\t%5d: %6d %8d %6d ",
-				i, e->lc_number, e->lc_new_number, e->refcnt);
+			seq_printf(seq, "\t%5d: %6d %8d %6d ", i, e->lc_number,
+				   e->lc_new_number, e->refcnt);
 		else
-			seq_printf(seq, "\t%5d: %6d %-8s %6d ",
-				i, e->lc_number, "-\"-", e->refcnt);
+			seq_printf(seq, "\t%5d: %6d %-8s %6d ", i, e->lc_number,
+				   "-\"-", e->refcnt);
 		if (detail)
 			detail(seq, e);
 		seq_putc(seq, '\n');

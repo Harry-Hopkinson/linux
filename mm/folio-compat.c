@@ -52,10 +52,11 @@ EXPORT_SYMBOL(mark_page_accessed);
 
 #ifdef CONFIG_MIGRATION
 int migrate_page_move_mapping(struct address_space *mapping,
-		struct page *newpage, struct page *page, int extra_count)
+			      struct page *newpage, struct page *page,
+			      int extra_count)
 {
 	return folio_migrate_mapping(mapping, page_folio(newpage),
-					page_folio(page), extra_count);
+				     page_folio(page), extra_count);
 }
 EXPORT_SYMBOL(migrate_page_move_mapping);
 
@@ -97,7 +98,7 @@ bool clear_page_dirty_for_io(struct page *page)
 EXPORT_SYMBOL(clear_page_dirty_for_io);
 
 bool redirty_page_for_writepage(struct writeback_control *wbc,
-		struct page *page)
+				struct page *page)
 {
 	return folio_redirty_for_writepage(wbc, page_folio(page));
 }
@@ -110,15 +111,15 @@ void lru_cache_add(struct page *page)
 EXPORT_SYMBOL(lru_cache_add);
 
 int add_to_page_cache_lru(struct page *page, struct address_space *mapping,
-		pgoff_t index, gfp_t gfp)
+			  pgoff_t index, gfp_t gfp)
 {
 	return filemap_add_folio(mapping, page_folio(page), index, gfp);
 }
 EXPORT_SYMBOL(add_to_page_cache_lru);
 
-noinline
-struct page *pagecache_get_page(struct address_space *mapping, pgoff_t index,
-		int fgp_flags, gfp_t gfp)
+noinline struct page *pagecache_get_page(struct address_space *mapping,
+					 pgoff_t index, int fgp_flags,
+					 gfp_t gfp)
 {
 	struct folio *folio;
 
@@ -130,14 +131,14 @@ struct page *pagecache_get_page(struct address_space *mapping, pgoff_t index,
 EXPORT_SYMBOL(pagecache_get_page);
 
 struct page *grab_cache_page_write_begin(struct address_space *mapping,
-					pgoff_t index, unsigned flags)
+					 pgoff_t index, unsigned flags)
 {
 	unsigned fgp_flags = FGP_LOCK | FGP_WRITE | FGP_CREAT | FGP_STABLE;
 
 	if (flags & AOP_FLAG_NOFS)
 		fgp_flags |= FGP_NOFS;
 	return pagecache_get_page(mapping, index, fgp_flags,
-			mapping_gfp_mask(mapping));
+				  mapping_gfp_mask(mapping));
 }
 EXPORT_SYMBOL(grab_cache_page_write_begin);
 

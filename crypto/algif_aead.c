@@ -78,8 +78,8 @@ static int crypto_aead_copy_sgl(struct crypto_sync_skcipher *null_tfm,
 	SYNC_SKCIPHER_REQUEST_ON_STACK(skreq, null_tfm);
 
 	skcipher_request_set_sync_tfm(skreq, null_tfm);
-	skcipher_request_set_callback(skreq, CRYPTO_TFM_REQ_MAY_SLEEP,
-				      NULL, NULL);
+	skcipher_request_set_callback(skreq, CRYPTO_TFM_REQ_MAY_SLEEP, NULL,
+				      NULL);
 	skcipher_request_set_crypt(skreq, src, dst, len, NULL);
 
 	return crypto_skcipher_encrypt(skreq);
@@ -101,10 +101,10 @@ static int _aead_recvmsg(struct socket *sock, struct msghdr *msg,
 	struct af_alg_tsgl *tsgl, *tmp;
 	struct scatterlist *rsgl_src, *tsgl_src = NULL;
 	int err = 0;
-	size_t used = 0;		/* [in]  TX bufs to be en/decrypted */
-	size_t outlen = 0;		/* [out] RX bufs produced by kernel */
-	size_t usedpages = 0;		/* [in]  RX bufs to be used from user */
-	size_t processed = 0;		/* [in]  TX bufs to be consumed */
+	size_t used = 0; /* [in]  TX bufs to be en/decrypted */
+	size_t outlen = 0; /* [out] RX bufs produced by kernel */
+	size_t usedpages = 0; /* [in]  RX bufs to be used from user */
+	size_t processed = 0; /* [in]  TX bufs to be consumed */
 
 	if (!ctx->init || ctx->more) {
 		err = af_alg_wait_for_data(sk, flags, 0);
@@ -151,7 +151,7 @@ static int _aead_recvmsg(struct socket *sock, struct msghdr *msg,
 
 	/* Allocate cipher request for current operation. */
 	areq = af_alg_alloc_areq(sk, sizeof(struct af_alg_async_req) +
-				     crypto_aead_reqsize(tfm));
+					     crypto_aead_reqsize(tfm));
 	if (IS_ERR(areq))
 		return PTR_ERR(areq);
 
@@ -179,7 +179,7 @@ static int _aead_recvmsg(struct socket *sock, struct msghdr *msg,
 	}
 
 	processed = used + ctx->aead_assoclen;
-	list_for_each_entry_safe(tsgl, tmp, &ctx->tsgl_list, list) {
+	list_for_each_entry_safe (tsgl, tmp, &ctx->tsgl_list, list) {
 		for (i = 0; i < tsgl->cur; i++) {
 			struct scatterlist *process_sg = tsgl->sg + i;
 
@@ -240,20 +240,20 @@ static int _aead_recvmsg(struct socket *sock, struct msghdr *msg,
 		 * RX SGL: AAD || CT ----+
 		 */
 
-		 /* Copy AAD || CT to RX SGL buffer for in-place operation. */
+		/* Copy AAD || CT to RX SGL buffer for in-place operation. */
 		err = crypto_aead_copy_sgl(null_tfm, tsgl_src,
 					   areq->first_rsgl.sgl.sg, outlen);
 		if (err)
 			goto free;
 
 		/* Create TX SGL for tag and chain it to RX SGL. */
-		areq->tsgl_entries = af_alg_count_tsgl(sk, processed,
-						       processed - as);
+		areq->tsgl_entries =
+			af_alg_count_tsgl(sk, processed, processed - as);
 		if (!areq->tsgl_entries)
 			areq->tsgl_entries = 1;
-		areq->tsgl = sock_kmalloc(sk, array_size(sizeof(*areq->tsgl),
-							 areq->tsgl_entries),
-					  GFP_KERNEL);
+		areq->tsgl = sock_kmalloc(
+			sk, array_size(sizeof(*areq->tsgl), areq->tsgl_entries),
+			GFP_KERNEL);
 		if (!areq->tsgl) {
 			err = -ENOMEM;
 			goto free;
@@ -305,14 +305,13 @@ static int _aead_recvmsg(struct socket *sock, struct msghdr *msg,
 		/* Synchronous operation */
 		aead_request_set_callback(&areq->cra_u.aead_req,
 					  CRYPTO_TFM_REQ_MAY_SLEEP |
-					  CRYPTO_TFM_REQ_MAY_BACKLOG,
+						  CRYPTO_TFM_REQ_MAY_BACKLOG,
 					  crypto_req_done, &ctx->wait);
-		err = crypto_wait_req(ctx->enc ?
-				crypto_aead_encrypt(&areq->cra_u.aead_req) :
-				crypto_aead_decrypt(&areq->cra_u.aead_req),
-				&ctx->wait);
+		err = crypto_wait_req(
+			ctx->enc ? crypto_aead_encrypt(&areq->cra_u.aead_req) :
+				   crypto_aead_decrypt(&areq->cra_u.aead_req),
+			&ctx->wait);
 	}
-
 
 free:
 	af_alg_free_resources(areq);
@@ -320,8 +319,8 @@ free:
 	return err ? err : outlen;
 }
 
-static int aead_recvmsg(struct socket *sock, struct msghdr *msg,
-			size_t ignored, int flags)
+static int aead_recvmsg(struct socket *sock, struct msghdr *msg, size_t ignored,
+			int flags)
 {
 	struct sock *sk = sock->sk;
 	int ret = 0;
@@ -354,23 +353,23 @@ out:
 }
 
 static struct proto_ops algif_aead_ops = {
-	.family		=	PF_ALG,
+	.family = PF_ALG,
 
-	.connect	=	sock_no_connect,
-	.socketpair	=	sock_no_socketpair,
-	.getname	=	sock_no_getname,
-	.ioctl		=	sock_no_ioctl,
-	.listen		=	sock_no_listen,
-	.shutdown	=	sock_no_shutdown,
-	.mmap		=	sock_no_mmap,
-	.bind		=	sock_no_bind,
-	.accept		=	sock_no_accept,
+	.connect = sock_no_connect,
+	.socketpair = sock_no_socketpair,
+	.getname = sock_no_getname,
+	.ioctl = sock_no_ioctl,
+	.listen = sock_no_listen,
+	.shutdown = sock_no_shutdown,
+	.mmap = sock_no_mmap,
+	.bind = sock_no_bind,
+	.accept = sock_no_accept,
 
-	.release	=	af_alg_release,
-	.sendmsg	=	aead_sendmsg,
-	.sendpage	=	af_alg_sendpage,
-	.recvmsg	=	aead_recvmsg,
-	.poll		=	af_alg_poll,
+	.release = af_alg_release,
+	.sendmsg = aead_sendmsg,
+	.sendpage = af_alg_sendpage,
+	.recvmsg = aead_recvmsg,
+	.poll = af_alg_poll,
 };
 
 static int aead_check_key(struct socket *sock)
@@ -409,7 +408,7 @@ unlock_child:
 }
 
 static int aead_sendmsg_nokey(struct socket *sock, struct msghdr *msg,
-				  size_t size)
+			      size_t size)
 {
 	int err;
 
@@ -421,7 +420,7 @@ static int aead_sendmsg_nokey(struct socket *sock, struct msghdr *msg,
 }
 
 static ssize_t aead_sendpage_nokey(struct socket *sock, struct page *page,
-				       int offset, size_t size, int flags)
+				   int offset, size_t size, int flags)
 {
 	int err;
 
@@ -433,7 +432,7 @@ static ssize_t aead_sendpage_nokey(struct socket *sock, struct page *page,
 }
 
 static int aead_recvmsg_nokey(struct socket *sock, struct msghdr *msg,
-				  size_t ignored, int flags)
+			      size_t ignored, int flags)
 {
 	int err;
 
@@ -445,23 +444,23 @@ static int aead_recvmsg_nokey(struct socket *sock, struct msghdr *msg,
 }
 
 static struct proto_ops algif_aead_ops_nokey = {
-	.family		=	PF_ALG,
+	.family = PF_ALG,
 
-	.connect	=	sock_no_connect,
-	.socketpair	=	sock_no_socketpair,
-	.getname	=	sock_no_getname,
-	.ioctl		=	sock_no_ioctl,
-	.listen		=	sock_no_listen,
-	.shutdown	=	sock_no_shutdown,
-	.mmap		=	sock_no_mmap,
-	.bind		=	sock_no_bind,
-	.accept		=	sock_no_accept,
+	.connect = sock_no_connect,
+	.socketpair = sock_no_socketpair,
+	.getname = sock_no_getname,
+	.ioctl = sock_no_ioctl,
+	.listen = sock_no_listen,
+	.shutdown = sock_no_shutdown,
+	.mmap = sock_no_mmap,
+	.bind = sock_no_bind,
+	.accept = sock_no_accept,
 
-	.release	=	af_alg_release,
-	.sendmsg	=	aead_sendmsg_nokey,
-	.sendpage	=	aead_sendpage_nokey,
-	.recvmsg	=	aead_recvmsg_nokey,
-	.poll		=	af_alg_poll,
+	.release = af_alg_release,
+	.sendmsg = aead_sendmsg_nokey,
+	.sendpage = aead_sendpage_nokey,
+	.recvmsg = aead_recvmsg_nokey,
+	.poll = af_alg_poll,
 };
 
 static void *aead_bind(const char *name, u32 type, u32 mask)
@@ -575,16 +574,16 @@ static int aead_accept_parent(void *private, struct sock *sk)
 }
 
 static const struct af_alg_type algif_type_aead = {
-	.bind		=	aead_bind,
-	.release	=	aead_release,
-	.setkey		=	aead_setkey,
-	.setauthsize	=	aead_setauthsize,
-	.accept		=	aead_accept_parent,
-	.accept_nokey	=	aead_accept_parent_nokey,
-	.ops		=	&algif_aead_ops,
-	.ops_nokey	=	&algif_aead_ops_nokey,
-	.name		=	"aead",
-	.owner		=	THIS_MODULE
+	.bind = aead_bind,
+	.release = aead_release,
+	.setkey = aead_setkey,
+	.setauthsize = aead_setauthsize,
+	.accept = aead_accept_parent,
+	.accept_nokey = aead_accept_parent_nokey,
+	.ops = &algif_aead_ops,
+	.ops_nokey = &algif_aead_ops_nokey,
+	.name = "aead",
+	.owner = THIS_MODULE
 };
 
 static int __init algif_aead_init(void)

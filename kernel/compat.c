@@ -13,7 +13,7 @@
 #include <linux/errno.h>
 #include <linux/time.h>
 #include <linux/signal.h>
-#include <linux/sched.h>	/* for MAX_SCHEDULE_TIMEOUT */
+#include <linux/sched.h> /* for MAX_SCHEDULE_TIMEOUT */
 #include <linux/syscalls.h>
 #include <linux/unistd.h>
 #include <linux/security.h>
@@ -37,9 +37,8 @@ static inline void compat_sig_setmask(sigset_t *blocked, compat_sigset_word set)
 	memcpy(blocked->sig, &set, sizeof(set));
 }
 
-COMPAT_SYSCALL_DEFINE3(sigprocmask, int, how,
-		       compat_old_sigset_t __user *, nset,
-		       compat_old_sigset_t __user *, oset)
+COMPAT_SYSCALL_DEFINE3(sigprocmask, int, how, compat_old_sigset_t __user *,
+		       nset, compat_old_sigset_t __user *, oset)
 {
 	old_sigset_t old_set, new_set;
 	sigset_t new_blocked;
@@ -121,8 +120,7 @@ static int compat_get_user_cpu_mask(compat_ulong_t __user *user_mask_ptr,
 	return compat_get_bitmap(k, user_mask_ptr, len * 8);
 }
 
-COMPAT_SYSCALL_DEFINE3(sched_setaffinity, compat_pid_t, pid,
-		       unsigned int, len,
+COMPAT_SYSCALL_DEFINE3(sched_setaffinity, compat_pid_t, pid, unsigned int, len,
 		       compat_ulong_t __user *, user_mask_ptr)
 {
 	cpumask_var_t new_mask;
@@ -141,7 +139,7 @@ out:
 	return retval;
 }
 
-COMPAT_SYSCALL_DEFINE3(sched_getaffinity, compat_pid_t,  pid, unsigned int, len,
+COMPAT_SYSCALL_DEFINE3(sched_getaffinity, compat_pid_t, pid, unsigned int, len,
 		       compat_ulong_t __user *, user_mask_ptr)
 {
 	int ret;
@@ -149,7 +147,7 @@ COMPAT_SYSCALL_DEFINE3(sched_getaffinity, compat_pid_t,  pid, unsigned int, len,
 
 	if ((len * BITS_PER_BYTE) < nr_cpu_ids)
 		return -EINVAL;
-	if (len & (sizeof(compat_ulong_t)-1))
+	if (len & (sizeof(compat_ulong_t) - 1))
 		return -EINVAL;
 
 	if (!alloc_cpumask_var(&mask, GFP_KERNEL))
@@ -159,7 +157,8 @@ COMPAT_SYSCALL_DEFINE3(sched_getaffinity, compat_pid_t,  pid, unsigned int, len,
 	if (ret == 0) {
 		unsigned int retlen = min(len, cpumask_size());
 
-		if (compat_put_bitmap(user_mask_ptr, cpumask_bits(mask), retlen * 8))
+		if (compat_put_bitmap(user_mask_ptr, cpumask_bits(mask),
+				      retlen * 8))
 			ret = -EFAULT;
 		else
 			ret = retlen;
@@ -177,17 +176,18 @@ COMPAT_SYSCALL_DEFINE3(sched_getaffinity, compat_pid_t,  pid, unsigned int, len,
  * to keep all the bits of sigev_value.sival_ptr intact.
  */
 int get_compat_sigevent(struct sigevent *event,
-		const struct compat_sigevent __user *u_event)
+			const struct compat_sigevent __user *u_event)
 {
 	memset(event, 0, sizeof(*event));
 	return (!access_ok(u_event, sizeof(*u_event)) ||
 		__get_user(event->sigev_value.sival_int,
-			&u_event->sigev_value.sival_int) ||
+			   &u_event->sigev_value.sival_int) ||
 		__get_user(event->sigev_signo, &u_event->sigev_signo) ||
 		__get_user(event->sigev_notify, &u_event->sigev_notify) ||
 		__get_user(event->sigev_notify_thread_id,
-			&u_event->sigev_notify_thread_id))
-		? -EFAULT : 0;
+			   &u_event->sigev_notify_thread_id)) ?
+		       -EFAULT :
+		       0;
 }
 
 long compat_get_bitmap(unsigned long *mask, const compat_ulong_t __user *umask,
@@ -246,21 +246,24 @@ Efault:
 	return -EFAULT;
 }
 
-int
-get_compat_sigset(sigset_t *set, const compat_sigset_t __user *compat)
+int get_compat_sigset(sigset_t *set, const compat_sigset_t __user *compat)
 {
 #ifdef __BIG_ENDIAN
 	compat_sigset_t v;
 	if (copy_from_user(&v, compat, sizeof(compat_sigset_t)))
 		return -EFAULT;
 	switch (_NSIG_WORDS) {
-	case 4: set->sig[3] = v.sig[6] | (((long)v.sig[7]) << 32 );
+	case 4:
+		set->sig[3] = v.sig[6] | (((long)v.sig[7]) << 32);
 		fallthrough;
-	case 3: set->sig[2] = v.sig[4] | (((long)v.sig[5]) << 32 );
+	case 3:
+		set->sig[2] = v.sig[4] | (((long)v.sig[5]) << 32);
 		fallthrough;
-	case 2: set->sig[1] = v.sig[2] | (((long)v.sig[3]) << 32 );
+	case 2:
+		set->sig[1] = v.sig[2] | (((long)v.sig[3]) << 32);
 		fallthrough;
-	case 1: set->sig[0] = v.sig[0] | (((long)v.sig[1]) << 32 );
+	case 1:
+		set->sig[0] = v.sig[0] | (((long)v.sig[1]) << 32);
 	}
 #else
 	if (copy_from_user(set, compat, sizeof(compat_sigset_t)))

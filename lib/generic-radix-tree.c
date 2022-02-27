@@ -4,16 +4,16 @@
 #include <linux/gfp.h>
 #include <linux/kmemleak.h>
 
-#define GENRADIX_ARY		(PAGE_SIZE / sizeof(struct genradix_node *))
-#define GENRADIX_ARY_SHIFT	ilog2(GENRADIX_ARY)
+#define GENRADIX_ARY (PAGE_SIZE / sizeof(struct genradix_node *))
+#define GENRADIX_ARY_SHIFT ilog2(GENRADIX_ARY)
 
 struct genradix_node {
 	union {
 		/* Interior node: */
-		struct genradix_node	*children[GENRADIX_ARY];
+		struct genradix_node *children[GENRADIX_ARY];
 
 		/* Leaf: */
-		u8			data[PAGE_SIZE];
+		u8 data[PAGE_SIZE];
 	};
 };
 
@@ -31,20 +31,21 @@ static inline size_t genradix_depth_size(unsigned depth)
 }
 
 /* depth that's needed for a genradix that can address up to ULONG_MAX: */
-#define GENRADIX_MAX_DEPTH	\
+#define GENRADIX_MAX_DEPTH                                                     \
 	DIV_ROUND_UP(BITS_PER_LONG - PAGE_SHIFT, GENRADIX_ARY_SHIFT)
 
-#define GENRADIX_DEPTH_MASK				\
-	((unsigned long) (roundup_pow_of_two(GENRADIX_MAX_DEPTH + 1) - 1))
+#define GENRADIX_DEPTH_MASK                                                    \
+	((unsigned long)(roundup_pow_of_two(GENRADIX_MAX_DEPTH + 1) - 1))
 
 static inline unsigned genradix_root_to_depth(struct genradix_root *r)
 {
-	return (unsigned long) r & GENRADIX_DEPTH_MASK;
+	return (unsigned long)r & GENRADIX_DEPTH_MASK;
 }
 
-static inline struct genradix_node *genradix_root_to_node(struct genradix_root *r)
+static inline struct genradix_node *
+genradix_root_to_node(struct genradix_root *r)
 {
-	return (void *) ((unsigned long) r & ~GENRADIX_DEPTH_MASK);
+	return (void *)((unsigned long)r & ~GENRADIX_DEPTH_MASK);
 }
 
 /*
@@ -55,7 +56,7 @@ void *__genradix_ptr(struct __genradix *radix, size_t offset)
 {
 	struct genradix_root *r = READ_ONCE(radix->root);
 	struct genradix_node *n = genradix_root_to_node(r);
-	unsigned level		= genradix_root_to_depth(r);
+	unsigned level = genradix_root_to_depth(r);
 
 	if (ilog2(offset) >= genradix_depth_shift(level))
 		return NULL;
@@ -80,7 +81,7 @@ static inline struct genradix_node *genradix_alloc_node(gfp_t gfp_mask)
 {
 	struct genradix_node *node;
 
-	node = (struct genradix_node *)__get_free_page(gfp_mask|__GFP_ZERO);
+	node = (struct genradix_node *)__get_free_page(gfp_mask | __GFP_ZERO);
 
 	/*
 	 * We're using pages (not slab allocations) directly for kernel data
@@ -112,8 +113,8 @@ void *__genradix_ptr_alloc(struct __genradix *radix, size_t offset,
 	while (1) {
 		struct genradix_root *r = v, *new_root;
 
-		n	= genradix_root_to_node(r);
-		level	= genradix_root_to_depth(r);
+		n = genradix_root_to_node(r);
+		level = genradix_root_to_depth(r);
 
 		if (n && ilog2(offset) < genradix_depth_shift(level))
 			break;
@@ -125,8 +126,8 @@ void *__genradix_ptr_alloc(struct __genradix *radix, size_t offset,
 		}
 
 		new_node->children[0] = n;
-		new_root = ((struct genradix_root *)
-			    ((unsigned long) new_node | (n ? level + 1 : 0)));
+		new_root = ((struct genradix_root *)((unsigned long)new_node |
+						     (n ? level + 1 : 0)));
 
 		if ((v = cmpxchg_release(&radix->root, r, new_root)) == r) {
 			v = new_root;
@@ -159,8 +160,7 @@ void *__genradix_ptr_alloc(struct __genradix *radix, size_t offset,
 }
 EXPORT_SYMBOL(__genradix_ptr_alloc);
 
-void *__genradix_iter_peek(struct genradix_iter *iter,
-			   struct __genradix *radix,
+void *__genradix_iter_peek(struct genradix_iter *iter, struct __genradix *radix,
 			   size_t objs_per_page)
 {
 	struct genradix_root *r;
@@ -171,8 +171,8 @@ restart:
 	if (!r)
 		return NULL;
 
-	n	= genradix_root_to_node(r);
-	level	= genradix_root_to_depth(r);
+	n = genradix_root_to_node(r);
+	level = genradix_root_to_depth(r);
 
 	if (ilog2(iter->offset) >= genradix_depth_shift(level))
 		return NULL;
@@ -181,15 +181,15 @@ restart:
 		level--;
 
 		i = (iter->offset >> genradix_depth_shift(level)) &
-			(GENRADIX_ARY - 1);
+		    (GENRADIX_ARY - 1);
 
 		while (!n->children[i]) {
 			i++;
-			iter->offset = round_down(iter->offset +
-					   genradix_depth_size(level),
-					   genradix_depth_size(level));
-			iter->pos = (iter->offset >> PAGE_SHIFT) *
-				objs_per_page;
+			iter->offset = round_down(
+				iter->offset + genradix_depth_size(level),
+				genradix_depth_size(level));
+			iter->pos =
+				(iter->offset >> PAGE_SHIFT) * objs_per_page;
 			if (i == GENRADIX_ARY)
 				goto restart;
 		}
@@ -208,14 +208,14 @@ static void genradix_free_recurse(struct genradix_node *n, unsigned level)
 
 		for (i = 0; i < GENRADIX_ARY; i++)
 			if (n->children[i])
-				genradix_free_recurse(n->children[i], level - 1);
+				genradix_free_recurse(n->children[i],
+						      level - 1);
 	}
 
 	genradix_free_node(n);
 }
 
-int __genradix_prealloc(struct __genradix *radix, size_t size,
-			gfp_t gfp_mask)
+int __genradix_prealloc(struct __genradix *radix, size_t size, gfp_t gfp_mask)
 {
 	size_t offset;
 

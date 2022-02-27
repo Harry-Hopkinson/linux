@@ -60,8 +60,7 @@ static void hash_free_result(struct sock *sk, struct hash_ctx *ctx)
 	ctx->result = NULL;
 }
 
-static int hash_sendmsg(struct socket *sock, struct msghdr *msg,
-			size_t ignored)
+static int hash_sendmsg(struct socket *sock, struct msghdr *msg, size_t ignored)
 {
 	int limit = ALG_MAX_PAGES * PAGE_SIZE;
 	struct sock *sk = sock->sk;
@@ -128,8 +127,8 @@ unlock:
 	return err ?: copied;
 }
 
-static ssize_t hash_sendpage(struct socket *sock, struct page *page,
-			     int offset, size_t size, int flags)
+static ssize_t hash_sendpage(struct socket *sock, struct page *page, int offset,
+			     size_t size, int flags)
 {
 	struct sock *sk = sock->sk;
 	struct alg_sock *ask = alg_sk(sk);
@@ -204,8 +203,7 @@ static int hash_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
 	ahash_request_set_crypt(&ctx->req, NULL, ctx->result, 0);
 
 	if (!result && !ctx->more) {
-		err = crypto_wait_req(crypto_ahash_init(&ctx->req),
-				      &ctx->wait);
+		err = crypto_wait_req(crypto_ahash_init(&ctx->req), &ctx->wait);
 		if (err)
 			goto unlock;
 	}
@@ -271,22 +269,22 @@ static int hash_accept(struct socket *sock, struct socket *newsock, int flags,
 }
 
 static struct proto_ops algif_hash_ops = {
-	.family		=	PF_ALG,
+	.family = PF_ALG,
 
-	.connect	=	sock_no_connect,
-	.socketpair	=	sock_no_socketpair,
-	.getname	=	sock_no_getname,
-	.ioctl		=	sock_no_ioctl,
-	.listen		=	sock_no_listen,
-	.shutdown	=	sock_no_shutdown,
-	.mmap		=	sock_no_mmap,
-	.bind		=	sock_no_bind,
+	.connect = sock_no_connect,
+	.socketpair = sock_no_socketpair,
+	.getname = sock_no_getname,
+	.ioctl = sock_no_ioctl,
+	.listen = sock_no_listen,
+	.shutdown = sock_no_shutdown,
+	.mmap = sock_no_mmap,
+	.bind = sock_no_bind,
 
-	.release	=	af_alg_release,
-	.sendmsg	=	hash_sendmsg,
-	.sendpage	=	hash_sendpage,
-	.recvmsg	=	hash_recvmsg,
-	.accept		=	hash_accept,
+	.release = af_alg_release,
+	.sendmsg = hash_sendmsg,
+	.sendpage = hash_sendpage,
+	.recvmsg = hash_recvmsg,
+	.accept = hash_accept,
 };
 
 static int hash_check_key(struct socket *sock)
@@ -373,22 +371,22 @@ static int hash_accept_nokey(struct socket *sock, struct socket *newsock,
 }
 
 static struct proto_ops algif_hash_ops_nokey = {
-	.family		=	PF_ALG,
+	.family = PF_ALG,
 
-	.connect	=	sock_no_connect,
-	.socketpair	=	sock_no_socketpair,
-	.getname	=	sock_no_getname,
-	.ioctl		=	sock_no_ioctl,
-	.listen		=	sock_no_listen,
-	.shutdown	=	sock_no_shutdown,
-	.mmap		=	sock_no_mmap,
-	.bind		=	sock_no_bind,
+	.connect = sock_no_connect,
+	.socketpair = sock_no_socketpair,
+	.getname = sock_no_getname,
+	.ioctl = sock_no_ioctl,
+	.listen = sock_no_listen,
+	.shutdown = sock_no_shutdown,
+	.mmap = sock_no_mmap,
+	.bind = sock_no_bind,
 
-	.release	=	af_alg_release,
-	.sendmsg	=	hash_sendmsg_nokey,
-	.sendpage	=	hash_sendpage_nokey,
-	.recvmsg	=	hash_recvmsg_nokey,
-	.accept		=	hash_accept_nokey,
+	.release = af_alg_release,
+	.sendmsg = hash_sendmsg_nokey,
+	.sendpage = hash_sendpage_nokey,
+	.recvmsg = hash_recvmsg_nokey,
+	.accept = hash_accept_nokey,
 };
 
 static void *hash_bind(const char *name, u32 type, u32 mask)
@@ -454,15 +452,15 @@ static int hash_accept_parent(void *private, struct sock *sk)
 }
 
 static const struct af_alg_type algif_type_hash = {
-	.bind		=	hash_bind,
-	.release	=	hash_release,
-	.setkey		=	hash_setkey,
-	.accept		=	hash_accept_parent,
-	.accept_nokey	=	hash_accept_parent_nokey,
-	.ops		=	&algif_hash_ops,
-	.ops_nokey	=	&algif_hash_ops_nokey,
-	.name		=	"hash",
-	.owner		=	THIS_MODULE
+	.bind = hash_bind,
+	.release = hash_release,
+	.setkey = hash_setkey,
+	.accept = hash_accept_parent,
+	.accept_nokey = hash_accept_parent_nokey,
+	.ops = &algif_hash_ops,
+	.ops_nokey = &algif_hash_ops_nokey,
+	.name = "hash",
+	.owner = THIS_MODULE
 };
 
 static int __init algif_hash_init(void)

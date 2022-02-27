@@ -27,19 +27,19 @@
 
 struct mb_cache {
 	/* Hash table of entries */
-	struct hlist_bl_head	*c_hash;
+	struct hlist_bl_head *c_hash;
 	/* log2 of hash table size */
-	int			c_bucket_bits;
+	int c_bucket_bits;
 	/* Maximum entries in cache to avoid degrading hash too much */
-	unsigned long		c_max_entries;
+	unsigned long c_max_entries;
 	/* Protects c_list, c_entry_count */
-	spinlock_t		c_list_lock;
-	struct list_head	c_list;
+	spinlock_t c_list_lock;
+	struct list_head c_list;
 	/* Number of entries in cache */
-	unsigned long		c_entry_count;
-	struct shrinker		c_shrink;
+	unsigned long c_entry_count;
+	struct shrinker c_shrink;
 	/* Work for shrinking when the cache has too many entries */
-	struct work_struct	c_shrink_work;
+	struct work_struct c_shrink_work;
 };
 
 static struct kmem_cache *mb_entry_cache;
@@ -82,7 +82,7 @@ int mb_cache_entry_create(struct mb_cache *cache, gfp_t mask, u32 key,
 	if (cache->c_entry_count >= cache->c_max_entries)
 		schedule_work(&cache->c_shrink_work);
 	/* Do some sync reclaim if background reclaim cannot keep up */
-	if (cache->c_entry_count >= 2*cache->c_max_entries)
+	if (cache->c_entry_count >= 2 * cache->c_max_entries)
 		mb_cache_shrink(cache, SYNC_SHRINK_BATCH);
 
 	entry = kmem_cache_alloc(mb_entry_cache, mask);
@@ -98,7 +98,7 @@ int mb_cache_entry_create(struct mb_cache *cache, gfp_t mask, u32 key,
 	entry->e_referenced = 0;
 	head = mb_cache_entry_head(cache, key);
 	hlist_bl_lock(head);
-	hlist_bl_for_each_entry(dup, dup_node, head, e_hash_list) {
+	hlist_bl_for_each_entry (dup, dup_node, head, e_hash_list) {
 		if (dup->e_key == key && dup->e_value == value) {
 			hlist_bl_unlock(head);
 			kmem_cache_free(mb_entry_cache, entry);
@@ -125,9 +125,8 @@ void __mb_cache_entry_free(struct mb_cache_entry *entry)
 }
 EXPORT_SYMBOL(__mb_cache_entry_free);
 
-static struct mb_cache_entry *__entry_find(struct mb_cache *cache,
-					   struct mb_cache_entry *entry,
-					   u32 key)
+static struct mb_cache_entry *
+__entry_find(struct mb_cache *cache, struct mb_cache_entry *entry, u32 key)
 {
 	struct mb_cache_entry *old_entry = entry;
 	struct hlist_bl_node *node;
@@ -204,7 +203,7 @@ struct mb_cache_entry *mb_cache_entry_get(struct mb_cache *cache, u32 key,
 
 	head = mb_cache_entry_head(cache, key);
 	hlist_bl_lock(head);
-	hlist_bl_for_each_entry(entry, node, head, e_hash_list) {
+	hlist_bl_for_each_entry (entry, node, head, e_hash_list) {
 		if (entry->e_key == key && entry->e_value == value) {
 			atomic_inc(&entry->e_refcnt);
 			goto out;
@@ -232,7 +231,7 @@ void mb_cache_entry_delete(struct mb_cache *cache, u32 key, u64 value)
 
 	head = mb_cache_entry_head(cache, key);
 	hlist_bl_lock(head);
-	hlist_bl_for_each_entry(entry, node, head, e_hash_list) {
+	hlist_bl_for_each_entry (entry, node, head, e_hash_list) {
 		if (entry->e_key == key && entry->e_value == value) {
 			/* We keep hash list reference to keep entry alive */
 			hlist_bl_del_init(&entry->e_hash_list);
@@ -240,8 +239,9 @@ void mb_cache_entry_delete(struct mb_cache *cache, u32 key, u64 value)
 			spin_lock(&cache->c_list_lock);
 			if (!list_empty(&entry->e_list)) {
 				list_del_init(&entry->e_list);
-				if (!WARN_ONCE(cache->c_entry_count == 0,
-		"mbcache: attempt to decrement c_entry_count past zero"))
+				if (!WARN_ONCE(
+					    cache->c_entry_count == 0,
+					    "mbcache: attempt to decrement c_entry_count past zero"))
 					cache->c_entry_count--;
 				atomic_dec(&entry->e_refcnt);
 			}
@@ -260,8 +260,7 @@ EXPORT_SYMBOL(mb_cache_entry_delete);
  *
  * Marks entry as used to give hit higher chances of surviving in cache.
  */
-void mb_cache_entry_touch(struct mb_cache *cache,
-			  struct mb_cache_entry *entry)
+void mb_cache_entry_touch(struct mb_cache *cache, struct mb_cache_entry *entry)
 {
 	entry->e_referenced = 1;
 }
@@ -270,8 +269,8 @@ EXPORT_SYMBOL(mb_cache_entry_touch);
 static unsigned long mb_cache_count(struct shrinker *shrink,
 				    struct shrink_control *sc)
 {
-	struct mb_cache *cache = container_of(shrink, struct mb_cache,
-					      c_shrink);
+	struct mb_cache *cache =
+		container_of(shrink, struct mb_cache, c_shrink);
 
 	return cache->c_entry_count;
 }
@@ -286,8 +285,8 @@ static unsigned long mb_cache_shrink(struct mb_cache *cache,
 
 	spin_lock(&cache->c_list_lock);
 	while (nr_to_scan-- && !list_empty(&cache->c_list)) {
-		entry = list_first_entry(&cache->c_list,
-					 struct mb_cache_entry, e_list);
+		entry = list_first_entry(&cache->c_list, struct mb_cache_entry,
+					 e_list);
 		if (entry->e_referenced) {
 			entry->e_referenced = 0;
 			list_move_tail(&entry->e_list, &cache->c_list);
@@ -320,8 +319,8 @@ static unsigned long mb_cache_shrink(struct mb_cache *cache,
 static unsigned long mb_cache_scan(struct shrinker *shrink,
 				   struct shrink_control *sc)
 {
-	struct mb_cache *cache = container_of(shrink, struct mb_cache,
-					      c_shrink);
+	struct mb_cache *cache =
+		container_of(shrink, struct mb_cache, c_shrink);
 	return mb_cache_shrink(cache, sc->nr_to_scan);
 }
 
@@ -330,8 +329,8 @@ static unsigned long mb_cache_scan(struct shrinker *shrink,
 
 static void mb_cache_shrink_worker(struct work_struct *work)
 {
-	struct mb_cache *cache = container_of(work, struct mb_cache,
-					      c_shrink_work);
+	struct mb_cache *cache =
+		container_of(work, struct mb_cache, c_shrink_work);
 	mb_cache_shrink(cache, cache->c_max_entries / SHRINK_DIVISOR);
 }
 
@@ -355,8 +354,7 @@ struct mb_cache *mb_cache_create(int bucket_bits)
 	INIT_LIST_HEAD(&cache->c_list);
 	spin_lock_init(&cache->c_list_lock);
 	cache->c_hash = kmalloc_array(bucket_count,
-				      sizeof(struct hlist_bl_head),
-				      GFP_KERNEL);
+				      sizeof(struct hlist_bl_head), GFP_KERNEL);
 	if (!cache->c_hash) {
 		kfree(cache);
 		goto err_out;
@@ -399,7 +397,7 @@ void mb_cache_destroy(struct mb_cache *cache)
 	 * We don't bother with any locking. Cache must not be used at this
 	 * point.
 	 */
-	list_for_each_entry_safe(entry, next, &cache->c_list, e_list) {
+	list_for_each_entry_safe (entry, next, &cache->c_list, e_list) {
 		if (!hlist_bl_unhashed(&entry->e_hash_list)) {
 			hlist_bl_del_init(&entry->e_hash_list);
 			atomic_dec(&entry->e_refcnt);
@@ -416,9 +414,9 @@ EXPORT_SYMBOL(mb_cache_destroy);
 
 static int __init mbcache_init(void)
 {
-	mb_entry_cache = kmem_cache_create("mbcache",
-				sizeof(struct mb_cache_entry), 0,
-				SLAB_RECLAIM_ACCOUNT|SLAB_MEM_SPREAD, NULL);
+	mb_entry_cache =
+		kmem_cache_create("mbcache", sizeof(struct mb_cache_entry), 0,
+				  SLAB_RECLAIM_ACCOUNT | SLAB_MEM_SPREAD, NULL);
 	if (!mb_entry_cache)
 		return -ENOMEM;
 	return 0;
@@ -429,9 +427,8 @@ static void __exit mbcache_exit(void)
 	kmem_cache_destroy(mb_entry_cache);
 }
 
-module_init(mbcache_init)
-module_exit(mbcache_exit)
+module_init(mbcache_init) module_exit(mbcache_exit)
 
-MODULE_AUTHOR("Jan Kara <jack@suse.cz>");
+	MODULE_AUTHOR("Jan Kara <jack@suse.cz>");
 MODULE_DESCRIPTION("Meta block cache (for extended attributes)");
 MODULE_LICENSE("GPL");

@@ -25,11 +25,9 @@
 
 #define PKEY_ID_PKCS7 2
 
-static __attribute__((noreturn))
-void format(void)
+static __attribute__((noreturn)) void format(void)
 {
-	fprintf(stderr,
-		"Usage: extract-cert <source> <dest>\n");
+	fprintf(stderr, "Usage: extract-cert <source> <dest>\n");
 	exit(2);
 }
 
@@ -56,17 +54,18 @@ static void drain_openssl_errors(void)
 
 	if (ERR_peek_error() == 0)
 		return;
-	while (ERR_get_error_line(&file, &line)) {}
+	while (ERR_get_error_line(&file, &line)) {
+	}
 }
 
-#define ERR(cond, fmt, ...)				\
-	do {						\
-		bool __cond = (cond);			\
-		display_openssl_errors(__LINE__);	\
-		if (__cond) {				\
-			err(1, fmt, ## __VA_ARGS__);	\
-		}					\
-	} while(0)
+#define ERR(cond, fmt, ...)                                                    \
+	do {                                                                   \
+		bool __cond = (cond);                                          \
+		display_openssl_errors(__LINE__);                              \
+		if (__cond) {                                                  \
+			err(1, fmt, ##__VA_ARGS__);                            \
+		}                                                              \
+	} while (0)
 
 static const char *key_pass;
 static BIO *wb;
@@ -95,9 +94,9 @@ int main(int argc, char **argv)
 	ERR_load_crypto_strings();
 	ERR_clear_error();
 
-	kbuild_verbose = atoi(getenv("KBUILD_VERBOSE")?:"0");
+	kbuild_verbose = atoi(getenv("KBUILD_VERBOSE") ?: "0");
 
-        key_pass = getenv("KBUILD_SIGN_PIN");
+	key_pass = getenv("KBUILD_SIGN_PIN");
 
 	if (argc != 3)
 		format();
@@ -130,7 +129,8 @@ int main(int argc, char **argv)
 		else
 			ERR(1, "ENGINE_init");
 		if (key_pass)
-			ERR(!ENGINE_ctrl_cmd_string(e, "PIN", key_pass, 0), "Set PKCS#11 PIN");
+			ERR(!ENGINE_ctrl_cmd_string(e, "PIN", key_pass, 0),
+			    "Set PKCS#11 PIN");
 		ENGINE_ctrl_cmd(e, "LOAD_CERT_CTRL", 0, &parms, NULL, 1);
 		ERR(!parms.cert, "Get X.509 from PKCS#11");
 		write_cert(parms.cert);
@@ -146,7 +146,8 @@ int main(int argc, char **argv)
 			if (wb && !x509) {
 				unsigned long err = ERR_peek_last_error();
 				if (ERR_GET_LIB(err) == ERR_LIB_PEM &&
-				    ERR_GET_REASON(err) == PEM_R_NO_START_LINE) {
+				    ERR_GET_REASON(err) ==
+					    PEM_R_NO_START_LINE) {
 					ERR_clear_error();
 					break;
 				}

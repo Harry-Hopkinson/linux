@@ -40,11 +40,9 @@ EXPORT_SYMBOL_GPL(crypto_dh_key_len);
 int crypto_dh_encode_key(char *buf, unsigned int len, const struct dh *params)
 {
 	u8 *ptr = buf;
-	u8 * const end = ptr + len;
-	struct kpp_secret secret = {
-		.type = CRYPTO_KPP_SECRET_TYPE_DH,
-		.len = len
-	};
+	u8 *const end = ptr + len;
+	struct kpp_secret secret = { .type = CRYPTO_KPP_SECRET_TYPE_DH,
+				     .len = len };
 
 	if (unlikely(!len))
 		return -EINVAL;

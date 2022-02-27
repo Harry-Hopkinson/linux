@@ -94,8 +94,8 @@ static int shash_update_unaligned(struct shash_desc *desc, const u8 *data,
 	struct crypto_shash *tfm = desc->tfm;
 	struct shash_alg *shash = crypto_shash_alg(tfm);
 	unsigned long alignmask = crypto_shash_alignmask(tfm);
-	unsigned int unaligned_len = alignmask + 1 -
-				     ((unsigned long)data & alignmask);
+	unsigned int unaligned_len =
+		alignmask + 1 - ((unsigned long)data & alignmask);
 	/*
 	 * We cannot count on __aligned() working for large values:
 	 * https://patchwork.kernel.org/patch/9507697/
@@ -114,8 +114,9 @@ static int shash_update_unaligned(struct shash_desc *desc, const u8 *data,
 	err = shash->update(desc, buf, unaligned_len);
 	memset(buf, 0, unaligned_len);
 
-	return err ?:
-	       shash->update(desc, data + unaligned_len, len - unaligned_len);
+	return err   ?:
+		       shash->update(desc, data + unaligned_len,
+				     len - unaligned_len);
 }
 
 int crypto_shash_update(struct shash_desc *desc, const u8 *data,
@@ -177,7 +178,7 @@ static int shash_finup_unaligned(struct shash_desc *desc, const u8 *data,
 				 unsigned int len, u8 *out)
 {
 	return crypto_shash_update(desc, data, len) ?:
-	       crypto_shash_final(desc, out);
+		       crypto_shash_final(desc, out);
 }
 
 int crypto_shash_finup(struct shash_desc *desc, const u8 *data,
@@ -198,7 +199,7 @@ static int shash_digest_unaligned(struct shash_desc *desc, const u8 *data,
 				  unsigned int len, u8 *out)
 {
 	return crypto_shash_init(desc) ?:
-	       crypto_shash_finup(desc, data, len, out);
+					 crypto_shash_finup(desc, data, len, out);
 }
 
 int crypto_shash_digest(struct shash_desc *desc, const u8 *data,
@@ -298,9 +299,9 @@ int shash_ahash_finup(struct ahash_request *req, struct shash_desc *desc)
 
 	do {
 		nbytes = crypto_hash_walk_last(&walk) ?
-			 crypto_shash_finup(desc, walk.data, nbytes,
-					    req->result) :
-			 crypto_shash_update(desc, walk.data, nbytes);
+				 crypto_shash_finup(desc, walk.data, nbytes,
+						    req->result) :
+				 crypto_shash_update(desc, walk.data, nbytes);
 		nbytes = crypto_hash_walk_done(&walk, nbytes);
 	} while (nbytes > 0);
 
@@ -335,8 +336,7 @@ int shash_ahash_digest(struct ahash_request *req, struct shash_desc *desc)
 					  req->result);
 		kunmap_atomic(data);
 	} else
-		err = crypto_shash_init(desc) ?:
-		      shash_ahash_finup(req, desc);
+		err = crypto_shash_init(desc) ?: shash_ahash_finup(req, desc);
 
 	return err;
 }
@@ -403,7 +403,7 @@ int crypto_init_shash_ops_async(struct crypto_tfm *tfm)
 		crt->setkey = shash_async_setkey;
 
 	crypto_ahash_set_flags(crt, crypto_shash_get_flags(shash) &
-				    CRYPTO_TFM_NEED_KEY);
+					    CRYPTO_TFM_NEED_KEY);
 
 	crt->export = shash_async_export;
 	crt->import = shash_async_import;
@@ -480,8 +480,8 @@ static int crypto_shash_report(struct sk_buff *skb, struct crypto_alg *alg)
 }
 #endif
 
-static void crypto_shash_show(struct seq_file *m, struct crypto_alg *alg)
-	__maybe_unused;
+static void crypto_shash_show(struct seq_file *m,
+			      struct crypto_alg *alg) __maybe_unused;
 static void crypto_shash_show(struct seq_file *m, struct crypto_alg *alg)
 {
 	struct shash_alg *salg = __crypto_shash_alg(alg);
@@ -506,8 +506,8 @@ static const struct crypto_type crypto_shash_type = {
 };
 
 int crypto_grab_shash(struct crypto_shash_spawn *spawn,
-		      struct crypto_instance *inst,
-		      const char *name, u32 type, u32 mask)
+		      struct crypto_instance *inst, const char *name, u32 type,
+		      u32 mask)
 {
 	spawn->base.frontend = &crypto_shash_type;
 	return crypto_grab_spawn(&spawn->base, inst, name, type, mask);

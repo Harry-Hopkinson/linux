@@ -29,8 +29,8 @@ static void *get_uts(struct ctl_table *table)
  *	Special case of dostring for the UTS structure. This has locks
  *	to observe. Should this be in kernel/sys.c ????
  */
-static int proc_do_uts_string(struct ctl_table *table, int write,
-		  void *buffer, size_t *lenp, loff_t *ppos)
+static int proc_do_uts_string(struct ctl_table *table, int write, void *buffer,
+			      size_t *lenp, loff_t *ppos)
 {
 	struct ctl_table uts_table;
 	int r;
@@ -74,53 +74,51 @@ static DEFINE_CTL_TABLE_POLL(domainname_poll);
 
 static struct ctl_table uts_kern_table[] = {
 	{
-		.procname	= "ostype",
-		.data		= init_uts_ns.name.sysname,
-		.maxlen		= sizeof(init_uts_ns.name.sysname),
-		.mode		= 0444,
-		.proc_handler	= proc_do_uts_string,
+		.procname = "ostype",
+		.data = init_uts_ns.name.sysname,
+		.maxlen = sizeof(init_uts_ns.name.sysname),
+		.mode = 0444,
+		.proc_handler = proc_do_uts_string,
 	},
 	{
-		.procname	= "osrelease",
-		.data		= init_uts_ns.name.release,
-		.maxlen		= sizeof(init_uts_ns.name.release),
-		.mode		= 0444,
-		.proc_handler	= proc_do_uts_string,
+		.procname = "osrelease",
+		.data = init_uts_ns.name.release,
+		.maxlen = sizeof(init_uts_ns.name.release),
+		.mode = 0444,
+		.proc_handler = proc_do_uts_string,
 	},
 	{
-		.procname	= "version",
-		.data		= init_uts_ns.name.version,
-		.maxlen		= sizeof(init_uts_ns.name.version),
-		.mode		= 0444,
-		.proc_handler	= proc_do_uts_string,
+		.procname = "version",
+		.data = init_uts_ns.name.version,
+		.maxlen = sizeof(init_uts_ns.name.version),
+		.mode = 0444,
+		.proc_handler = proc_do_uts_string,
 	},
 	{
-		.procname	= "hostname",
-		.data		= init_uts_ns.name.nodename,
-		.maxlen		= sizeof(init_uts_ns.name.nodename),
-		.mode		= 0644,
-		.proc_handler	= proc_do_uts_string,
-		.poll		= &hostname_poll,
+		.procname = "hostname",
+		.data = init_uts_ns.name.nodename,
+		.maxlen = sizeof(init_uts_ns.name.nodename),
+		.mode = 0644,
+		.proc_handler = proc_do_uts_string,
+		.poll = &hostname_poll,
 	},
 	{
-		.procname	= "domainname",
-		.data		= init_uts_ns.name.domainname,
-		.maxlen		= sizeof(init_uts_ns.name.domainname),
-		.mode		= 0644,
-		.proc_handler	= proc_do_uts_string,
-		.poll		= &domainname_poll,
+		.procname = "domainname",
+		.data = init_uts_ns.name.domainname,
+		.maxlen = sizeof(init_uts_ns.name.domainname),
+		.mode = 0644,
+		.proc_handler = proc_do_uts_string,
+		.poll = &domainname_poll,
 	},
 	{}
 };
 
-static struct ctl_table uts_root_table[] = {
-	{
-		.procname	= "kernel",
-		.mode		= 0555,
-		.child		= uts_kern_table,
-	},
-	{}
-};
+static struct ctl_table uts_root_table[] = { {
+						     .procname = "kernel",
+						     .mode = 0555,
+						     .child = uts_kern_table,
+					     },
+					     {} };
 
 #ifdef CONFIG_PROC_SYSCTL
 /*

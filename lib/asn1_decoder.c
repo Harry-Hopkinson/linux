@@ -14,36 +14,36 @@
 
 static const unsigned char asn1_op_lengths[ASN1_OP__NR] = {
 	/*					OPC TAG JMP ACT */
-	[ASN1_OP_MATCH]				= 1 + 1,
-	[ASN1_OP_MATCH_OR_SKIP]			= 1 + 1,
-	[ASN1_OP_MATCH_ACT]			= 1 + 1     + 1,
-	[ASN1_OP_MATCH_ACT_OR_SKIP]		= 1 + 1     + 1,
-	[ASN1_OP_MATCH_JUMP]			= 1 + 1 + 1,
-	[ASN1_OP_MATCH_JUMP_OR_SKIP]		= 1 + 1 + 1,
-	[ASN1_OP_MATCH_ANY]			= 1,
-	[ASN1_OP_MATCH_ANY_OR_SKIP]		= 1,
-	[ASN1_OP_MATCH_ANY_ACT]			= 1         + 1,
-	[ASN1_OP_MATCH_ANY_ACT_OR_SKIP]		= 1         + 1,
-	[ASN1_OP_COND_MATCH_OR_SKIP]		= 1 + 1,
-	[ASN1_OP_COND_MATCH_ACT_OR_SKIP]	= 1 + 1     + 1,
-	[ASN1_OP_COND_MATCH_JUMP_OR_SKIP]	= 1 + 1 + 1,
-	[ASN1_OP_COND_MATCH_ANY]		= 1,
-	[ASN1_OP_COND_MATCH_ANY_OR_SKIP]	= 1,
-	[ASN1_OP_COND_MATCH_ANY_ACT]		= 1         + 1,
-	[ASN1_OP_COND_MATCH_ANY_ACT_OR_SKIP]	= 1         + 1,
-	[ASN1_OP_COND_FAIL]			= 1,
-	[ASN1_OP_COMPLETE]			= 1,
-	[ASN1_OP_ACT]				= 1         + 1,
-	[ASN1_OP_MAYBE_ACT]			= 1         + 1,
-	[ASN1_OP_RETURN]			= 1,
-	[ASN1_OP_END_SEQ]			= 1,
-	[ASN1_OP_END_SEQ_OF]			= 1     + 1,
-	[ASN1_OP_END_SET]			= 1,
-	[ASN1_OP_END_SET_OF]			= 1     + 1,
-	[ASN1_OP_END_SEQ_ACT]			= 1         + 1,
-	[ASN1_OP_END_SEQ_OF_ACT]		= 1     + 1 + 1,
-	[ASN1_OP_END_SET_ACT]			= 1         + 1,
-	[ASN1_OP_END_SET_OF_ACT]		= 1     + 1 + 1,
+	[ASN1_OP_MATCH] = 1 + 1,
+	[ASN1_OP_MATCH_OR_SKIP] = 1 + 1,
+	[ASN1_OP_MATCH_ACT] = 1 + 1 + 1,
+	[ASN1_OP_MATCH_ACT_OR_SKIP] = 1 + 1 + 1,
+	[ASN1_OP_MATCH_JUMP] = 1 + 1 + 1,
+	[ASN1_OP_MATCH_JUMP_OR_SKIP] = 1 + 1 + 1,
+	[ASN1_OP_MATCH_ANY] = 1,
+	[ASN1_OP_MATCH_ANY_OR_SKIP] = 1,
+	[ASN1_OP_MATCH_ANY_ACT] = 1 + 1,
+	[ASN1_OP_MATCH_ANY_ACT_OR_SKIP] = 1 + 1,
+	[ASN1_OP_COND_MATCH_OR_SKIP] = 1 + 1,
+	[ASN1_OP_COND_MATCH_ACT_OR_SKIP] = 1 + 1 + 1,
+	[ASN1_OP_COND_MATCH_JUMP_OR_SKIP] = 1 + 1 + 1,
+	[ASN1_OP_COND_MATCH_ANY] = 1,
+	[ASN1_OP_COND_MATCH_ANY_OR_SKIP] = 1,
+	[ASN1_OP_COND_MATCH_ANY_ACT] = 1 + 1,
+	[ASN1_OP_COND_MATCH_ANY_ACT_OR_SKIP] = 1 + 1,
+	[ASN1_OP_COND_FAIL] = 1,
+	[ASN1_OP_COMPLETE] = 1,
+	[ASN1_OP_ACT] = 1 + 1,
+	[ASN1_OP_MAYBE_ACT] = 1 + 1,
+	[ASN1_OP_RETURN] = 1,
+	[ASN1_OP_END_SEQ] = 1,
+	[ASN1_OP_END_SEQ_OF] = 1 + 1,
+	[ASN1_OP_END_SET] = 1,
+	[ASN1_OP_END_SET_OF] = 1 + 1,
+	[ASN1_OP_END_SEQ_ACT] = 1 + 1,
+	[ASN1_OP_END_SEQ_OF_ACT] = 1 + 1 + 1,
+	[ASN1_OP_END_SET_ACT] = 1 + 1,
+	[ASN1_OP_END_SET_OF_ACT] = 1 + 1 + 1,
 };
 
 /*
@@ -54,9 +54,9 @@ static const unsigned char asn1_op_lengths[ASN1_OP__NR] = {
  * @_len: Where to return the size of the element.
  * @_errmsg: Where to return a pointer to an error message on error
  */
-static int asn1_find_indefinite_length(const unsigned char *data, size_t datalen,
-				       size_t *_dp, size_t *_len,
-				       const char **_errmsg)
+static int asn1_find_indefinite_length(const unsigned char *data,
+				       size_t datalen, size_t *_dp,
+				       size_t *_len, const char **_errmsg)
 {
 	unsigned char tag, tmp;
 	size_t dp = *_dp, len, n;
@@ -164,10 +164,8 @@ error:
  *  (3) The SET type (not the SET OF type) isn't really supported as tracking
  *	what members of the set have been seen is a pain.
  */
-int asn1_ber_decoder(const struct asn1_decoder *decoder,
-		     void *context,
-		     const unsigned char *data,
-		     size_t datalen)
+int asn1_ber_decoder(const struct asn1_decoder *decoder, void *context,
+		     const unsigned char *data, size_t datalen)
 {
 	const unsigned char *machine = decoder->machine;
 	const asn1_action_t *actions = decoder->actions;
@@ -179,10 +177,11 @@ int asn1_ber_decoder(const struct asn1_decoder *decoder,
 	int ret;
 
 	unsigned char flags = 0;
-#define FLAG_INDEFINITE_LENGTH	0x01
-#define FLAG_MATCHED		0x02
-#define FLAG_LAST_MATCHED	0x04 /* Last tag matched */
-#define FLAG_CONS		0x20 /* Corresponds to CONS bit in the opcode tag
+#define FLAG_INDEFINITE_LENGTH 0x01
+#define FLAG_MATCHED 0x02
+#define FLAG_LAST_MATCHED 0x04 /* Last tag matched */
+#define FLAG_CONS                                                              \
+	0x20 /* Corresponds to CONS bit in the opcode tag
 				      * - ie. whether or not we are going to parse
 				      *   a compound type.
 				      */
@@ -198,8 +197,9 @@ int asn1_ber_decoder(const struct asn1_decoder *decoder,
 		return -EMSGSIZE;
 
 next_op:
-	pr_debug("next_op: pc=\e[32m%zu\e[m/%zu dp=\e[33m%zu\e[m/%zu C=%d J=%d\n",
-		 pc, machlen, dp, datalen, csp, jsp);
+	pr_debug(
+		"next_op: pc=\e[32m%zu\e[m/%zu dp=\e[33m%zu\e[m/%zu C=%d J=%d\n",
+		pc, machlen, dp, datalen, csp, jsp);
 	if (unlikely(pc >= machlen))
 		goto machine_overrun_error;
 	op = machine[pc];
@@ -302,8 +302,8 @@ next_op:
 			csp++;
 		}
 
-		pr_debug("- TAG: %02x %zu%s\n",
-			 tag, len, flags & FLAG_CONS ? " CONS" : "");
+		pr_debug("- TAG: %02x %zu%s\n", tag, len,
+			 flags & FLAG_CONS ? " CONS" : "");
 		tdp = dp;
 	}
 
@@ -396,8 +396,8 @@ next_op:
 		hdr = cons_hdrlen_stack[csp];
 		len = datalen;
 		datalen = cons_datalen_stack[csp];
-		pr_debug("- end cons t=%zu dp=%zu l=%zu/%zu\n",
-			 tdp, dp, len, datalen);
+		pr_debug("- end cons t=%zu dp=%zu l=%zu/%zu\n", tdp, dp, len,
+			 datalen);
 		if (datalen == 0) {
 			/* Indefinite length - check for the EOC. */
 			datalen = len;
@@ -451,7 +451,8 @@ next_op:
 		fallthrough;
 
 	case ASN1_OP_ACT:
-		ret = actions[machine[pc + 1]](context, hdr, tag, data + tdp, len);
+		ret = actions[machine[pc + 1]](context, hdr, tag, data + tdp,
+					       len);
 		if (ret < 0)
 			return ret;
 		pc += asn1_op_lengths[op];
@@ -469,8 +470,8 @@ next_op:
 	}
 
 	/* Shouldn't reach here */
-	pr_err("ASN.1 decoder error: Found reserved opcode (%u) pc=%zu\n",
-	       op, pc);
+	pr_err("ASN.1 decoder error: Found reserved opcode (%u) pc=%zu\n", op,
+	       pc);
 	return -EBADMSG;
 
 data_overrun_error:
@@ -512,8 +513,8 @@ tag_mismatch:
 long_tag_not_supported:
 	errmsg = "Long tag not supported";
 error:
-	pr_debug("\nASN1: %s [m=%zu d=%zu ot=%02x t=%02x l=%zu]\n",
-		 errmsg, pc, dp, optag, tag, len);
+	pr_debug("\nASN1: %s [m=%zu d=%zu ot=%02x t=%02x l=%zu]\n", errmsg, pc,
+		 dp, optag, tag, len);
 	return -EBADMSG;
 }
 EXPORT_SYMBOL_GPL(asn1_ber_decoder);

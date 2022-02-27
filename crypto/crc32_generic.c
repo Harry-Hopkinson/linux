@@ -15,8 +15,8 @@
 #include <linux/string.h>
 #include <linux/kernel.h>
 
-#define CHKSUM_BLOCK_SIZE	1
-#define CHKSUM_DIGEST_SIZE	4
+#define CHKSUM_BLOCK_SIZE 1
+#define CHKSUM_DIGEST_SIZE 4
 
 /** No default init with ~0 */
 static int crc32_cra_init(struct crypto_tfm *tfm)
@@ -64,8 +64,7 @@ static int crc32_update(struct shash_desc *desc, const u8 *data,
 }
 
 /* No final XOR 0xFFFFFFFF, like crc32_le */
-static int __crc32_finup(u32 *crcp, const u8 *data, unsigned int len,
-			 u8 *out)
+static int __crc32_finup(u32 *crcp, const u8 *data, unsigned int len, u8 *out)
 {
 	put_unaligned_le32(crc32_le(*crcp, data, len), out);
 	return 0;
@@ -88,29 +87,26 @@ static int crc32_final(struct shash_desc *desc, u8 *out)
 static int crc32_digest(struct shash_desc *desc, const u8 *data,
 			unsigned int len, u8 *out)
 {
-	return __crc32_finup(crypto_shash_ctx(desc->tfm), data, len,
-			     out);
+	return __crc32_finup(crypto_shash_ctx(desc->tfm), data, len, out);
 }
-static struct shash_alg alg = {
-	.setkey		= crc32_setkey,
-	.init		= crc32_init,
-	.update		= crc32_update,
-	.final		= crc32_final,
-	.finup		= crc32_finup,
-	.digest		= crc32_digest,
-	.descsize	= sizeof(u32),
-	.digestsize	= CHKSUM_DIGEST_SIZE,
-	.base		= {
-		.cra_name		= "crc32",
-		.cra_driver_name	= "crc32-generic",
-		.cra_priority		= 100,
-		.cra_flags		= CRYPTO_ALG_OPTIONAL_KEY,
-		.cra_blocksize		= CHKSUM_BLOCK_SIZE,
-		.cra_ctxsize		= sizeof(u32),
-		.cra_module		= THIS_MODULE,
-		.cra_init		= crc32_cra_init,
-	}
-};
+static struct shash_alg alg = { .setkey = crc32_setkey,
+				.init = crc32_init,
+				.update = crc32_update,
+				.final = crc32_final,
+				.finup = crc32_finup,
+				.digest = crc32_digest,
+				.descsize = sizeof(u32),
+				.digestsize = CHKSUM_DIGEST_SIZE,
+				.base = {
+					.cra_name = "crc32",
+					.cra_driver_name = "crc32-generic",
+					.cra_priority = 100,
+					.cra_flags = CRYPTO_ALG_OPTIONAL_KEY,
+					.cra_blocksize = CHKSUM_BLOCK_SIZE,
+					.cra_ctxsize = sizeof(u32),
+					.cra_module = THIS_MODULE,
+					.cra_init = crc32_cra_init,
+				} };
 
 static int __init crc32_mod_init(void)
 {

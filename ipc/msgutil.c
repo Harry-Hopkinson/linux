@@ -39,9 +39,8 @@ struct msg_msgseg {
 	/* the next part of the message follows immediately */
 };
 
-#define DATALEN_MSG	((size_t)PAGE_SIZE-sizeof(struct msg_msg))
-#define DATALEN_SEG	((size_t)PAGE_SIZE-sizeof(struct msg_msgseg))
-
+#define DATALEN_MSG ((size_t)PAGE_SIZE - sizeof(struct msg_msg))
+#define DATALEN_SEG ((size_t)PAGE_SIZE - sizeof(struct msg_msgseg))
 
 static struct msg_msg *alloc_msg(size_t len)
 {
@@ -127,10 +126,8 @@ struct msg_msg *copy_msg(struct msg_msg *src, struct msg_msg *dst)
 	alen = min(len, DATALEN_MSG);
 	memcpy(dst + 1, src + 1, alen);
 
-	for (dst_pseg = dst->next, src_pseg = src->next;
-	     src_pseg != NULL;
+	for (dst_pseg = dst->next, src_pseg = src->next; src_pseg != NULL;
 	     dst_pseg = dst_pseg->next, src_pseg = src_pseg->next) {
-
 		len -= alen;
 		alen = min(len, DATALEN_SEG);
 		memcpy(dst_pseg + 1, src_pseg + 1, alen);

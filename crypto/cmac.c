@@ -263,16 +263,16 @@ static int cmac_create(struct crypto_template *tmpl, struct rtattr **tb)
 	inst->alg.base.cra_blocksize = alg->cra_blocksize;
 
 	inst->alg.digestsize = alg->cra_blocksize;
-	inst->alg.descsize =
-		ALIGN(sizeof(struct cmac_desc_ctx), crypto_tfm_ctx_alignment())
-		+ (alignmask & ~(crypto_tfm_ctx_alignment() - 1))
-		+ alg->cra_blocksize * 2;
+	inst->alg.descsize = ALIGN(sizeof(struct cmac_desc_ctx),
+				   crypto_tfm_ctx_alignment()) +
+			     (alignmask & ~(crypto_tfm_ctx_alignment() - 1)) +
+			     alg->cra_blocksize * 2;
 
 	inst->alg.base.cra_ctxsize =
-		ALIGN(sizeof(struct cmac_tfm_ctx), crypto_tfm_ctx_alignment())
-		+ ((alignmask | (__alignof__(__be64) - 1)) &
-		   ~(crypto_tfm_ctx_alignment() - 1))
-		+ alg->cra_blocksize * 2;
+		ALIGN(sizeof(struct cmac_tfm_ctx), crypto_tfm_ctx_alignment()) +
+		((alignmask | (__alignof__(__be64) - 1)) &
+		 ~(crypto_tfm_ctx_alignment() - 1)) +
+		alg->cra_blocksize * 2;
 
 	inst->alg.base.cra_init = cmac_init_tfm;
 	inst->alg.base.cra_exit = cmac_exit_tfm;
@@ -286,7 +286,7 @@ static int cmac_create(struct crypto_template *tmpl, struct rtattr **tb)
 
 	err = shash_register_instance(tmpl, inst);
 	if (err) {
-err_free_inst:
+	err_free_inst:
 		shash_free_singlespawn_instance(inst);
 	}
 	return err;

@@ -41,9 +41,8 @@
  * signing with anything other than SHA1 - so we're stuck with that if such is
  * the case.
  */
-#if defined(LIBRESSL_VERSION_NUMBER) || \
-	OPENSSL_VERSION_NUMBER < 0x10000000L || \
-	defined(OPENSSL_NO_CMS)
+#if defined(LIBRESSL_VERSION_NUMBER) ||                                        \
+	OPENSSL_VERSION_NUMBER < 0x10000000L || defined(OPENSSL_NO_CMS)
 #define USE_PKCS7
 #endif
 #ifndef USE_PKCS7
@@ -53,21 +52,20 @@
 #endif
 
 struct module_signature {
-	uint8_t		algo;		/* Public-key crypto algorithm [0] */
-	uint8_t		hash;		/* Digest algorithm [0] */
-	uint8_t		id_type;	/* Key identifier type [PKEY_ID_PKCS7] */
-	uint8_t		signer_len;	/* Length of signer's name [0] */
-	uint8_t		key_id_len;	/* Length of key identifier [0] */
-	uint8_t		__pad[3];
-	uint32_t	sig_len;	/* Length of signature data */
+	uint8_t algo; /* Public-key crypto algorithm [0] */
+	uint8_t hash; /* Digest algorithm [0] */
+	uint8_t id_type; /* Key identifier type [PKEY_ID_PKCS7] */
+	uint8_t signer_len; /* Length of signer's name [0] */
+	uint8_t key_id_len; /* Length of key identifier [0] */
+	uint8_t __pad[3];
+	uint32_t sig_len; /* Length of signature data */
 };
 
 #define PKEY_ID_PKCS7 2
 
 static char magic_number[] = "~Module signature appended~\n";
 
-static __attribute__((noreturn))
-void format(void)
+static __attribute__((noreturn)) void format(void)
 {
 	fprintf(stderr,
 		"Usage: scripts/sign-file [-dp] <hash algo> <key> <x509> <module> [<dest>]\n");
@@ -99,17 +97,18 @@ static void drain_openssl_errors(void)
 
 	if (ERR_peek_error() == 0)
 		return;
-	while (ERR_get_error_line(&file, &line)) {}
+	while (ERR_get_error_line(&file, &line)) {
+	}
 }
 
-#define ERR(cond, fmt, ...)				\
-	do {						\
-		bool __cond = (cond);			\
-		display_openssl_errors(__LINE__);	\
-		if (__cond) {				\
-			err(1, fmt, ## __VA_ARGS__);	\
-		}					\
-	} while(0)
+#define ERR(cond, fmt, ...)                                                    \
+	do {                                                                   \
+		bool __cond = (cond);                                          \
+		display_openssl_errors(__LINE__);                              \
+		if (__cond) {                                                  \
+			err(1, fmt, ##__VA_ARGS__);                            \
+		}                                                              \
+	} while (0)
 
 static const char *key_pass;
 
@@ -150,16 +149,15 @@ static EVP_PKEY *read_private_key(const char *private_key_name)
 		if (key_pass)
 			ERR(!ENGINE_ctrl_cmd_string(e, "PIN", key_pass, 0),
 			    "Set PKCS#11 PIN");
-		private_key = ENGINE_load_private_key(e, private_key_name,
-						      NULL, NULL);
+		private_key = ENGINE_load_private_key(e, private_key_name, NULL,
+						      NULL);
 		ERR(!private_key, "%s", private_key_name);
 	} else {
 		BIO *b;
 
 		b = BIO_new_file(private_key_name, "rb");
 		ERR(!b, "%s", private_key_name);
-		private_key = PEM_read_bio_PrivateKey(b, NULL, pem_pw_cb,
-						      NULL);
+		private_key = PEM_read_bio_PrivateKey(b, NULL, pem_pw_cb, NULL);
 		ERR(!private_key, "%s", private_key_name);
 		BIO_free(b);
 	}
@@ -244,14 +242,25 @@ int main(int argc, char **argv)
 	do {
 		opt = getopt(argc, argv, "sdpk");
 		switch (opt) {
-		case 's': raw_sig = true; break;
-		case 'p': save_sig = true; break;
-		case 'd': sign_only = true; save_sig = true; break;
+		case 's':
+			raw_sig = true;
+			break;
+		case 'p':
+			save_sig = true;
+			break;
+		case 'd':
+			sign_only = true;
+			save_sig = true;
+			break;
 #ifndef USE_PKCS7
-		case 'k': use_keyid = CMS_USE_KEYID; break;
+		case 'k':
+			use_keyid = CMS_USE_KEYID;
+			break;
 #endif
-		case -1: break;
-		default: format();
+		case -1:
+			break;
+		default:
+			format();
 		}
 	} while (opt != -1);
 
@@ -307,13 +316,12 @@ int main(int argc, char **argv)
 		/* Load the signature message from the digest buffer. */
 		cms = CMS_sign(NULL, NULL, NULL, NULL,
 			       CMS_NOCERTS | CMS_PARTIAL | CMS_BINARY |
-			       CMS_DETACHED | CMS_STREAM);
+				       CMS_DETACHED | CMS_STREAM);
 		ERR(!cms, "CMS_sign");
 
 		ERR(!CMS_add1_signer(cms, x509, private_key, digest_algo,
-				     CMS_NOCERTS | CMS_BINARY |
-				     CMS_NOSMIMECAP | use_keyid |
-				     use_signed_attrs),
+				     CMS_NOCERTS | CMS_BINARY | CMS_NOSMIMECAP |
+					     use_keyid | use_signed_attrs),
 		    "CMS_add1_signer");
 		ERR(CMS_final(cms, bm, NULL, CMS_NOCERTS | CMS_BINARY) < 0,
 		    "CMS_final");
@@ -321,7 +329,7 @@ int main(int argc, char **argv)
 #else
 		pkcs7 = PKCS7_sign(x509, private_key, NULL, bm,
 				   PKCS7_NOCERTS | PKCS7_BINARY |
-				   PKCS7_DETACHED | use_signed_attrs);
+					   PKCS7_DETACHED | use_signed_attrs);
 		ERR(!pkcs7, "PKCS7_sign");
 #endif
 
@@ -334,11 +342,10 @@ int main(int argc, char **argv)
 			b = BIO_new_file(sig_file_name, "wb");
 			ERR(!b, "%s", sig_file_name);
 #ifndef USE_PKCS7
-			ERR(i2d_CMS_bio_stream(b, cms, NULL, 0) < 0,
-			    "%s", sig_file_name);
+			ERR(i2d_CMS_bio_stream(b, cms, NULL, 0) < 0, "%s",
+			    sig_file_name);
 #else
-			ERR(i2d_PKCS7_bio(b, pkcs7) < 0,
-			    "%s", sig_file_name);
+			ERR(i2d_PKCS7_bio(b, pkcs7) < 0, "%s", sig_file_name);
 #endif
 			BIO_free(b);
 		}
@@ -357,8 +364,7 @@ int main(int argc, char **argv)
 
 	/* Append the marker and the PKCS#7 message to the destination file */
 	ERR(BIO_reset(bm) < 0, "%s", module_name);
-	while ((n = BIO_read(bm, buf, sizeof(buf))),
-	       n > 0) {
+	while ((n = BIO_read(bm, buf, sizeof(buf))), n > 0) {
 		ERR(BIO_write(bd, buf, n) < 0, "%s", dest_name);
 	}
 	BIO_free(bm);
@@ -387,7 +393,8 @@ int main(int argc, char **argv)
 	sig_size = BIO_number_written(bd) - module_size;
 	sig_info.sig_len = htonl(sig_size);
 	ERR(BIO_write(bd, &sig_info, sizeof(sig_info)) < 0, "%s", dest_name);
-	ERR(BIO_write(bd, magic_number, sizeof(magic_number) - 1) < 0, "%s", dest_name);
+	ERR(BIO_write(bd, magic_number, sizeof(magic_number) - 1) < 0, "%s",
+	    dest_name);
 
 	ERR(BIO_free(bd) < 0, "%s", dest_name);
 

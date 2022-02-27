@@ -24,7 +24,7 @@
  * matches the read vendor ID. Otherwise the function returns false.
  */
 static bool snd_ac97_check_id(struct snd_ac97 *ac97, unsigned int id,
-	unsigned int id_mask)
+			      unsigned int id_mask)
 {
 	ac97->id = ac97->bus->ops->read(ac97, AC97_VENDOR_ID1) << 16;
 	ac97->id |= ac97->bus->ops->read(ac97, AC97_VENDOR_ID2);
@@ -53,7 +53,7 @@ static bool snd_ac97_check_id(struct snd_ac97 *ac97, unsigned int id,
  * accepted, otherwise only the ID that matches @id and @id_mask is accepted.
  */
 int snd_ac97_reset(struct snd_ac97 *ac97, bool try_warm, unsigned int id,
-	unsigned int id_mask)
+		   unsigned int id_mask)
 {
 	const struct snd_ac97_bus_ops *ops = ac97->bus->ops;
 
@@ -86,8 +86,8 @@ static int ac97_bus_match(struct device *dev, struct device_driver *drv)
 }
 
 struct bus_type ac97_bus_type = {
-	.name		= "ac97",
-	.match		= ac97_bus_match,
+	.name = "ac97",
+	.match = ac97_bus_match,
 };
 
 static int __init ac97_bus_init(void)

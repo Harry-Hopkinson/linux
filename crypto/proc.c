@@ -11,7 +11,7 @@
 #include <linux/atomic.h>
 #include <linux/init.h>
 #include <linux/crypto.h>
-#include <linux/module.h>	/* for module_name() */
+#include <linux/module.h> /* for module_name() */
 #include <linux/rwsem.h>
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
@@ -43,11 +43,9 @@ static int c_show(struct seq_file *m, void *p)
 	seq_printf(m, "priority     : %d\n", alg->cra_priority);
 	seq_printf(m, "refcnt       : %u\n", refcount_read(&alg->cra_refcnt));
 	seq_printf(m, "selftest     : %s\n",
-		   (alg->cra_flags & CRYPTO_ALG_TESTED) ?
-		   "passed" : "unknown");
+		   (alg->cra_flags & CRYPTO_ALG_TESTED) ? "passed" : "unknown");
 	seq_printf(m, "internal     : %s\n",
-		   (alg->cra_flags & CRYPTO_ALG_INTERNAL) ?
-		   "yes" : "no");
+		   (alg->cra_flags & CRYPTO_ALG_INTERNAL) ? "yes" : "no");
 
 	if (alg->cra_flags & CRYPTO_ALG_LARVAL) {
 		seq_printf(m, "type         : larval\n");
@@ -65,9 +63,9 @@ static int c_show(struct seq_file *m, void *p)
 		seq_printf(m, "type         : cipher\n");
 		seq_printf(m, "blocksize    : %u\n", alg->cra_blocksize);
 		seq_printf(m, "min keysize  : %u\n",
-					alg->cra_cipher.cia_min_keysize);
+			   alg->cra_cipher.cia_min_keysize);
 		seq_printf(m, "max keysize  : %u\n",
-					alg->cra_cipher.cia_max_keysize);
+			   alg->cra_cipher.cia_max_keysize);
 		break;
 	case CRYPTO_ALG_TYPE_COMPRESS:
 		seq_printf(m, "type         : compression\n");
@@ -82,12 +80,10 @@ out:
 	return 0;
 }
 
-static const struct seq_operations crypto_seq_ops = {
-	.start		= c_start,
-	.next		= c_next,
-	.stop		= c_stop,
-	.show		= c_show
-};
+static const struct seq_operations crypto_seq_ops = { .start = c_start,
+						      .next = c_next,
+						      .stop = c_stop,
+						      .show = c_show };
 
 void __init crypto_init_proc(void)
 {

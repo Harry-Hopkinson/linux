@@ -221,7 +221,6 @@ static void kobject_init_internal(struct kobject *kobj)
 	kobj->state_initialized = 1;
 }
 
-
 static int kobject_add_internal(struct kobject *kobj)
 {
 	int error = 0;
@@ -278,8 +277,7 @@ static int kobject_add_internal(struct kobject *kobj)
  * @fmt: format string used to build the name
  * @vargs: vargs to format the string.
  */
-int kobject_set_name_vargs(struct kobject *kobj, const char *fmt,
-				  va_list vargs)
+int kobject_set_name_vargs(struct kobject *kobj, const char *fmt, va_list vargs)
 {
 	const char *s;
 
@@ -423,8 +421,8 @@ static __printf(3, 0) int kobject_add_varg(struct kobject *kobj,
  *         when the use of the object is finished in order to properly free
  *         everything.
  */
-int kobject_add(struct kobject *kobj, struct kobject *parent,
-		const char *fmt, ...)
+int kobject_add(struct kobject *kobj, struct kobject *parent, const char *fmt,
+		...)
 {
 	va_list args;
 	int retval;
@@ -653,8 +651,9 @@ struct kobject *kobject_get(struct kobject *kobj)
 {
 	if (kobj) {
 		if (!kobj->state_initialized)
-			WARN(1, KERN_WARNING
-				"kobject: '%s' (%p): is not initialized, yet kobject_get() is being called.\n",
+			WARN(1,
+			     KERN_WARNING
+			     "kobject: '%s' (%p): is not initialized, yet kobject_get() is being called.\n",
 			     kobject_name(kobj), kobj);
 		kref_get(&kobj->kref);
 	}
@@ -662,7 +661,7 @@ struct kobject *kobject_get(struct kobject *kobj)
 }
 EXPORT_SYMBOL(kobject_get);
 
-struct kobject * __must_check kobject_get_unless_zero(struct kobject *kobj)
+struct kobject *__must_check kobject_get_unless_zero(struct kobject *kobj)
 {
 	if (!kobj)
 		return NULL;
@@ -682,12 +681,13 @@ static void kobject_cleanup(struct kobject *kobj)
 	const struct kobj_type *t = get_ktype(kobj);
 	const char *name = kobj->name;
 
-	pr_debug("kobject: '%s' (%p): %s, parent %p\n",
-		 kobject_name(kobj), kobj, __func__, kobj->parent);
+	pr_debug("kobject: '%s' (%p): %s, parent %p\n", kobject_name(kobj),
+		 kobj, __func__, kobj->parent);
 
 	if (t && !t->release)
-		pr_debug("kobject: '%s' (%p): does not have a release() function, it is broken and must be fixed. See Documentation/core-api/kobject.rst.\n",
-			 kobject_name(kobj), kobj);
+		pr_debug(
+			"kobject: '%s' (%p): does not have a release() function, it is broken and must be fixed. See Documentation/core-api/kobject.rst.\n",
+			kobject_name(kobj), kobj);
 
 	/* remove from sysfs if the caller did not do it */
 	if (kobj->state_in_sysfs) {
@@ -717,8 +717,8 @@ static void kobject_cleanup(struct kobject *kobj)
 #ifdef CONFIG_DEBUG_KOBJECT_RELEASE
 static void kobject_delayed_cleanup(struct work_struct *work)
 {
-	kobject_cleanup(container_of(to_delayed_work(work),
-				     struct kobject, release));
+	kobject_cleanup(
+		container_of(to_delayed_work(work), struct kobject, release));
 }
 #endif
 
@@ -728,7 +728,7 @@ static void kobject_release(struct kref *kref)
 #ifdef CONFIG_DEBUG_KOBJECT_RELEASE
 	unsigned long delay = HZ + HZ * (get_random_int() & 0x3);
 	pr_info("kobject: '%s' (%p): %s, parent %p (delayed %ld)\n",
-		 kobject_name(kobj), kobj, __func__, kobj->parent, delay);
+		kobject_name(kobj), kobj, __func__, kobj->parent, delay);
 	INIT_DELAYED_WORK(&kobj->release, kobject_delayed_cleanup);
 
 	schedule_delayed_work(&kobj->release, delay);
@@ -747,8 +747,9 @@ void kobject_put(struct kobject *kobj)
 {
 	if (kobj) {
 		if (!kobj->state_initialized)
-			WARN(1, KERN_WARNING
-				"kobject: '%s' (%p): is not initialized, yet kobject_put() is being called.\n",
+			WARN(1,
+			     KERN_WARNING
+			     "kobject: '%s' (%p): is not initialized, yet kobject_put() is being called.\n",
 			     kobject_name(kobj), kobj);
 		kref_put(&kobj->kref, kobject_release);
 	}
@@ -762,8 +763,8 @@ static void dynamic_kobj_release(struct kobject *kobj)
 }
 
 static struct kobj_type dynamic_kobj_ktype = {
-	.release	= dynamic_kobj_release,
-	.sysfs_ops	= &kobj_sysfs_ops,
+	.release = dynamic_kobj_release,
+	.sysfs_ops = &kobj_sysfs_ops,
 };
 
 /**
@@ -858,8 +859,8 @@ static ssize_t kobj_attr_store(struct kobject *kobj, struct attribute *attr,
 }
 
 const struct sysfs_ops kobj_sysfs_ops = {
-	.show	= kobj_attr_show,
-	.store	= kobj_attr_store,
+	.show = kobj_attr_show,
+	.store = kobj_attr_store,
 };
 EXPORT_SYMBOL_GPL(kobj_sysfs_ops);
 
@@ -912,7 +913,7 @@ struct kobject *kset_find_obj(struct kset *kset, const char *name)
 
 	spin_lock(&kset->list_lock);
 
-	list_for_each_entry(k, &kset->list, entry) {
+	list_for_each_entry (k, &kset->list, entry) {
 		if (kobject_name(k) && !strcmp(kobject_name(k), name)) {
 			ret = kobject_get_unless_zero(k);
 			break;
@@ -927,8 +928,8 @@ EXPORT_SYMBOL_GPL(kset_find_obj);
 static void kset_release(struct kobject *kobj)
 {
 	struct kset *kset = container_of(kobj, struct kset, kobj);
-	pr_debug("kobject: '%s' (%p): %s\n",
-		 kobject_name(kobj), kobj, __func__);
+	pr_debug("kobject: '%s' (%p): %s\n", kobject_name(kobj), kobj,
+		 __func__);
 	kfree(kset);
 }
 
@@ -939,9 +940,9 @@ static void kset_get_ownership(struct kobject *kobj, kuid_t *uid, kgid_t *gid)
 }
 
 static struct kobj_type kset_ktype = {
-	.sysfs_ops	= &kobj_sysfs_ops,
-	.release	= kset_release,
-	.get_ownership	= kset_get_ownership,
+	.sysfs_ops = &kobj_sysfs_ops,
+	.release = kset_release,
+	.get_ownership = kset_get_ownership,
 };
 
 /**
@@ -1020,7 +1021,6 @@ struct kset *kset_create_and_add(const char *name,
 	return kset;
 }
 EXPORT_SYMBOL_GPL(kset_create_and_add);
-
 
 static DEFINE_SPINLOCK(kobj_ns_type_lock);
 static const struct kobj_ns_type_operations *kobj_ns_ops_tbl[KOBJ_NS_TYPES];

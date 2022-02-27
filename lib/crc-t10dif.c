@@ -21,7 +21,8 @@ static DEFINE_STATIC_KEY_TRUE(crct10dif_fallback);
 static DEFINE_MUTEX(crc_t10dif_mutex);
 static struct work_struct crct10dif_rehash_work;
 
-static int crc_t10dif_notify(struct notifier_block *self, unsigned long val, void *data)
+static int crc_t10dif_notify(struct notifier_block *self, unsigned long val,
+			     void *data)
 {
 	struct crypto_alg *alg = data;
 
@@ -107,7 +108,8 @@ static void __exit crc_t10dif_mod_fini(void)
 module_init(crc_t10dif_mod_init);
 module_exit(crc_t10dif_mod_fini);
 
-static int crc_t10dif_transform_show(char *buffer, const struct kernel_param *kp)
+static int crc_t10dif_transform_show(char *buffer,
+				     const struct kernel_param *kp)
 {
 	struct crypto_shash *tfm;
 	int len;

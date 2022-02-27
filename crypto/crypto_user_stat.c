@@ -19,7 +19,7 @@
 
 #include "internal.h"
 
-#define null_terminated(x)	(strnlen(x, sizeof(x)) < sizeof(x))
+#define null_terminated(x) (strnlen(x, sizeof(x)) < sizeof(x))
 
 struct crypto_dump_info {
 	struct sk_buff *in_skb;
@@ -53,11 +53,15 @@ static int crypto_report_cipher(struct sk_buff *skb, struct crypto_alg *alg)
 
 	strscpy(rcipher.type, "cipher", sizeof(rcipher.type));
 
-	rcipher.stat_encrypt_cnt = atomic64_read(&alg->stats.cipher.encrypt_cnt);
-	rcipher.stat_encrypt_tlen = atomic64_read(&alg->stats.cipher.encrypt_tlen);
-	rcipher.stat_decrypt_cnt =  atomic64_read(&alg->stats.cipher.decrypt_cnt);
-	rcipher.stat_decrypt_tlen = atomic64_read(&alg->stats.cipher.decrypt_tlen);
-	rcipher.stat_err_cnt =  atomic64_read(&alg->stats.cipher.err_cnt);
+	rcipher.stat_encrypt_cnt =
+		atomic64_read(&alg->stats.cipher.encrypt_cnt);
+	rcipher.stat_encrypt_tlen =
+		atomic64_read(&alg->stats.cipher.encrypt_tlen);
+	rcipher.stat_decrypt_cnt =
+		atomic64_read(&alg->stats.cipher.decrypt_cnt);
+	rcipher.stat_decrypt_tlen =
+		atomic64_read(&alg->stats.cipher.decrypt_tlen);
+	rcipher.stat_err_cnt = atomic64_read(&alg->stats.cipher.err_cnt);
 
 	return nla_put(skb, CRYPTOCFGA_STAT_CIPHER, sizeof(rcipher), &rcipher);
 }
@@ -69,10 +73,14 @@ static int crypto_report_comp(struct sk_buff *skb, struct crypto_alg *alg)
 	memset(&rcomp, 0, sizeof(rcomp));
 
 	strscpy(rcomp.type, "compression", sizeof(rcomp.type));
-	rcomp.stat_compress_cnt = atomic64_read(&alg->stats.compress.compress_cnt);
-	rcomp.stat_compress_tlen = atomic64_read(&alg->stats.compress.compress_tlen);
-	rcomp.stat_decompress_cnt = atomic64_read(&alg->stats.compress.decompress_cnt);
-	rcomp.stat_decompress_tlen = atomic64_read(&alg->stats.compress.decompress_tlen);
+	rcomp.stat_compress_cnt =
+		atomic64_read(&alg->stats.compress.compress_cnt);
+	rcomp.stat_compress_tlen =
+		atomic64_read(&alg->stats.compress.compress_tlen);
+	rcomp.stat_decompress_cnt =
+		atomic64_read(&alg->stats.compress.decompress_cnt);
+	rcomp.stat_decompress_tlen =
+		atomic64_read(&alg->stats.compress.decompress_tlen);
 	rcomp.stat_err_cnt = atomic64_read(&alg->stats.compress.err_cnt);
 
 	return nla_put(skb, CRYPTOCFGA_STAT_COMPRESS, sizeof(rcomp), &rcomp);
@@ -85,10 +93,14 @@ static int crypto_report_acomp(struct sk_buff *skb, struct crypto_alg *alg)
 	memset(&racomp, 0, sizeof(racomp));
 
 	strscpy(racomp.type, "acomp", sizeof(racomp.type));
-	racomp.stat_compress_cnt = atomic64_read(&alg->stats.compress.compress_cnt);
-	racomp.stat_compress_tlen = atomic64_read(&alg->stats.compress.compress_tlen);
-	racomp.stat_decompress_cnt =  atomic64_read(&alg->stats.compress.decompress_cnt);
-	racomp.stat_decompress_tlen = atomic64_read(&alg->stats.compress.decompress_tlen);
+	racomp.stat_compress_cnt =
+		atomic64_read(&alg->stats.compress.compress_cnt);
+	racomp.stat_compress_tlen =
+		atomic64_read(&alg->stats.compress.compress_tlen);
+	racomp.stat_decompress_cnt =
+		atomic64_read(&alg->stats.compress.decompress_cnt);
+	racomp.stat_decompress_tlen =
+		atomic64_read(&alg->stats.compress.decompress_tlen);
 	racomp.stat_err_cnt = atomic64_read(&alg->stats.compress.err_cnt);
 
 	return nla_put(skb, CRYPTOCFGA_STAT_ACOMP, sizeof(racomp), &racomp);
@@ -101,16 +113,21 @@ static int crypto_report_akcipher(struct sk_buff *skb, struct crypto_alg *alg)
 	memset(&rakcipher, 0, sizeof(rakcipher));
 
 	strscpy(rakcipher.type, "akcipher", sizeof(rakcipher.type));
-	rakcipher.stat_encrypt_cnt = atomic64_read(&alg->stats.akcipher.encrypt_cnt);
-	rakcipher.stat_encrypt_tlen = atomic64_read(&alg->stats.akcipher.encrypt_tlen);
-	rakcipher.stat_decrypt_cnt = atomic64_read(&alg->stats.akcipher.decrypt_cnt);
-	rakcipher.stat_decrypt_tlen = atomic64_read(&alg->stats.akcipher.decrypt_tlen);
+	rakcipher.stat_encrypt_cnt =
+		atomic64_read(&alg->stats.akcipher.encrypt_cnt);
+	rakcipher.stat_encrypt_tlen =
+		atomic64_read(&alg->stats.akcipher.encrypt_tlen);
+	rakcipher.stat_decrypt_cnt =
+		atomic64_read(&alg->stats.akcipher.decrypt_cnt);
+	rakcipher.stat_decrypt_tlen =
+		atomic64_read(&alg->stats.akcipher.decrypt_tlen);
 	rakcipher.stat_sign_cnt = atomic64_read(&alg->stats.akcipher.sign_cnt);
-	rakcipher.stat_verify_cnt = atomic64_read(&alg->stats.akcipher.verify_cnt);
+	rakcipher.stat_verify_cnt =
+		atomic64_read(&alg->stats.akcipher.verify_cnt);
 	rakcipher.stat_err_cnt = atomic64_read(&alg->stats.akcipher.err_cnt);
 
-	return nla_put(skb, CRYPTOCFGA_STAT_AKCIPHER,
-		       sizeof(rakcipher), &rakcipher);
+	return nla_put(skb, CRYPTOCFGA_STAT_AKCIPHER, sizeof(rakcipher),
+		       &rakcipher);
 }
 
 static int crypto_report_kpp(struct sk_buff *skb, struct crypto_alg *alg)
@@ -122,8 +139,10 @@ static int crypto_report_kpp(struct sk_buff *skb, struct crypto_alg *alg)
 	strscpy(rkpp.type, "kpp", sizeof(rkpp.type));
 
 	rkpp.stat_setsecret_cnt = atomic64_read(&alg->stats.kpp.setsecret_cnt);
-	rkpp.stat_generate_public_key_cnt = atomic64_read(&alg->stats.kpp.generate_public_key_cnt);
-	rkpp.stat_compute_shared_secret_cnt = atomic64_read(&alg->stats.kpp.compute_shared_secret_cnt);
+	rkpp.stat_generate_public_key_cnt =
+		atomic64_read(&alg->stats.kpp.generate_public_key_cnt);
+	rkpp.stat_compute_shared_secret_cnt =
+		atomic64_read(&alg->stats.kpp.compute_shared_secret_cnt);
 	rkpp.stat_err_cnt = atomic64_read(&alg->stats.kpp.err_cnt);
 
 	return nla_put(skb, CRYPTOCFGA_STAT_KPP, sizeof(rkpp), &rkpp);
@@ -152,7 +171,7 @@ static int crypto_report_shash(struct sk_buff *skb, struct crypto_alg *alg)
 
 	strscpy(rhash.type, "shash", sizeof(rhash.type));
 
-	rhash.stat_hash_cnt =  atomic64_read(&alg->stats.hash.hash_cnt);
+	rhash.stat_hash_cnt = atomic64_read(&alg->stats.hash.hash_cnt);
 	rhash.stat_hash_tlen = atomic64_read(&alg->stats.hash.hash_tlen);
 	rhash.stat_err_cnt = atomic64_read(&alg->stats.hash.err_cnt);
 
@@ -251,7 +270,8 @@ static int crypto_reportstat_one(struct crypto_alg *alg,
 		break;
 	default:
 		pr_err("ERROR: Unhandled alg %d in %s\n",
-		       alg->cra_flags & (CRYPTO_ALG_TYPE_MASK | CRYPTO_ALG_LARVAL),
+		       alg->cra_flags &
+			       (CRYPTO_ALG_TYPE_MASK | CRYPTO_ALG_LARVAL),
 		       __func__);
 	}
 
@@ -302,7 +322,8 @@ int crypto_reportstat(struct sk_buff *in_skb, struct nlmsghdr *in_nlh,
 	struct crypto_dump_info info;
 	int err;
 
-	if (!null_terminated(p->cru_name) || !null_terminated(p->cru_driver_name))
+	if (!null_terminated(p->cru_name) ||
+	    !null_terminated(p->cru_driver_name))
 		return -EINVAL;
 
 	alg = crypto_alg_match(p, 0);

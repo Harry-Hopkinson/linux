@@ -73,11 +73,10 @@ static const unsigned int range1_sels[] = { RANGE1_MIN_SEL, RANGE1_MIN_SEL + 1,
 					    RANGE1_MIN_SEL + 3,
 					    RANGE1_MIN_SEL + 4 };
 /* 10, 20, 30, 40, 50 */
-static const unsigned int range1_vals[] = { RANGE1_MIN, RANGE1_MIN +
-					    RANGE1_STEP,
-					    RANGE1_MIN + RANGE1_STEP * 2,
-					    RANGE1_MIN + RANGE1_STEP * 3,
-					    RANGE1_MIN + RANGE1_STEP * 4 };
+static const unsigned int range1_vals[] = {
+	RANGE1_MIN, RANGE1_MIN + RANGE1_STEP, RANGE1_MIN + RANGE1_STEP * 2,
+	RANGE1_MIN + RANGE1_STEP * 3, RANGE1_MIN + RANGE1_STEP * 4
+};
 
 #define RANGE2_MIN 100
 #define RANGE2_MIN_SEL 7
@@ -88,8 +87,8 @@ static const unsigned int range2_sels[] = { RANGE2_MIN_SEL, RANGE2_MIN_SEL + 1,
 					    RANGE2_MIN_SEL + 2,
 					    RANGE2_MIN_SEL + 3 };
 /* 100, 150, 200, 250 */
-static const unsigned int range2_vals[] = { RANGE2_MIN, RANGE2_MIN +
-					    RANGE2_STEP,
+static const unsigned int range2_vals[] = { RANGE2_MIN,
+					    RANGE2_MIN + RANGE2_STEP,
 					    RANGE2_MIN + RANGE2_STEP * 2,
 					    RANGE2_MIN + RANGE2_STEP * 3 };
 
@@ -112,12 +111,11 @@ static struct linear_range testr[] = {
 		.min_sel = RANGE1_MIN_SEL,
 		.max_sel = RANGE1_MAX_SEL,
 		.step = RANGE1_STEP,
-	}, {
-		.min = RANGE2_MIN,
-		.min_sel = RANGE2_MIN_SEL,
-		.max_sel = RANGE2_MAX_SEL,
-		.step = RANGE2_STEP
 	},
+	{ .min = RANGE2_MIN,
+	  .min_sel = RANGE2_MIN_SEL,
+	  .max_sel = RANGE2_MAX_SEL,
+	  .step = RANGE2_STEP },
 };
 
 static void range_test_get_value(struct kunit *test)
@@ -159,8 +157,8 @@ static void range_test_get_selector_high(struct kunit *test)
 					     &sel, &found);
 	KUNIT_EXPECT_LE(test, ret, 0);
 
-	ret = linear_range_get_selector_high(&testr[0], RANGE1_MIN - 1,
-					     &sel, &found);
+	ret = linear_range_get_selector_high(&testr[0], RANGE1_MIN - 1, &sel,
+					     &found);
 	KUNIT_EXPECT_EQ(test, 0, ret);
 	KUNIT_EXPECT_FALSE(test, found);
 	KUNIT_EXPECT_EQ(test, sel, range1_sels[0]);
@@ -181,17 +179,15 @@ static void range_test_get_selector_low(struct kunit *test)
 	bool found;
 
 	for (i = 0; i < RANGE1_NUM_VALS; i++) {
-		ret = linear_range_get_selector_low_array(&testr[0], 2,
-							  range1_vals[i], &sel,
-							  &found);
+		ret = linear_range_get_selector_low_array(
+			&testr[0], 2, range1_vals[i], &sel, &found);
 		KUNIT_EXPECT_EQ(test, 0, ret);
 		KUNIT_EXPECT_EQ(test, sel, range1_sels[i]);
 		KUNIT_EXPECT_TRUE(test, found);
 	}
 	for (i = 0; i < RANGE2_NUM_VALS; i++) {
-		ret = linear_range_get_selector_low_array(&testr[0], 2,
-							  range2_vals[i], &sel,
-							  &found);
+		ret = linear_range_get_selector_low_array(
+			&testr[0], 2, range2_vals[i], &sel, &found);
 		KUNIT_EXPECT_EQ(test, 0, ret);
 		KUNIT_EXPECT_EQ(test, sel, range2_sels[i]);
 		KUNIT_EXPECT_TRUE(test, found);
@@ -201,9 +197,9 @@ static void range_test_get_selector_low(struct kunit *test)
 	 * Seek value greater than range max => get_selector_*_low should
 	 * return Ok - but set found to false as value is not in range
 	 */
-	ret = linear_range_get_selector_low_array(&testr[0], 2,
-					range2_vals[RANGE2_NUM_VALS - 1] + 1,
-					&sel, &found);
+	ret = linear_range_get_selector_low_array(
+		&testr[0], 2, range2_vals[RANGE2_NUM_VALS - 1] + 1, &sel,
+		&found);
 
 	KUNIT_EXPECT_EQ(test, 0, ret);
 	KUNIT_EXPECT_EQ(test, sel, range2_sels[RANGE2_NUM_VALS - 1]);

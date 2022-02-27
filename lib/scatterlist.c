@@ -103,7 +103,7 @@ struct scatterlist *sg_last(struct scatterlist *sgl, unsigned int nents)
 	struct scatterlist *sg, *ret = NULL;
 	unsigned int i;
 
-	for_each_sg(sgl, sg, nents, i)
+	for_each_sg (sgl, sg, nents, i)
 		ret = sg;
 
 	BUG_ON(!sg_is_last(ret));
@@ -158,7 +158,7 @@ static struct scatterlist *sg_kmalloc(unsigned int nents, gfp_t gfp_mask)
 		 * false-positive) we need to inform kmemleak of all the
 		 * intermediate allocations.
 		 */
-		void *ptr = (void *) __get_free_page(gfp_mask);
+		void *ptr = (void *)__get_free_page(gfp_mask);
 		kmemleak_alloc(ptr, PAGE_SIZE, 1, gfp_mask);
 		return ptr;
 	} else
@@ -170,7 +170,7 @@ static void sg_kfree(struct scatterlist *sg, unsigned int nents)
 {
 	if (nents == SG_MAX_SINGLE_ALLOC) {
 		kmemleak_free(sg);
-		free_page((unsigned long) sg);
+		free_page((unsigned long)sg);
 	} else
 		kfree(sg);
 }
@@ -244,7 +244,6 @@ void sg_free_append_table(struct sg_append_table *table)
 			table->total_nents);
 }
 EXPORT_SYMBOL(sg_free_append_table);
-
 
 /**
  * sg_free_table - Free a previously allocated sg table
@@ -372,8 +371,8 @@ int sg_alloc_table(struct sg_table *table, unsigned int nents, gfp_t gfp_mask)
 {
 	int ret;
 
-	ret = __sg_alloc_table(table, nents, SG_MAX_SINGLE_ALLOC,
-			       NULL, 0, gfp_mask, sg_kmalloc);
+	ret = __sg_alloc_table(table, nents, SG_MAX_SINGLE_ALLOC, NULL, 0,
+			       gfp_mask, sg_kmalloc);
 	if (unlikely(ret))
 		sg_free_table(table);
 	return ret;
@@ -440,9 +439,10 @@ static struct scatterlist *get_next_sg(struct sg_append_table *table,
  *   In the fist call, sgt_append must by initialized.
  */
 int sg_alloc_append_table_from_pages(struct sg_append_table *sgt_append,
-		struct page **pages, unsigned int n_pages, unsigned int offset,
-		unsigned long size, unsigned int max_segment,
-		unsigned int left_pages, gfp_t gfp_mask)
+				     struct page **pages, unsigned int n_pages,
+				     unsigned int offset, unsigned long size,
+				     unsigned int max_segment,
+				     unsigned int left_pages, gfp_t gfp_mask)
 {
 	unsigned int chunks, cur_page, seg_len, i, prv_len = 0;
 	unsigned int added_nents = 0;
@@ -505,7 +505,7 @@ int sg_alloc_append_table_from_pages(struct sg_append_table *sgt_append,
 			seg_len += PAGE_SIZE;
 			if (seg_len >= max_segment ||
 			    page_to_pfn(pages[j]) !=
-			    page_to_pfn(pages[j - 1]) + 1)
+				    page_to_pfn(pages[j - 1]) + 1)
 				break;
 		}
 
@@ -563,9 +563,9 @@ EXPORT_SYMBOL(sg_alloc_append_table_from_pages);
  *   0 on success, negative error on failure
  */
 int sg_alloc_table_from_pages_segment(struct sg_table *sgt, struct page **pages,
-				unsigned int n_pages, unsigned int offset,
-				unsigned long size, unsigned int max_segment,
-				gfp_t gfp_mask)
+				      unsigned int n_pages, unsigned int offset,
+				      unsigned long size,
+				      unsigned int max_segment, gfp_t gfp_mask)
 {
 	struct sg_append_table append = {};
 	int err;
@@ -615,8 +615,7 @@ struct scatterlist *sgl_alloc_order(unsigned long long length,
 			return NULL;
 		nalloc++;
 	}
-	sgl = kmalloc_array(nalloc, sizeof(struct scatterlist),
-			    gfp & ~GFP_DMA);
+	sgl = kmalloc_array(nalloc, sizeof(struct scatterlist), gfp & ~GFP_DMA);
 	if (!sgl)
 		return NULL;
 
@@ -675,7 +674,7 @@ void sgl_free_n_order(struct scatterlist *sgl, int nents, int order)
 	struct page *page;
 	int i;
 
-	for_each_sg(sgl, sg, nents, i) {
+	for_each_sg (sgl, sg, nents, i) {
 		if (!sg)
 			break;
 		page = sg_page(sg);
@@ -1008,8 +1007,8 @@ EXPORT_SYMBOL(sg_copy_from_buffer);
  * Returns the number of copied bytes.
  *
  **/
-size_t sg_copy_to_buffer(struct scatterlist *sgl, unsigned int nents,
-			 void *buf, size_t buflen)
+size_t sg_copy_to_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
+			 size_t buflen)
 {
 	return sg_copy_buffer(sgl, nents, buf, buflen, 0, true);
 }
@@ -1061,7 +1060,7 @@ EXPORT_SYMBOL(sg_pcopy_to_buffer);
  * Returns the number of bytes zeroed.
  **/
 size_t sg_zero_buffer(struct scatterlist *sgl, unsigned int nents,
-		       size_t buflen, off_t skip)
+		      size_t buflen, off_t skip)
 {
 	unsigned int offset = 0;
 	struct sg_mapping_iter miter;

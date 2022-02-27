@@ -40,7 +40,7 @@
  * or the documentation need to be in sync.
  */
 
-#define VMFLAGS	(VM_READ|VM_WRITE|VM_EXEC)
+#define VMFLAGS (VM_READ | VM_WRITE | VM_EXEC)
 
 /*
  * On s390 platform, the lower 4 bits are used to identify given page table
@@ -50,45 +50,45 @@
  * have affect any other platform. Also avoid the 62nd bit on ppc64 that is
  * used to mark a pte entry.
  */
-#define S390_SKIP_MASK		GENMASK(3, 0)
+#define S390_SKIP_MASK GENMASK(3, 0)
 #if __BITS_PER_LONG == 64
-#define PPC64_SKIP_MASK		GENMASK(62, 62)
+#define PPC64_SKIP_MASK GENMASK(62, 62)
 #else
-#define PPC64_SKIP_MASK		0x0
+#define PPC64_SKIP_MASK 0x0
 #endif
 #define ARCH_SKIP_MASK (S390_SKIP_MASK | PPC64_SKIP_MASK)
 #define RANDOM_ORVALUE (GENMASK(BITS_PER_LONG - 1, 0) & ~ARCH_SKIP_MASK)
-#define RANDOM_NZVALUE	GENMASK(7, 0)
+#define RANDOM_NZVALUE GENMASK(7, 0)
 
 struct pgtable_debug_args {
-	struct mm_struct	*mm;
-	struct vm_area_struct	*vma;
+	struct mm_struct *mm;
+	struct vm_area_struct *vma;
 
-	pgd_t			*pgdp;
-	p4d_t			*p4dp;
-	pud_t			*pudp;
-	pmd_t			*pmdp;
-	pte_t			*ptep;
+	pgd_t *pgdp;
+	p4d_t *p4dp;
+	pud_t *pudp;
+	pmd_t *pmdp;
+	pte_t *ptep;
 
-	p4d_t			*start_p4dp;
-	pud_t			*start_pudp;
-	pmd_t			*start_pmdp;
-	pgtable_t		start_ptep;
+	p4d_t *start_p4dp;
+	pud_t *start_pudp;
+	pmd_t *start_pmdp;
+	pgtable_t start_ptep;
 
-	unsigned long		vaddr;
-	pgprot_t		page_prot;
-	pgprot_t		page_prot_none;
+	unsigned long vaddr;
+	pgprot_t page_prot;
+	pgprot_t page_prot_none;
 
-	bool			is_contiguous_page;
-	unsigned long		pud_pfn;
-	unsigned long		pmd_pfn;
-	unsigned long		pte_pfn;
+	bool is_contiguous_page;
+	unsigned long pud_pfn;
+	unsigned long pmd_pfn;
+	unsigned long pte_pfn;
 
-	unsigned long		fixed_pgd_pfn;
-	unsigned long		fixed_p4d_pfn;
-	unsigned long		fixed_pud_pfn;
-	unsigned long		fixed_pmd_pfn;
-	unsigned long		fixed_pte_pfn;
+	unsigned long fixed_pgd_pfn;
+	unsigned long fixed_p4d_pfn;
+	unsigned long fixed_pud_pfn;
+	unsigned long fixed_pmd_pfn;
+	unsigned long fixed_pte_pfn;
 };
 
 static void __init pte_basic_tests(struct pgtable_debug_args *args, int idx)
@@ -208,7 +208,6 @@ static void __init pmd_basic_tests(struct pgtable_debug_args *args, int idx)
 	 * dirty bit being set.
 	 */
 	WARN_ON(pmd_dirty(pmd_wrprotect(pmd)));
-
 
 	WARN_ON(!pmd_same(pmd, pmd));
 	WARN_ON(!pmd_young(pmd_mkyoung(pmd_mkold(pmd))));
@@ -443,19 +442,39 @@ static void __init pud_leaf_tests(struct pgtable_debug_args *args)
 	pud = pud_mkhuge(pud);
 	WARN_ON(!pud_leaf(pud));
 }
-#else  /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-static void __init pud_basic_tests(struct pgtable_debug_args *args, int idx) { }
-static void __init pud_advanced_tests(struct pgtable_debug_args *args) { }
-static void __init pud_leaf_tests(struct pgtable_debug_args *args) { }
+#else /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+static void __init pud_basic_tests(struct pgtable_debug_args *args, int idx)
+{
+}
+static void __init pud_advanced_tests(struct pgtable_debug_args *args)
+{
+}
+static void __init pud_leaf_tests(struct pgtable_debug_args *args)
+{
+}
 #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-#else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
-static void __init pmd_basic_tests(struct pgtable_debug_args *args, int idx) { }
-static void __init pud_basic_tests(struct pgtable_debug_args *args, int idx) { }
-static void __init pmd_advanced_tests(struct pgtable_debug_args *args) { }
-static void __init pud_advanced_tests(struct pgtable_debug_args *args) { }
-static void __init pmd_leaf_tests(struct pgtable_debug_args *args) { }
-static void __init pud_leaf_tests(struct pgtable_debug_args *args) { }
-static void __init pmd_savedwrite_tests(struct pgtable_debug_args *args) { }
+#else /* !CONFIG_TRANSPARENT_HUGEPAGE */
+static void __init pmd_basic_tests(struct pgtable_debug_args *args, int idx)
+{
+}
+static void __init pud_basic_tests(struct pgtable_debug_args *args, int idx)
+{
+}
+static void __init pmd_advanced_tests(struct pgtable_debug_args *args)
+{
+}
+static void __init pud_advanced_tests(struct pgtable_debug_args *args)
+{
+}
+static void __init pmd_leaf_tests(struct pgtable_debug_args *args)
+{
+}
+static void __init pud_leaf_tests(struct pgtable_debug_args *args)
+{
+}
+static void __init pmd_savedwrite_tests(struct pgtable_debug_args *args)
+{
+}
 #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 
 #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
@@ -472,7 +491,8 @@ static void __init pmd_huge_tests(struct pgtable_debug_args *args)
 	 * PMD is not a populated non-leaf entry.
 	 */
 	WRITE_ONCE(*args->pmdp, __pmd(0));
-	WARN_ON(!pmd_set_huge(args->pmdp, __pfn_to_phys(args->fixed_pmd_pfn), args->page_prot));
+	WARN_ON(!pmd_set_huge(args->pmdp, __pfn_to_phys(args->fixed_pmd_pfn),
+			      args->page_prot));
 	WARN_ON(!pmd_clear_huge(args->pmdp));
 	pmd = READ_ONCE(*args->pmdp);
 	WARN_ON(!pmd_none(pmd));
@@ -491,14 +511,19 @@ static void __init pud_huge_tests(struct pgtable_debug_args *args)
 	 * PUD is not a populated non-leaf entry.
 	 */
 	WRITE_ONCE(*args->pudp, __pud(0));
-	WARN_ON(!pud_set_huge(args->pudp, __pfn_to_phys(args->fixed_pud_pfn), args->page_prot));
+	WARN_ON(!pud_set_huge(args->pudp, __pfn_to_phys(args->fixed_pud_pfn),
+			      args->page_prot));
 	WARN_ON(!pud_clear_huge(args->pudp));
 	pud = READ_ONCE(*args->pudp);
 	WARN_ON(!pud_none(pud));
 }
 #else /* !CONFIG_HAVE_ARCH_HUGE_VMAP */
-static void __init pmd_huge_tests(struct pgtable_debug_args *args) { }
-static void __init pud_huge_tests(struct pgtable_debug_args *args) { }
+static void __init pmd_huge_tests(struct pgtable_debug_args *args)
+{
+}
+static void __init pud_huge_tests(struct pgtable_debug_args *args)
+{
+}
 #endif /* CONFIG_HAVE_ARCH_HUGE_VMAP */
 
 static void __init p4d_basic_tests(struct pgtable_debug_args *args)
@@ -551,9 +576,13 @@ static void __init pud_populate_tests(struct pgtable_debug_args *args)
 	pud = READ_ONCE(*args->pudp);
 	WARN_ON(pud_bad(pud));
 }
-#else  /* !__PAGETABLE_PUD_FOLDED */
-static void __init pud_clear_tests(struct pgtable_debug_args *args) { }
-static void __init pud_populate_tests(struct pgtable_debug_args *args) { }
+#else /* !__PAGETABLE_PUD_FOLDED */
+static void __init pud_clear_tests(struct pgtable_debug_args *args)
+{
+}
+static void __init pud_populate_tests(struct pgtable_debug_args *args)
+{
+}
 #endif /* PAGETABLE_PUD_FOLDED */
 
 #ifndef __PAGETABLE_P4D_FOLDED
@@ -624,11 +653,19 @@ static void __init pgd_populate_tests(struct pgtable_debug_args *args)
 	pgd = READ_ONCE(*args->pgdp);
 	WARN_ON(pgd_bad(pgd));
 }
-#else  /* !__PAGETABLE_P4D_FOLDED */
-static void __init p4d_clear_tests(struct pgtable_debug_args *args) { }
-static void __init pgd_clear_tests(struct pgtable_debug_args *args) { }
-static void __init p4d_populate_tests(struct pgtable_debug_args *args) { }
-static void __init pgd_populate_tests(struct pgtable_debug_args *args) { }
+#else /* !__PAGETABLE_P4D_FOLDED */
+static void __init p4d_clear_tests(struct pgtable_debug_args *args)
+{
+}
+static void __init pgd_clear_tests(struct pgtable_debug_args *args)
+{
+}
+static void __init p4d_populate_tests(struct pgtable_debug_args *args)
+{
+}
+static void __init pgd_populate_tests(struct pgtable_debug_args *args)
+{
+}
 #endif /* PAGETABLE_P4D_FOLDED */
 
 static void __init pte_clear_tests(struct pgtable_debug_args *args)
@@ -724,8 +761,10 @@ static void __init pmd_protnone_tests(struct pgtable_debug_args *args)
 	WARN_ON(!pmd_protnone(pmd));
 	WARN_ON(!pmd_present(pmd));
 }
-#else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
-static void __init pmd_protnone_tests(struct pgtable_debug_args *args) { }
+#else /* !CONFIG_TRANSPARENT_HUGEPAGE */
+static void __init pmd_protnone_tests(struct pgtable_debug_args *args)
+{
+}
 #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 
 #ifdef CONFIG_ARCH_HAS_PTE_DEVMAP
@@ -762,17 +801,29 @@ static void __init pud_devmap_tests(struct pgtable_debug_args *args)
 	pud = pfn_pud(args->fixed_pud_pfn, args->page_prot);
 	WARN_ON(!pud_devmap(pud_mkdevmap(pud)));
 }
-#else  /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-static void __init pud_devmap_tests(struct pgtable_debug_args *args) { }
+#else /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+static void __init pud_devmap_tests(struct pgtable_debug_args *args)
+{
+}
 #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-#else  /* CONFIG_TRANSPARENT_HUGEPAGE */
-static void __init pmd_devmap_tests(struct pgtable_debug_args *args) { }
-static void __init pud_devmap_tests(struct pgtable_debug_args *args) { }
+#else /* CONFIG_TRANSPARENT_HUGEPAGE */
+static void __init pmd_devmap_tests(struct pgtable_debug_args *args)
+{
+}
+static void __init pud_devmap_tests(struct pgtable_debug_args *args)
+{
+}
 #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 #else
-static void __init pte_devmap_tests(struct pgtable_debug_args *args) { }
-static void __init pmd_devmap_tests(struct pgtable_debug_args *args) { }
-static void __init pud_devmap_tests(struct pgtable_debug_args *args) { }
+static void __init pte_devmap_tests(struct pgtable_debug_args *args)
+{
+}
+static void __init pmd_devmap_tests(struct pgtable_debug_args *args)
+{
+}
+static void __init pud_devmap_tests(struct pgtable_debug_args *args)
+{
+}
 #endif /* CONFIG_ARCH_HAS_PTE_DEVMAP */
 
 static void __init pte_soft_dirty_tests(struct pgtable_debug_args *args)
@@ -821,7 +872,7 @@ static void __init pmd_swap_soft_dirty_tests(struct pgtable_debug_args *args)
 	pmd_t pmd;
 
 	if (!IS_ENABLED(CONFIG_MEM_SOFT_DIRTY) ||
-		!IS_ENABLED(CONFIG_ARCH_ENABLE_THP_MIGRATION))
+	    !IS_ENABLED(CONFIG_ARCH_ENABLE_THP_MIGRATION))
 		return;
 
 	if (!has_transparent_hugepage())
@@ -832,9 +883,13 @@ static void __init pmd_swap_soft_dirty_tests(struct pgtable_debug_args *args)
 	WARN_ON(!pmd_swp_soft_dirty(pmd_swp_mksoft_dirty(pmd)));
 	WARN_ON(pmd_swp_soft_dirty(pmd_swp_clear_soft_dirty(pmd)));
 }
-#else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
-static void __init pmd_soft_dirty_tests(struct pgtable_debug_args *args) { }
-static void __init pmd_swap_soft_dirty_tests(struct pgtable_debug_args *args) { }
+#else /* !CONFIG_TRANSPARENT_HUGEPAGE */
+static void __init pmd_soft_dirty_tests(struct pgtable_debug_args *args)
+{
+}
+static void __init pmd_swap_soft_dirty_tests(struct pgtable_debug_args *args)
+{
+}
 #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 
 static void __init pte_swap_tests(struct pgtable_debug_args *args)
@@ -864,8 +919,10 @@ static void __init pmd_swap_tests(struct pgtable_debug_args *args)
 	pmd = __swp_entry_to_pmd(swp);
 	WARN_ON(args->fixed_pmd_pfn != pmd_pfn(pmd));
 }
-#else  /* !CONFIG_ARCH_ENABLE_THP_MIGRATION */
-static void __init pmd_swap_tests(struct pgtable_debug_args *args) { }
+#else /* !CONFIG_ARCH_ENABLE_THP_MIGRATION */
+static void __init pmd_swap_tests(struct pgtable_debug_args *args)
+{
+}
 #endif /* CONFIG_ARCH_ENABLE_THP_MIGRATION */
 
 static void __init swap_migration_tests(struct pgtable_debug_args *args)
@@ -932,8 +989,10 @@ static void __init hugetlb_basic_tests(struct pgtable_debug_args *args)
 	WARN_ON(!pte_huge(pte_mkhuge(pte)));
 #endif /* CONFIG_ARCH_WANT_GENERAL_HUGETLB */
 }
-#else  /* !CONFIG_HUGETLB_PAGE */
-static void __init hugetlb_basic_tests(struct pgtable_debug_args *args) { }
+#else /* !CONFIG_HUGETLB_PAGE */
+static void __init hugetlb_basic_tests(struct pgtable_debug_args *args)
+{
+}
 #endif /* CONFIG_HUGETLB_PAGE */
 
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
@@ -985,12 +1044,18 @@ static void __init pud_thp_tests(struct pgtable_debug_args *args)
 	 * WARN_ON(!pud_present(pud_mkinvalid(pud_mkhuge(pud))));
 	 */
 }
-#else  /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-static void __init pud_thp_tests(struct pgtable_debug_args *args) { }
+#else /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+static void __init pud_thp_tests(struct pgtable_debug_args *args)
+{
+}
 #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-#else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
-static void __init pmd_thp_tests(struct pgtable_debug_args *args) { }
-static void __init pud_thp_tests(struct pgtable_debug_args *args) { }
+#else /* !CONFIG_TRANSPARENT_HUGEPAGE */
+static void __init pmd_thp_tests(struct pgtable_debug_args *args)
+{
+}
+static void __init pud_thp_tests(struct pgtable_debug_args *args)
+{
+}
 #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 
 static unsigned long __init get_random_vaddr(void)
@@ -1012,11 +1077,11 @@ static void __init destroy_args(struct pgtable_debug_args *args)
 	/* Free (huge) page */
 	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
 	    IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD) &&
-	    has_transparent_hugepage() &&
-	    args->pud_pfn != ULONG_MAX) {
+	    has_transparent_hugepage() && args->pud_pfn != ULONG_MAX) {
 		if (args->is_contiguous_page) {
 			free_contig_range(args->pud_pfn,
-					  (1 << (HPAGE_PUD_SHIFT - PAGE_SHIFT)));
+					  (1
+					   << (HPAGE_PUD_SHIFT - PAGE_SHIFT)));
 		} else {
 			page = pfn_to_page(args->pud_pfn);
 			__free_pages(page, HPAGE_PUD_SHIFT - PAGE_SHIFT);
@@ -1028,10 +1093,10 @@ static void __init destroy_args(struct pgtable_debug_args *args)
 	}
 
 	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
-	    has_transparent_hugepage() &&
-	    args->pmd_pfn != ULONG_MAX) {
+	    has_transparent_hugepage() && args->pmd_pfn != ULONG_MAX) {
 		if (args->is_contiguous_page) {
-			free_contig_range(args->pmd_pfn, (1 << HPAGE_PMD_ORDER));
+			free_contig_range(args->pmd_pfn,
+					  (1 << HPAGE_PMD_ORDER));
 		} else {
 			page = pfn_to_page(args->pmd_pfn);
 			__free_pages(page, HPAGE_PMD_ORDER);
@@ -1075,7 +1140,7 @@ static void __init destroy_args(struct pgtable_debug_args *args)
 		mmdrop(args->mm);
 }
 
-static struct page * __init
+static struct page *__init
 debug_vm_pgtable_alloc_huge_page(struct pgtable_debug_args *args, int order)
 {
 	struct page *page = NULL;
@@ -1111,18 +1176,18 @@ static int __init init_args(struct pgtable_debug_args *args)
 	 * pxx_protnone_tests().
 	 */
 	memset(args, 0, sizeof(*args));
-	args->vaddr              = get_random_vaddr();
-	args->page_prot          = vm_get_page_prot(VMFLAGS);
-	args->page_prot_none     = protection_map[0];
+	args->vaddr = get_random_vaddr();
+	args->page_prot = vm_get_page_prot(VMFLAGS);
+	args->page_prot_none = protection_map[0];
 	args->is_contiguous_page = false;
-	args->pud_pfn            = ULONG_MAX;
-	args->pmd_pfn            = ULONG_MAX;
-	args->pte_pfn            = ULONG_MAX;
-	args->fixed_pgd_pfn      = ULONG_MAX;
-	args->fixed_p4d_pfn      = ULONG_MAX;
-	args->fixed_pud_pfn      = ULONG_MAX;
-	args->fixed_pmd_pfn      = ULONG_MAX;
-	args->fixed_pte_pfn      = ULONG_MAX;
+	args->pud_pfn = ULONG_MAX;
+	args->pmd_pfn = ULONG_MAX;
+	args->pte_pfn = ULONG_MAX;
+	args->fixed_pgd_pfn = ULONG_MAX;
+	args->fixed_p4d_pfn = ULONG_MAX;
+	args->fixed_pud_pfn = ULONG_MAX;
+	args->fixed_pmd_pfn = ULONG_MAX;
+	args->fixed_pte_pfn = ULONG_MAX;
 
 	/* Allocate mm and vma */
 	args->mm = mm_alloc();
@@ -1205,8 +1270,8 @@ static int __init init_args(struct pgtable_debug_args *args)
 	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
 	    IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD) &&
 	    has_transparent_hugepage()) {
-		page = debug_vm_pgtable_alloc_huge_page(args,
-				HPAGE_PUD_SHIFT - PAGE_SHIFT);
+		page = debug_vm_pgtable_alloc_huge_page(
+			args, HPAGE_PUD_SHIFT - PAGE_SHIFT);
 		if (page) {
 			args->pud_pfn = page_to_pfn(page);
 			args->pmd_pfn = args->pud_pfn;

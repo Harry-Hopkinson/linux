@@ -47,7 +47,8 @@ void set_fs_pwd(struct fs_struct *fs, const struct path *path)
 		path_put(&old_pwd);
 }
 
-static inline int replace_path(struct path *p, const struct path *old, const struct path *new)
+static inline int replace_path(struct path *p, const struct path *old,
+			       const struct path *new)
 {
 	if (likely(p->dentry != old->dentry || p->mnt != old->mnt))
 		return 0;
@@ -62,7 +63,8 @@ void chroot_fs_refs(const struct path *old_root, const struct path *new_root)
 	int count = 0;
 
 	read_lock(&tasklist_lock);
-	do_each_thread(g, p) {
+	do_each_thread(g, p)
+	{
 		task_lock(p);
 		fs = p->fs;
 		if (fs) {
@@ -79,7 +81,8 @@ void chroot_fs_refs(const struct path *old_root, const struct path *new_root)
 			spin_unlock(&fs->lock);
 		}
 		task_unlock(p);
-	} while_each_thread(g, p);
+	}
+	while_each_thread(g, p);
 	read_unlock(&tasklist_lock);
 	while (count--)
 		path_put(old_root);
@@ -161,8 +164,8 @@ EXPORT_SYMBOL(current_umask);
 
 /* to be mentioned only in INIT_TASK */
 struct fs_struct init_fs = {
-	.users		= 1,
-	.lock		= __SPIN_LOCK_UNLOCKED(init_fs.lock),
-	.seq		= SEQCNT_SPINLOCK_ZERO(init_fs.seq, &init_fs.lock),
-	.umask		= 0022,
+	.users = 1,
+	.lock = __SPIN_LOCK_UNLOCKED(init_fs.lock),
+	.seq = SEQCNT_SPINLOCK_ZERO(init_fs.seq, &init_fs.lock),
+	.umask = 0022,
 };

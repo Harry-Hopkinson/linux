@@ -27,13 +27,13 @@ bool current_is_single_threaded(void)
 
 	ret = false;
 	rcu_read_lock();
-	for_each_process(p) {
+	for_each_process (p) {
 		if (unlikely(p->flags & PF_KTHREAD))
 			continue;
 		if (unlikely(p == task->group_leader))
 			continue;
 
-		for_each_thread(p, t) {
+		for_each_thread (p, t) {
 			if (unlikely(t->mm == mm))
 				goto found;
 			if (likely(t->mm))

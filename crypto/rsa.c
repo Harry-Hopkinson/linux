@@ -161,7 +161,7 @@ static int rsa_set_pub_key(struct crypto_akcipher *tfm, const void *key,
 			   unsigned int keylen)
 {
 	struct rsa_mpi_key *mpi_key = akcipher_tfm_ctx(tfm);
-	struct rsa_key raw_key = {0};
+	struct rsa_key raw_key = { 0 };
 	int ret;
 
 	/* Free the old MPI key if any */
@@ -195,7 +195,7 @@ static int rsa_set_priv_key(struct crypto_akcipher *tfm, const void *key,
 			    unsigned int keylen)
 {
 	struct rsa_mpi_key *mpi_key = akcipher_tfm_ctx(tfm);
-	struct rsa_key raw_key = {0};
+	struct rsa_key raw_key = { 0 };
 	int ret;
 
 	/* Free the old MPI key if any */

@@ -27,8 +27,8 @@ static noinline void __init copy_user_test(void)
 		return;
 
 	usermem = (char __user *)vm_mmap(NULL, 0, PAGE_SIZE,
-			    PROT_READ | PROT_WRITE | PROT_EXEC,
-			    MAP_ANONYMOUS | MAP_PRIVATE, 0);
+					 PROT_READ | PROT_WRITE | PROT_EXEC,
+					 MAP_ANONYMOUS | MAP_PRIVATE, 0);
 	if (IS_ERR(usermem)) {
 		pr_err("Failed to allocate user memory\n");
 		kfree(kmem);
@@ -65,12 +65,12 @@ static noinline void __init copy_user_test(void)
 static struct kasan_rcu_info {
 	int i;
 	struct rcu_head rcu;
-} *global_rcu_ptr;
+} * global_rcu_ptr;
 
 static noinline void __init kasan_rcu_reclaim(struct rcu_head *rp)
 {
-	struct kasan_rcu_info *fp = container_of(rp,
-						struct kasan_rcu_info, rcu);
+	struct kasan_rcu_info *fp =
+		container_of(rp, struct kasan_rcu_info, rcu);
 
 	kfree(fp);
 	((volatile struct kasan_rcu_info *)fp)->i;

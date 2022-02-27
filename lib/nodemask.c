@@ -24,8 +24,8 @@ int node_random(const nodemask_t *maskp)
 
 	w = nodes_weight(*maskp);
 	if (w)
-		bit = bitmap_ord_to_pos(maskp->bits,
-			get_random_int() % w, MAX_NUMNODES);
+		bit = bitmap_ord_to_pos(maskp->bits, get_random_int() % w,
+					MAX_NUMNODES);
 	return bit;
 }
 #endif

@@ -33,27 +33,28 @@
 #include <unistd.h>
 
 #ifndef EM_AARCH64
-#define EM_AARCH64	183
-#define R_AARCH64_NONE		0
-#define R_AARCH64_ABS64	257
+#define EM_AARCH64 183
+#define R_AARCH64_NONE 0
+#define R_AARCH64_ABS64 257
 #endif
 
-#define R_ARM_PC24		1
-#define R_ARM_THM_CALL		10
-#define R_ARM_CALL		28
+#define R_ARM_PC24 1
+#define R_ARM_THM_CALL 10
+#define R_ARM_CALL 28
 
-#define R_AARCH64_CALL26	283
+#define R_AARCH64_CALL26 283
 
-static int fd_map;	/* File descriptor for file being modified. */
+static int fd_map; /* File descriptor for file being modified. */
 static int mmap_failed; /* Boolean flag. */
-static char gpfx;	/* prefix for global symbol name (sometimes '_') */
-static struct stat sb;	/* Remember .st_size, etc. */
-static const char *altmcount;	/* alternate mcount symbol name */
-static int warn_on_notrace_sect; /* warn when section has mcount not being recorded */
-static void *file_map;	/* pointer of the mapped file */
-static void *file_end;	/* pointer to the end of the mapped file */
+static char gpfx; /* prefix for global symbol name (sometimes '_') */
+static struct stat sb; /* Remember .st_size, etc. */
+static const char *altmcount; /* alternate mcount symbol name */
+static int
+	warn_on_notrace_sect; /* warn when section has mcount not being recorded */
+static void *file_map; /* pointer of the mapped file */
+static void *file_end; /* pointer to the end of the mapped file */
 static int file_updated; /* flag to state file was changed */
-static void *file_ptr;	/* current file pointer location */
+static void *file_ptr; /* current file pointer location */
 
 static void *file_append; /* added to the end of the file */
 static size_t file_append_size; /* how much is added to end of file */
@@ -136,7 +137,7 @@ static ssize_t uwrite(void const *const buf, size_t const count)
 	return count;
 }
 
-static void * umalloc(size_t size)
+static void *umalloc(size_t size)
 {
 	void *const addr = malloc(size);
 	if (addr == 0) {
@@ -184,7 +185,7 @@ static void *mmap_file(char const *fname)
 		fprintf(stderr, "not a regular file: %s\n", fname);
 		goto out;
 	}
-	file_map = mmap(0, sb.st_size, PROT_READ|PROT_WRITE, MAP_PRIVATE,
+	file_map = mmap(0, sb.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE,
 			fd_map, 0);
 	if (file_map == MAP_FAILED) {
 		mmap_failed = 1;
@@ -209,7 +210,6 @@ out:
 
 	return file_map;
 }
-
 
 static unsigned char ideal_nop5_x86_64[5] = { 0x0f, 0x1f, 0x44, 0x00, 0x00 };
 static unsigned char ideal_nop5_x86_32[5] = { 0x3e, 0x8d, 0x74, 0x26, 0x00 };
@@ -241,24 +241,32 @@ static int make_nop_x86(void *map, size_t const offset)
 	return 0;
 }
 
-static unsigned char ideal_nop4_arm_le[4] = { 0x00, 0x00, 0xa0, 0xe1 }; /* mov r0, r0 */
-static unsigned char ideal_nop4_arm_be[4] = { 0xe1, 0xa0, 0x00, 0x00 }; /* mov r0, r0 */
+static unsigned char ideal_nop4_arm_le[4] = { 0x00, 0x00, 0xa0,
+					      0xe1 }; /* mov r0, r0 */
+static unsigned char ideal_nop4_arm_be[4] = { 0xe1, 0xa0, 0x00,
+					      0x00 }; /* mov r0, r0 */
 static unsigned char *ideal_nop4_arm;
 
 static unsigned char bl_mcount_arm_le[4] = { 0xfe, 0xff, 0xff, 0xeb }; /* bl */
 static unsigned char bl_mcount_arm_be[4] = { 0xeb, 0xff, 0xff, 0xfe }; /* bl */
 static unsigned char *bl_mcount_arm;
 
-static unsigned char push_arm_le[4] = { 0x04, 0xe0, 0x2d, 0xe5 }; /* push {lr} */
-static unsigned char push_arm_be[4] = { 0xe5, 0x2d, 0xe0, 0x04 }; /* push {lr} */
+static unsigned char push_arm_le[4] = { 0x04, 0xe0, 0x2d,
+					0xe5 }; /* push {lr} */
+static unsigned char push_arm_be[4] = { 0xe5, 0x2d, 0xe0,
+					0x04 }; /* push {lr} */
 static unsigned char *push_arm;
 
 static unsigned char ideal_nop2_thumb_le[2] = { 0x00, 0xbf }; /* nop */
 static unsigned char ideal_nop2_thumb_be[2] = { 0xbf, 0x00 }; /* nop */
 static unsigned char *ideal_nop2_thumb;
 
-static unsigned char push_bl_mcount_thumb_le[6] = { 0x00, 0xb5, 0xff, 0xf7, 0xfe, 0xff }; /* push {lr}, bl */
-static unsigned char push_bl_mcount_thumb_be[6] = { 0xb5, 0x00, 0xf7, 0xff, 0xff, 0xfe }; /* push {lr}, bl */
+static unsigned char push_bl_mcount_thumb_le[6] = {
+	0x00, 0xb5, 0xff, 0xf7, 0xfe, 0xff
+}; /* push {lr}, bl */
+static unsigned char push_bl_mcount_thumb_be[6] = {
+	0xb5, 0x00, 0xf7, 0xff, 0xff, 0xfe
+}; /* push {lr}, bl */
 static unsigned char *push_bl_mcount_thumb;
 
 static int make_nop_arm(void *map, size_t const offset)
@@ -296,7 +304,7 @@ static int make_nop_arm(void *map, size_t const offset)
 	return 0;
 }
 
-static unsigned char ideal_nop4_arm64[4] = {0x1f, 0x20, 0x03, 0xd5};
+static unsigned char ideal_nop4_arm64[4] = { 0x1f, 0x20, 0x03, 0xd5 };
 static int make_nop_arm64(void *map, size_t const offset)
 {
 	uint32_t *ptr;
@@ -360,28 +368,28 @@ static int write_file(const char *fname)
 
 static uint64_t w8rev(uint64_t const x)
 {
-	return   ((0xff & (x >> (0 * 8))) << (7 * 8))
-	       | ((0xff & (x >> (1 * 8))) << (6 * 8))
-	       | ((0xff & (x >> (2 * 8))) << (5 * 8))
-	       | ((0xff & (x >> (3 * 8))) << (4 * 8))
-	       | ((0xff & (x >> (4 * 8))) << (3 * 8))
-	       | ((0xff & (x >> (5 * 8))) << (2 * 8))
-	       | ((0xff & (x >> (6 * 8))) << (1 * 8))
-	       | ((0xff & (x >> (7 * 8))) << (0 * 8));
+	return ((0xff & (x >> (0 * 8))) << (7 * 8)) |
+	       ((0xff & (x >> (1 * 8))) << (6 * 8)) |
+	       ((0xff & (x >> (2 * 8))) << (5 * 8)) |
+	       ((0xff & (x >> (3 * 8))) << (4 * 8)) |
+	       ((0xff & (x >> (4 * 8))) << (3 * 8)) |
+	       ((0xff & (x >> (5 * 8))) << (2 * 8)) |
+	       ((0xff & (x >> (6 * 8))) << (1 * 8)) |
+	       ((0xff & (x >> (7 * 8))) << (0 * 8));
 }
 
 static uint32_t w4rev(uint32_t const x)
 {
-	return   ((0xff & (x >> (0 * 8))) << (3 * 8))
-	       | ((0xff & (x >> (1 * 8))) << (2 * 8))
-	       | ((0xff & (x >> (2 * 8))) << (1 * 8))
-	       | ((0xff & (x >> (3 * 8))) << (0 * 8));
+	return ((0xff & (x >> (0 * 8))) << (3 * 8)) |
+	       ((0xff & (x >> (1 * 8))) << (2 * 8)) |
+	       ((0xff & (x >> (2 * 8))) << (1 * 8)) |
+	       ((0xff & (x >> (3 * 8))) << (0 * 8));
 }
 
 static uint32_t w2rev(uint16_t const x)
 {
-	return   ((0xff & (x >> (0 * 8))) << (1 * 8))
-	       | ((0xff & (x >> (1 * 8))) << (0 * 8));
+	return ((0xff & (x >> (0 * 8))) << (1 * 8)) |
+	       ((0xff & (x >> (1 * 8))) << (0 * 8));
 }
 
 static uint64_t w8nat(uint64_t const x)
@@ -406,18 +414,19 @@ static uint32_t (*w2)(uint16_t);
 /* Names of the sections that could contain calls to mcount. */
 static int is_mcounted_section_name(char const *const txtname)
 {
-	return strncmp(".text",          txtname, 5) == 0 ||
-		strcmp(".init.text",     txtname) == 0 ||
-		strcmp(".ref.text",      txtname) == 0 ||
-		strcmp(".sched.text",    txtname) == 0 ||
-		strcmp(".spinlock.text", txtname) == 0 ||
-		strcmp(".irqentry.text", txtname) == 0 ||
-		strcmp(".softirqentry.text", txtname) == 0 ||
-		strcmp(".kprobes.text", txtname) == 0 ||
-		strcmp(".cpuidle.text", txtname) == 0;
+	return strncmp(".text", txtname, 5) == 0 ||
+	       strcmp(".init.text", txtname) == 0 ||
+	       strcmp(".ref.text", txtname) == 0 ||
+	       strcmp(".sched.text", txtname) == 0 ||
+	       strcmp(".spinlock.text", txtname) == 0 ||
+	       strcmp(".irqentry.text", txtname) == 0 ||
+	       strcmp(".softirqentry.text", txtname) == 0 ||
+	       strcmp(".kprobes.text", txtname) == 0 ||
+	       strcmp(".cpuidle.text", txtname) == 0;
 }
 
-static char const *already_has_rel_mcount = "success"; /* our work here is done! */
+static char const *already_has_rel_mcount =
+	"success"; /* our work here is done! */
 
 /* 32 bit and 64 bit are very similar */
 #include "recordmcount.h"
@@ -449,16 +458,16 @@ static int arm64_is_fake_mcount(Elf64_Rel const *rp)
  * fails on MIPS64 because their <elf.h> already has it!
  */
 
-typedef uint8_t myElf64_Byte;		/* Type for a 8-bit quantity.  */
+typedef uint8_t myElf64_Byte; /* Type for a 8-bit quantity.  */
 
 union mips_r_info {
 	Elf64_Xword r_info;
 	struct {
-		Elf64_Word r_sym;		/* Symbol index.  */
-		myElf64_Byte r_ssym;		/* Special symbol.  */
-		myElf64_Byte r_type3;		/* Third relocation.  */
-		myElf64_Byte r_type2;		/* Second relocation.  */
-		myElf64_Byte r_type;		/* First relocation.  */
+		Elf64_Word r_sym; /* Symbol index.  */
+		myElf64_Byte r_ssym; /* Special symbol.  */
+		myElf64_Byte r_type3; /* Third relocation.  */
+		myElf64_Byte r_type2; /* Second relocation.  */
+		myElf64_Byte r_type; /* First relocation.  */
 	} r_mips;
 };
 
@@ -470,8 +479,8 @@ static uint64_t MIPS64_r_sym(Elf64_Rel const *rp)
 static void MIPS64_r_info(Elf64_Rel *const rp, unsigned sym, unsigned type)
 {
 	rp->r_info = ((union mips_r_info){
-		.r_mips = { .r_sym = w(sym), .r_type = type }
-	}).r_info;
+			      .r_mips = { .r_sym = w(sym), .r_type = type } })
+			     .r_info;
 }
 
 static int do_file(char const *const fname)
@@ -519,7 +528,7 @@ static int do_file(char const *const fname)
 		ideal_nop2_thumb = ideal_nop2_thumb_be;
 		push_bl_mcount_thumb = push_bl_mcount_thumb_be;
 		break;
-	}  /* end switch */
+	} /* end switch */
 	if (memcmp(ELFMAG, ehdr->e_ident, SELFMAG) != 0 ||
 	    w2(ehdr->e_type) != ET_REL ||
 	    ehdr->e_ident[EI_VERSION] != EV_CURRENT) {
@@ -556,13 +565,26 @@ static int do_file(char const *const fname)
 		ideal_nop = ideal_nop4_arm64;
 		is_fake_mcount64 = arm64_is_fake_mcount;
 		break;
-	case EM_IA_64:	reltype = R_IA64_IMM64; break;
-	case EM_MIPS:	/* reltype: e_class    */ break;
-	case EM_PPC:	reltype = R_PPC_ADDR32; break;
-	case EM_PPC64:	reltype = R_PPC64_ADDR64; break;
-	case EM_S390:	/* reltype: e_class    */ break;
-	case EM_SH:	reltype = R_SH_DIR32; gpfx = 0; break;
-	case EM_SPARCV9: reltype = R_SPARC_64; break;
+	case EM_IA_64:
+		reltype = R_IA64_IMM64;
+		break;
+	case EM_MIPS: /* reltype: e_class    */
+		break;
+	case EM_PPC:
+		reltype = R_PPC_ADDR32;
+		break;
+	case EM_PPC64:
+		reltype = R_PPC64_ADDR64;
+		break;
+	case EM_S390: /* reltype: e_class    */
+		break;
+	case EM_SH:
+		reltype = R_SH_DIR32;
+		gpfx = 0;
+		break;
+	case EM_SPARCV9:
+		reltype = R_SPARC_64;
+		break;
 	case EM_X86_64:
 		make_nop = make_nop_x86;
 		ideal_nop = ideal_nop5_x86_64;
@@ -571,7 +593,7 @@ static int do_file(char const *const fname)
 		mcount_adjust_64 = -1;
 		gpfx = 0;
 		break;
-	}  /* end switch */
+	} /* end switch */
 
 	switch (ehdr->e_ident[EI_CLASS]) {
 	default:
@@ -579,10 +601,10 @@ static int do_file(char const *const fname)
 			ehdr->e_ident[EI_CLASS], fname);
 		goto out;
 	case ELFCLASS32:
-		if (w2(ehdr->e_ehsize) != sizeof(Elf32_Ehdr)
-		||  w2(ehdr->e_shentsize) != sizeof(Elf32_Shdr)) {
-			fprintf(stderr,
-				"unrecognized ET_REL file: %s\n", fname);
+		if (w2(ehdr->e_ehsize) != sizeof(Elf32_Ehdr) ||
+		    w2(ehdr->e_shentsize) != sizeof(Elf32_Shdr)) {
+			fprintf(stderr, "unrecognized ET_REL file: %s\n",
+				fname);
 			goto out;
 		}
 		if (w2(ehdr->e_machine) == EM_MIPS) {
@@ -594,10 +616,10 @@ static int do_file(char const *const fname)
 		break;
 	case ELFCLASS64: {
 		Elf64_Ehdr *const ghdr = (Elf64_Ehdr *)ehdr;
-		if (w2(ghdr->e_ehsize) != sizeof(Elf64_Ehdr)
-		||  w2(ghdr->e_shentsize) != sizeof(Elf64_Shdr)) {
-			fprintf(stderr,
-				"unrecognized ET_REL file: %s\n", fname);
+		if (w2(ghdr->e_ehsize) != sizeof(Elf64_Ehdr) ||
+		    w2(ghdr->e_shentsize) != sizeof(Elf64_Shdr)) {
+			fprintf(stderr, "unrecognized ET_REL file: %s\n",
+				fname);
 			goto out;
 		}
 		if (w2(ghdr->e_machine) == EM_S390) {
@@ -614,7 +636,7 @@ static int do_file(char const *const fname)
 			goto out;
 		break;
 	}
-	}  /* end switch */
+	} /* end switch */
 
 	rc = write_file(fname);
 out:
@@ -627,7 +649,7 @@ int main(int argc, char *argv[])
 {
 	const char ftrace[] = "/ftrace.o";
 	int ftrace_size = sizeof(ftrace) - 1;
-	int n_error = 0;  /* gcc-4.3.0 false positive complaint */
+	int n_error = 0; /* gcc-4.3.0 false positive complaint */
 	int c;
 	int i;
 

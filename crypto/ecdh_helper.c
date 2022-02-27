@@ -34,10 +34,8 @@ int crypto_ecdh_encode_key(char *buf, unsigned int len,
 			   const struct ecdh *params)
 {
 	u8 *ptr = buf;
-	struct kpp_secret secret = {
-		.type = CRYPTO_KPP_SECRET_TYPE_ECDH,
-		.len = len
-	};
+	struct kpp_secret secret = { .type = CRYPTO_KPP_SECRET_TYPE_ECDH,
+				     .len = len };
 
 	if (unlikely(!buf))
 		return -EINVAL;
@@ -69,7 +67,8 @@ int crypto_ecdh_decode_key(const char *buf, unsigned int len,
 	if (unlikely(len < secret.len))
 		return -EINVAL;
 
-	ptr = ecdh_unpack_data(&params->key_size, ptr, sizeof(params->key_size));
+	ptr = ecdh_unpack_data(&params->key_size, ptr,
+			       sizeof(params->key_size));
 	if (secret.len != crypto_ecdh_key_len(params))
 		return -EINVAL;
 

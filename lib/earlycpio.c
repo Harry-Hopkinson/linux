@@ -56,10 +56,10 @@ enum cpio_fields {
  *              the match returned an empty filename string.
  */
 
-struct cpio_data find_cpio_data(const char *path, void *data,
-				size_t len,  long *nextoff)
+struct cpio_data find_cpio_data(const char *path, void *data, size_t len,
+				long *nextoff)
 {
-	const size_t cpio_header_len = 8*C_NFIELDS - 2;
+	const size_t cpio_header_len = 8 * C_NFIELDS - 2;
 	struct cpio_data cd = { NULL, 0, "" };
 	const char *p, *dptr, *nptr;
 	unsigned int ch[C_NFIELDS], *chp, v;
@@ -77,7 +77,7 @@ struct cpio_data find_cpio_data(const char *path, void *data,
 			continue;
 		}
 
-		j = 6;		/* The magic field is only 6 characters */
+		j = 6; /* The magic field is only 6 characters */
 		chp = ch;
 		for (i = C_NFIELDS; i; i--) {
 			v = 0;
@@ -100,7 +100,7 @@ struct cpio_data find_cpio_data(const char *path, void *data,
 				goto quit; /* Invalid hexadecimal */
 			}
 			*chp++ = v;
-			j = 8;	/* All other fields are 8 characters */
+			j = 8; /* All other fields are 8 characters */
 		}
 
 		if ((ch[C_MAGIC] - 0x070701) > 1)
@@ -117,14 +117,12 @@ struct cpio_data find_cpio_data(const char *path, void *data,
 		if ((ch[C_MODE] & 0170000) == 0100000 &&
 		    ch[C_NAMESIZE] >= mypathsize &&
 		    !memcmp(p, path, mypathsize)) {
-
 			if (nextoff)
 				*nextoff = (long)nptr - (long)data;
 
 			if (ch[C_NAMESIZE] - mypathsize >= MAX_CPIO_FILE_NAME) {
-				pr_warn(
-				"File %s exceeding MAX_CPIO_FILE_NAME [%d]\n",
-				p, MAX_CPIO_FILE_NAME);
+				pr_warn("File %s exceeding MAX_CPIO_FILE_NAME [%d]\n",
+					p, MAX_CPIO_FILE_NAME);
 			}
 			strlcpy(cd.name, p + mypathsize, MAX_CPIO_FILE_NAME);
 

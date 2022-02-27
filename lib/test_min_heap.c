@@ -29,9 +29,8 @@ static __init void swap_ints(void *lhs, void *rhs)
 	*(int *)rhs = temp;
 }
 
-static __init int pop_verify_heap(bool min_heap,
-				struct min_heap *heap,
-				const struct min_heap_callbacks *funcs)
+static __init int pop_verify_heap(bool min_heap, struct min_heap *heap,
+				  const struct min_heap_callbacks *funcs)
 {
 	int *values = heap->data;
 	int err = 0;
@@ -43,13 +42,13 @@ static __init int pop_verify_heap(bool min_heap,
 		if (min_heap) {
 			if (last > values[0]) {
 				pr_err("error: expected %d <= %d\n", last,
-					values[0]);
+				       values[0]);
 				err++;
 			}
 		} else {
 			if (last < values[0]) {
 				pr_err("error: expected %d >= %d\n", last,
-					values[0]);
+				       values[0]);
 				err++;
 			}
 		}
@@ -61,12 +60,12 @@ static __init int pop_verify_heap(bool min_heap,
 
 static __init int test_heapify_all(bool min_heap)
 {
-	int values[] = { 3, 1, 2, 4, 0x8000000, 0x7FFFFFF, 0,
+	int values[] = { 3,  1,	 2,  4,	 0x8000000, 0x7FFFFFF, 0,
 			 -3, -1, -2, -4, 0x8000000, 0x7FFFFFF };
 	struct min_heap heap = {
 		.data = values,
 		.nr = ARRAY_SIZE(values),
-		.size =  ARRAY_SIZE(values),
+		.size = ARRAY_SIZE(values),
 	};
 	struct min_heap_callbacks funcs = {
 		.elem_size = sizeof(int),
@@ -78,7 +77,6 @@ static __init int test_heapify_all(bool min_heap)
 	/* Test with known set of values. */
 	min_heapify_all(&heap, &funcs);
 	err = pop_verify_heap(min_heap, &heap, &funcs);
-
 
 	/* Test with randomly generated values. */
 	heap.nr = ARRAY_SIZE(values);
@@ -93,13 +91,13 @@ static __init int test_heapify_all(bool min_heap)
 
 static __init int test_heap_push(bool min_heap)
 {
-	const int data[] = { 3, 1, 2, 4, 0x80000000, 0x7FFFFFFF, 0,
+	const int data[] = { 3,	 1,  2,	 4,  0x80000000, 0x7FFFFFFF, 0,
 			     -3, -1, -2, -4, 0x80000000, 0x7FFFFFFF };
 	int values[ARRAY_SIZE(data)];
 	struct min_heap heap = {
 		.data = values,
 		.nr = 0,
-		.size =  ARRAY_SIZE(values),
+		.size = ARRAY_SIZE(values),
 	};
 	struct min_heap_callbacks funcs = {
 		.elem_size = sizeof(int),
@@ -126,13 +124,13 @@ static __init int test_heap_push(bool min_heap)
 
 static __init int test_heap_pop_push(bool min_heap)
 {
-	const int data[] = { 3, 1, 2, 4, 0x80000000, 0x7FFFFFFF, 0,
+	const int data[] = { 3,	 1,  2,	 4,  0x80000000, 0x7FFFFFFF, 0,
 			     -3, -1, -2, -4, 0x80000000, 0x7FFFFFFF };
 	int values[ARRAY_SIZE(data)];
 	struct min_heap heap = {
 		.data = values,
 		.nr = 0,
-		.size =  ARRAY_SIZE(values),
+		.size = ARRAY_SIZE(values),
 	};
 	struct min_heap_callbacks funcs = {
 		.elem_size = sizeof(int),

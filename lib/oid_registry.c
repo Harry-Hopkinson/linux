@@ -85,8 +85,7 @@ enum OID look_up_OID(const void *data, size_t datasize)
 			}
 		}
 		return oid;
-	next:
-		;
+	next:;
 	}
 
 	return OID__NR;
@@ -191,8 +190,7 @@ int sprint_OID(enum OID oid, char *buffer, size_t bufsize)
 	BUG_ON(oid >= OID__NR);
 
 	ret = sprint_oid(oid_data + oid_index[oid],
-			 oid_index[oid + 1] - oid_index[oid],
-			 buffer, bufsize);
+			 oid_index[oid + 1] - oid_index[oid], buffer, bufsize);
 	BUG_ON(ret == -EBADMSG);
 	return ret;
 }

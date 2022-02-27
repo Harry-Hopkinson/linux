@@ -29,7 +29,6 @@
 #include <net/netlink.h>
 #include <net/net_namespace.h>
 
-
 u64 uevent_seqnum;
 #ifdef CONFIG_UEVENT_HELPER
 char uevent_helper[UEVENT_HELPER_PATH_LEN] = CONFIG_UEVENT_HELPER_PATH;
@@ -49,26 +48,21 @@ static DEFINE_MUTEX(uevent_sock_mutex);
 
 /* the strings here must match the enum in include/linux/kobject.h */
 static const char *kobject_actions[] = {
-	[KOBJ_ADD] =		"add",
-	[KOBJ_REMOVE] =		"remove",
-	[KOBJ_CHANGE] =		"change",
-	[KOBJ_MOVE] =		"move",
-	[KOBJ_ONLINE] =		"online",
-	[KOBJ_OFFLINE] =	"offline",
-	[KOBJ_BIND] =		"bind",
-	[KOBJ_UNBIND] =		"unbind",
+	[KOBJ_ADD] = "add",	  [KOBJ_REMOVE] = "remove",
+	[KOBJ_CHANGE] = "change", [KOBJ_MOVE] = "move",
+	[KOBJ_ONLINE] = "online", [KOBJ_OFFLINE] = "offline",
+	[KOBJ_BIND] = "bind",	  [KOBJ_UNBIND] = "unbind",
 };
 
 static int kobject_action_type(const char *buf, size_t count,
-			       enum kobject_action *type,
-			       const char **args)
+			       enum kobject_action *type, const char **args)
 {
 	enum kobject_action action;
 	size_t count_first;
 	const char *args_start;
 	int ret = -EINVAL;
 
-	if (count && (buf[count-1] == '\n' || buf[count-1] == '\0'))
+	if (count && (buf[count - 1] == '\n' || buf[count - 1] == '\0'))
 		count--;
 
 	if (!count)
@@ -165,8 +159,8 @@ static int kobject_action_args(const char *buf, size_t count,
 		if (!next)
 			goto out;
 
-		if (add_uevent_var(env, "SYNTH_ARG_%.*s=%.*s",
-				   key_len, key, (int) (next - buf), buf))
+		if (add_uevent_var(env, "SYNTH_ARG_%.*s=%.*s", key_len, key,
+				   (int)(next - buf), buf))
 			goto out;
 	}
 
@@ -209,8 +203,7 @@ int kobject_synth_uevent(struct kobject *kobj, const char *buf, size_t count)
 		goto out;
 	}
 
-	r = kobject_action_args(action_args,
-				count - (action_args - buf), &env);
+	r = kobject_action_args(action_args, count - (action_args - buf), &env);
 	if (r == -EINVAL) {
 		msg = "incorrect uevent action arguments";
 		goto out;
@@ -224,9 +217,8 @@ int kobject_synth_uevent(struct kobject *kobj, const char *buf, size_t count)
 out:
 	if (r) {
 		devpath = kobject_get_path(kobj, GFP_KERNEL);
-		pr_warn("synth uevent: %s: %s\n",
-		       devpath ?: "unknown device",
-		       msg ?: "failed to send uevent");
+		pr_warn("synth uevent: %s: %s\n", devpath ?: "unknown device",
+			msg ?: "failed to send uevent");
 		kfree(devpath);
 	}
 	return r;
@@ -315,7 +307,7 @@ static int uevent_net_broadcast_untagged(struct kobj_uevent_env *env,
 	int retval = 0;
 
 	/* send netlink message */
-	list_for_each_entry(ue_sk, &uevent_sock_list, list) {
+	list_for_each_entry (ue_sk, &uevent_sock_list, list) {
 		struct sock *uevent_sock = ue_sk->sk;
 
 		if (!netlink_has_listeners(uevent_sock, 1))
@@ -474,8 +466,8 @@ int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
 	if (action == KOBJ_REMOVE)
 		kobj->state_remove_uevent_sent = 1;
 
-	pr_debug("kobject: '%s' (%p): %s\n",
-		 kobject_name(kobj), kobj, __func__);
+	pr_debug("kobject: '%s' (%p): %s\n", kobject_name(kobj), kobj,
+		 __func__);
 
 	/* search the kset we belong to */
 	top_kobj = kobj;
@@ -484,8 +476,8 @@ int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
 
 	if (!top_kobj->kset) {
 		pr_debug("kobject: '%s' (%p): %s: attempted to send uevent "
-			 "without kset!\n", kobject_name(kobj), kobj,
-			 __func__);
+			 "without kset!\n",
+			 kobject_name(kobj), kobj, __func__);
 		return -EINVAL;
 	}
 
@@ -495,8 +487,8 @@ int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
 	/* skip the event, if uevent_suppress is set*/
 	if (kobj->uevent_suppress) {
 		pr_debug("kobject: '%s' (%p): %s: uevent_suppress "
-				 "caused the event to drop!\n",
-				 kobject_name(kobj), kobj, __func__);
+			 "caused the event to drop!\n",
+			 kobject_name(kobj), kobj, __func__);
 		return 0;
 	}
 	/* skip the event, if the filter returns zero. */
@@ -515,8 +507,8 @@ int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
 		subsystem = kobject_name(&kset->kobj);
 	if (!subsystem) {
 		pr_debug("kobject: '%s' (%p): %s: unset subsystem caused the "
-			 "event to drop!\n", kobject_name(kobj), kobj,
-			 __func__);
+			 "event to drop!\n",
+			 kobject_name(kobj), kobj, __func__);
 		return 0;
 	}
 
@@ -557,8 +549,8 @@ int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
 		retval = uevent_ops->uevent(kobj, env);
 		if (retval) {
 			pr_debug("kobject: '%s' (%p): %s: uevent() returned "
-				 "%d\n", kobject_name(kobj), kobj,
-				 __func__, retval);
+				 "%d\n",
+				 kobject_name(kobj), kobj, __func__, retval);
 			goto exit;
 		}
 	}
@@ -590,8 +582,8 @@ int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
 		mutex_unlock(&uevent_sock_mutex);
 		goto exit;
 	}
-	retval = kobject_uevent_net_broadcast(kobj, env, action_string,
-					      devpath);
+	retval =
+		kobject_uevent_net_broadcast(kobj, env, action_string, devpath);
 	mutex_unlock(&uevent_sock_mutex);
 
 #ifdef CONFIG_UEVENT_HELPER
@@ -612,11 +604,11 @@ int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
 
 		retval = -ENOMEM;
 		info = call_usermodehelper_setup(env->argv[0], env->argv,
-						 env->envp, GFP_KERNEL,
-						 NULL, cleanup_uevent_env, env);
+						 env->envp, GFP_KERNEL, NULL,
+						 cleanup_uevent_env, env);
 		if (info) {
 			retval = call_usermodehelper_exec(info, UMH_NO_WAIT);
-			env = NULL;	/* freed by cleanup_uevent_env */
+			env = NULL; /* freed by cleanup_uevent_env */
 		}
 	}
 #endif
@@ -662,8 +654,7 @@ int add_uevent_var(struct kobj_uevent_env *env, const char *format, ...)
 	}
 
 	va_start(args, format);
-	len = vsnprintf(&env->buf[env->buflen],
-			sizeof(env->buf) - env->buflen,
+	len = vsnprintf(&env->buf[env->buflen], sizeof(env->buf) - env->buflen,
 			format, args);
 	va_end(args);
 
@@ -757,11 +748,9 @@ static void uevent_net_rcv(struct sk_buff *skb)
 static int uevent_net_init(struct net *net)
 {
 	struct uevent_sock *ue_sk;
-	struct netlink_kernel_cfg cfg = {
-		.groups	= 1,
-		.input = uevent_net_rcv,
-		.flags	= NL_CFG_F_NONROOT_RECV
-	};
+	struct netlink_kernel_cfg cfg = { .groups = 1,
+					  .input = uevent_net_rcv,
+					  .flags = NL_CFG_F_NONROOT_RECV };
 
 	ue_sk = kzalloc(sizeof(*ue_sk), GFP_KERNEL);
 	if (!ue_sk)
@@ -801,15 +790,14 @@ static void uevent_net_exit(struct net *net)
 }
 
 static struct pernet_operations uevent_net_ops = {
-	.init	= uevent_net_init,
-	.exit	= uevent_net_exit,
+	.init = uevent_net_init,
+	.exit = uevent_net_exit,
 };
 
 static int __init kobject_uevent_init(void)
 {
 	return register_pernet_subsys(&uevent_net_ops);
 }
-
 
 postcore_initcall(kobject_uevent_init);
 #endif

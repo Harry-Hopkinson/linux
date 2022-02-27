@@ -42,8 +42,8 @@ void __init sort_main_extable(void)
 }
 
 /* Given an address, look for it in the kernel exception table */
-const
-struct exception_table_entry *search_kernel_exception_table(unsigned long addr)
+const struct exception_table_entry *
+search_kernel_exception_table(unsigned long addr)
 {
 	return search_extable(__start___ex_table,
 			      __stop___ex_table - __start___ex_table, addr);
@@ -67,8 +67,7 @@ int notrace core_kernel_text(unsigned long addr)
 	if (is_kernel_text(addr))
 		return 1;
 
-	if (system_state < SYSTEM_FREEING_INITMEM &&
-	    is_kernel_inittext(addr))
+	if (system_state < SYSTEM_FREEING_INITMEM && is_kernel_inittext(addr))
 		return 1;
 	return 0;
 }
@@ -141,7 +140,7 @@ out:
 int func_ptr_is_kernel_text(void *ptr)
 {
 	unsigned long addr;
-	addr = (unsigned long) dereference_function_descriptor(ptr);
+	addr = (unsigned long)dereference_function_descriptor(ptr);
 	if (core_kernel_text(addr))
 		return 1;
 	return is_module_text_address(addr);

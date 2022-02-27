@@ -70,7 +70,7 @@ static struct bug_entry *module_find_bug(unsigned long bugaddr)
 	struct bug_entry *bug = NULL;
 
 	rcu_read_lock_sched();
-	list_for_each_entry_rcu(mod, &module_bug_list, bug_list) {
+	list_for_each_entry_rcu (mod, &module_bug_list, bug_list) {
 		unsigned i;
 
 		bug = mod->bug_table;
@@ -97,9 +97,9 @@ void module_bug_finalize(const Elf_Ehdr *hdr, const Elf_Shdr *sechdrs,
 	/* Find the __bug_table section, if present */
 	secstrings = (char *)hdr + sechdrs[hdr->e_shstrndx].sh_offset;
 	for (i = 1; i < hdr->e_shnum; i++) {
-		if (strcmp(secstrings+sechdrs[i].sh_name, "__bug_table"))
+		if (strcmp(secstrings + sechdrs[i].sh_name, "__bug_table"))
 			continue;
-		mod->bug_table = (void *) sechdrs[i].sh_addr;
+		mod->bug_table = (void *)sechdrs[i].sh_addr;
 		mod->num_bugs = sechdrs[i].sh_size / sizeof(struct bug_entry);
 		break;
 	}
@@ -224,7 +224,7 @@ void generic_bug_clear_once(void)
 	struct module *mod;
 
 	rcu_read_lock_sched();
-	list_for_each_entry_rcu(mod, &module_bug_list, bug_list)
+	list_for_each_entry_rcu (mod, &module_bug_list, bug_list)
 		clear_once_table(mod->bug_table,
 				 mod->bug_table + mod->num_bugs);
 	rcu_read_unlock_sched();

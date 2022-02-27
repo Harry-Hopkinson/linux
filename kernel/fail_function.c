@@ -84,7 +84,7 @@ static struct fei_attr *fei_attr_lookup(const char *sym)
 {
 	struct fei_attr *attr;
 
-	list_for_each_entry(attr, &fei_attr_list, list) {
+	list_for_each_entry (attr, &fei_attr_list, list) {
 		if (!strcmp(attr->kp.symbol_name, sym))
 			return attr;
 	}
@@ -96,7 +96,7 @@ static bool fei_attr_is_valid(struct fei_attr *_attr)
 {
 	struct fei_attr *attr;
 
-	list_for_each_entry(attr, &fei_attr_list, list) {
+	list_for_each_entry (attr, &fei_attr_list, list) {
 		if (attr == _attr)
 			return true;
 	}
@@ -122,8 +122,8 @@ static int fei_retval_set(void *data, u64 val)
 	}
 
 	if (attr->kp.addr) {
-		if (adjust_error_retval((unsigned long)attr->kp.addr,
-					val) != retv)
+		if (adjust_error_retval((unsigned long)attr->kp.addr, val) !=
+		    retv)
 			err = -EINVAL;
 	}
 	if (!err)
@@ -208,10 +208,10 @@ static int fei_seq_show(struct seq_file *m, void *v)
 }
 
 static const struct seq_operations fei_seq_ops = {
-	.start	= fei_seq_start,
-	.next	= fei_seq_next,
-	.stop	= fei_seq_stop,
-	.show	= fei_seq_show,
+	.start = fei_seq_start,
+	.next = fei_seq_next,
+	.stop = fei_seq_stop,
+	.show = fei_seq_show,
 };
 
 static int fei_open(struct inode *inode, struct file *file)
@@ -231,7 +231,7 @@ static void fei_attr_remove_all(void)
 {
 	struct fei_attr *attr, *n;
 
-	list_for_each_entry_safe(attr, n, &fei_attr_list, list) {
+	list_for_each_entry_safe (attr, n, &fei_attr_list, list) {
 		fei_attr_remove(attr);
 	}
 }
@@ -314,19 +314,18 @@ out_free:
 }
 
 static const struct file_operations fei_ops = {
-	.open =		fei_open,
-	.read =		seq_read,
-	.write =	fei_write,
-	.llseek =	seq_lseek,
-	.release =	seq_release,
+	.open = fei_open,
+	.read = seq_read,
+	.write = fei_write,
+	.llseek = seq_lseek,
+	.release = seq_release,
 };
 
 static int __init fei_debugfs_init(void)
 {
 	struct dentry *dir;
 
-	dir = fault_create_debugfs_attr("fail_function", NULL,
-					&fei_fault_attr);
+	dir = fault_create_debugfs_attr("fail_function", NULL, &fei_fault_attr);
 	if (IS_ERR(dir))
 		return PTR_ERR(dir);
 

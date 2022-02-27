@@ -26,7 +26,8 @@ MODULE_PARM_DESC(time_nsecs, "nanoseconds part of lockup time, default 0");
 
 static unsigned int cooldown_secs;
 module_param(cooldown_secs, uint, 0600);
-MODULE_PARM_DESC(cooldown_secs, "cooldown time between iterations in seconds, default 0");
+MODULE_PARM_DESC(cooldown_secs,
+		 "cooldown time between iterations in seconds, default 0");
 
 static unsigned int cooldown_nsecs;
 module_param(cooldown_nsecs, uint, 0600);
@@ -43,7 +44,9 @@ MODULE_PARM_DESC(all_cpus, "trigger lockup at all cpus at once");
 static int wait_state;
 static char *state = "R";
 module_param(state, charp, 0400);
-MODULE_PARM_DESC(state, "wait in 'R' running (default), 'D' uninterruptible, 'K' killable, 'S' interruptible state");
+MODULE_PARM_DESC(
+	state,
+	"wait in 'R' running (default), 'D' uninterruptible, 'K' killable, 'S' interruptible state");
 
 static bool use_hrtimer;
 module_param(use_hrtimer, bool, 0400);
@@ -63,15 +66,18 @@ MODULE_PARM_DESC(lock_single, "acquire locks only at one cpu");
 
 static bool reacquire_locks;
 module_param(reacquire_locks, bool, 0400);
-MODULE_PARM_DESC(reacquire_locks, "release and reacquire locks/irq/preempt between iterations");
+MODULE_PARM_DESC(reacquire_locks,
+		 "release and reacquire locks/irq/preempt between iterations");
 
 static bool touch_softlockup;
 module_param(touch_softlockup, bool, 0600);
-MODULE_PARM_DESC(touch_softlockup, "touch soft-lockup watchdog between iterations");
+MODULE_PARM_DESC(touch_softlockup,
+		 "touch soft-lockup watchdog between iterations");
 
 static bool touch_hardlockup;
 module_param(touch_hardlockup, bool, 0600);
-MODULE_PARM_DESC(touch_hardlockup, "touch hard-lockup watchdog between iterations");
+MODULE_PARM_DESC(touch_hardlockup,
+		 "touch hard-lockup watchdog between iterations");
 
 static bool call_cond_resched;
 module_param(call_cond_resched, bool, 0600);
@@ -83,7 +89,9 @@ MODULE_PARM_DESC(measure_lock_wait, "measure lock wait time");
 
 static unsigned long lock_wait_threshold = ULONG_MAX;
 module_param(lock_wait_threshold, ulong, 0400);
-MODULE_PARM_DESC(lock_wait_threshold, "print lock wait time longer than this in nanoseconds, default off");
+MODULE_PARM_DESC(
+	lock_wait_threshold,
+	"print lock wait time longer than this in nanoseconds, default off");
 
 static bool test_disable_irq;
 module_param_named(disable_irq, test_disable_irq, bool, 0400);
@@ -131,7 +139,8 @@ MODULE_PARM_DESC(alloc_pages_order, "page order to allocate");
 
 static gfp_t alloc_pages_gfp = GFP_KERNEL;
 module_param_unsafe(alloc_pages_gfp, uint, 0400);
-MODULE_PARM_DESC(alloc_pages_gfp, "allocate pages with this gfp_mask, default GFP_KERNEL");
+MODULE_PARM_DESC(alloc_pages_gfp,
+		 "allocate pages with this gfp_mask, default GFP_KERNEL");
 
 static bool alloc_pages_atomic;
 module_param(alloc_pages_atomic, bool, 0400);
@@ -139,7 +148,8 @@ MODULE_PARM_DESC(alloc_pages_atomic, "allocate pages with GFP_ATOMIC");
 
 static bool reallocate_pages;
 module_param(reallocate_pages, bool, 0400);
-MODULE_PARM_DESC(reallocate_pages, "free and allocate pages between iterations");
+MODULE_PARM_DESC(reallocate_pages,
+		 "free and allocate pages between iterations");
 
 struct file *test_file;
 static struct inode *test_inode;
@@ -219,8 +229,7 @@ static void test_lock(bool master, bool verbose)
 
 	if (lock_rwlock_ptr && master) {
 		if (verbose)
-			pr_notice("lock rwlock %ps\n",
-				  (void *)lock_rwlock_ptr);
+			pr_notice("lock rwlock %ps\n", (void *)lock_rwlock_ptr);
 		if (lock_read)
 			read_lock((rwlock_t *)lock_rwlock_ptr);
 		else
@@ -234,8 +243,8 @@ static void test_lock(bool master, bool verbose)
 		do {
 			if (cur_wait < max_wait)
 				break;
-			max_wait = atomic64_cmpxchg(&max_lock_wait,
-						    max_wait, cur_wait);
+			max_wait = atomic64_cmpxchg(&max_lock_wait, max_wait,
+						    cur_wait);
 		} while (max_wait != cur_wait);
 
 		if (cur_wait > lock_wait_threshold)
@@ -296,8 +305,7 @@ static void test_unlock(bool master, bool verbose)
 	if (lock_mutex_ptr && master) {
 		mutex_unlock((struct mutex *)lock_mutex_ptr);
 		if (verbose)
-			pr_notice("unlock mutex %ps\n",
-				  (void *)lock_mutex_ptr);
+			pr_notice("unlock mutex %ps\n", (void *)lock_mutex_ptr);
 	}
 }
 
@@ -320,7 +328,7 @@ static void test_free_pages(struct list_head *pages)
 {
 	struct page *page, *next;
 
-	list_for_each_entry_safe(page, next, pages, lru)
+	list_for_each_entry_safe (page, next, pages, lru)
 		__free_pages(page, alloc_pages_order);
 	INIT_LIST_HEAD(pages);
 }
@@ -359,7 +367,6 @@ static void test_lockup(bool master)
 	test_alloc_pages(&pages);
 
 	while (iter++ < iterations && !signal_pending(main_task)) {
-
 		if (iowait)
 			current->in_iowait = 1;
 
@@ -417,8 +424,7 @@ static bool test_kernel_ptr(unsigned long addr, int size)
 		return false;
 
 	/* should be at least readable kernel address */
-	if (access_ok(ptr, 1) ||
-	    access_ok(ptr + size - 1, 1) ||
+	if (access_ok(ptr, 1) || access_ok(ptr + size - 1, 1) ||
 	    get_kernel_nofault(buf, ptr) ||
 	    get_kernel_nofault(buf, ptr + size - 1)) {
 		pr_err("invalid kernel ptr: %#lx\n", addr);
@@ -491,18 +497,16 @@ static int __init test_lockup_init(void)
 		       offsetof(struct mutex, rtmutex.wait_lock.magic),
 		       SPINLOCK_MAGIC) ||
 	    test_magic(lock_rwsem_ptr,
-		       offsetof(struct rw_semaphore, rwbase.rtmutex.wait_lock.magic),
+		       offsetof(struct rw_semaphore,
+				rwbase.rtmutex.wait_lock.magic),
 		       SPINLOCK_MAGIC))
 		return -EINVAL;
 #else
-	if (test_magic(lock_spinlock_ptr,
-		       offsetof(spinlock_t, rlock.magic),
+	if (test_magic(lock_spinlock_ptr, offsetof(spinlock_t, rlock.magic),
 		       SPINLOCK_MAGIC) ||
-	    test_magic(lock_rwlock_ptr,
-		       offsetof(rwlock_t, magic),
+	    test_magic(lock_rwlock_ptr, offsetof(rwlock_t, magic),
 		       RWLOCK_MAGIC) ||
-	    test_magic(lock_mutex_ptr,
-		       offsetof(struct mutex, wait_lock.magic),
+	    test_magic(lock_mutex_ptr, offsetof(struct mutex, wait_lock.magic),
 		       SPINLOCK_MAGIC) ||
 	    test_magic(lock_rwsem_ptr,
 		       offsetof(struct rw_semaphore, wait_lock.magic),
@@ -528,12 +532,12 @@ static int __init test_lockup_init(void)
 	if (test_file_path[0]) {
 		test_file = filp_open(test_file_path, O_RDONLY, 0);
 		if (IS_ERR(test_file)) {
-			pr_err("failed to open %s: %ld\n", test_file_path, PTR_ERR(test_file));
+			pr_err("failed to open %s: %ld\n", test_file_path,
+			       PTR_ERR(test_file));
 			return PTR_ERR(test_file);
 		}
 		test_inode = file_inode(test_file);
-	} else if (test_lock_inode ||
-		   test_lock_mapping ||
+	} else if (test_lock_inode || test_lock_mapping ||
 		   test_lock_sb_umount) {
 		pr_err("no file to lock\n");
 		return -EINVAL;
@@ -543,25 +547,24 @@ static int __init test_lockup_init(void)
 		lock_rwsem_ptr = (unsigned long)&test_inode->i_rwsem;
 
 	if (test_lock_mapping && test_file && test_file->f_mapping)
-		lock_rwsem_ptr = (unsigned long)&test_file->f_mapping->i_mmap_rwsem;
+		lock_rwsem_ptr =
+			(unsigned long)&test_file->f_mapping->i_mmap_rwsem;
 
 	if (test_lock_sb_umount && test_inode)
 		lock_rwsem_ptr = (unsigned long)&test_inode->i_sb->s_umount;
 
-	pr_notice("START pid=%d time=%u +%u ns cooldown=%u +%u ns iterations=%u state=%s %s%s%s%s%s%s%s%s%s%s%s\n",
-		  main_task->pid, time_secs, time_nsecs,
-		  cooldown_secs, cooldown_nsecs, iterations, state,
-		  all_cpus ? "all_cpus " : "",
-		  iowait ? "iowait " : "",
-		  test_disable_irq ? "disable_irq " : "",
-		  disable_softirq ? "disable_softirq " : "",
-		  disable_preempt ? "disable_preempt " : "",
-		  lock_rcu ? "lock_rcu " : "",
-		  lock_read ? "lock_read " : "",
-		  touch_softlockup ? "touch_softlockup " : "",
-		  touch_hardlockup ? "touch_hardlockup " : "",
-		  call_cond_resched ? "call_cond_resched " : "",
-		  reacquire_locks ? "reacquire_locks " : "");
+	pr_notice(
+		"START pid=%d time=%u +%u ns cooldown=%u +%u ns iterations=%u state=%s %s%s%s%s%s%s%s%s%s%s%s\n",
+		main_task->pid, time_secs, time_nsecs, cooldown_secs,
+		cooldown_nsecs, iterations, state, all_cpus ? "all_cpus " : "",
+		iowait ? "iowait " : "", test_disable_irq ? "disable_irq " : "",
+		disable_softirq ? "disable_softirq " : "",
+		disable_preempt ? "disable_preempt " : "",
+		lock_rcu ? "lock_rcu " : "", lock_read ? "lock_read " : "",
+		touch_softlockup ? "touch_softlockup " : "",
+		touch_hardlockup ? "touch_hardlockup " : "",
+		call_cond_resched ? "call_cond_resched " : "",
+		reacquire_locks ? "reacquire_locks " : "");
 
 	if (alloc_pages_nr)
 		pr_notice("ALLOCATE PAGES nr=%u order=%u gfp=%pGg %s\n",
@@ -575,14 +578,14 @@ static int __init test_lockup_init(void)
 
 		preempt_disable();
 		master_cpu = smp_processor_id();
-		for_each_online_cpu(cpu) {
+		for_each_online_cpu (cpu) {
 			INIT_WORK(per_cpu_ptr(&test_works, cpu), test_work_fn);
 			queue_work_on(cpu, system_highpri_wq,
 				      per_cpu_ptr(&test_works, cpu));
 		}
 		preempt_enable();
 
-		for_each_online_cpu(cpu)
+		for_each_online_cpu (cpu)
 			flush_work(per_cpu_ptr(&test_works, cpu));
 
 		cpus_read_unlock();

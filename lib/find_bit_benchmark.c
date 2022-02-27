@@ -23,8 +23,8 @@
 #include <linux/printk.h>
 #include <linux/random.h>
 
-#define BITMAP_LEN	(4096UL * 8 * 10)
-#define SPARSE		500
+#define BITMAP_LEN (4096UL * 8 * 10)
+#define SPARSE 500
 
 static DECLARE_BITMAP(bitmap, BITMAP_LEN) __initdata;
 static DECLARE_BITMAP(bitmap2, BITMAP_LEN) __initdata;
@@ -49,7 +49,8 @@ static int __init test_find_first_bit(void *bitmap, unsigned long len)
 	return 0;
 }
 
-static int __init test_find_first_and_bit(void *bitmap, const void *bitmap2, unsigned long len)
+static int __init test_find_first_and_bit(void *bitmap, const void *bitmap2,
+					  unsigned long len)
 {
 	static DECLARE_BITMAP(cp, BITMAP_LEN) __initdata;
 	unsigned long i, cnt;
@@ -116,7 +117,7 @@ static int __init test_find_last_bit(const void *bitmap, unsigned long len)
 }
 
 static int __init test_find_next_and_bit(const void *bitmap,
-		const void *bitmap2, unsigned long len)
+					 const void *bitmap2, unsigned long len)
 {
 	unsigned long i, cnt;
 	ktime_t time;

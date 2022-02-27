@@ -50,7 +50,7 @@ struct test_sysctl_data {
 
 	char string_0001[65];
 
-#define SYSCTL_TEST_BITMAP_SIZE	65536
+#define SYSCTL_TEST_BITMAP_SIZE 65536
 	unsigned long *bitmap_0001;
 };
 
@@ -73,66 +73,67 @@ static struct test_sysctl_data test_data = {
 /* These are all under /proc/sys/debug/test_sysctl/ */
 static struct ctl_table test_table[] = {
 	{
-		.procname	= "int_0001",
-		.data		= &test_data.int_0001,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= &i_zero,
-		.extra2         = &i_one_hundred,
+		.procname = "int_0001",
+		.data = &test_data.int_0001,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_dointvec_minmax,
+		.extra1 = &i_zero,
+		.extra2 = &i_one_hundred,
 	},
 	{
-		.procname	= "int_0002",
-		.data		= &test_data.int_0002,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec,
+		.procname = "int_0002",
+		.data = &test_data.int_0002,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_dointvec,
 	},
 	{
-		.procname	= "int_0003",
-		.data		= &test_data.int_0003,
-		.maxlen		= sizeof(test_data.int_0003),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec,
+		.procname = "int_0003",
+		.data = &test_data.int_0003,
+		.maxlen = sizeof(test_data.int_0003),
+		.mode = 0644,
+		.proc_handler = proc_dointvec,
 	},
 	{
-		.procname	= "boot_int",
-		.data		= &test_data.boot_int,
-		.maxlen		= sizeof(test_data.boot_int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec,
-		.extra1		= SYSCTL_ZERO,
-		.extra2         = SYSCTL_ONE,
+		.procname = "boot_int",
+		.data = &test_data.boot_int,
+		.maxlen = sizeof(test_data.boot_int),
+		.mode = 0644,
+		.proc_handler = proc_dointvec,
+		.extra1 = SYSCTL_ZERO,
+		.extra2 = SYSCTL_ONE,
 	},
 	{
-		.procname	= "uint_0001",
-		.data		= &test_data.uint_0001,
-		.maxlen		= sizeof(unsigned int),
-		.mode		= 0644,
-		.proc_handler	= proc_douintvec,
+		.procname = "uint_0001",
+		.data = &test_data.uint_0001,
+		.maxlen = sizeof(unsigned int),
+		.mode = 0644,
+		.proc_handler = proc_douintvec,
 	},
 	{
-		.procname	= "string_0001",
-		.data		= &test_data.string_0001,
-		.maxlen		= sizeof(test_data.string_0001),
-		.mode		= 0644,
-		.proc_handler	= proc_dostring,
+		.procname = "string_0001",
+		.data = &test_data.string_0001,
+		.maxlen = sizeof(test_data.string_0001),
+		.mode = 0644,
+		.proc_handler = proc_dostring,
 	},
 	{
-		.procname	= "bitmap_0001",
-		.data		= &test_data.bitmap_0001,
-		.maxlen		= SYSCTL_TEST_BITMAP_SIZE,
-		.mode		= 0644,
-		.proc_handler	= proc_do_large_bitmap,
+		.procname = "bitmap_0001",
+		.data = &test_data.bitmap_0001,
+		.maxlen = SYSCTL_TEST_BITMAP_SIZE,
+		.mode = 0644,
+		.proc_handler = proc_do_large_bitmap,
 	},
-	{ }
+	{}
 };
 
 static struct ctl_table_header *test_sysctl_header;
 
 static int __init test_sysctl_init(void)
 {
-	test_data.bitmap_0001 = kzalloc(SYSCTL_TEST_BITMAP_SIZE/8, GFP_KERNEL);
+	test_data.bitmap_0001 =
+		kzalloc(SYSCTL_TEST_BITMAP_SIZE / 8, GFP_KERNEL);
 	if (!test_data.bitmap_0001)
 		return -ENOMEM;
 	test_sysctl_header = register_sysctl("debug/test_sysctl", test_table);

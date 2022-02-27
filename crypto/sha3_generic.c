@@ -24,9 +24,9 @@
  * whether to inline or not.
  */
 #ifdef CONFIG_64BIT
-#define SHA3_INLINE	inline
+#define SHA3_INLINE inline
 #else
-#define SHA3_INLINE	noinline
+#define SHA3_INLINE noinline
 #endif
 
 #define KECCAK_ROUNDS 24
@@ -65,86 +65,86 @@ static SHA3_INLINE void keccakf_round(u64 st[25])
 
 	/* Rho Pi */
 	tt = st[1];
-	st[ 1] = rol64(st[ 6] ^ t[1], 44);
-	st[ 6] = rol64(st[ 9] ^ t[4], 20);
-	st[ 9] = rol64(st[22] ^ t[2], 61);
+	st[1] = rol64(st[6] ^ t[1], 44);
+	st[6] = rol64(st[9] ^ t[4], 20);
+	st[9] = rol64(st[22] ^ t[2], 61);
 	st[22] = rol64(st[14] ^ t[4], 39);
 	st[14] = rol64(st[20] ^ t[0], 18);
-	st[20] = rol64(st[ 2] ^ t[2], 62);
-	st[ 2] = rol64(st[12] ^ t[2], 43);
+	st[20] = rol64(st[2] ^ t[2], 62);
+	st[2] = rol64(st[12] ^ t[2], 43);
 	st[12] = rol64(st[13] ^ t[3], 25);
-	st[13] = rol64(st[19] ^ t[4],  8);
+	st[13] = rol64(st[19] ^ t[4], 8);
 	st[19] = rol64(st[23] ^ t[3], 56);
 	st[23] = rol64(st[15] ^ t[0], 41);
-	st[15] = rol64(st[ 4] ^ t[4], 27);
-	st[ 4] = rol64(st[24] ^ t[4], 14);
-	st[24] = rol64(st[21] ^ t[1],  2);
-	st[21] = rol64(st[ 8] ^ t[3], 55);
-	st[ 8] = rol64(st[16] ^ t[1], 45);
-	st[16] = rol64(st[ 5] ^ t[0], 36);
-	st[ 5] = rol64(st[ 3] ^ t[3], 28);
-	st[ 3] = rol64(st[18] ^ t[3], 21);
+	st[15] = rol64(st[4] ^ t[4], 27);
+	st[4] = rol64(st[24] ^ t[4], 14);
+	st[24] = rol64(st[21] ^ t[1], 2);
+	st[21] = rol64(st[8] ^ t[3], 55);
+	st[8] = rol64(st[16] ^ t[1], 45);
+	st[16] = rol64(st[5] ^ t[0], 36);
+	st[5] = rol64(st[3] ^ t[3], 28);
+	st[3] = rol64(st[18] ^ t[3], 21);
 	st[18] = rol64(st[17] ^ t[2], 15);
 	st[17] = rol64(st[11] ^ t[1], 10);
-	st[11] = rol64(st[ 7] ^ t[2],  6);
-	st[ 7] = rol64(st[10] ^ t[0],  3);
-	st[10] = rol64(    tt ^ t[1],  1);
+	st[11] = rol64(st[7] ^ t[2], 6);
+	st[7] = rol64(st[10] ^ t[0], 3);
+	st[10] = rol64(tt ^ t[1], 1);
 
 	/* Chi */
-	bc[ 0] = ~st[ 1] & st[ 2];
-	bc[ 1] = ~st[ 2] & st[ 3];
-	bc[ 2] = ~st[ 3] & st[ 4];
-	bc[ 3] = ~st[ 4] & st[ 0];
-	bc[ 4] = ~st[ 0] & st[ 1];
-	st[ 0] ^= bc[ 0];
-	st[ 1] ^= bc[ 1];
-	st[ 2] ^= bc[ 2];
-	st[ 3] ^= bc[ 3];
-	st[ 4] ^= bc[ 4];
+	bc[0] = ~st[1] & st[2];
+	bc[1] = ~st[2] & st[3];
+	bc[2] = ~st[3] & st[4];
+	bc[3] = ~st[4] & st[0];
+	bc[4] = ~st[0] & st[1];
+	st[0] ^= bc[0];
+	st[1] ^= bc[1];
+	st[2] ^= bc[2];
+	st[3] ^= bc[3];
+	st[4] ^= bc[4];
 
-	bc[ 0] = ~st[ 6] & st[ 7];
-	bc[ 1] = ~st[ 7] & st[ 8];
-	bc[ 2] = ~st[ 8] & st[ 9];
-	bc[ 3] = ~st[ 9] & st[ 5];
-	bc[ 4] = ~st[ 5] & st[ 6];
-	st[ 5] ^= bc[ 0];
-	st[ 6] ^= bc[ 1];
-	st[ 7] ^= bc[ 2];
-	st[ 8] ^= bc[ 3];
-	st[ 9] ^= bc[ 4];
+	bc[0] = ~st[6] & st[7];
+	bc[1] = ~st[7] & st[8];
+	bc[2] = ~st[8] & st[9];
+	bc[3] = ~st[9] & st[5];
+	bc[4] = ~st[5] & st[6];
+	st[5] ^= bc[0];
+	st[6] ^= bc[1];
+	st[7] ^= bc[2];
+	st[8] ^= bc[3];
+	st[9] ^= bc[4];
 
-	bc[ 0] = ~st[11] & st[12];
-	bc[ 1] = ~st[12] & st[13];
-	bc[ 2] = ~st[13] & st[14];
-	bc[ 3] = ~st[14] & st[10];
-	bc[ 4] = ~st[10] & st[11];
-	st[10] ^= bc[ 0];
-	st[11] ^= bc[ 1];
-	st[12] ^= bc[ 2];
-	st[13] ^= bc[ 3];
-	st[14] ^= bc[ 4];
+	bc[0] = ~st[11] & st[12];
+	bc[1] = ~st[12] & st[13];
+	bc[2] = ~st[13] & st[14];
+	bc[3] = ~st[14] & st[10];
+	bc[4] = ~st[10] & st[11];
+	st[10] ^= bc[0];
+	st[11] ^= bc[1];
+	st[12] ^= bc[2];
+	st[13] ^= bc[3];
+	st[14] ^= bc[4];
 
-	bc[ 0] = ~st[16] & st[17];
-	bc[ 1] = ~st[17] & st[18];
-	bc[ 2] = ~st[18] & st[19];
-	bc[ 3] = ~st[19] & st[15];
-	bc[ 4] = ~st[15] & st[16];
-	st[15] ^= bc[ 0];
-	st[16] ^= bc[ 1];
-	st[17] ^= bc[ 2];
-	st[18] ^= bc[ 3];
-	st[19] ^= bc[ 4];
+	bc[0] = ~st[16] & st[17];
+	bc[1] = ~st[17] & st[18];
+	bc[2] = ~st[18] & st[19];
+	bc[3] = ~st[19] & st[15];
+	bc[4] = ~st[15] & st[16];
+	st[15] ^= bc[0];
+	st[16] ^= bc[1];
+	st[17] ^= bc[2];
+	st[18] ^= bc[3];
+	st[19] ^= bc[4];
 
-	bc[ 0] = ~st[21] & st[22];
-	bc[ 1] = ~st[22] & st[23];
-	bc[ 2] = ~st[23] & st[24];
-	bc[ 3] = ~st[24] & st[20];
-	bc[ 4] = ~st[20] & st[21];
-	st[20] ^= bc[ 0];
-	st[21] ^= bc[ 1];
-	st[22] ^= bc[ 2];
-	st[23] ^= bc[ 3];
-	st[24] ^= bc[ 4];
+	bc[0] = ~st[21] & st[22];
+	bc[1] = ~st[22] & st[23];
+	bc[2] = ~st[23] & st[24];
+	bc[3] = ~st[24] & st[20];
+	bc[4] = ~st[20] & st[21];
+	st[20] ^= bc[0];
+	st[21] ^= bc[1];
+	st[22] ^= bc[2];
+	st[23] ^= bc[3];
+	st[24] ^= bc[4];
 }
 
 static void keccakf(u64 st[25])
@@ -237,47 +237,52 @@ int crypto_sha3_final(struct shash_desc *desc, u8 *out)
 }
 EXPORT_SYMBOL(crypto_sha3_final);
 
-static struct shash_alg algs[] = { {
-	.digestsize		= SHA3_224_DIGEST_SIZE,
-	.init			= crypto_sha3_init,
-	.update			= crypto_sha3_update,
-	.final			= crypto_sha3_final,
-	.descsize		= sizeof(struct sha3_state),
-	.base.cra_name		= "sha3-224",
-	.base.cra_driver_name	= "sha3-224-generic",
-	.base.cra_blocksize	= SHA3_224_BLOCK_SIZE,
-	.base.cra_module	= THIS_MODULE,
-}, {
-	.digestsize		= SHA3_256_DIGEST_SIZE,
-	.init			= crypto_sha3_init,
-	.update			= crypto_sha3_update,
-	.final			= crypto_sha3_final,
-	.descsize		= sizeof(struct sha3_state),
-	.base.cra_name		= "sha3-256",
-	.base.cra_driver_name	= "sha3-256-generic",
-	.base.cra_blocksize	= SHA3_256_BLOCK_SIZE,
-	.base.cra_module	= THIS_MODULE,
-}, {
-	.digestsize		= SHA3_384_DIGEST_SIZE,
-	.init			= crypto_sha3_init,
-	.update			= crypto_sha3_update,
-	.final			= crypto_sha3_final,
-	.descsize		= sizeof(struct sha3_state),
-	.base.cra_name		= "sha3-384",
-	.base.cra_driver_name	= "sha3-384-generic",
-	.base.cra_blocksize	= SHA3_384_BLOCK_SIZE,
-	.base.cra_module	= THIS_MODULE,
-}, {
-	.digestsize		= SHA3_512_DIGEST_SIZE,
-	.init			= crypto_sha3_init,
-	.update			= crypto_sha3_update,
-	.final			= crypto_sha3_final,
-	.descsize		= sizeof(struct sha3_state),
-	.base.cra_name		= "sha3-512",
-	.base.cra_driver_name	= "sha3-512-generic",
-	.base.cra_blocksize	= SHA3_512_BLOCK_SIZE,
-	.base.cra_module	= THIS_MODULE,
-} };
+static struct shash_alg algs[] = {
+	{
+		.digestsize = SHA3_224_DIGEST_SIZE,
+		.init = crypto_sha3_init,
+		.update = crypto_sha3_update,
+		.final = crypto_sha3_final,
+		.descsize = sizeof(struct sha3_state),
+		.base.cra_name = "sha3-224",
+		.base.cra_driver_name = "sha3-224-generic",
+		.base.cra_blocksize = SHA3_224_BLOCK_SIZE,
+		.base.cra_module = THIS_MODULE,
+	},
+	{
+		.digestsize = SHA3_256_DIGEST_SIZE,
+		.init = crypto_sha3_init,
+		.update = crypto_sha3_update,
+		.final = crypto_sha3_final,
+		.descsize = sizeof(struct sha3_state),
+		.base.cra_name = "sha3-256",
+		.base.cra_driver_name = "sha3-256-generic",
+		.base.cra_blocksize = SHA3_256_BLOCK_SIZE,
+		.base.cra_module = THIS_MODULE,
+	},
+	{
+		.digestsize = SHA3_384_DIGEST_SIZE,
+		.init = crypto_sha3_init,
+		.update = crypto_sha3_update,
+		.final = crypto_sha3_final,
+		.descsize = sizeof(struct sha3_state),
+		.base.cra_name = "sha3-384",
+		.base.cra_driver_name = "sha3-384-generic",
+		.base.cra_blocksize = SHA3_384_BLOCK_SIZE,
+		.base.cra_module = THIS_MODULE,
+	},
+	{
+		.digestsize = SHA3_512_DIGEST_SIZE,
+		.init = crypto_sha3_init,
+		.update = crypto_sha3_update,
+		.final = crypto_sha3_final,
+		.descsize = sizeof(struct sha3_state),
+		.base.cra_name = "sha3-512",
+		.base.cra_driver_name = "sha3-512-generic",
+		.base.cra_blocksize = SHA3_512_BLOCK_SIZE,
+		.base.cra_module = THIS_MODULE,
+	}
+};
 
 static int __init sha3_generic_mod_init(void)
 {

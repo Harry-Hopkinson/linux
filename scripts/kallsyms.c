@@ -27,7 +27,7 @@
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 
-#define KSYM_NAME_LEN		128
+#define KSYM_NAME_LEN 128
 
 struct sym_entry {
 	unsigned long long addr;
@@ -45,15 +45,14 @@ struct addr_range {
 static unsigned long long _text;
 static unsigned long long relative_base;
 static struct addr_range text_ranges[] = {
-	{ "_stext",     "_etext"     },
+	{ "_stext", "_etext" },
 	{ "_sinittext", "_einittext" },
 };
-#define text_range_text     (&text_ranges[0])
+#define text_range_text (&text_ranges[0])
 #define text_range_inittext (&text_ranges[1])
 
-static struct addr_range percpu_range = {
-	"__per_cpu_start", "__per_cpu_end", -1ULL, 0
-};
+static struct addr_range percpu_range = { "__per_cpu_start", "__per_cpu_end",
+					  -1ULL, 0 };
 
 static struct sym_entry **table;
 static unsigned int table_size, table_cnt;
@@ -66,7 +65,6 @@ static int token_profit[0x10000];
 /* the table that holds the result of the compression */
 static unsigned char best_table[256][2];
 static unsigned char best_table_len[256];
-
 
 static void usage(void)
 {
@@ -83,7 +81,7 @@ static char *sym_name(const struct sym_entry *s)
 static bool is_ignored_symbol(const char *name, char type)
 {
 	/* Symbol names that exactly match to the following are ignored.*/
-	static const char * const ignored_symbols[] = {
+	static const char *const ignored_symbols[] = {
 		/*
 		 * Symbols which vary between passes. Passes 1 and 2 must have
 		 * identical symbol lists. The kallsyms_* symbols below are
@@ -91,52 +89,46 @@ static bool is_ignored_symbol(const char *name, char type)
 		 * when --all-symbols is specified so exclude them to get a
 		 * stable symbol list.
 		 */
-		"kallsyms_addresses",
-		"kallsyms_offsets",
-		"kallsyms_relative_base",
-		"kallsyms_num_syms",
-		"kallsyms_names",
-		"kallsyms_markers",
-		"kallsyms_token_table",
+		"kallsyms_addresses", "kallsyms_offsets",
+		"kallsyms_relative_base", "kallsyms_num_syms", "kallsyms_names",
+		"kallsyms_markers", "kallsyms_token_table",
 		"kallsyms_token_index",
 		/* Exclude linker generated symbols which vary between passes */
-		"_SDA_BASE_",		/* ppc */
-		"_SDA2_BASE_",		/* ppc */
+		"_SDA_BASE_", /* ppc */
+		"_SDA2_BASE_", /* ppc */
 		NULL
 	};
 
 	/* Symbol names that begin with the following are ignored.*/
-	static const char * const ignored_prefixes[] = {
-		"$",			/* local symbols for ARM, MIPS, etc. */
-		".LASANPC",		/* s390 kasan local symbols */
-		"__crc_",		/* modversions */
-		"__efistub_",		/* arm64 EFI stub namespace */
-		"__kvm_nvhe_",		/* arm64 non-VHE KVM namespace */
-		"__AArch64ADRPThunk_",	/* arm64 lld */
-		"__ARMV5PILongThunk_",	/* arm lld */
+	static const char *const ignored_prefixes[] = {
+		"$", /* local symbols for ARM, MIPS, etc. */
+		".LASANPC", /* s390 kasan local symbols */
+		"__crc_", /* modversions */
+		"__efistub_", /* arm64 EFI stub namespace */
+		"__kvm_nvhe_", /* arm64 non-VHE KVM namespace */
+		"__AArch64ADRPThunk_", /* arm64 lld */
+		"__ARMV5PILongThunk_", /* arm lld */
 		"__ARMV7PILongThunk_",
 		"__ThumbV7PILongThunk_",
-		"__LA25Thunk_",		/* mips lld */
+		"__LA25Thunk_", /* mips lld */
 		"__microLA25Thunk_",
 		NULL
 	};
 
 	/* Symbol names that end with the following are ignored.*/
-	static const char * const ignored_suffixes[] = {
-		"_from_arm",		/* arm */
-		"_from_thumb",		/* arm */
-		"_veneer",		/* arm */
-		NULL
-	};
+	static const char *const ignored_suffixes[] = { "_from_arm", /* arm */
+							"_from_thumb", /* arm */
+							"_veneer", /* arm */
+							NULL };
 
 	/* Symbol names that contain the following are ignored.*/
-	static const char * const ignored_matches[] = {
-		".long_branch.",	/* ppc stub */
-		".plt_branch.",		/* ppc stub */
+	static const char *const ignored_matches[] = {
+		".long_branch.", /* ppc stub */
+		".plt_branch.", /* ppc stub */
 		NULL
 	};
 
-	const char * const *p;
+	const char *const *p;
 
 	for (p = ignored_symbols; *p; p++)
 		if (!strcmp(name, *p))
@@ -168,8 +160,7 @@ static bool is_ignored_symbol(const char *name, char type)
 		/* Keep these useful absolute symbols */
 		if (strcmp(name, "__kernel_syscall_via_break") &&
 		    strcmp(name, "__kernel_syscall_via_epc") &&
-		    strcmp(name, "__kernel_sigtramp") &&
-		    strcmp(name, "__gp"))
+		    strcmp(name, "__kernel_sigtramp") && strcmp(name, "__gp"))
 			return true;
 	}
 
@@ -210,8 +201,9 @@ static struct sym_entry *read_symbol(FILE *in)
 		return NULL;
 	}
 	if (strlen(name) >= KSYM_NAME_LEN) {
-		fprintf(stderr, "Symbol %s too long for kallsyms (%zu >= %d).\n"
-				"Please increase KSYM_NAME_LEN both in kernel and kallsyms.c\n",
+		fprintf(stderr,
+			"Symbol %s too long for kallsyms (%zu >= %d).\n"
+			"Please increase KSYM_NAME_LEN both in kernel and kallsyms.c\n",
 			name, strlen(name), KSYM_NAME_LEN);
 		return NULL;
 	}
@@ -233,7 +225,8 @@ static struct sym_entry *read_symbol(FILE *in)
 
 	sym = malloc(sizeof(*sym) + len + 1);
 	if (!sym) {
-		fprintf(stderr, "kallsyms failure: "
+		fprintf(stderr,
+			"kallsyms failure: "
 			"unable to allocate required amount of memory\n");
 		exit(EXIT_FAILURE);
 	}
@@ -269,8 +262,8 @@ static int symbol_valid(const struct sym_entry *s)
 	/* if --all-symbols is not specified, then symbols outside the text
 	 * and inittext sections are discarded */
 	if (!all_symbols) {
-		if (symbol_in_range(s, text_ranges,
-				    ARRAY_SIZE(text_ranges)) == 0)
+		if (symbol_in_range(s, text_ranges, ARRAY_SIZE(text_ranges)) ==
+		    0)
 			return 0;
 		/* Corner case.  Discard any symbols with the same value as
 		 * _etext _einittext; they can move between pass 1 and 2 when
@@ -328,7 +321,7 @@ static void read_map(FILE *in)
 			table = realloc(table, sizeof(*table) * table_size);
 			if (!table) {
 				fprintf(stderr, "out of memory\n");
-				exit (1);
+				exit(1);
 			}
 		}
 
@@ -356,25 +349,26 @@ static void output_address(unsigned long long addr)
  * might still be compressed itself, so the function needs to be recursive */
 static int expand_symbol(const unsigned char *data, int len, char *result)
 {
-	int c, rlen, total=0;
+	int c, rlen, total = 0;
 
 	while (len) {
 		c = *data;
 		/* if the table holds a single char that is the same as the one
 		 * we are looking for, then end the search */
-		if (best_table[c][0]==c && best_table_len[c]==1) {
+		if (best_table[c][0] == c && best_table_len[c] == 1) {
 			*result++ = c;
 			total++;
 		} else {
 			/* if not, recurse and expand */
-			rlen = expand_symbol(best_table[c], best_table_len[c], result);
+			rlen = expand_symbol(best_table[c], best_table_len[c],
+					     result);
 			total += rlen;
 			result += rlen;
 		}
 		data++;
 		len--;
 	}
-	*result=0;
+	*result = 0;
 
 	return total;
 }
@@ -430,9 +424,11 @@ static void write_src(void)
 				overflow = (offset < INT_MIN || offset >= 0);
 			}
 			if (overflow) {
-				fprintf(stderr, "kallsyms failure: "
+				fprintf(stderr,
+					"kallsyms failure: "
 					"%s symbol value %#llx out of range in relative mode\n",
-					symbol_absolute(table[i]) ? "absolute" : "relative",
+					symbol_absolute(table[i]) ? "absolute" :
+								    "relative",
 					table[i]->addr);
 				exit(EXIT_FAILURE);
 			}
@@ -460,7 +456,7 @@ static void write_src(void)
 	markers = malloc(sizeof(unsigned int) * ((table_cnt + 255) / 256));
 	if (!markers) {
 		fprintf(stderr, "kallsyms failure: "
-			"unable to allocate required memory\n");
+				"unable to allocate required memory\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -502,7 +498,6 @@ static void write_src(void)
 	printf("\n");
 }
 
-
 /* table lookup compression functions */
 
 /* count all the possible tokens in a symbol */
@@ -511,7 +506,7 @@ static void learn_symbol(const unsigned char *symbol, int len)
 	int i;
 
 	for (i = 0; i < len - 1; i++)
-		token_profit[ symbol[i] + (symbol[i + 1] << 8) ]++;
+		token_profit[symbol[i] + (symbol[i + 1] << 8)]++;
 }
 
 /* decrease the count for all the possible tokens in a symbol */
@@ -520,7 +515,7 @@ static void forget_symbol(const unsigned char *symbol, int len)
 	int i;
 
 	for (i = 0; i < len - 1; i++)
-		token_profit[ symbol[i] + (symbol[i + 1] << 8) ]--;
+		token_profit[symbol[i] + (symbol[i + 1] << 8)]--;
 }
 
 /* do the initial token count */
@@ -538,7 +533,7 @@ static unsigned char *find_token(unsigned char *str, int len,
 	int i;
 
 	for (i = 0; i < len - 1; i++) {
-		if (str[i] == token[0] && str[i+1] == token[1])
+		if (str[i] == token[0] && str[i + 1] == token[1])
 			return &str[i];
 	}
 	return NULL;
@@ -552,13 +547,13 @@ static void compress_symbols(const unsigned char *str, int idx)
 	unsigned char *p1, *p2;
 
 	for (i = 0; i < table_cnt; i++) {
-
 		len = table[i]->len;
 		p1 = table[i]->sym;
 
 		/* find the token on the symbol */
 		p2 = find_token(p1, len, str);
-		if (!p2) continue;
+		if (!p2)
+			continue;
 
 		/* decrease the counts for this symbol's tokens */
 		forget_symbol(table[i]->sym, len);
@@ -573,7 +568,8 @@ static void compress_symbols(const unsigned char *str, int idx)
 			p1 = p2;
 			len--;
 
-			if (size < 2) break;
+			if (size < 2)
+				break;
 
 			/* find the token on the symbol */
 			p2 = find_token(p1, size, str);
@@ -592,7 +588,7 @@ static int find_best_token(void)
 {
 	int i, best, bestprofit;
 
-	bestprofit=-10000;
+	bestprofit = -10000;
 	best = 0;
 
 	for (i = 0; i < 0x10000; i++) {
@@ -612,11 +608,9 @@ static void optimize_result(void)
 	/* using the '\0' symbol last allows compress_symbols to use standard
 	 * fast string functions */
 	for (i = 255; i >= 0; i--) {
-
 		/* if this table slot is empty (it is not used by an actual
 		 * original char code */
 		if (!best_table_len[i]) {
-
 			/* find the token with the best profit value */
 			best = find_best_token();
 			if (token_profit[best] == 0)
@@ -641,8 +635,8 @@ static void insert_real_symbols_in_table(void)
 	for (i = 0; i < table_cnt; i++) {
 		for (j = 0; j < table[i]->len; j++) {
 			c = table[i]->sym[j];
-			best_table[c][0]=c;
-			best_table_len[c]=1;
+			best_table[c][0] = c;
+			best_table_len[c] = 1;
 		}
 	}
 }
@@ -767,7 +761,7 @@ int main(int argc, char **argv)
 	if (argc >= 2) {
 		int i;
 		for (i = 1; i < argc; i++) {
-			if(strcmp(argv[i], "--all-symbols") == 0)
+			if (strcmp(argv[i], "--all-symbols") == 0)
 				all_symbols = 1;
 			else if (strcmp(argv[i], "--absolute-percpu") == 0)
 				absolute_percpu = 1;

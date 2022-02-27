@@ -13,7 +13,6 @@
 #include <linux/string.h>
 #include <linux/types.h>
 
-
 struct michael_mic_ctx {
 	u32 l, r;
 };
@@ -30,19 +29,17 @@ static inline u32 xswap(u32 val)
 	return ((val & 0x00ff00ff) << 8) | ((val & 0xff00ff00) >> 8);
 }
 
-
-#define michael_block(l, r)	\
-do {				\
-	r ^= rol32(l, 17);	\
-	l += r;			\
-	r ^= xswap(l);		\
-	l += r;			\
-	r ^= rol32(l, 3);	\
-	l += r;			\
-	r ^= ror32(l, 2);	\
-	l += r;			\
-} while (0)
-
+#define michael_block(l, r)                                                    \
+	do {                                                                   \
+		r ^= rol32(l, 17);                                             \
+		l += r;                                                        \
+		r ^= xswap(l);                                                 \
+		l += r;                                                        \
+		r ^= rol32(l, 3);                                              \
+		l += r;                                                        \
+		r ^= ror32(l, 2);                                              \
+		l += r;                                                        \
+	} while (0)
 
 static int michael_init(struct shash_desc *desc)
 {
@@ -55,9 +52,8 @@ static int michael_init(struct shash_desc *desc)
 	return 0;
 }
 
-
 static int michael_update(struct shash_desc *desc, const u8 *data,
-			   unsigned int len)
+			  unsigned int len)
 {
 	struct michael_mic_desc_ctx *mctx = shash_desc_ctx(desc);
 
@@ -93,7 +89,6 @@ static int michael_update(struct shash_desc *desc, const u8 *data,
 	return 0;
 }
 
-
 static int michael_final(struct shash_desc *desc, u8 *out)
 {
 	struct michael_mic_desc_ctx *mctx = shash_desc_ctx(desc);
@@ -111,8 +106,8 @@ static int michael_final(struct shash_desc *desc, u8 *out)
 		mctx->l ^= data[0] | (data[1] << 8) | 0x5a0000;
 		break;
 	case 3:
-		mctx->l ^= data[0] | (data[1] << 8) | (data[2] << 16) |
-			0x5a000000;
+		mctx->l ^=
+			data[0] | (data[1] << 8) | (data[2] << 16) | 0x5a000000;
 		break;
 	}
 	michael_block(mctx->l, mctx->r);
@@ -124,7 +119,6 @@ static int michael_final(struct shash_desc *desc, u8 *out)
 
 	return 0;
 }
-
 
 static int michael_setkey(struct crypto_shash *tfm, const u8 *key,
 			  unsigned int keylen)
@@ -139,33 +133,31 @@ static int michael_setkey(struct crypto_shash *tfm, const u8 *key,
 	return 0;
 }
 
-static struct shash_alg alg = {
-	.digestsize		=	8,
-	.setkey			=	michael_setkey,
-	.init			=	michael_init,
-	.update			=	michael_update,
-	.final			=	michael_final,
-	.descsize		=	sizeof(struct michael_mic_desc_ctx),
-	.base			=	{
-		.cra_name		=	"michael_mic",
-		.cra_driver_name	=	"michael_mic-generic",
-		.cra_blocksize		=	8,
-		.cra_ctxsize		=	sizeof(struct michael_mic_ctx),
-		.cra_module		=	THIS_MODULE,
-	}
-};
+static struct shash_alg alg = { .digestsize = 8,
+				.setkey = michael_setkey,
+				.init = michael_init,
+				.update = michael_update,
+				.final = michael_final,
+				.descsize = sizeof(struct michael_mic_desc_ctx),
+				.base = {
+					.cra_name = "michael_mic",
+					.cra_driver_name =
+						"michael_mic-generic",
+					.cra_blocksize = 8,
+					.cra_ctxsize =
+						sizeof(struct michael_mic_ctx),
+					.cra_module = THIS_MODULE,
+				} };
 
 static int __init michael_mic_init(void)
 {
 	return crypto_register_shash(&alg);
 }
 
-
 static void __exit michael_mic_exit(void)
 {
 	crypto_unregister_shash(&alg);
 }
-
 
 subsys_initcall(michael_mic_init);
 module_exit(michael_mic_exit);

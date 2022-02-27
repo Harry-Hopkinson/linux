@@ -39,14 +39,16 @@
 #define STACK_ALLOC_ORDER 2 /* 'Slab' size order for stack depot, 4 pages */
 #define STACK_ALLOC_SIZE (1LL << (PAGE_SHIFT + STACK_ALLOC_ORDER))
 #define STACK_ALLOC_ALIGN 4
-#define STACK_ALLOC_OFFSET_BITS (STACK_ALLOC_ORDER + PAGE_SHIFT - \
-					STACK_ALLOC_ALIGN)
-#define STACK_ALLOC_INDEX_BITS (DEPOT_STACK_BITS - \
-		STACK_ALLOC_NULL_PROTECTION_BITS - STACK_ALLOC_OFFSET_BITS)
+#define STACK_ALLOC_OFFSET_BITS                                                \
+	(STACK_ALLOC_ORDER + PAGE_SHIFT - STACK_ALLOC_ALIGN)
+#define STACK_ALLOC_INDEX_BITS                                                 \
+	(DEPOT_STACK_BITS - STACK_ALLOC_NULL_PROTECTION_BITS -                 \
+	 STACK_ALLOC_OFFSET_BITS)
 #define STACK_ALLOC_SLABS_CAP 8192
-#define STACK_ALLOC_MAX_SLABS \
-	(((1LL << (STACK_ALLOC_INDEX_BITS)) < STACK_ALLOC_SLABS_CAP) ? \
-	 (1LL << (STACK_ALLOC_INDEX_BITS)) : STACK_ALLOC_SLABS_CAP)
+#define STACK_ALLOC_MAX_SLABS                                                  \
+	(((1LL << (STACK_ALLOC_INDEX_BITS)) < STACK_ALLOC_SLABS_CAP) ?         \
+		 (1LL << (STACK_ALLOC_INDEX_BITS)) :                           \
+		 STACK_ALLOC_SLABS_CAP)
 
 /* The compact structure to store the reference to stacks. */
 union handle_parts {
@@ -59,11 +61,11 @@ union handle_parts {
 };
 
 struct stack_record {
-	struct stack_record *next;	/* Link in the hashtable */
-	u32 hash;			/* Hash in the hastable */
-	u32 size;			/* Number of frames in the stack */
+	struct stack_record *next; /* Link in the hashtable */
+	u32 hash; /* Hash in the hastable */
+	u32 size; /* Number of frames in the stack */
 	union handle_parts handle;
-	unsigned long entries[];	/* Variable-sized array of entries. */
+	unsigned long entries[]; /* Variable-sized array of entries. */
 };
 
 static void *stack_slabs[STACK_ALLOC_MAX_SLABS];
@@ -102,8 +104,8 @@ static bool init_stack_slab(void **prealloc)
 }
 
 /* Allocation of a new stack in raw storage */
-static struct stack_record *
-depot_alloc_stack(unsigned long *entries, int size, u32 hash, void **prealloc)
+static struct stack_record *depot_alloc_stack(unsigned long *entries, int size,
+					      u32 hash, void **prealloc)
 {
 	struct stack_record *stack;
 	size_t required_size = struct_size(stack, entries, size);
@@ -183,7 +185,7 @@ __ref int stack_depot_init(void)
 			stack_table = memblock_alloc(size, SMP_CACHE_BYTES);
 		}
 		if (stack_table) {
-			for (i = 0; i < STACK_HASH_SIZE;  i++)
+			for (i = 0; i < STACK_HASH_SIZE; i++)
 				stack_table[i] = NULL;
 		} else {
 			pr_err("Stack Depot hash table allocation failed, disabling\n");
@@ -201,7 +203,7 @@ EXPORT_SYMBOL_GPL(stack_depot_init);
 static inline u32 hash_stack(unsigned long *entries, unsigned int size)
 {
 	return jhash2((u32 *)entries,
-		      array_size(size,  sizeof(*entries)) / sizeof(u32),
+		      array_size(size, sizeof(*entries)) / sizeof(u32),
 		      STACK_HASH_SEED);
 }
 
@@ -209,11 +211,10 @@ static inline u32 hash_stack(unsigned long *entries, unsigned int size)
  *
  * We actually don't care about the order, just the equality.
  */
-static inline
-int stackdepot_memcmp(const unsigned long *u1, const unsigned long *u2,
-			unsigned int n)
+static inline int stackdepot_memcmp(const unsigned long *u1,
+				    const unsigned long *u2, unsigned int n)
 {
-	for ( ; n-- ; u1++, u2++) {
+	for (; n--; u1++, u2++) {
 		if (*u1 != *u2)
 			return 1;
 	}
@@ -222,14 +223,13 @@ int stackdepot_memcmp(const unsigned long *u1, const unsigned long *u2,
 
 /* Find a stack that is equal to the one stored in entries in the hash */
 static inline struct stack_record *find_stack(struct stack_record *bucket,
-					     unsigned long *entries, int size,
-					     u32 hash)
+					      unsigned long *entries, int size,
+					      u32 hash)
 {
 	struct stack_record *found;
 
 	for (found = bucket; found; found = found->next) {
-		if (found->hash == hash &&
-		    found->size == size &&
+		if (found->hash == hash && found->size == size &&
 		    !stackdepot_memcmp(entries, found->entries, size))
 			return found;
 	}
@@ -250,14 +250,15 @@ static inline struct stack_record *find_stack(struct stack_record *bucket,
  * Return:	Number of bytes printed.
  */
 int stack_depot_snprint(depot_stack_handle_t handle, char *buf, size_t size,
-		       int spaces)
+			int spaces)
 {
 	unsigned long *entries;
 	unsigned int nr_entries;
 
 	nr_entries = stack_depot_fetch(handle, &entries);
 	return nr_entries ? stack_trace_snprint(buf, size, entries, nr_entries,
-						spaces) : 0;
+						spaces) :
+			    0;
 }
 EXPORT_SYMBOL_GPL(stack_depot_snprint);
 
@@ -302,7 +303,7 @@ unsigned int stack_depot_fetch(depot_stack_handle_t handle,
 
 	if (parts.slabindex > depot_index) {
 		WARN(1, "slab index %d out of bounds (%d) for stack id %08x\n",
-			parts.slabindex, depot_index, handle);
+		     parts.slabindex, depot_index, handle);
 		return 0;
 	}
 	slab = stack_slabs[parts.slabindex];
@@ -370,8 +371,7 @@ depot_stack_handle_t __stack_depot_save(unsigned long *entries,
 	 * The smp_load_acquire() here pairs with smp_store_release() to
 	 * |bucket| below.
 	 */
-	found = find_stack(smp_load_acquire(bucket), entries,
-			   nr_entries, hash);
+	found = find_stack(smp_load_acquire(bucket), entries, nr_entries, hash);
 	if (found)
 		goto exit;
 
@@ -401,7 +401,8 @@ depot_stack_handle_t __stack_depot_save(unsigned long *entries,
 
 	found = find_stack(*bucket, entries, nr_entries, hash);
 	if (!found) {
-		struct stack_record *new = depot_alloc_stack(entries, nr_entries, hash, &prealloc);
+		struct stack_record *new =
+			depot_alloc_stack(entries, nr_entries, hash, &prealloc);
 
 		if (new) {
 			new->next = *bucket;

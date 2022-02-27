@@ -5,7 +5,6 @@
  * Copyright (c) 2015 Sasha Levin <sasha.levin@oracle.com>
  */
 
-
 #include <linux/debugfs.h>
 #include <linux/cma.h>
 #include <linux/list.h>
@@ -109,14 +108,14 @@ static int cma_free_mem(struct cma *cma, int count)
 			count = 0;
 			cma_add_to_cma_mem_list(cma, mem);
 		} else {
-			pr_debug("cma: cannot release partial block when order_per_bit != 0\n");
+			pr_debug(
+				"cma: cannot release partial block when order_per_bit != 0\n");
 			cma_add_to_cma_mem_list(cma, mem);
 			break;
 		}
 	}
 
 	return 0;
-
 }
 
 static int cma_free_write(void *data, u64 val)
@@ -171,11 +170,11 @@ static void cma_debugfs_add_one(struct cma *cma, struct dentry *root_dentry)
 
 	debugfs_create_file("alloc", 0200, tmp, cma, &cma_alloc_fops);
 	debugfs_create_file("free", 0200, tmp, cma, &cma_free_fops);
-	debugfs_create_file("base_pfn", 0444, tmp,
-			    &cma->base_pfn, &cma_debugfs_fops);
+	debugfs_create_file("base_pfn", 0444, tmp, &cma->base_pfn,
+			    &cma_debugfs_fops);
 	debugfs_create_file("count", 0444, tmp, &cma->count, &cma_debugfs_fops);
-	debugfs_create_file("order_per_bit", 0444, tmp,
-			    &cma->order_per_bit, &cma_debugfs_fops);
+	debugfs_create_file("order_per_bit", 0444, tmp, &cma->order_per_bit,
+			    &cma_debugfs_fops);
 	debugfs_create_file("used", 0444, tmp, cma, &cma_used_fops);
 	debugfs_create_file("maxchunk", 0444, tmp, cma, &cma_maxchunk_fops);
 

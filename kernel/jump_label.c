@@ -67,17 +67,17 @@ static void jump_label_swap(void *a, void *b, int size)
 	struct jump_entry *jeb = b;
 	struct jump_entry tmp = *jea;
 
-	jea->code	= jeb->code - delta;
-	jea->target	= jeb->target - delta;
-	jea->key	= jeb->key - delta;
+	jea->code = jeb->code - delta;
+	jea->target = jeb->target - delta;
+	jea->key = jeb->key - delta;
 
-	jeb->code	= tmp.code + delta;
-	jeb->target	= tmp.target + delta;
-	jeb->key	= tmp.key + delta;
+	jeb->code = tmp.code + delta;
+	jeb->target = tmp.target + delta;
+	jeb->key = tmp.key + delta;
 }
 
-static void
-jump_label_sort_entries(struct jump_entry *start, struct jump_entry *stop)
+static void jump_label_sort_entries(struct jump_entry *start,
+				    struct jump_entry *stop)
 {
 	unsigned long size;
 	void *swapfn = NULL;
@@ -85,8 +85,8 @@ jump_label_sort_entries(struct jump_entry *start, struct jump_entry *stop)
 	if (IS_ENABLED(CONFIG_HAVE_ARCH_JUMP_LABEL_RELATIVE))
 		swapfn = jump_label_swap;
 
-	size = (((unsigned long)stop - (unsigned long)start)
-					/ sizeof(struct jump_entry));
+	size = (((unsigned long)stop - (unsigned long)start) /
+		sizeof(struct jump_entry));
 	sort(start, size, sizeof(struct jump_entry), jump_label_cmp, swapfn);
 }
 
@@ -297,8 +297,7 @@ void __static_key_deferred_flush(void *key, struct delayed_work *work)
 }
 EXPORT_SYMBOL_GPL(__static_key_deferred_flush);
 
-void jump_label_rate_limit(struct static_key_deferred *key,
-		unsigned long rl)
+void jump_label_rate_limit(struct static_key_deferred *key, unsigned long rl)
 {
 	STATIC_KEY_CHECK_USE(key);
 	key->timeout = rl;
@@ -309,14 +308,16 @@ EXPORT_SYMBOL_GPL(jump_label_rate_limit);
 static int addr_conflict(struct jump_entry *entry, void *start, void *end)
 {
 	if (jump_entry_code(entry) <= (unsigned long)end &&
-	    jump_entry_code(entry) + jump_entry_size(entry) > (unsigned long)start)
+	    jump_entry_code(entry) + jump_entry_size(entry) >
+		    (unsigned long)start)
 		return 1;
 
 	return 0;
 }
 
 static int __jump_label_text_reserved(struct jump_entry *iter_start,
-		struct jump_entry *iter_stop, void *start, void *end, bool init)
+				      struct jump_entry *iter_stop, void *start,
+				      void *end, bool init)
 {
 	struct jump_entry *iter;
 
@@ -338,8 +339,8 @@ static int __jump_label_text_reserved(struct jump_entry *iter_start,
  * running code can override this to make the non-live update case
  * cheaper.
  */
-void __weak __init_or_module arch_jump_label_transform_static(struct jump_entry *entry,
-					    enum jump_label_type type)
+void __weak __init_or_module arch_jump_label_transform_static(
+	struct jump_entry *entry, enum jump_label_type type)
 {
 	arch_jump_label_transform(entry, type);
 }
@@ -429,31 +430,31 @@ static bool jump_label_can_update(struct jump_entry *entry, bool init)
 #ifndef HAVE_JUMP_LABEL_BATCH
 static void __jump_label_update(struct static_key *key,
 				struct jump_entry *entry,
-				struct jump_entry *stop,
-				bool init)
+				struct jump_entry *stop, bool init)
 {
 	for (; (entry < stop) && (jump_entry_key(entry) == key); entry++) {
 		if (jump_label_can_update(entry, init))
-			arch_jump_label_transform(entry, jump_label_type(entry));
+			arch_jump_label_transform(entry,
+						  jump_label_type(entry));
 	}
 }
 #else
 static void __jump_label_update(struct static_key *key,
 				struct jump_entry *entry,
-				struct jump_entry *stop,
-				bool init)
+				struct jump_entry *stop, bool init)
 {
 	for (; (entry < stop) && (jump_entry_key(entry) == key); entry++) {
-
 		if (!jump_label_can_update(entry, init))
 			continue;
 
-		if (!arch_jump_label_transform_queue(entry, jump_label_type(entry))) {
+		if (!arch_jump_label_transform_queue(entry,
+						     jump_label_type(entry))) {
 			/*
 			 * Queue is full: Apply the current queue and try again.
 			 */
 			arch_jump_label_transform_apply();
-			BUG_ON(!arch_jump_label_transform_queue(entry, jump_label_type(entry)));
+			BUG_ON(!arch_jump_label_transform_queue(
+				entry, jump_label_type(entry)));
 		}
 	}
 	arch_jump_label_transform_apply();
@@ -491,7 +492,8 @@ void __init jump_label_init(void)
 		if (jump_label_type(iter) == JUMP_LABEL_NOP)
 			arch_jump_label_transform_static(iter, JUMP_LABEL_NOP);
 
-		in_init = init_section_contains((void *)jump_entry_code(iter), 1);
+		in_init =
+			init_section_contains((void *)jump_entry_code(iter), 1);
 		jump_entry_set_init(iter, in_init);
 
 		iterk = jump_entry_key(iter);
@@ -562,9 +564,9 @@ static int __jump_label_mod_text_reserved(void *start, void *end)
 	if (!mod)
 		return 0;
 
-	ret = __jump_label_text_reserved(mod->jump_entries,
-				mod->jump_entries + mod->num_jump_entries,
-				start, end, mod->state == MODULE_STATE_COMING);
+	ret = __jump_label_text_reserved(
+		mod->jump_entries, mod->jump_entries + mod->num_jump_entries,
+		start, end, mod->state == MODULE_STATE_COMING);
 
 	module_put(mod);
 
@@ -733,9 +735,8 @@ static void jump_label_del_module(struct module *mod)
 	}
 }
 
-static int
-jump_label_module_notify(struct notifier_block *self, unsigned long val,
-			 void *data)
+static int jump_label_module_notify(struct notifier_block *self,
+				    unsigned long val, void *data)
 {
 	struct module *mod = data;
 	int ret = 0;
@@ -747,7 +748,8 @@ jump_label_module_notify(struct notifier_block *self, unsigned long val,
 	case MODULE_STATE_COMING:
 		ret = jump_label_add_module(mod);
 		if (ret) {
-			WARN(1, "Failed to allocate memory: jump_label may not work properly.\n");
+			WARN(1,
+			     "Failed to allocate memory: jump_label may not work properly.\n");
 			jump_label_del_module(mod);
 		}
 		break;
@@ -791,8 +793,8 @@ early_initcall(jump_label_init_module);
 int jump_label_text_reserved(void *start, void *end)
 {
 	bool init = system_state < SYSTEM_RUNNING;
-	int ret = __jump_label_text_reserved(__start___jump_table,
-			__stop___jump_table, start, end, init);
+	int ret = __jump_label_text_reserved(
+		__start___jump_table, __stop___jump_table, start, end, init);
 
 	if (ret)
 		return ret;

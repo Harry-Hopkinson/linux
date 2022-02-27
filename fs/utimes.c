@@ -77,7 +77,7 @@ out:
 }
 
 static int do_utimes_path(int dfd, const char __user *filename,
-		struct timespec64 *times, int flags)
+			  struct timespec64 *times, int flags)
 {
 	struct path path;
 	int lookup_flags = 0, error;
@@ -151,7 +151,7 @@ SYSCALL_DEFINE4(utimensat, int, dfd, const char __user *, filename,
 
 	if (utimes) {
 		if ((get_timespec64(&tstimes[0], &utimes[0]) ||
-			get_timespec64(&tstimes[1], &utimes[1])))
+		     get_timespec64(&tstimes[1], &utimes[1])))
 			return -EFAULT;
 
 		/* Nothing to do, we must not even check the path.  */
@@ -197,7 +197,6 @@ static long do_futimesat(int dfd, const char __user *filename,
 
 	return do_utimes(dfd, filename, utimes ? tstimes : NULL, 0);
 }
-
 
 SYSCALL_DEFINE3(futimesat, int, dfd, const char __user *, filename,
 		struct __kernel_old_timeval __user *, utimes)
@@ -248,11 +247,12 @@ SYSCALL_DEFINE2(utime32, const char __user *, filename,
 }
 #endif
 
-SYSCALL_DEFINE4(utimensat_time32, unsigned int, dfd, const char __user *, filename, struct old_timespec32 __user *, t, int, flags)
+SYSCALL_DEFINE4(utimensat_time32, unsigned int, dfd, const char __user *,
+		filename, struct old_timespec32 __user *, t, int, flags)
 {
 	struct timespec64 tv[2];
 
-	if  (t) {
+	if (t) {
 		if (get_old_timespec32(&tv[0], &t[0]) ||
 		    get_old_timespec32(&tv[1], &t[1]))
 			return -EFAULT;
@@ -284,14 +284,14 @@ static long do_compat_futimesat(unsigned int dfd, const char __user *filename,
 	return do_utimes(dfd, filename, t ? tv : NULL, 0);
 }
 
-SYSCALL_DEFINE3(futimesat_time32, unsigned int, dfd,
-		       const char __user *, filename,
-		       struct old_timeval32 __user *, t)
+SYSCALL_DEFINE3(futimesat_time32, unsigned int, dfd, const char __user *,
+		filename, struct old_timeval32 __user *, t)
 {
 	return do_compat_futimesat(dfd, filename, t);
 }
 
-SYSCALL_DEFINE2(utimes_time32, const char __user *, filename, struct old_timeval32 __user *, t)
+SYSCALL_DEFINE2(utimes_time32, const char __user *, filename,
+		struct old_timeval32 __user *, t)
 {
 	return do_compat_futimesat(AT_FDCWD, filename, t);
 }

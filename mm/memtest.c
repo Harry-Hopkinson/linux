@@ -25,14 +25,16 @@ static u64 patterns[] __initdata = {
 	0x7a6c7258554e494cULL, /* yeah ;-) */
 };
 
-static void __init reserve_bad_mem(u64 pattern, phys_addr_t start_bad, phys_addr_t end_bad)
+static void __init reserve_bad_mem(u64 pattern, phys_addr_t start_bad,
+				   phys_addr_t end_bad)
 {
 	pr_info("  %016llx bad mem addr %pa - %pa reserved\n",
 		cpu_to_be64(pattern), &start_bad, &end_bad);
 	memblock_reserve(start_bad, end_bad - start_bad);
 }
 
-static void __init memtest(u64 pattern, phys_addr_t start_phys, phys_addr_t size)
+static void __init memtest(u64 pattern, phys_addr_t start_phys,
+			   phys_addr_t size)
 {
 	u64 *p, *start, *end;
 	phys_addr_t start_bad, last_bad;
@@ -68,13 +70,13 @@ static void __init do_one_pass(u64 pattern, phys_addr_t start, phys_addr_t end)
 	u64 i;
 	phys_addr_t this_start, this_end;
 
-	for_each_free_mem_range(i, NUMA_NO_NODE, MEMBLOCK_NONE, &this_start,
-				&this_end, NULL) {
+	for_each_free_mem_range (i, NUMA_NO_NODE, MEMBLOCK_NONE, &this_start,
+				 &this_end, NULL) {
 		this_start = clamp(this_start, start, end);
 		this_end = clamp(this_end, start, end);
 		if (this_start < this_end) {
-			pr_info("  %pa - %pa pattern %016llx\n",
-				&this_start, &this_end, cpu_to_be64(pattern));
+			pr_info("  %pa - %pa pattern %016llx\n", &this_start,
+				&this_end, cpu_to_be64(pattern));
 			memtest(pattern, this_start, this_end - this_start);
 		}
 	}
@@ -106,7 +108,7 @@ void __init early_memtest(phys_addr_t start, phys_addr_t end)
 		return;
 
 	pr_info("early_memtest: # of tests: %u\n", memtest_pattern);
-	for (i = memtest_pattern-1; i < UINT_MAX; --i) {
+	for (i = memtest_pattern - 1; i < UINT_MAX; --i) {
 		idx = i % ARRAY_SIZE(patterns);
 		do_one_pass(patterns[idx], start, end);
 	}

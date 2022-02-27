@@ -5,7 +5,7 @@
  * Written by David Howells (dhowells@redhat.com)
  */
 
-#define pr_fmt(fmt) "blacklist: "fmt
+#define pr_fmt(fmt) "blacklist: " fmt
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/key.h>
@@ -75,12 +75,12 @@ static void blacklist_describe(const struct key *key, struct seq_file *m)
 }
 
 static struct key_type key_type_blacklist = {
-	.name			= "blacklist",
-	.vet_description	= blacklist_vet_description,
-	.preparse		= blacklist_preparse,
-	.free_preparse		= blacklist_free_preparse,
-	.instantiate		= generic_key_instantiate,
-	.describe		= blacklist_describe,
+	.name = "blacklist",
+	.vet_description = blacklist_vet_description,
+	.preparse = blacklist_preparse,
+	.free_preparse = blacklist_free_preparse,
+	.instantiate = generic_key_instantiate,
+	.describe = blacklist_describe,
 };
 
 /**
@@ -91,15 +91,10 @@ int mark_hash_blacklisted(const char *hash)
 {
 	key_ref_t key;
 
-	key = key_create_or_update(make_key_ref(blacklist_keyring, true),
-				   "blacklist",
-				   hash,
-				   NULL,
-				   0,
-				   ((KEY_POS_ALL & ~KEY_POS_SETATTR) |
-				    KEY_USR_VIEW),
-				   KEY_ALLOC_NOT_IN_QUOTA |
-				   KEY_ALLOC_BUILT_IN);
+	key = key_create_or_update(
+		make_key_ref(blacklist_keyring, true), "blacklist", hash, NULL,
+		0, ((KEY_POS_ALL & ~KEY_POS_SETATTR) | KEY_USR_VIEW),
+		KEY_ALLOC_NOT_IN_QUOTA | KEY_ALLOC_BUILT_IN);
 	if (IS_ERR(key)) {
 		pr_err("Problem blacklisting hash (%ld)\n", PTR_ERR(key));
 		return PTR_ERR(key);
@@ -161,13 +156,10 @@ int add_key_to_revocation_list(const char *data, size_t size)
 {
 	key_ref_t key;
 
-	key = key_create_or_update(make_key_ref(blacklist_keyring, true),
-				   "asymmetric",
-				   NULL,
-				   data,
-				   size,
-				   ((KEY_POS_ALL & ~KEY_POS_SETATTR) | KEY_USR_VIEW),
-				   KEY_ALLOC_NOT_IN_QUOTA | KEY_ALLOC_BUILT_IN);
+	key = key_create_or_update(
+		make_key_ref(blacklist_keyring, true), "asymmetric", NULL, data,
+		size, ((KEY_POS_ALL & ~KEY_POS_SETATTR) | KEY_USR_VIEW),
+		KEY_ALLOC_NOT_IN_QUOTA | KEY_ALLOC_BUILT_IN);
 
 	if (IS_ERR(key)) {
 		pr_err("Problem with revocation key (%ld)\n", PTR_ERR(key));
@@ -204,15 +196,11 @@ static int __init blacklist_init(void)
 	if (register_key_type(&key_type_blacklist) < 0)
 		panic("Can't allocate system blacklist key type\n");
 
-	blacklist_keyring =
-		keyring_alloc(".blacklist",
-			      GLOBAL_ROOT_UID, GLOBAL_ROOT_GID, current_cred(),
-			      (KEY_POS_ALL & ~KEY_POS_SETATTR) |
-			      KEY_USR_VIEW | KEY_USR_READ |
-			      KEY_USR_SEARCH,
-			      KEY_ALLOC_NOT_IN_QUOTA |
-			      KEY_ALLOC_SET_KEEP,
-			      NULL, NULL);
+	blacklist_keyring = keyring_alloc(
+		".blacklist", GLOBAL_ROOT_UID, GLOBAL_ROOT_GID, current_cred(),
+		(KEY_POS_ALL & ~KEY_POS_SETATTR) | KEY_USR_VIEW | KEY_USR_READ |
+			KEY_USR_SEARCH,
+		KEY_ALLOC_NOT_IN_QUOTA | KEY_ALLOC_SET_KEEP, NULL, NULL);
 	if (IS_ERR(blacklist_keyring))
 		panic("Can't allocate system blacklist keyring\n");
 
@@ -234,9 +222,11 @@ device_initcall(blacklist_init);
 static __init int load_revocation_certificate_list(void)
 {
 	if (revocation_certificate_list_size)
-		pr_notice("Loading compiled-in revocation X.509 certificates\n");
+		pr_notice(
+			"Loading compiled-in revocation X.509 certificates\n");
 
-	return load_certificate_list(revocation_certificate_list, revocation_certificate_list_size,
+	return load_certificate_list(revocation_certificate_list,
+				     revocation_certificate_list_size,
 				     blacklist_keyring);
 }
 late_initcall(load_revocation_certificate_list);

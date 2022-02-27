@@ -27,7 +27,7 @@ bool within_error_injection_list(unsigned long addr)
 	bool ret = false;
 
 	mutex_lock(&ei_mutex);
-	list_for_each_entry(ent, &error_injection_list, list) {
+	list_for_each_entry (ent, &error_injection_list, list) {
 		if (addr >= ent->start_addr && addr < ent->end_addr) {
 			ret = true;
 			break;
@@ -41,7 +41,7 @@ int get_injectable_error_type(unsigned long addr)
 {
 	struct ei_entry *ent;
 
-	list_for_each_entry(ent, &error_injection_list, list) {
+	list_for_each_entry (ent, &error_injection_list, list) {
 		if (addr >= ent->start_addr && addr < ent->end_addr)
 			return ent->etype;
 	}
@@ -65,12 +65,13 @@ static void populate_error_injection_list(struct error_injection_entry *start,
 
 	mutex_lock(&ei_mutex);
 	for (iter = start; iter < end; iter++) {
-		entry = (unsigned long)dereference_symbol_descriptor((void *)iter->addr);
+		entry = (unsigned long)dereference_symbol_descriptor(
+			(void *)iter->addr);
 
 		if (!kernel_text_address(entry) ||
 		    !kallsyms_lookup_size_offset(entry, &size, &offset)) {
 			pr_err("Failed to find error inject entry at %p\n",
-				(void *)entry);
+			       (void *)entry);
 			continue;
 		}
 
@@ -94,8 +95,7 @@ extern struct error_injection_entry __stop_error_injection_whitelist[];
 static void __init populate_kernel_ei_list(void)
 {
 	populate_error_injection_list(__start_error_injection_whitelist,
-				      __stop_error_injection_whitelist,
-				      NULL);
+				      __stop_error_injection_whitelist, NULL);
 }
 
 #ifdef CONFIG_MODULES
@@ -116,7 +116,7 @@ static void module_unload_ei_list(struct module *mod)
 		return;
 
 	mutex_lock(&ei_mutex);
-	list_for_each_entry_safe(ent, n, &error_injection_list, list) {
+	list_for_each_entry_safe (ent, n, &error_injection_list, list) {
 		if (ent->priv == mod) {
 			list_del_init(&ent->list);
 			kfree(ent);
@@ -126,8 +126,8 @@ static void module_unload_ei_list(struct module *mod)
 }
 
 /* Module notifier call back, checking error injection table on the module */
-static int ei_module_callback(struct notifier_block *nb,
-			      unsigned long val, void *data)
+static int ei_module_callback(struct notifier_block *nb, unsigned long val,
+			      void *data)
 {
 	struct module *mod = data;
 
@@ -139,17 +139,16 @@ static int ei_module_callback(struct notifier_block *nb,
 	return NOTIFY_DONE;
 }
 
-static struct notifier_block ei_module_nb = {
-	.notifier_call = ei_module_callback,
-	.priority = 0
-};
+static struct notifier_block ei_module_nb = { .notifier_call =
+						      ei_module_callback,
+					      .priority = 0 };
 
 static __init int module_ei_init(void)
 {
 	return register_module_notifier(&ei_module_nb);
 }
 #else /* !CONFIG_MODULES */
-#define module_ei_init()	(0)
+#define module_ei_init() (0)
 #endif
 
 /*
@@ -199,9 +198,9 @@ static int ei_seq_show(struct seq_file *m, void *v)
 
 static const struct seq_operations ei_seq_ops = {
 	.start = ei_seq_start,
-	.next  = ei_seq_next,
-	.stop  = ei_seq_stop,
-	.show  = ei_seq_show,
+	.next = ei_seq_next,
+	.stop = ei_seq_stop,
+	.show = ei_seq_show,
 };
 
 static int ei_open(struct inode *inode, struct file *filp)
@@ -210,10 +209,10 @@ static int ei_open(struct inode *inode, struct file *filp)
 }
 
 static const struct file_operations debugfs_ei_ops = {
-	.open           = ei_open,
-	.read           = seq_read,
-	.llseek         = seq_lseek,
-	.release        = seq_release,
+	.open = ei_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = seq_release,
 };
 
 static int __init ei_debugfs_init(void)

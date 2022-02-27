@@ -44,23 +44,23 @@
 #include "util.h"
 
 struct mqueue_fs_context {
-	struct ipc_namespace	*ipc_ns;
+	struct ipc_namespace *ipc_ns;
 };
 
-#define MQUEUE_MAGIC	0x19800202
-#define DIRENT_SIZE	20
-#define FILENT_SIZE	80
+#define MQUEUE_MAGIC 0x19800202
+#define DIRENT_SIZE 20
+#define FILENT_SIZE 80
 
-#define SEND		0
-#define RECV		1
+#define SEND 0
+#define RECV 1
 
-#define STATE_NONE	0
-#define STATE_READY	1
+#define STATE_NONE 0
+#define STATE_READY 1
 
 struct posix_msg_tree_node {
-	struct rb_node		rb_node;
-	struct list_head	msg_list;
-	int			priority;
+	struct rb_node rb_node;
+	struct list_head msg_list;
+	int priority;
 };
 
 /*
@@ -123,11 +123,11 @@ struct posix_msg_tree_node {
  *    acquire memory barrier.
  */
 
-struct ext_wait_queue {		/* queue of sleeping tasks */
+struct ext_wait_queue { /* queue of sleeping tasks */
 	struct task_struct *task;
 	struct list_head list;
-	struct msg_msg *msg;	/* ptr of loaded message */
-	int state;		/* one of STATE_* values */
+	struct msg_msg *msg; /* ptr of loaded message */
+	int state; /* one of STATE_* values */
 };
 
 struct mqueue_inode_info {
@@ -144,7 +144,7 @@ struct mqueue_inode_info {
 	struct pid *notify_owner;
 	u32 notify_self_exec_id;
 	struct user_namespace *notify_user_ns;
-	struct ucounts *ucounts;	/* user who created, for accounting */
+	struct ucounts *ucounts; /* user who created, for accounting */
 	struct sock *notify_sock;
 	struct sk_buff *notify_cookie;
 
@@ -276,8 +276,7 @@ try_again:
 		msg_tree_erase(leaf, info);
 		goto try_again;
 	} else {
-		msg = list_first_entry(&leaf->msg_list,
-				       struct msg_msg, m_list);
+		msg = list_first_entry(&leaf->msg_list, struct msg_msg, m_list);
 		list_del(&msg->m_list);
 		if (list_empty(&leaf->msg_list)) {
 			msg_tree_erase(leaf, info);
@@ -289,8 +288,8 @@ try_again:
 }
 
 static struct inode *mqueue_get_inode(struct super_block *sb,
-		struct ipc_namespace *ipc_ns, umode_t mode,
-		struct mq_attr *attr)
+				      struct ipc_namespace *ipc_ns,
+				      umode_t mode, struct mq_attr *attr)
 {
 	struct inode *inode;
 	int ret = -ENOMEM;
@@ -320,15 +319,15 @@ static struct inode *mqueue_get_inode(struct super_block *sb,
 		info->notify_owner = NULL;
 		info->notify_user_ns = NULL;
 		info->qsize = 0;
-		info->ucounts = NULL;	/* set when all is ok */
+		info->ucounts = NULL; /* set when all is ok */
 		info->msg_tree = RB_ROOT;
 		info->msg_tree_rightmost = NULL;
 		info->node_cache = NULL;
 		memset(&info->attr, 0, sizeof(info->attr));
-		info->attr.mq_maxmsg = min(ipc_ns->mq_msg_max,
-					   ipc_ns->mq_msg_default);
-		info->attr.mq_msgsize = min(ipc_ns->mq_msgsize_max,
-					    ipc_ns->mq_msgsize_default);
+		info->attr.mq_maxmsg =
+			min(ipc_ns->mq_msg_max, ipc_ns->mq_msg_default);
+		info->attr.mq_msgsize =
+			min(ipc_ns->mq_msgsize_max, ipc_ns->mq_msgsize_default);
 		if (attr) {
 			info->attr.mq_maxmsg = attr->mq_maxmsg;
 			info->attr.mq_msgsize = attr->mq_msgsize;
@@ -356,16 +355,17 @@ static struct inode *mqueue_get_inode(struct super_block *sb,
 				goto out_inode;
 		} else {
 			if (info->attr.mq_maxmsg > ipc_ns->mq_msg_max ||
-					info->attr.mq_msgsize > ipc_ns->mq_msgsize_max)
+			    info->attr.mq_msgsize > ipc_ns->mq_msgsize_max)
 				goto out_inode;
 		}
 		ret = -EOVERFLOW;
 		/* check for overflow */
-		if (info->attr.mq_msgsize > ULONG_MAX/info->attr.mq_maxmsg)
+		if (info->attr.mq_msgsize > ULONG_MAX / info->attr.mq_maxmsg)
 			goto out_inode;
-		mq_treesize = info->attr.mq_maxmsg * sizeof(struct msg_msg) +
+		mq_treesize =
+			info->attr.mq_maxmsg * sizeof(struct msg_msg) +
 			min_t(unsigned int, info->attr.mq_maxmsg, MQ_PRIO_MAX) *
-			sizeof(struct posix_msg_tree_node);
+				sizeof(struct posix_msg_tree_node);
 		mq_bytes = info->attr.mq_maxmsg * info->attr.mq_msgsize;
 		if (mq_bytes + mq_treesize < mq_bytes)
 			goto out_inode;
@@ -375,9 +375,14 @@ static struct inode *mqueue_get_inode(struct super_block *sb,
 			long msgqueue;
 
 			spin_lock(&mq_lock);
-			msgqueue = inc_rlimit_ucounts(info->ucounts, UCOUNT_RLIMIT_MSGQUEUE, mq_bytes);
-			if (msgqueue == LONG_MAX || msgqueue > rlimit(RLIMIT_MSGQUEUE)) {
-				dec_rlimit_ucounts(info->ucounts, UCOUNT_RLIMIT_MSGQUEUE, mq_bytes);
+			msgqueue = inc_rlimit_ucounts(info->ucounts,
+						      UCOUNT_RLIMIT_MSGQUEUE,
+						      mq_bytes);
+			if (msgqueue == LONG_MAX ||
+			    msgqueue > rlimit(RLIMIT_MSGQUEUE)) {
+				dec_rlimit_ucounts(info->ucounts,
+						   UCOUNT_RLIMIT_MSGQUEUE,
+						   mq_bytes);
 				spin_unlock(&mq_lock);
 				put_ucounts(info->ucounts);
 				info->ucounts = NULL;
@@ -477,7 +482,7 @@ static struct vfsmount *mq_create_mount(struct ipc_namespace *ns)
 
 static void init_once(void *foo)
 {
-	struct mqueue_inode_info *p = (struct mqueue_inode_info *) foo;
+	struct mqueue_inode_info *p = (struct mqueue_inode_info *)foo;
 
 	inode_init_once(&p->vfs_inode);
 }
@@ -517,7 +522,7 @@ static void mqueue_evict_inode(struct inode *inode)
 	kfree(info->node_cache);
 	spin_unlock(&info->lock);
 
-	list_for_each_entry_safe(msg, nmsg, &tmp_msg, m_list) {
+	list_for_each_entry_safe (msg, nmsg, &tmp_msg, m_list) {
 		list_del(&msg->m_list);
 		free_msg(msg);
 	}
@@ -526,15 +531,17 @@ static void mqueue_evict_inode(struct inode *inode)
 		unsigned long mq_bytes, mq_treesize;
 
 		/* Total amount of bytes accounted for the mqueue */
-		mq_treesize = info->attr.mq_maxmsg * sizeof(struct msg_msg) +
+		mq_treesize =
+			info->attr.mq_maxmsg * sizeof(struct msg_msg) +
 			min_t(unsigned int, info->attr.mq_maxmsg, MQ_PRIO_MAX) *
-			sizeof(struct posix_msg_tree_node);
+				sizeof(struct posix_msg_tree_node);
 
-		mq_bytes = mq_treesize + (info->attr.mq_maxmsg *
-					  info->attr.mq_msgsize);
+		mq_bytes = mq_treesize +
+			   (info->attr.mq_maxmsg * info->attr.mq_msgsize);
 
 		spin_lock(&mq_lock);
-		dec_rlimit_ucounts(info->ucounts, UCOUNT_RLIMIT_MSGQUEUE, mq_bytes);
+		dec_rlimit_ucounts(info->ucounts, UCOUNT_RLIMIT_MSGQUEUE,
+				   mq_bytes);
 		/*
 		 * get_ns_from_inode() ensures that the
 		 * (ipc_ns = sb->s_fs_info) is either a valid ipc_ns
@@ -629,22 +636,24 @@ static ssize_t mqueue_read_file(struct file *filp, char __user *u_data,
 
 	spin_lock(&info->lock);
 	snprintf(buffer, sizeof(buffer),
-			"QSIZE:%-10lu NOTIFY:%-5d SIGNO:%-5d NOTIFY_PID:%-6d\n",
-			info->qsize,
-			info->notify_owner ? info->notify.sigev_notify : 0,
-			(info->notify_owner &&
-			 info->notify.sigev_notify == SIGEV_SIGNAL) ?
-				info->notify.sigev_signo : 0,
-			pid_vnr(info->notify_owner));
+		 "QSIZE:%-10lu NOTIFY:%-5d SIGNO:%-5d NOTIFY_PID:%-6d\n",
+		 info->qsize,
+		 info->notify_owner ? info->notify.sigev_notify : 0,
+		 (info->notify_owner &&
+		  info->notify.sigev_notify == SIGEV_SIGNAL) ?
+			 info->notify.sigev_signo :
+			 0,
+		 pid_vnr(info->notify_owner));
 	spin_unlock(&info->lock);
-	buffer[sizeof(buffer)-1] = '\0';
+	buffer[sizeof(buffer) - 1] = '\0';
 
 	ret = simple_read_from_buffer(u_data, count, off, buffer,
-				strlen(buffer));
+				      strlen(buffer));
 	if (ret <= 0)
 		return ret;
 
-	file_inode(filp)->i_atime = file_inode(filp)->i_ctime = current_time(file_inode(filp));
+	file_inode(filp)->i_atime = file_inode(filp)->i_ctime =
+		current_time(file_inode(filp));
 	return ret;
 }
 
@@ -660,7 +669,8 @@ static int mqueue_flush_file(struct file *filp, fl_owner_t id)
 	return 0;
 }
 
-static __poll_t mqueue_poll_file(struct file *filp, struct poll_table_struct *poll_tab)
+static __poll_t mqueue_poll_file(struct file *filp,
+				 struct poll_table_struct *poll_tab)
 {
 	struct mqueue_inode_info *info = MQUEUE_I(file_inode(filp));
 	__poll_t retval = 0;
@@ -680,11 +690,11 @@ static __poll_t mqueue_poll_file(struct file *filp, struct poll_table_struct *po
 
 /* Adds current to info->e_wait_q[sr] before element with smaller prio */
 static void wq_add(struct mqueue_inode_info *info, int sr,
-			struct ext_wait_queue *ewp)
+		   struct ext_wait_queue *ewp)
 {
 	struct ext_wait_queue *walk;
 
-	list_for_each_entry(walk, &info->e_wait_q[sr].list, list) {
+	list_for_each_entry (walk, &info->e_wait_q[sr].list, list) {
 		if (walk->task->prio <= current->prio) {
 			list_add_tail(&ewp->list, &walk->list);
 			return;
@@ -698,9 +708,8 @@ static void wq_add(struct mqueue_inode_info *info, int sr,
  * lock isn't held.
  * sr: SEND or RECV
  */
-static int wq_sleep(struct mqueue_inode_info *info, int sr,
-		    ktime_t *timeout, struct ext_wait_queue *ewp)
-	__releases(&info->lock)
+static int wq_sleep(struct mqueue_inode_info *info, int sr, ktime_t *timeout,
+		    struct ext_wait_queue *ewp) __releases(&info->lock)
 {
 	int retval;
 	signed long time;
@@ -712,8 +721,8 @@ static int wq_sleep(struct mqueue_inode_info *info, int sr,
 		__set_current_state(TASK_INTERRUPTIBLE);
 
 		spin_unlock(&info->lock);
-		time = schedule_hrtimeout_range_clock(timeout, 0,
-			HRTIMER_MODE_ABS, CLOCK_REALTIME);
+		time = schedule_hrtimeout_range_clock(
+			timeout, 0, HRTIMER_MODE_ABS, CLOCK_REALTIME);
 
 		if (READ_ONCE(ewp->state) == STATE_READY) {
 			/* see MQ_BARRIER for purpose/pairing */
@@ -747,8 +756,8 @@ out:
 /*
  * Returns waiting task that should be serviced first or NULL if none exists
  */
-static struct ext_wait_queue *wq_get_first_waiter(
-		struct mqueue_inode_info *info, int sr)
+static struct ext_wait_queue *
+wq_get_first_waiter(struct mqueue_inode_info *info, int sr)
 {
 	struct list_head *ptr;
 
@@ -758,10 +767,9 @@ static struct ext_wait_queue *wq_get_first_waiter(
 	return list_entry(ptr, struct ext_wait_queue, list);
 }
 
-
 static inline void set_cookie(struct sk_buff *skb, char code)
 {
-	((char *)skb->data)[NOTIFY_COOKIE_LEN-1] = code;
+	((char *)skb->data)[NOTIFY_COOKIE_LEN - 1] = code;
 }
 
 /*
@@ -774,8 +782,7 @@ static void __do_notify(struct mqueue_inode_info *info)
 	 * waiting synchronously for message AND state of queue changed from
 	 * empty to not empty. Here we are sure that no one is waiting
 	 * synchronously. */
-	if (info->notify_owner &&
-	    info->attr.mq_curmsgs == 1) {
+	if (info->notify_owner && info->attr.mq_curmsgs == 1) {
 		switch (info->notify.sigev_notify) {
 		case SIGEV_NONE:
 			break;
@@ -794,10 +801,10 @@ static void __do_notify(struct mqueue_inode_info *info)
 			sig_i.si_value = info->notify.sigev_value;
 			rcu_read_lock();
 			/* map current pid/uid into info->owner's namespaces */
-			sig_i.si_pid = task_tgid_nr_ns(current,
-						ns_of_pid(info->notify_owner));
+			sig_i.si_pid = task_tgid_nr_ns(
+				current, ns_of_pid(info->notify_owner));
 			sig_i.si_uid = from_kuid_munged(info->notify_user_ns,
-						current_uid());
+							current_uid());
 			/*
 			 * We can't use kill_pid_info(), this signal should
 			 * bypass check_kill_permission(). It is from kernel
@@ -806,10 +813,10 @@ static void __do_notify(struct mqueue_inode_info *info)
 			 * signals to programs that don't expect them.
 			 */
 			task = pid_task(info->notify_owner, PIDTYPE_TGID);
-			if (task && task->self_exec_id ==
-						info->notify_self_exec_id) {
+			if (task &&
+			    task->self_exec_id == info->notify_self_exec_id) {
 				do_send_sig_info(info->notify.sigev_signo,
-						&sig_i, task, PIDTYPE_TGID);
+						 &sig_i, task, PIDTYPE_TGID);
 			}
 			rcu_read_unlock();
 			break;
@@ -851,9 +858,8 @@ static void remove_notification(struct mqueue_inode_info *info)
 	info->notify_user_ns = NULL;
 }
 
-static int prepare_open(struct dentry *dentry, int oflag, int ro,
-			umode_t mode, struct filename *name,
-			struct mq_attr *attr)
+static int prepare_open(struct dentry *dentry, int oflag, int ro, umode_t mode,
+			struct filename *name, struct mq_attr *attr)
 {
 	static const int oflag2acc[O_ACCMODE] = { MAY_READ, MAY_WRITE,
 						  MAY_READ | MAY_WRITE };
@@ -866,11 +872,11 @@ static int prepare_open(struct dentry *dentry, int oflag, int ro,
 			return ro;
 		audit_inode_parent_hidden(name, dentry->d_parent);
 		return vfs_mkobj(dentry, mode & ~current_umask(),
-				  mqueue_create_attr, attr);
+				 mqueue_create_attr, attr);
 	}
 	/* it already existed */
 	audit_inode(name, dentry, 0);
-	if ((oflag & (O_CREAT|O_EXCL)) == (O_CREAT|O_EXCL))
+	if ((oflag & (O_CREAT | O_EXCL)) == (O_CREAT | O_EXCL))
 		return -EEXIST;
 	if ((oflag & O_ACCMODE) == (O_RDWR | O_WRONLY))
 		return -EINVAL;
@@ -897,7 +903,7 @@ static int do_mq_open(const char __user *u_name, int oflag, umode_t mode,
 	if (fd < 0)
 		goto out_putname;
 
-	ro = mnt_want_write(mnt);	/* we'll drop it in any case */
+	ro = mnt_want_write(mnt); /* we'll drop it in any case */
 	inode_lock(d_inode(root));
 	path.dentry = lookup_one_len(name->name, root, strlen(name->name));
 	if (IS_ERR(path.dentry)) {
@@ -955,8 +961,7 @@ SYSCALL_DEFINE1(mq_unlink, const char __user *, u_name)
 	if (err)
 		goto out_name;
 	inode_lock_nested(d_inode(mnt->mnt_root), I_MUTEX_PARENT);
-	dentry = lookup_one_len(name->name, mnt->mnt_root,
-				strlen(name->name));
+	dentry = lookup_one_len(name->name, mnt->mnt_root, strlen(name->name));
 	if (IS_ERR(dentry)) {
 		err = PTR_ERR(dentry);
 		goto out_unlock;
@@ -1047,8 +1052,8 @@ static inline void pipelined_receive(struct wake_q_head *wake_q,
 }
 
 static int do_mq_timedsend(mqd_t mqdes, const char __user *u_msg_ptr,
-		size_t msg_len, unsigned int msg_prio,
-		struct timespec64 *ts)
+			   size_t msg_len, unsigned int msg_prio,
+			   struct timespec64 *ts)
 {
 	struct fd f;
 	struct inode *inode;
@@ -1061,7 +1066,7 @@ static int do_mq_timedsend(mqd_t mqdes, const char __user *u_msg_ptr,
 	int ret = 0;
 	DEFINE_WAKE_Q(wake_q);
 
-	if (unlikely(msg_prio >= (unsigned long) MQ_PRIO_MAX))
+	if (unlikely(msg_prio >= (unsigned long)MQ_PRIO_MAX))
 		return -EINVAL;
 
 	if (ts) {
@@ -1129,7 +1134,7 @@ static int do_mq_timedsend(mqd_t mqdes, const char __user *u_msg_ptr,
 			ret = -EAGAIN;
 		} else {
 			wait.task = current;
-			wait.msg = (void *) msg_ptr;
+			wait.msg = (void *)msg_ptr;
 
 			/* memory barrier not required, we hold info->lock */
 			WRITE_ONCE(wait.state, STATE_NONE);
@@ -1152,7 +1157,7 @@ static int do_mq_timedsend(mqd_t mqdes, const char __user *u_msg_ptr,
 			__do_notify(info);
 		}
 		inode->i_atime = inode->i_mtime = inode->i_ctime =
-				current_time(inode);
+			current_time(inode);
 	}
 out_unlock:
 	spin_unlock(&info->lock);
@@ -1167,8 +1172,8 @@ out:
 }
 
 static int do_mq_timedreceive(mqd_t mqdes, char __user *u_msg_ptr,
-		size_t msg_len, unsigned int __user *u_msg_prio,
-		struct timespec64 *ts)
+			      size_t msg_len, unsigned int __user *u_msg_prio,
+			      struct timespec64 *ts)
 {
 	ssize_t ret;
 	struct msg_msg *msg_ptr;
@@ -1247,7 +1252,7 @@ static int do_mq_timedreceive(mqd_t mqdes, char __user *u_msg_ptr,
 		msg_ptr = msg_get(info);
 
 		inode->i_atime = inode->i_mtime = inode->i_ctime =
-				current_time(inode);
+			current_time(inode);
 
 		/* There is now free space in queue. */
 		pipelined_receive(&wake_q, info);
@@ -1259,7 +1264,7 @@ static int do_mq_timedreceive(mqd_t mqdes, char __user *u_msg_ptr,
 		ret = msg_ptr->m_ts;
 
 		if ((u_msg_prio && put_user(msg_ptr->m_type, u_msg_prio)) ||
-			store_msg(u_msg_ptr, msg_ptr, msg_ptr->m_ts)) {
+		    store_msg(u_msg_ptr, msg_ptr, msg_ptr->m_ts)) {
 			ret = -EFAULT;
 		}
 		free_msg(msg_ptr);
@@ -1284,8 +1289,8 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqdes, const char __user *, u_msg_ptr,
 	return do_mq_timedsend(mqdes, u_msg_ptr, msg_len, msg_prio, p);
 }
 
-SYSCALL_DEFINE5(mq_timedreceive, mqd_t, mqdes, char __user *, u_msg_ptr,
-		size_t, msg_len, unsigned int __user *, u_msg_prio,
+SYSCALL_DEFINE5(mq_timedreceive, mqd_t, mqdes, char __user *, u_msg_ptr, size_t,
+		msg_len, unsigned int __user *, u_msg_prio,
 		const struct __kernel_timespec __user *, u_abs_timeout)
 {
 	struct timespec64 ts, *p = NULL;
@@ -1322,7 +1327,7 @@ static int do_mq_notify(mqd_t mqdes, const struct sigevent *notification)
 			     notification->sigev_notify != SIGEV_THREAD))
 			return -EINVAL;
 		if (notification->sigev_notify == SIGEV_SIGNAL &&
-			!valid_signal(notification->sigev_signo)) {
+		    !valid_signal(notification->sigev_signo)) {
 			return -EINVAL;
 		}
 		if (notification->sigev_notify == SIGEV_THREAD) {
@@ -1334,8 +1339,8 @@ static int do_mq_notify(mqd_t mqdes, const struct sigevent *notification)
 				return -ENOMEM;
 
 			if (copy_from_user(nc->data,
-					notification->sigev_value.sival_ptr,
-					NOTIFY_COOKIE_LEN)) {
+					   notification->sigev_value.sival_ptr,
+					   NOTIFY_COOKIE_LEN)) {
 				ret = -EFAULT;
 				goto free_skb;
 			}
@@ -1343,7 +1348,7 @@ static int do_mq_notify(mqd_t mqdes, const struct sigevent *notification)
 			/* TODO: add a header? */
 			skb_put(nc, NOTIFY_COOKIE_LEN);
 			/* and attach it to the socket */
-retry:
+		retry:
 			f = fdget(notification->sigev_signo);
 			if (!f.file) {
 				ret = -EBADF;
@@ -1420,14 +1425,14 @@ out:
 	if (sock)
 		netlink_detachskb(sock, nc);
 	else
-free_skb:
+	free_skb:
 		dev_kfree_skb(nc);
 
 	return ret;
 }
 
-SYSCALL_DEFINE2(mq_notify, mqd_t, mqdes,
-		const struct sigevent __user *, u_notification)
+SYSCALL_DEFINE2(mq_notify, mqd_t, mqdes, const struct sigevent __user *,
+		u_notification)
 {
 	struct sigevent n, *p = NULL;
 	if (u_notification) {
@@ -1444,7 +1449,7 @@ static int do_mq_getsetattr(int mqdes, struct mq_attr *new, struct mq_attr *old)
 	struct inode *inode;
 	struct mqueue_inode_info *info;
 
-	if (new && (new->mq_flags & (~O_NONBLOCK)))
+	if (new && (new->mq_flags &(~O_NONBLOCK)))
 		return -EINVAL;
 
 	f = fdget(mqdes);
@@ -1482,9 +1487,8 @@ static int do_mq_getsetattr(int mqdes, struct mq_attr *new, struct mq_attr *old)
 	return 0;
 }
 
-SYSCALL_DEFINE3(mq_getsetattr, mqd_t, mqdes,
-		const struct mq_attr __user *, u_mqstat,
-		struct mq_attr __user *, u_omqstat)
+SYSCALL_DEFINE3(mq_getsetattr, mqd_t, mqdes, const struct mq_attr __user *,
+		u_mqstat, struct mq_attr __user *, u_omqstat)
 {
 	int ret;
 	struct mq_attr mqstat, omqstat;
@@ -1510,15 +1514,15 @@ SYSCALL_DEFINE3(mq_getsetattr, mqd_t, mqdes,
 #ifdef CONFIG_COMPAT
 
 struct compat_mq_attr {
-	compat_long_t mq_flags;      /* message queue flags		     */
-	compat_long_t mq_maxmsg;     /* maximum number of messages	     */
-	compat_long_t mq_msgsize;    /* maximum message size		     */
-	compat_long_t mq_curmsgs;    /* number of messages currently queued  */
+	compat_long_t mq_flags; /* message queue flags		     */
+	compat_long_t mq_maxmsg; /* maximum number of messages	     */
+	compat_long_t mq_msgsize; /* maximum message size		     */
+	compat_long_t mq_curmsgs; /* number of messages currently queued  */
 	compat_long_t __reserved[4]; /* ignored for input, zeroed for output */
 };
 
 static inline int get_compat_mq_attr(struct mq_attr *attr,
-			const struct compat_mq_attr __user *uattr)
+				     const struct compat_mq_attr __user *uattr)
 {
 	struct compat_mq_attr v;
 
@@ -1534,7 +1538,7 @@ static inline int get_compat_mq_attr(struct mq_attr *attr,
 }
 
 static inline int put_compat_mq_attr(const struct mq_attr *attr,
-			struct compat_mq_attr __user *uattr)
+				     struct compat_mq_attr __user *uattr)
 {
 	struct compat_mq_attr v;
 
@@ -1548,9 +1552,9 @@ static inline int put_compat_mq_attr(const struct mq_attr *attr,
 	return 0;
 }
 
-COMPAT_SYSCALL_DEFINE4(mq_open, const char __user *, u_name,
-		       int, oflag, compat_mode_t, mode,
-		       struct compat_mq_attr __user *, u_attr)
+COMPAT_SYSCALL_DEFINE4(mq_open, const char __user *, u_name, int, oflag,
+		       compat_mode_t, mode, struct compat_mq_attr __user *,
+		       u_attr)
 {
 	struct mq_attr attr, *p = NULL;
 	if (u_attr && oflag & O_CREAT) {
@@ -1569,7 +1573,8 @@ COMPAT_SYSCALL_DEFINE2(mq_notify, mqd_t, mqdes,
 		if (get_compat_sigevent(&n, u_notification))
 			return -EFAULT;
 		if (n.sigev_notify == SIGEV_THREAD)
-			n.sigev_value.sival_ptr = compat_ptr(n.sigev_value.sival_int);
+			n.sigev_value.sival_ptr =
+				compat_ptr(n.sigev_value.sival_int);
 		p = &n;
 	}
 	return do_mq_notify(mqdes, p);
@@ -1603,7 +1608,7 @@ COMPAT_SYSCALL_DEFINE3(mq_getsetattr, mqd_t, mqdes,
 
 #ifdef CONFIG_COMPAT_32BIT_TIME
 static int compat_prepare_timeout(const struct old_timespec32 __user *p,
-				   struct timespec64 *ts)
+				  struct timespec64 *ts)
 {
 	if (get_old_timespec32(ts, p))
 		return -EFAULT;
@@ -1612,9 +1617,8 @@ static int compat_prepare_timeout(const struct old_timespec32 __user *p,
 	return 0;
 }
 
-SYSCALL_DEFINE5(mq_timedsend_time32, mqd_t, mqdes,
-		const char __user *, u_msg_ptr,
-		unsigned int, msg_len, unsigned int, msg_prio,
+SYSCALL_DEFINE5(mq_timedsend_time32, mqd_t, mqdes, const char __user *,
+		u_msg_ptr, unsigned int, msg_len, unsigned int, msg_prio,
 		const struct old_timespec32 __user *, u_abs_timeout)
 {
 	struct timespec64 ts, *p = NULL;
@@ -1627,8 +1631,7 @@ SYSCALL_DEFINE5(mq_timedsend_time32, mqd_t, mqdes,
 	return do_mq_timedsend(mqdes, u_msg_ptr, msg_len, msg_prio, p);
 }
 
-SYSCALL_DEFINE5(mq_timedreceive_time32, mqd_t, mqdes,
-		char __user *, u_msg_ptr,
+SYSCALL_DEFINE5(mq_timedreceive_time32, mqd_t, mqdes, char __user *, u_msg_ptr,
 		unsigned int, msg_len, unsigned int __user *, u_msg_prio,
 		const struct old_timespec32 __user *, u_abs_timeout)
 {
@@ -1664,27 +1667,27 @@ static const struct super_operations mqueue_super_ops = {
 };
 
 static const struct fs_context_operations mqueue_fs_context_ops = {
-	.free		= mqueue_fs_context_free,
-	.get_tree	= mqueue_get_tree,
+	.free = mqueue_fs_context_free,
+	.get_tree = mqueue_get_tree,
 };
 
 static struct file_system_type mqueue_fs_type = {
-	.name			= "mqueue",
-	.init_fs_context	= mqueue_init_fs_context,
-	.kill_sb		= kill_litter_super,
-	.fs_flags		= FS_USERNS_MOUNT,
+	.name = "mqueue",
+	.init_fs_context = mqueue_init_fs_context,
+	.kill_sb = kill_litter_super,
+	.fs_flags = FS_USERNS_MOUNT,
 };
 
 int mq_init_ns(struct ipc_namespace *ns)
 {
 	struct vfsmount *m;
 
-	ns->mq_queues_count  = 0;
-	ns->mq_queues_max    = DFLT_QUEUESMAX;
-	ns->mq_msg_max       = DFLT_MSGMAX;
-	ns->mq_msgsize_max   = DFLT_MSGSIZEMAX;
-	ns->mq_msg_default   = DFLT_MSG;
-	ns->mq_msgsize_default  = DFLT_MSGSIZE;
+	ns->mq_queues_count = 0;
+	ns->mq_queues_max = DFLT_QUEUESMAX;
+	ns->mq_msg_max = DFLT_MSGMAX;
+	ns->mq_msgsize_max = DFLT_MSGSIZEMAX;
+	ns->mq_msg_default = DFLT_MSG;
+	ns->mq_msgsize_default = DFLT_MSGSIZE;
 
 	m = mq_create_mount(ns);
 	if (IS_ERR(m))
@@ -1707,9 +1710,10 @@ static int __init init_mqueue_fs(void)
 {
 	int error;
 
-	mqueue_inode_cachep = kmem_cache_create("mqueue_inode_cache",
-				sizeof(struct mqueue_inode_info), 0,
-				SLAB_HWCACHE_ALIGN|SLAB_ACCOUNT, init_once);
+	mqueue_inode_cachep =
+		kmem_cache_create("mqueue_inode_cache",
+				  sizeof(struct mqueue_inode_info), 0,
+				  SLAB_HWCACHE_ALIGN | SLAB_ACCOUNT, init_once);
 	if (mqueue_inode_cachep == NULL)
 		return -ENOMEM;
 

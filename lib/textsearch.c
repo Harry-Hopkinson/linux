@@ -115,7 +115,7 @@ static inline struct ts_ops *lookup_ts_algo(const char *name)
 	struct ts_ops *o;
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(o, &ts_ops, list) {
+	list_for_each_entry_rcu (o, &ts_ops, list) {
 		if (!strcmp(name, o->name)) {
 			if (!try_module_get(o->owner))
 				o = NULL;
@@ -150,7 +150,7 @@ int textsearch_register(struct ts_ops *ops)
 		return -EINVAL;
 
 	spin_lock(&ts_mod_lock);
-	list_for_each_entry(o, &ts_ops, list) {
+	list_for_each_entry (o, &ts_ops, list) {
 		if (!strcmp(ops->name, o->name))
 			goto errout;
 	}
@@ -181,7 +181,7 @@ int textsearch_unregister(struct ts_ops *ops)
 	struct ts_ops *o;
 
 	spin_lock(&ts_mod_lock);
-	list_for_each_entry(o, &ts_ops, list) {
+	list_for_each_entry (o, &ts_ops, list) {
 		if (o == ops) {
 			list_del_rcu(&o->list);
 			goto out;
@@ -195,17 +195,16 @@ out:
 }
 EXPORT_SYMBOL(textsearch_unregister);
 
-struct ts_linear_state
-{
-	unsigned int	len;
-	const void	*data;
+struct ts_linear_state {
+	unsigned int len;
+	const void *data;
 };
 
 static unsigned int get_linear_data(unsigned int consumed, const u8 **dst,
 				    struct ts_config *conf,
 				    struct ts_state *state)
 {
-	struct ts_linear_state *st = (struct ts_linear_state *) state->cb;
+	struct ts_linear_state *st = (struct ts_linear_state *)state->cb;
 
 	if (likely(consumed < st->len)) {
 		*dst = st->data + consumed;
@@ -232,7 +231,7 @@ unsigned int textsearch_find_continuous(struct ts_config *conf,
 					struct ts_state *state,
 					const void *data, unsigned int len)
 {
-	struct ts_linear_state *st = (struct ts_linear_state *) state->cb;
+	struct ts_linear_state *st = (struct ts_linear_state *)state->cb;
 
 	conf->get_next_block = get_linear_data;
 	st->data = data;
@@ -261,12 +260,13 @@ EXPORT_SYMBOL(textsearch_find_continuous);
  * function returns EINVAL.
  */
 struct ts_config *textsearch_prepare(const char *algo, const void *pattern,
-				     unsigned int len, gfp_t gfp_mask, int flags)
+				     unsigned int len, gfp_t gfp_mask,
+				     int flags)
 {
 	int err = -ENOENT;
 	struct ts_config *conf;
 	struct ts_ops *ops;
-	
+
 	if (len == 0)
 		return ERR_PTR(-EINVAL);
 
@@ -298,7 +298,7 @@ struct ts_config *textsearch_prepare(const char *algo, const void *pattern,
 errout:
 	if (ops)
 		module_put(ops->owner);
-		
+
 	return ERR_PTR(err);
 }
 EXPORT_SYMBOL(textsearch_prepare);

@@ -42,8 +42,8 @@ static int hash_walk_next(struct crypto_hash_walk *walk)
 {
 	unsigned int alignmask = walk->alignmask;
 	unsigned int offset = walk->offset;
-	unsigned int nbytes = min(walk->entrylen,
-				  ((unsigned int)(PAGE_SIZE)) - offset);
+	unsigned int nbytes =
+		min(walk->entrylen, ((unsigned int)(PAGE_SIZE)) - offset);
 
 	walk->data = kmap_atomic(walk->pg);
 	walk->data += offset;
@@ -135,7 +135,7 @@ int crypto_hash_walk_first(struct ahash_request *req,
 EXPORT_SYMBOL_GPL(crypto_hash_walk_first);
 
 static int ahash_setkey_unaligned(struct crypto_ahash *tfm, const u8 *key,
-				unsigned int keylen)
+				  unsigned int keylen)
 {
 	unsigned long alignmask = crypto_ahash_alignmask(tfm);
 	int ret;
@@ -205,7 +205,8 @@ static int ahash_save_req(struct ahash_request *req, crypto_completion_t cplt)
 
 	priv = kmalloc(sizeof(*priv) + ahash_align_buffer_size(ds, alignmask),
 		       (req->base.flags & CRYPTO_TFM_REQ_MAY_SLEEP) ?
-		       GFP_KERNEL : GFP_ATOMIC);
+			       GFP_KERNEL :
+			       GFP_ATOMIC);
 	if (!priv)
 		return -ENOMEM;
 
@@ -264,8 +265,8 @@ static void ahash_restore_req(struct ahash_request *req, int err)
 	/* Restore the original crypto request. */
 	req->result = priv->result;
 
-	ahash_request_set_callback(req, priv->flags,
-				   priv->complete, priv->data);
+	ahash_request_set_callback(req, priv->flags, priv->complete,
+				   priv->data);
 	req->priv = NULL;
 
 	/* Free the req->priv.priv from the ADJUSTED request. */
@@ -517,13 +518,13 @@ static int crypto_ahash_report(struct sk_buff *skb, struct crypto_alg *alg)
 }
 #endif
 
-static void crypto_ahash_show(struct seq_file *m, struct crypto_alg *alg)
-	__maybe_unused;
+static void crypto_ahash_show(struct seq_file *m,
+			      struct crypto_alg *alg) __maybe_unused;
 static void crypto_ahash_show(struct seq_file *m, struct crypto_alg *alg)
 {
 	seq_printf(m, "type         : ahash\n");
-	seq_printf(m, "async        : %s\n", alg->cra_flags & CRYPTO_ALG_ASYNC ?
-					     "yes" : "no");
+	seq_printf(m, "async        : %s\n",
+		   alg->cra_flags & CRYPTO_ALG_ASYNC ? "yes" : "no");
 	seq_printf(m, "blocksize    : %u\n", alg->cra_blocksize);
 	seq_printf(m, "digestsize   : %u\n",
 		   __crypto_hash_alg_common(alg)->digestsize);
@@ -544,8 +545,8 @@ static const struct crypto_type crypto_ahash_type = {
 };
 
 int crypto_grab_ahash(struct crypto_ahash_spawn *spawn,
-		      struct crypto_instance *inst,
-		      const char *name, u32 type, u32 mask)
+		      struct crypto_instance *inst, const char *name, u32 type,
+		      u32 mask)
 {
 	spawn->base.frontend = &crypto_ahash_type;
 	return crypto_grab_spawn(&spawn->base, inst, name, type, mask);

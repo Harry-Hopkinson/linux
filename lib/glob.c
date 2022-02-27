@@ -57,20 +57,20 @@ bool __pure glob_match(char const *pat, char const *str)
 		unsigned char d = *pat++;
 
 		switch (d) {
-		case '?':	/* Wildcard: anything but nul */
+		case '?': /* Wildcard: anything but nul */
 			if (c == '\0')
 				return false;
 			break;
-		case '*':	/* Any-length wildcard */
-			if (*pat == '\0')	/* Optimize trailing * case */
+		case '*': /* Any-length wildcard */
+			if (*pat == '\0') /* Optimize trailing * case */
 				return true;
 			back_pat = pat;
-			back_str = --str;	/* Allow zero-length match */
+			back_str = --str; /* Allow zero-length match */
 			break;
-		case '[': {	/* Character class */
+		case '[': { /* Character class */
 			bool match = false, inverted = (*pat == '!');
 			char const *class = pat + inverted;
-			unsigned char a = *class++;
+			unsigned char a = *class ++;
 
 			/*
 			 * Iterate over each span in the character class.
@@ -80,7 +80,7 @@ bool __pure glob_match(char const *pat, char const *str)
 			do {
 				unsigned char b = a;
 
-				if (a == '\0')	/* Malformed */
+				if (a == '\0') /* Malformed */
 					goto literal;
 
 				if (class[0] == '-' && class[1] != ']') {
@@ -93,26 +93,25 @@ bool __pure glob_match(char const *pat, char const *str)
 					/* Any special action if a > b? */
 				}
 				match |= (a <= c && c <= b);
-			} while ((a = *class++) != ']');
+			} while ((a = *class ++) != ']');
 
 			if (match == inverted)
 				goto backtrack;
 			pat = class;
-			}
-			break;
+		} break;
 		case '\\':
 			d = *pat++;
 			fallthrough;
-		default:	/* Literal character */
-literal:
+		default: /* Literal character */
+		literal:
 			if (c == d) {
 				if (d == '\0')
 					return true;
 				break;
 			}
-backtrack:
+		backtrack:
 			if (c == '\0' || !back_pat)
-				return false;	/* No point continuing */
+				return false; /* No point continuing */
 			/* Try again from last *, one character later in str. */
 			pat = back_pat;
 			str = ++back_str;

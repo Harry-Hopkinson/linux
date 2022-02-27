@@ -169,10 +169,10 @@
  */
 
 #define WORKINGSET_SHIFT 1
-#define EVICTION_SHIFT	((BITS_PER_LONG - BITS_PER_XA_VALUE) +	\
-			 WORKINGSET_SHIFT + NODES_SHIFT + \
-			 MEM_CGROUP_ID_SHIFT)
-#define EVICTION_MASK	(~0UL >> EVICTION_SHIFT)
+#define EVICTION_SHIFT                                                         \
+	((BITS_PER_LONG - BITS_PER_XA_VALUE) + WORKINGSET_SHIFT +              \
+	 NODES_SHIFT + MEM_CGROUP_ID_SHIFT)
+#define EVICTION_MASK (~0UL >> EVICTION_SHIFT)
 
 /*
  * Eviction timestamps need to be able to cover the full range of
@@ -364,15 +364,15 @@ void workingset_refault(struct folio *folio, void *shadow)
 	 */
 	workingset_size = lruvec_page_state(eviction_lruvec, NR_ACTIVE_FILE);
 	if (!file) {
-		workingset_size += lruvec_page_state(eviction_lruvec,
-						     NR_INACTIVE_FILE);
+		workingset_size +=
+			lruvec_page_state(eviction_lruvec, NR_INACTIVE_FILE);
 	}
 	if (mem_cgroup_get_nr_swap_pages(memcg) > 0) {
-		workingset_size += lruvec_page_state(eviction_lruvec,
-						     NR_ACTIVE_ANON);
+		workingset_size +=
+			lruvec_page_state(eviction_lruvec, NR_ACTIVE_ANON);
 		if (file) {
 			workingset_size += lruvec_page_state(eviction_lruvec,
-						     NR_INACTIVE_ANON);
+							     NR_INACTIVE_ANON);
 		}
 	}
 	if (refault_distance > workingset_size)
@@ -441,7 +441,7 @@ void workingset_update_node(struct xa_node *node)
 	 * already where they should be. The list_empty() test is safe
 	 * as node->private_list is protected by the i_pages lock.
 	 */
-	VM_WARN_ON_ONCE(!irqs_disabled());  /* For __inc_lruvec_page_state */
+	VM_WARN_ON_ONCE(!irqs_disabled()); /* For __inc_lruvec_page_state */
 
 	if (node->count && node->count == node->nr_values) {
 		if (list_empty(&node->private_list)) {
@@ -467,7 +467,7 @@ static unsigned long count_shadow_nodes(struct shrinker *shrinker,
 	if (!nodes)
 		return SHRINK_EMPTY;
 
-	/*
+		/*
 	 * Approximate a reasonable limit for the nodes
 	 * containing shadow entries. We don't need to keep more
 	 * shadow entries than possible pages on the active list,
@@ -498,10 +498,12 @@ static unsigned long count_shadow_nodes(struct shrinker *shrinker,
 		for (pages = 0, i = 0; i < NR_LRU_LISTS; i++)
 			pages += lruvec_page_state_local(lruvec,
 							 NR_LRU_BASE + i);
-		pages += lruvec_page_state_local(
-			lruvec, NR_SLAB_RECLAIMABLE_B) >> PAGE_SHIFT;
-		pages += lruvec_page_state_local(
-			lruvec, NR_SLAB_UNRECLAIMABLE_B) >> PAGE_SHIFT;
+		pages += lruvec_page_state_local(lruvec,
+						 NR_SLAB_RECLAIMABLE_B) >>
+			 PAGE_SHIFT;
+		pages += lruvec_page_state_local(lruvec,
+						 NR_SLAB_UNRECLAIMABLE_B) >>
+			 PAGE_SHIFT;
 	} else
 #endif
 		pages = node_present_pages(sc->nid);
@@ -515,8 +517,8 @@ static unsigned long count_shadow_nodes(struct shrinker *shrinker,
 
 static enum lru_status shadow_lru_isolate(struct list_head *item,
 					  struct list_lru_one *lru,
-					  spinlock_t *lru_lock,
-					  void *arg) __must_hold(lru_lock)
+					  spinlock_t *lru_lock, void *arg)
+	__must_hold(lru_lock)
 {
 	struct xa_node *node = container_of(item, struct xa_node, private_list);
 	struct address_space *mapping;
@@ -619,7 +621,7 @@ static int __init workingset_init(void)
 	if (max_order > timestamp_bits)
 		bucket_order = max_order - timestamp_bits;
 	pr_info("workingset: timestamp_bits=%d max_order=%d bucket_order=%u\n",
-	       timestamp_bits, max_order, bucket_order);
+		timestamp_bits, max_order, bucket_order);
 
 	ret = prealloc_shrinker(&workingset_shadow_shrinker);
 	if (ret)

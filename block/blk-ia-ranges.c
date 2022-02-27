@@ -12,8 +12,7 @@
 #include "blk.h"
 
 static ssize_t
-blk_ia_range_sector_show(struct blk_independent_access_range *iar,
-			 char *buf)
+blk_ia_range_sector_show(struct blk_independent_access_range *iar, char *buf)
 {
 	return sprintf(buf, "%llu\n", iar->sector);
 }
@@ -48,7 +47,7 @@ static struct attribute *blk_ia_range_attrs[] = {
 ATTRIBUTE_GROUPS(blk_ia_range);
 
 static ssize_t blk_ia_range_sysfs_show(struct kobject *kobj,
-				      struct attribute *attr, char *buf)
+				       struct attribute *attr, char *buf)
 {
 	struct blk_ia_range_sysfs_entry *entry =
 		container_of(attr, struct blk_ia_range_sysfs_entry, attr);
@@ -64,7 +63,7 @@ static ssize_t blk_ia_range_sysfs_show(struct kobject *kobj,
 }
 
 static const struct sysfs_ops blk_ia_range_sysfs_ops = {
-	.show	= blk_ia_range_sysfs_show,
+	.show = blk_ia_range_sysfs_show,
 };
 
 /*
@@ -81,9 +80,9 @@ static void blk_ia_range_sysfs_nop_release(struct kobject *kobj)
 }
 
 static struct kobj_type blk_ia_range_ktype = {
-	.sysfs_ops	= &blk_ia_range_sysfs_ops,
-	.default_groups	= blk_ia_range_groups,
-	.release	= blk_ia_range_sysfs_nop_release,
+	.sysfs_ops = &blk_ia_range_sysfs_ops,
+	.default_groups = blk_ia_range_groups,
+	.release = blk_ia_range_sysfs_nop_release,
 };
 
 /*
@@ -100,7 +99,7 @@ static void blk_ia_ranges_sysfs_release(struct kobject *kobj)
 }
 
 static struct kobj_type blk_ia_ranges_ktype = {
-	.release	= blk_ia_ranges_sysfs_release,
+	.release = blk_ia_ranges_sysfs_release,
 };
 
 /**
@@ -114,8 +113,8 @@ static struct kobj_type blk_ia_ranges_ktype = {
  * specified by q->ia_ranges is unregistered. Otherwise, q->ia_ranges is
  * registered if it is not already.
  */
-int disk_register_independent_access_ranges(struct gendisk *disk,
-				struct blk_independent_access_ranges *new_iars)
+int disk_register_independent_access_ranges(
+	struct gendisk *disk, struct blk_independent_access_ranges *new_iars)
 {
 	struct request_queue *q = disk->queue;
 	struct blk_independent_access_ranges *iars;
@@ -140,8 +139,8 @@ int disk_register_independent_access_ranges(struct gendisk *disk,
 	 * to be registered with sysfs.
 	 */
 	WARN_ON(iars->sysfs_registered);
-	ret = kobject_init_and_add(&iars->kobj, &blk_ia_ranges_ktype,
-				   &q->kobj, "%s", "independent_access_ranges");
+	ret = kobject_init_and_add(&iars->kobj, &blk_ia_ranges_ktype, &q->kobj,
+				   "%s", "independent_access_ranges");
 	if (ret) {
 		q->ia_ranges = NULL;
 		kobject_put(&iars->kobj);
@@ -192,8 +191,7 @@ void disk_unregister_independent_access_ranges(struct gendisk *disk)
 }
 
 static struct blk_independent_access_range *
-disk_find_ia_range(struct blk_independent_access_ranges *iars,
-		  sector_t sector)
+disk_find_ia_range(struct blk_independent_access_ranges *iars, sector_t sector)
 {
 	struct blk_independent_access_range *iar;
 	int i;
@@ -209,7 +207,7 @@ disk_find_ia_range(struct blk_independent_access_ranges *iars,
 }
 
 static bool disk_check_ia_ranges(struct gendisk *disk,
-				struct blk_independent_access_ranges *iars)
+				 struct blk_independent_access_ranges *iars)
 {
 	struct blk_independent_access_range *iar, *tmp;
 	sector_t capacity = get_capacity(disk);
@@ -299,8 +297,8 @@ EXPORT_SYMBOL_GPL(disk_alloc_independent_access_ranges);
  * @iars and the independent access ranges structure already set, @iars
  * is freed.
  */
-void disk_set_independent_access_ranges(struct gendisk *disk,
-				struct blk_independent_access_ranges *iars)
+void disk_set_independent_access_ranges(
+	struct gendisk *disk, struct blk_independent_access_ranges *iars)
 {
 	struct request_queue *q = disk->queue;
 

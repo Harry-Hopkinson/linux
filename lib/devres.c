@@ -132,9 +132,9 @@ void devm_iounmap(struct device *dev, void __iomem *addr)
 }
 EXPORT_SYMBOL(devm_iounmap);
 
-static void __iomem *
-__devm_ioremap_resource(struct device *dev, const struct resource *res,
-			enum devm_ioremap_type type)
+static void __iomem *__devm_ioremap_resource(struct device *dev,
+					     const struct resource *res,
+					     enum devm_ioremap_type type)
 {
 	resource_size_t size;
 	void __iomem *dest_ptr;
@@ -158,7 +158,8 @@ __devm_ioremap_resource(struct device *dev, const struct resource *res,
 	else
 		pretty_name = devm_kstrdup(dev, dev_name(dev), GFP_KERNEL);
 	if (!pretty_name) {
-		dev_err(dev, "can't generate pretty name for resource %pR\n", res);
+		dev_err(dev, "can't generate pretty name for resource %pR\n",
+			res);
 		return IOMEM_ERR_PTR(-ENOMEM);
 	}
 
@@ -248,8 +249,8 @@ void __iomem *devm_ioremap_resource_wc(struct device *dev,
  * Return: a pointer to the requested and mapped memory or an ERR_PTR() encoded
  * error code on failure.
  */
-void __iomem *devm_of_iomap(struct device *dev, struct device_node *node, int index,
-			    resource_size_t *size)
+void __iomem *devm_of_iomap(struct device *dev, struct device_node *node,
+			    int index, resource_size_t *size)
 {
 	struct resource res;
 
@@ -288,7 +289,7 @@ static int devm_ioport_map_match(struct device *dev, void *res,
  * Return: a pointer to the remapped memory or NULL on failure.
  */
 void __iomem *devm_ioport_map(struct device *dev, unsigned long port,
-			       unsigned int nr)
+			      unsigned int nr)
 {
 	void __iomem **ptr, *addr;
 
@@ -328,7 +329,7 @@ EXPORT_SYMBOL(devm_ioport_unmap);
 /*
  * PCI iomap devres
  */
-#define PCIM_IOMAP_MAX	PCI_STD_NUM_BARS
+#define PCIM_IOMAP_MAX PCI_STD_NUM_BARS
 
 struct pcim_iomap_devres {
 	void __iomem *table[PCIM_IOMAP_MAX];
@@ -358,7 +359,7 @@ static void pcim_iomap_release(struct device *gendev, void *res)
  * be safely called without context and guaranteed to succeed once
  * allocated.
  */
-void __iomem * const *pcim_iomap_table(struct pci_dev *pdev)
+void __iomem *const *pcim_iomap_table(struct pci_dev *pdev)
 {
 	struct pcim_iomap_devres *dr, *new_dr;
 
@@ -390,7 +391,7 @@ void __iomem *pcim_iomap(struct pci_dev *pdev, int bar, unsigned long maxlen)
 	BUG_ON(bar >= PCIM_IOMAP_MAX);
 
 	tbl = (void __iomem **)pcim_iomap_table(pdev);
-	if (!tbl || tbl[bar])	/* duplicate mappings not allowed */
+	if (!tbl || tbl[bar]) /* duplicate mappings not allowed */
 		return NULL;
 
 	tbl[bar] = pci_iomap(pdev, bar, maxlen);
@@ -434,7 +435,7 @@ EXPORT_SYMBOL(pcim_iounmap);
  */
 int pcim_iomap_regions(struct pci_dev *pdev, int mask, const char *name)
 {
-	void __iomem * const *iomap;
+	void __iomem *const *iomap;
 	int i, rc;
 
 	iomap = pcim_iomap_table(pdev);
@@ -463,9 +464,9 @@ int pcim_iomap_regions(struct pci_dev *pdev, int mask, const char *name)
 
 	return 0;
 
- err_region:
+err_region:
 	pci_release_region(pdev, i);
- err_inval:
+err_inval:
 	while (--i >= 0) {
 		if (!(mask & (1 << i)))
 			continue;
@@ -511,7 +512,7 @@ EXPORT_SYMBOL(pcim_iomap_regions_request_all);
  */
 void pcim_iounmap_regions(struct pci_dev *pdev, int mask)
 {
-	void __iomem * const *iomap;
+	void __iomem *const *iomap;
 	int i;
 
 	iomap = pcim_iomap_table(pdev);
@@ -543,12 +544,14 @@ static void devm_arch_phys_ac_add_release(struct device *dev, void *res)
  * Adds a WC MTRR using arch_phys_wc_add() and sets up a release callback.
  * See arch_phys_wc_add() for more information.
  */
-int devm_arch_phys_wc_add(struct device *dev, unsigned long base, unsigned long size)
+int devm_arch_phys_wc_add(struct device *dev, unsigned long base,
+			  unsigned long size)
 {
 	int *mtrr;
 	int ret;
 
-	mtrr = devres_alloc(devm_arch_phys_ac_add_release, sizeof(*mtrr), GFP_KERNEL);
+	mtrr = devres_alloc(devm_arch_phys_ac_add_release, sizeof(*mtrr),
+			    GFP_KERNEL);
 	if (!mtrr)
 		return -ENOMEM;
 
@@ -593,7 +596,8 @@ int devm_arch_io_reserve_memtype_wc(struct device *dev, resource_size_t start,
 	struct arch_io_reserve_memtype_wc_devres *dr;
 	int ret;
 
-	dr = devres_alloc(devm_arch_io_free_memtype_wc_release, sizeof(*dr), GFP_KERNEL);
+	dr = devres_alloc(devm_arch_io_free_memtype_wc_release, sizeof(*dr),
+			  GFP_KERNEL);
 	if (!dr)
 		return -ENOMEM;
 

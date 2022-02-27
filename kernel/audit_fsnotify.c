@@ -24,9 +24,9 @@
  * but dev, ino, and path are about the child
  */
 struct audit_fsnotify_mark {
-	dev_t dev;		/* associated superblock device */
-	unsigned long ino;	/* associated inode number */
-	char *path;		/* insertion path */
+	dev_t dev; /* associated superblock device */
+	unsigned long ino; /* associated inode number */
+	char *path; /* insertion path */
 	struct fsnotify_mark mark; /* fsnotify mark on the inode */
 	struct audit_krule *rule;
 };
@@ -35,8 +35,8 @@ struct audit_fsnotify_mark {
 static struct fsnotify_group *audit_fsnotify_group;
 
 /* fsnotify events we care about. */
-#define AUDIT_FS_EVENTS (FS_MOVE | FS_CREATE | FS_DELETE | FS_DELETE_SELF |\
-			 FS_MOVE_SELF)
+#define AUDIT_FS_EVENTS                                                        \
+	(FS_MOVE | FS_CREATE | FS_DELETE | FS_DELETE_SELF | FS_MOVE_SELF)
 
 static void audit_fsnotify_mark_free(struct audit_fsnotify_mark *audit_mark)
 {
@@ -57,7 +57,8 @@ char *audit_mark_path(struct audit_fsnotify_mark *mark)
 	return mark->path;
 }
 
-int audit_mark_compare(struct audit_fsnotify_mark *mark, unsigned long ino, dev_t dev)
+int audit_mark_compare(struct audit_fsnotify_mark *mark, unsigned long ino,
+		       dev_t dev)
 {
 	if (mark->ino == AUDIT_INO_UNSET)
 		return 0;
@@ -65,13 +66,14 @@ int audit_mark_compare(struct audit_fsnotify_mark *mark, unsigned long ino, dev_
 }
 
 static void audit_update_mark(struct audit_fsnotify_mark *audit_mark,
-			     const struct inode *inode)
+			      const struct inode *inode)
 {
 	audit_mark->dev = inode ? inode->i_sb->s_dev : AUDIT_DEV_UNSET;
 	audit_mark->ino = inode ? inode->i_ino : AUDIT_INO_UNSET;
 }
 
-struct audit_fsnotify_mark *audit_alloc_mark(struct audit_krule *krule, char *pathname, int len)
+struct audit_fsnotify_mark *audit_alloc_mark(struct audit_krule *krule,
+					     char *pathname, int len)
 {
 	struct audit_fsnotify_mark *audit_mark;
 	struct path path;
@@ -79,7 +81,7 @@ struct audit_fsnotify_mark *audit_alloc_mark(struct audit_krule *krule, char *pa
 	struct inode *inode;
 	int ret;
 
-	if (pathname[0] != '/' || pathname[len-1] == '/')
+	if (pathname[0] != '/' || pathname[len - 1] == '/')
 		return ERR_PTR(-EINVAL);
 
 	dentry = kern_path_locked(pathname, &path);
@@ -111,7 +113,8 @@ out:
 	return audit_mark;
 }
 
-static void audit_mark_log_rule_change(struct audit_fsnotify_mark *audit_mark, char *op)
+static void audit_mark_log_rule_change(struct audit_fsnotify_mark *audit_mark,
+				       char *op)
 {
 	struct audit_buffer *ab;
 	struct audit_krule *rule = audit_mark->rule;
@@ -145,7 +148,8 @@ void audit_remove_mark_rule(struct audit_krule *krule)
 static void audit_autoremove_mark_rule(struct audit_fsnotify_mark *audit_mark)
 {
 	struct audit_krule *rule = audit_mark->rule;
-	struct audit_entry *entry = container_of(rule, struct audit_entry, rule);
+	struct audit_entry *entry =
+		container_of(rule, struct audit_entry, rule);
 
 	audit_mark_log_rule_change(audit_mark, "autoremove_rule");
 	audit_del_rule(entry);
@@ -163,11 +167,12 @@ static int audit_mark_handle_event(struct fsnotify_mark *inode_mark, u32 mask,
 	if (WARN_ON_ONCE(inode_mark->group != audit_fsnotify_group))
 		return 0;
 
-	if (mask & (FS_CREATE|FS_MOVED_TO|FS_DELETE|FS_MOVED_FROM)) {
-		if (audit_compare_dname_path(dname, audit_mark->path, AUDIT_NAME_FULL))
+	if (mask & (FS_CREATE | FS_MOVED_TO | FS_DELETE | FS_MOVED_FROM)) {
+		if (audit_compare_dname_path(dname, audit_mark->path,
+					     AUDIT_NAME_FULL))
 			return 0;
 		audit_update_mark(audit_mark, inode);
-	} else if (mask & (FS_DELETE_SELF|FS_UNMOUNT|FS_MOVE_SELF)) {
+	} else if (mask & (FS_DELETE_SELF | FS_UNMOUNT | FS_MOVE_SELF)) {
 		audit_autoremove_mark_rule(audit_mark);
 	}
 

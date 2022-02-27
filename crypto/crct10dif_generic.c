@@ -85,22 +85,20 @@ static int chksum_digest(struct shash_desc *desc, const u8 *data,
 	return __chksum_finup(0, data, length, out);
 }
 
-static struct shash_alg alg = {
-	.digestsize		=	CRC_T10DIF_DIGEST_SIZE,
-	.init		=	chksum_init,
-	.update		=	chksum_update,
-	.final		=	chksum_final,
-	.finup		=	chksum_finup,
-	.digest		=	chksum_digest,
-	.descsize		=	sizeof(struct chksum_desc_ctx),
-	.base			=	{
-		.cra_name		=	"crct10dif",
-		.cra_driver_name	=	"crct10dif-generic",
-		.cra_priority		=	100,
-		.cra_blocksize		=	CRC_T10DIF_BLOCK_SIZE,
-		.cra_module		=	THIS_MODULE,
-	}
-};
+static struct shash_alg alg = { .digestsize = CRC_T10DIF_DIGEST_SIZE,
+				.init = chksum_init,
+				.update = chksum_update,
+				.final = chksum_final,
+				.finup = chksum_finup,
+				.digest = chksum_digest,
+				.descsize = sizeof(struct chksum_desc_ctx),
+				.base = {
+					.cra_name = "crct10dif",
+					.cra_driver_name = "crct10dif-generic",
+					.cra_priority = 100,
+					.cra_blocksize = CRC_T10DIF_BLOCK_SIZE,
+					.cra_module = THIS_MODULE,
+				} };
 
 static int __init crct10dif_mod_init(void)
 {

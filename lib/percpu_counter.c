@@ -34,8 +34,8 @@ static bool percpu_counter_fixup_free(void *addr, enum debug_obj_state state)
 }
 
 static const struct debug_obj_descr percpu_counter_debug_descr = {
-	.name		= "percpu_counter",
-	.fixup_free	= percpu_counter_fixup_free,
+	.name = "percpu_counter",
+	.fixup_free = percpu_counter_fixup_free,
 };
 
 static inline void debug_percpu_counter_activate(struct percpu_counter *fbc)
@@ -50,12 +50,14 @@ static inline void debug_percpu_counter_deactivate(struct percpu_counter *fbc)
 	debug_object_free(fbc, &percpu_counter_debug_descr);
 }
 
-#else	/* CONFIG_DEBUG_OBJECTS_PERCPU_COUNTER */
+#else /* CONFIG_DEBUG_OBJECTS_PERCPU_COUNTER */
 static inline void debug_percpu_counter_activate(struct percpu_counter *fbc)
-{ }
+{
+}
 static inline void debug_percpu_counter_deactivate(struct percpu_counter *fbc)
-{ }
-#endif	/* CONFIG_DEBUG_OBJECTS_PERCPU_COUNTER */
+{
+}
+#endif /* CONFIG_DEBUG_OBJECTS_PERCPU_COUNTER */
 
 void percpu_counter_set(struct percpu_counter *fbc, s64 amount)
 {
@@ -63,7 +65,7 @@ void percpu_counter_set(struct percpu_counter *fbc, s64 amount)
 	unsigned long flags;
 
 	raw_spin_lock_irqsave(&fbc->lock, flags);
-	for_each_possible_cpu(cpu) {
+	for_each_possible_cpu (cpu) {
 		s32 *pcount = per_cpu_ptr(fbc->counters, cpu);
 		*pcount = 0;
 	}
@@ -129,7 +131,7 @@ s64 __percpu_counter_sum(struct percpu_counter *fbc)
 
 	raw_spin_lock_irqsave(&fbc->lock, flags);
 	ret = fbc->count;
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu (cpu) {
 		s32 *pcount = per_cpu_ptr(fbc->counters, cpu);
 		ret += *pcount;
 	}
@@ -188,7 +190,7 @@ static int compute_batch_value(unsigned int cpu)
 {
 	int nr = num_online_cpus();
 
-	percpu_counter_batch = max(32, nr*2);
+	percpu_counter_batch = max(32, nr * 2);
 	return 0;
 }
 
@@ -200,7 +202,7 @@ static int percpu_counter_cpu_dead(unsigned int cpu)
 	compute_batch_value(cpu);
 
 	spin_lock_irq(&percpu_counters_lock);
-	list_for_each_entry(fbc, &percpu_counters, list) {
+	list_for_each_entry (fbc, &percpu_counters, list) {
 		s32 *pcount;
 
 		raw_spin_lock(&fbc->lock);
@@ -220,7 +222,7 @@ static int percpu_counter_cpu_dead(unsigned int cpu)
  */
 int __percpu_counter_compare(struct percpu_counter *fbc, s64 rhs, s32 batch)
 {
-	s64	count;
+	s64 count;
 
 	count = percpu_counter_read(fbc);
 	/* Check to see if rough count will be sufficient for comparison */

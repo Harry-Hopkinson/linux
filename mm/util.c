@@ -103,7 +103,7 @@ char *kstrndup(const char *s, size_t max, gfp_t gfp)
 		return NULL;
 
 	len = strnlen(s, max);
-	buf = kmalloc_track_caller(len+1, gfp);
+	buf = kmalloc_track_caller(len + 1, gfp);
 	if (buf) {
 		memcpy(buf, s, len);
 		buf[len] = '\0';
@@ -272,7 +272,7 @@ void *memdup_user_nul(const void __user *src, size_t len)
 EXPORT_SYMBOL(memdup_user_nul);
 
 void __vma_link_list(struct mm_struct *mm, struct vm_area_struct *vma,
-		struct vm_area_struct *prev)
+		     struct vm_area_struct *prev)
 {
 	struct vm_area_struct *next;
 
@@ -306,7 +306,7 @@ void __vma_unlink_list(struct mm_struct *mm, struct vm_area_struct *vma)
 /* Check if the vma is being used as a stack by this task */
 int vma_is_stack_for_current(struct vm_area_struct *vma)
 {
-	struct task_struct * __maybe_unused t = current;
+	struct task_struct *__maybe_unused t = current;
 
 	return (vma->vm_start <= KSTK_ESP(t) && vma->vm_end >= KSTK_ESP(t));
 }
@@ -324,7 +324,7 @@ void vma_set_file(struct vm_area_struct *vma, struct file *file)
 EXPORT_SYMBOL(vma_set_file);
 
 #ifndef STACK_RND_MASK
-#define STACK_RND_MASK (0x7ff >> (PAGE_SHIFT - 12))     /* 8MB of VA */
+#define STACK_RND_MASK (0x7ff >> (PAGE_SHIFT - 12)) /* 8MB of VA */
 #endif
 
 unsigned long randomize_stack_top(unsigned long stack_top)
@@ -382,8 +382,8 @@ static int mmap_is_legacy(struct rlimit *rlim_stack)
  * Leave enough space between the mmap area and the stack to honour ulimit in
  * the face of randomisation.
  */
-#define MIN_GAP		(SZ_128M)
-#define MAX_GAP		(STACK_TOP / 6 * 5)
+#define MIN_GAP (SZ_128M)
+#define MAX_GAP (STACK_TOP / 6 * 5)
 
 static unsigned long mmap_base(unsigned long rnd, struct rlimit *rlim_stack)
 {
@@ -504,8 +504,8 @@ int account_locked_vm(struct mm_struct *mm, unsigned long pages, bool inc)
 EXPORT_SYMBOL_GPL(account_locked_vm);
 
 unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
-	unsigned long len, unsigned long prot,
-	unsigned long flag, unsigned long pgoff)
+			    unsigned long len, unsigned long prot,
+			    unsigned long flag, unsigned long pgoff)
 {
 	unsigned long ret;
 	struct mm_struct *mm = current->mm;
@@ -526,9 +526,9 @@ unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
 	return ret;
 }
 
-unsigned long vm_mmap(struct file *file, unsigned long addr,
-	unsigned long len, unsigned long prot,
-	unsigned long flag, unsigned long offset)
+unsigned long vm_mmap(struct file *file, unsigned long addr, unsigned long len,
+		      unsigned long prot, unsigned long flag,
+		      unsigned long offset)
 {
 	if (unlikely(offset + PAGE_ALIGN(len) < offset))
 		return -EINVAL;
@@ -591,7 +591,7 @@ void *kvmalloc_node(size_t size, gfp_t flags, int node)
 		return NULL;
 
 	return __vmalloc_node(size, 1, flags, node,
-			__builtin_return_address(0));
+			      __builtin_return_address(0));
 }
 EXPORT_SYMBOL(kvmalloc_node);
 
@@ -771,7 +771,7 @@ unsigned long sysctl_user_reserve_kbytes __read_mostly = 1UL << 17; /* 128MB */
 unsigned long sysctl_admin_reserve_kbytes __read_mostly = 1UL << 13; /* 8MB */
 
 int overcommit_ratio_handler(struct ctl_table *table, int write, void *buffer,
-		size_t *lenp, loff_t *ppos)
+			     size_t *lenp, loff_t *ppos)
 {
 	int ret;
 
@@ -787,7 +787,7 @@ static void sync_overcommit_as(struct work_struct *dummy)
 }
 
 int overcommit_policy_handler(struct ctl_table *table, int write, void *buffer,
-		size_t *lenp, loff_t *ppos)
+			      size_t *lenp, loff_t *ppos)
 {
 	struct ctl_table t;
 	int new_policy = -1;
@@ -823,7 +823,7 @@ int overcommit_policy_handler(struct ctl_table *table, int write, void *buffer,
 }
 
 int overcommit_kbytes_handler(struct ctl_table *table, int write, void *buffer,
-		size_t *lenp, loff_t *ppos)
+			      size_t *lenp, loff_t *ppos)
 {
 	int ret;
 
@@ -843,8 +843,8 @@ unsigned long vm_commit_limit(void)
 	if (sysctl_overcommit_kbytes)
 		allowed = sysctl_overcommit_kbytes >> (PAGE_SHIFT - 10);
 	else
-		allowed = ((totalram_pages() - hugetlb_total_pages())
-			   * sysctl_overcommit_ratio / 100);
+		allowed = ((totalram_pages() - hugetlb_total_pages()) *
+			   sysctl_overcommit_ratio / 100);
 	allowed += total_swap_pages;
 
 	return allowed;
@@ -952,7 +952,7 @@ int get_cmdline(struct task_struct *task, char *buffer, int buflen)
 	if (!mm)
 		goto out;
 	if (!mm->arg_end)
-		goto out_mm;	/* Shh! No looking before we're done */
+		goto out_mm; /* Shh! No looking before we're done */
 
 	spin_lock(&mm->arg_lock);
 	arg_start = mm->arg_start;
@@ -972,7 +972,7 @@ int get_cmdline(struct task_struct *task, char *buffer, int buflen)
 	 * If the nul at the end of args has been overwritten, then
 	 * assume application is using setproctitle(3).
 	 */
-	if (res > 0 && buffer[res-1] != '\0' && len < buflen) {
+	if (res > 0 && buffer[res - 1] != '\0' && len < buflen) {
 		len = strnlen(buffer, res);
 		if (len < res) {
 			res = len;
@@ -980,9 +980,8 @@ int get_cmdline(struct task_struct *task, char *buffer, int buflen)
 			len = env_end - env_start;
 			if (len > buflen - res)
 				len = buflen - res;
-			res += access_process_vm(task, env_start,
-						 buffer+res, len,
-						 FOLL_FORCE);
+			res += access_process_vm(task, env_start, buffer + res,
+						 len, FOLL_FORCE);
 			res = strnlen(buffer, res);
 		}
 	}

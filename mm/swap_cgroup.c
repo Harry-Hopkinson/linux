@@ -9,15 +9,15 @@ static DEFINE_MUTEX(swap_cgroup_mutex);
 struct swap_cgroup_ctrl {
 	struct page **map;
 	unsigned long length;
-	spinlock_t	lock;
+	spinlock_t lock;
 };
 
 static struct swap_cgroup_ctrl swap_cgroup_ctrl[MAX_SWAPFILES];
 
 struct swap_cgroup {
-	unsigned short		id;
+	unsigned short id;
 };
-#define SC_PER_PAGE	(PAGE_SIZE/sizeof(struct swap_cgroup))
+#define SC_PER_PAGE (PAGE_SIZE / sizeof(struct swap_cgroup))
 
 /*
  * SwapCgroup implements "lookup" and "exchange" operations.
@@ -74,7 +74,7 @@ static struct swap_cgroup *__lookup_swap_cgroup(struct swap_cgroup_ctrl *ctrl,
 }
 
 static struct swap_cgroup *lookup_swap_cgroup(swp_entry_t ent,
-					struct swap_cgroup_ctrl **ctrlp)
+					      struct swap_cgroup_ctrl **ctrlp)
 {
 	pgoff_t offset = swp_offset(ent);
 	struct swap_cgroup_ctrl *ctrl;
@@ -94,8 +94,8 @@ static struct swap_cgroup *lookup_swap_cgroup(swp_entry_t ent,
  * Returns old id at success, 0 at failure.
  * (There is no mem_cgroup using 0 as its id)
  */
-unsigned short swap_cgroup_cmpxchg(swp_entry_t ent,
-					unsigned short old, unsigned short new)
+unsigned short swap_cgroup_cmpxchg(swp_entry_t ent, unsigned short old,
+				   unsigned short new)
 {
 	struct swap_cgroup_ctrl *ctrl;
 	struct swap_cgroup *sc;

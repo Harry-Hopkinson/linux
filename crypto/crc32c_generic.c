@@ -38,8 +38,8 @@
 #include <linux/kernel.h>
 #include <linux/crc32.h>
 
-#define CHKSUM_BLOCK_SIZE	1
-#define CHKSUM_DIGEST_SIZE	4
+#define CHKSUM_BLOCK_SIZE 1
+#define CHKSUM_DIGEST_SIZE 4
 
 struct chksum_ctx {
 	u32 key;
@@ -127,26 +127,25 @@ static int crc32c_cra_init(struct crypto_tfm *tfm)
 	return 0;
 }
 
-static struct shash_alg alg = {
-	.digestsize		=	CHKSUM_DIGEST_SIZE,
-	.setkey			=	chksum_setkey,
-	.init		=	chksum_init,
-	.update		=	chksum_update,
-	.final		=	chksum_final,
-	.finup		=	chksum_finup,
-	.digest		=	chksum_digest,
-	.descsize		=	sizeof(struct chksum_desc_ctx),
-	.base			=	{
-		.cra_name		=	"crc32c",
-		.cra_driver_name	=	"crc32c-generic",
-		.cra_priority		=	100,
-		.cra_flags		=	CRYPTO_ALG_OPTIONAL_KEY,
-		.cra_blocksize		=	CHKSUM_BLOCK_SIZE,
-		.cra_ctxsize		=	sizeof(struct chksum_ctx),
-		.cra_module		=	THIS_MODULE,
-		.cra_init		=	crc32c_cra_init,
-	}
-};
+static struct shash_alg alg = { .digestsize = CHKSUM_DIGEST_SIZE,
+				.setkey = chksum_setkey,
+				.init = chksum_init,
+				.update = chksum_update,
+				.final = chksum_final,
+				.finup = chksum_finup,
+				.digest = chksum_digest,
+				.descsize = sizeof(struct chksum_desc_ctx),
+				.base = {
+					.cra_name = "crc32c",
+					.cra_driver_name = "crc32c-generic",
+					.cra_priority = 100,
+					.cra_flags = CRYPTO_ALG_OPTIONAL_KEY,
+					.cra_blocksize = CHKSUM_BLOCK_SIZE,
+					.cra_ctxsize =
+						sizeof(struct chksum_ctx),
+					.cra_module = THIS_MODULE,
+					.cra_init = crc32c_cra_init,
+				} };
 
 static int __init crc32c_mod_init(void)
 {

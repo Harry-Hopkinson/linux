@@ -13,7 +13,7 @@
  * The pattern of set bits in the list length determines which cases
  * are hit in list_sort().
  */
-#define TEST_LIST_LEN (512+128+2) /* not including head */
+#define TEST_LIST_LEN (512 + 128 + 2) /* not including head */
 
 #define TEST_POISON1 0xDEADBEEF
 #define TEST_POISON2 0xA324354C
@@ -26,15 +26,20 @@ struct debug_el {
 	unsigned int serial;
 };
 
-static void check(struct kunit *test, struct debug_el *ela, struct debug_el *elb)
+static void check(struct kunit *test, struct debug_el *ela,
+		  struct debug_el *elb)
 {
 	struct debug_el **elts = test->priv;
 
-	KUNIT_EXPECT_LT_MSG(test, ela->serial, (unsigned int)TEST_LIST_LEN, "incorrect serial");
-	KUNIT_EXPECT_LT_MSG(test, elb->serial, (unsigned int)TEST_LIST_LEN, "incorrect serial");
+	KUNIT_EXPECT_LT_MSG(test, ela->serial, (unsigned int)TEST_LIST_LEN,
+			    "incorrect serial");
+	KUNIT_EXPECT_LT_MSG(test, elb->serial, (unsigned int)TEST_LIST_LEN,
+			    "incorrect serial");
 
-	KUNIT_EXPECT_PTR_EQ_MSG(test, elts[ela->serial], ela, "phantom element");
-	KUNIT_EXPECT_PTR_EQ_MSG(test, elts[elb->serial], elb, "phantom element");
+	KUNIT_EXPECT_PTR_EQ_MSG(test, elts[ela->serial], ela,
+				"phantom element");
+	KUNIT_EXPECT_PTR_EQ_MSG(test, elts[elb->serial], elb,
+				"phantom element");
 
 	KUNIT_EXPECT_EQ_MSG(test, ela->poison1, TEST_POISON1, "bad poison");
 	KUNIT_EXPECT_EQ_MSG(test, ela->poison2, TEST_POISON2, "bad poison");
@@ -70,7 +75,7 @@ static void list_sort_test(struct kunit *test)
 		el = kunit_kmalloc(test, sizeof(*el), GFP_KERNEL);
 		KUNIT_ASSERT_NOT_ERR_OR_NULL(test, el);
 
-		 /* force some equivalencies */
+		/* force some equivalencies */
 		el->value = prandom_u32() % (TEST_LIST_LEN / 3);
 		el->serial = i;
 		el->poison1 = TEST_POISON1;
@@ -94,8 +99,9 @@ static void list_sort_test(struct kunit *test)
 		el = container_of(cur, struct debug_el, list);
 		el1 = container_of(cur->next, struct debug_el, list);
 		if (cmp_result == 0) {
-			KUNIT_ASSERT_LE_MSG(test, el->serial, el1->serial,
-					    "order of equivalent elements not preserved");
+			KUNIT_ASSERT_LE_MSG(
+				test, el->serial, el1->serial,
+				"order of equivalent elements not preserved");
 		}
 
 		check(test, el, el1);
@@ -107,10 +113,7 @@ static void list_sort_test(struct kunit *test)
 			    "list length changed after sorting!");
 }
 
-static struct kunit_case list_sort_cases[] = {
-	KUNIT_CASE(list_sort_test),
-	{}
-};
+static struct kunit_case list_sort_cases[] = { KUNIT_CASE(list_sort_test), {} };
 
 static struct kunit_suite list_sort_suite = {
 	.name = "list_sort",

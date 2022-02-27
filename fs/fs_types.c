@@ -6,14 +6,9 @@
  * fs on-disk file type to dirent file type conversion
  */
 static const unsigned char fs_dtype_by_ftype[FT_MAX] = {
-	[FT_UNKNOWN]	= DT_UNKNOWN,
-	[FT_REG_FILE]	= DT_REG,
-	[FT_DIR]	= DT_DIR,
-	[FT_CHRDEV]	= DT_CHR,
-	[FT_BLKDEV]	= DT_BLK,
-	[FT_FIFO]	= DT_FIFO,
-	[FT_SOCK]	= DT_SOCK,
-	[FT_SYMLINK]	= DT_LNK
+	[FT_UNKNOWN] = DT_UNKNOWN, [FT_REG_FILE] = DT_REG, [FT_DIR] = DT_DIR,
+	[FT_CHRDEV] = DT_CHR,	   [FT_BLKDEV] = DT_BLK,   [FT_FIFO] = DT_FIFO,
+	[FT_SOCK] = DT_SOCK,	   [FT_SYMLINK] = DT_LNK
 };
 
 /**
@@ -48,13 +43,9 @@ EXPORT_SYMBOL_GPL(fs_ftype_to_dtype);
  * Values not initialized explicitly are FT_UNKNOWN (0).
  */
 static const unsigned char fs_ftype_by_dtype[DT_MAX] = {
-	[DT_REG]	= FT_REG_FILE,
-	[DT_DIR]	= FT_DIR,
-	[DT_LNK]	= FT_SYMLINK,
-	[DT_CHR]	= FT_CHRDEV,
-	[DT_BLK]	= FT_BLKDEV,
-	[DT_FIFO]	= FT_FIFO,
-	[DT_SOCK]	= FT_SOCK,
+	[DT_REG] = FT_REG_FILE, [DT_DIR] = FT_DIR,    [DT_LNK] = FT_SYMLINK,
+	[DT_CHR] = FT_CHRDEV,	[DT_BLK] = FT_BLKDEV, [DT_FIFO] = FT_FIFO,
+	[DT_SOCK] = FT_SOCK,
 };
 
 /**

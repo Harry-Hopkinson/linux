@@ -65,7 +65,7 @@ static int dev_exceptions_copy(struct list_head *dest, struct list_head *orig)
 
 	lockdep_assert_held(&devcgroup_mutex);
 
-	list_for_each_entry(ex, orig, list) {
+	list_for_each_entry (ex, orig, list) {
 		new = kmemdup(ex, sizeof(*ex), GFP_KERNEL);
 		if (!new)
 			goto free_and_exit;
@@ -75,7 +75,7 @@ static int dev_exceptions_copy(struct list_head *dest, struct list_head *orig)
 	return 0;
 
 free_and_exit:
-	list_for_each_entry_safe(ex, tmp, dest, list) {
+	list_for_each_entry_safe (ex, tmp, dest, list) {
 		list_del(&ex->list);
 		kfree(ex);
 	}
@@ -96,7 +96,7 @@ static int dev_exception_add(struct dev_cgroup *dev_cgroup,
 	if (!excopy)
 		return -ENOMEM;
 
-	list_for_each_entry(walk, &dev_cgroup->exceptions, list) {
+	list_for_each_entry (walk, &dev_cgroup->exceptions, list) {
 		if (walk->type != ex->type)
 			continue;
 		if (walk->major != ex->major)
@@ -124,7 +124,7 @@ static void dev_exception_rm(struct dev_cgroup *dev_cgroup,
 
 	lockdep_assert_held(&devcgroup_mutex);
 
-	list_for_each_entry_safe(walk, tmp, &dev_cgroup->exceptions, list) {
+	list_for_each_entry_safe (walk, tmp, &dev_cgroup->exceptions, list) {
 		if (walk->type != ex->type)
 			continue;
 		if (walk->major != ex->major)
@@ -144,7 +144,7 @@ static void __dev_exception_clean(struct dev_cgroup *dev_cgroup)
 {
 	struct dev_exception_item *ex, *tmp;
 
-	list_for_each_entry_safe(ex, tmp, &dev_cgroup->exceptions, list) {
+	list_for_each_entry_safe (ex, tmp, &dev_cgroup->exceptions, list) {
 		list_del_rcu(&ex->list);
 		kfree_rcu(ex, rcu);
 	}
@@ -284,10 +284,10 @@ static int devcgroup_seq_show(struct seq_file *m, void *v)
 		set_access(acc, DEVCG_ACC_MASK);
 		set_majmin(maj, ~0);
 		set_majmin(min, ~0);
-		seq_printf(m, "%c %s:%s %s\n", type_to_char(DEVCG_DEV_ALL),
-			   maj, min, acc);
+		seq_printf(m, "%c %s:%s %s\n", type_to_char(DEVCG_DEV_ALL), maj,
+			   min, acc);
 	} else {
-		list_for_each_entry_rcu(ex, &devcgroup->exceptions, list) {
+		list_for_each_entry_rcu (ex, &devcgroup->exceptions, list) {
 			set_access(acc, ex->access);
 			set_majmin(maj, ex->major);
 			set_majmin(min, ex->minor);
@@ -313,12 +313,12 @@ static int devcgroup_seq_show(struct seq_file *m, void *v)
  *
  * Return: true in case it matches an exception completely
  */
-static bool match_exception(struct list_head *exceptions, short type,
-			    u32 major, u32 minor, short access)
+static bool match_exception(struct list_head *exceptions, short type, u32 major,
+			    u32 minor, short access)
 {
 	struct dev_exception_item *ex;
 
-	list_for_each_entry_rcu(ex, exceptions, list) {
+	list_for_each_entry_rcu (ex, exceptions, list) {
 		if ((type & DEVCG_DEV_BLOCK) && !(ex->type & DEVCG_DEV_BLOCK))
 			continue;
 		if ((type & DEVCG_DEV_CHAR) && !(ex->type & DEVCG_DEV_CHAR))
@@ -355,8 +355,8 @@ static bool match_exception_partial(struct list_head *exceptions, short type,
 {
 	struct dev_exception_item *ex;
 
-	list_for_each_entry_rcu(ex, exceptions, list,
-				lockdep_is_held(&devcgroup_mutex)) {
+	list_for_each_entry_rcu (ex, exceptions, list,
+				 lockdep_is_held(&devcgroup_mutex)) {
 		if ((type & DEVCG_DEV_BLOCK) && !(ex->type & DEVCG_DEV_BLOCK))
 			continue;
 		if ((type & DEVCG_DEV_CHAR) && !(ex->type & DEVCG_DEV_CHAR))
@@ -391,33 +391,31 @@ static bool match_exception_partial(struct list_head *exceptions, short type,
  * than its parent
  */
 static bool verify_new_ex(struct dev_cgroup *dev_cgroup,
-		          struct dev_exception_item *refex,
-		          enum devcg_behavior behavior)
+			  struct dev_exception_item *refex,
+			  enum devcg_behavior behavior)
 {
 	bool match = false;
 
-	RCU_LOCKDEP_WARN(!rcu_read_lock_held() &&
-			 !lockdep_is_held(&devcgroup_mutex),
-			 "device_cgroup:verify_new_ex called without proper synchronization");
+	RCU_LOCKDEP_WARN(
+		!rcu_read_lock_held() && !lockdep_is_held(&devcgroup_mutex),
+		"device_cgroup:verify_new_ex called without proper synchronization");
 
 	if (dev_cgroup->behavior == DEVCG_DEFAULT_ALLOW) {
 		if (behavior == DEVCG_DEFAULT_ALLOW) {
 			/*
 			 * new exception in the child doesn't matter, only
 			 * adding extra restrictions
-			 */ 
+			 */
 			return true;
 		} else {
 			/*
 			 * new exception in the child will add more devices
 			 * that can be acessed, so it can't match any of
 			 * parent's exceptions, even slightly
-			 */ 
-			match = match_exception_partial(&dev_cgroup->exceptions,
-							refex->type,
-							refex->major,
-							refex->minor,
-							refex->access);
+			 */
+			match = match_exception_partial(
+				&dev_cgroup->exceptions, refex->type,
+				refex->major, refex->minor, refex->access);
 
 			if (match)
 				return false;
@@ -449,7 +447,7 @@ static bool verify_new_ex(struct dev_cgroup *dev_cgroup,
  * must be allowed in the parent device
  */
 static int parent_has_perm(struct dev_cgroup *childcg,
-				  struct dev_exception_item *ex)
+			   struct dev_exception_item *ex)
 {
 	struct dev_cgroup *parent = css_to_devcgroup(childcg->css.parent);
 
@@ -520,7 +518,7 @@ static void revalidate_active_exceptions(struct dev_cgroup *devcg)
 	struct dev_exception_item *ex;
 	struct list_head *this, *tmp;
 
-	list_for_each_safe(this, tmp, &devcg->exceptions) {
+	list_for_each_safe (this, tmp, &devcg->exceptions) {
 		ex = container_of(this, struct dev_exception_item, list);
 		if (!parent_has_perm(devcg, ex))
 			dev_exception_rm(devcg, ex);
@@ -542,7 +540,7 @@ static int propagate_exception(struct dev_cgroup *devcg_root,
 
 	rcu_read_lock();
 
-	css_for_each_descendant_pre(pos, &devcg_root->css) {
+	css_for_each_descendant_pre (pos, &devcg_root->css) {
 		struct dev_cgroup *devcg = css_to_devcgroup(pos);
 
 		/*
@@ -596,11 +594,11 @@ static int propagate_exception(struct dev_cgroup *devcg_root,
  * new access is only allowed if you're in the top-level cgroup, or your
  * parent cgroup has the access you're asking for.
  */
-static int devcgroup_update_access(struct dev_cgroup *devcgroup,
-				   int filetype, char *buffer)
+static int devcgroup_update_access(struct dev_cgroup *devcgroup, int filetype,
+				   char *buffer)
 {
 	const char *b;
-	char temp[12];		/* 11 + 1 characters needed for a u32 */
+	char temp[12]; /* 11 + 1 characters needed for a u32 */
 	int count, rc = 0;
 	struct dev_exception_item ex;
 	struct dev_cgroup *parent = css_to_devcgroup(devcgroup->css.parent);
@@ -756,8 +754,8 @@ static int devcgroup_update_access(struct dev_cgroup *devcgroup,
 	return rc;
 }
 
-static ssize_t devcgroup_access_write(struct kernfs_open_file *of,
-				      char *buf, size_t nbytes, loff_t off)
+static ssize_t devcgroup_access_write(struct kernfs_open_file *of, char *buf,
+				      size_t nbytes, loff_t off)
 {
 	int retval;
 
@@ -784,7 +782,7 @@ static struct cftype dev_cgroup_files[] = {
 		.seq_show = devcgroup_seq_show,
 		.private = DEVCG_LIST,
 	},
-	{ }	/* terminate */
+	{} /* terminate */
 };
 
 struct cgroup_subsys devices_cgrp_subsys = {
@@ -806,7 +804,7 @@ struct cgroup_subsys devices_cgrp_subsys = {
  * returns 0 on success, -EPERM case the operation is not permitted
  */
 static int devcgroup_legacy_check_permission(short type, u32 major, u32 minor,
-					short access)
+					     short access)
 {
 	struct dev_cgroup *dev_cgroup;
 	bool rc;
@@ -815,8 +813,8 @@ static int devcgroup_legacy_check_permission(short type, u32 major, u32 minor,
 	dev_cgroup = task_devcgroup(current);
 	if (dev_cgroup->behavior == DEVCG_DEFAULT_ALLOW)
 		/* Can't match any of the exceptions, even partially */
-		rc = !match_exception_partial(&dev_cgroup->exceptions,
-					      type, major, minor, access);
+		rc = !match_exception_partial(&dev_cgroup->exceptions, type,
+					      major, minor, access);
 	else
 		/* Need to match completely one exception to be allowed */
 		rc = match_exception(&dev_cgroup->exceptions, type, major,
@@ -840,13 +838,13 @@ int devcgroup_check_permission(short type, u32 major, u32 minor, short access)
 	if (rc)
 		return -EPERM;
 
-	#ifdef CONFIG_CGROUP_DEVICE
+#ifdef CONFIG_CGROUP_DEVICE
 	return devcgroup_legacy_check_permission(type, major, minor, access);
 
-	#else /* CONFIG_CGROUP_DEVICE */
+#else /* CONFIG_CGROUP_DEVICE */
 	return 0;
 
-	#endif /* CONFIG_CGROUP_DEVICE */
+#endif /* CONFIG_CGROUP_DEVICE */
 }
 EXPORT_SYMBOL(devcgroup_check_permission);
 #endif /* defined(CONFIG_CGROUP_DEVICE) || defined(CONFIG_CGROUP_BPF) */

@@ -4,8 +4,7 @@
 #include <linux/key.h>
 #include "common.h"
 
-int load_certificate_list(const u8 cert_list[],
-			  const unsigned long list_size,
+int load_certificate_list(const u8 cert_list[], const unsigned long list_size,
 			  const struct key *keyring)
 {
 	key_ref_t key;
@@ -20,24 +19,19 @@ int load_certificate_list(const u8 cert_list[],
 		 */
 		if (end - p < 4)
 			goto dodgy_cert;
-		if (p[0] != 0x30 &&
-		    p[1] != 0x82)
+		if (p[0] != 0x30 && p[1] != 0x82)
 			goto dodgy_cert;
 		plen = (p[2] << 8) | p[3];
 		plen += 4;
 		if (plen > end - p)
 			goto dodgy_cert;
 
-		key = key_create_or_update(make_key_ref(keyring, 1),
-					   "asymmetric",
-					   NULL,
-					   p,
-					   plen,
-					   ((KEY_POS_ALL & ~KEY_POS_SETATTR) |
-					   KEY_USR_VIEW | KEY_USR_READ),
-					   KEY_ALLOC_NOT_IN_QUOTA |
-					   KEY_ALLOC_BUILT_IN |
-					   KEY_ALLOC_BYPASS_RESTRICTION);
+		key = key_create_or_update(
+			make_key_ref(keyring, 1), "asymmetric", NULL, p, plen,
+			((KEY_POS_ALL & ~KEY_POS_SETATTR) | KEY_USR_VIEW |
+			 KEY_USR_READ),
+			KEY_ALLOC_NOT_IN_QUOTA | KEY_ALLOC_BUILT_IN |
+				KEY_ALLOC_BYPASS_RESTRICTION);
 		if (IS_ERR(key)) {
 			pr_err("Problem loading in-kernel X.509 certificate (%ld)\n",
 			       PTR_ERR(key));

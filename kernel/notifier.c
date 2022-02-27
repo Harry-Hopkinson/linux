@@ -38,7 +38,7 @@ static int notifier_chain_register(struct notifier_block **nl,
 }
 
 static int notifier_chain_unregister(struct notifier_block **nl,
-		struct notifier_block *n)
+				     struct notifier_block *n)
 {
 	while ((*nl) != NULL) {
 		if ((*nl) == n) {
@@ -62,9 +62,8 @@ static int notifier_chain_unregister(struct notifier_block **nl,
  *	@returns:	notifier_call_chain returns the value returned by the
  *			last notifier function called.
  */
-static int notifier_call_chain(struct notifier_block **nl,
-			       unsigned long val, void *v,
-			       int nr_to_call, int *nr_calls)
+static int notifier_call_chain(struct notifier_block **nl, unsigned long val,
+			       void *v, int nr_to_call, int *nr_calls)
 {
 	int ret = NOTIFY_DONE;
 	struct notifier_block *nb, *next_nb;
@@ -111,14 +110,14 @@ NOKPROBE_SYMBOL(notifier_call_chain);
  * Returns:	the return value of the @val_up call.
  */
 static int notifier_call_chain_robust(struct notifier_block **nl,
-				     unsigned long val_up, unsigned long val_down,
-				     void *v)
+				      unsigned long val_up,
+				      unsigned long val_down, void *v)
 {
 	int ret, nr = 0;
 
 	ret = notifier_call_chain(nl, val_up, v, -1, &nr);
 	if (ret & NOTIFY_STOP_MASK)
-		notifier_call_chain(nl, val_down, v, nr-1, NULL);
+		notifier_call_chain(nl, val_down, v, nr - 1, NULL);
 
 	return ret;
 }
@@ -138,7 +137,7 @@ static int notifier_call_chain_robust(struct notifier_block **nl,
  *	Returns 0 on success, %-EEXIST on error.
  */
 int atomic_notifier_chain_register(struct atomic_notifier_head *nh,
-		struct notifier_block *n)
+				   struct notifier_block *n)
 {
 	unsigned long flags;
 	int ret;
@@ -160,7 +159,7 @@ EXPORT_SYMBOL_GPL(atomic_notifier_chain_register);
  *	Returns zero on success or %-ENOENT on failure.
  */
 int atomic_notifier_chain_unregister(struct atomic_notifier_head *nh,
-		struct notifier_block *n)
+				     struct notifier_block *n)
 {
 	unsigned long flags;
 	int ret;
@@ -220,7 +219,7 @@ NOKPROBE_SYMBOL(atomic_notifier_call_chain);
  *	Returns 0 on success, %-EEXIST on error.
  */
 int blocking_notifier_chain_register(struct blocking_notifier_head *nh,
-		struct notifier_block *n)
+				     struct notifier_block *n)
 {
 	int ret;
 
@@ -250,7 +249,7 @@ EXPORT_SYMBOL_GPL(blocking_notifier_chain_register);
  *	Returns zero on success or %-ENOENT on failure.
  */
 int blocking_notifier_chain_unregister(struct blocking_notifier_head *nh,
-		struct notifier_block *n)
+				       struct notifier_block *n)
 {
 	int ret;
 
@@ -270,7 +269,8 @@ int blocking_notifier_chain_unregister(struct blocking_notifier_head *nh,
 EXPORT_SYMBOL_GPL(blocking_notifier_chain_unregister);
 
 int blocking_notifier_call_chain_robust(struct blocking_notifier_head *nh,
-		unsigned long val_up, unsigned long val_down, void *v)
+					unsigned long val_up,
+					unsigned long val_down, void *v)
 {
 	int ret = NOTIFY_DONE;
 
@@ -281,7 +281,8 @@ int blocking_notifier_call_chain_robust(struct blocking_notifier_head *nh,
 	 */
 	if (rcu_access_pointer(nh->head)) {
 		down_read(&nh->rwsem);
-		ret = notifier_call_chain_robust(&nh->head, val_up, val_down, v);
+		ret = notifier_call_chain_robust(&nh->head, val_up, val_down,
+						 v);
 		up_read(&nh->rwsem);
 	}
 	return ret;
@@ -305,7 +306,7 @@ EXPORT_SYMBOL_GPL(blocking_notifier_call_chain_robust);
  *	of the last notifier function called.
  */
 int blocking_notifier_call_chain(struct blocking_notifier_head *nh,
-		unsigned long val, void *v)
+				 unsigned long val, void *v)
 {
 	int ret = NOTIFY_DONE;
 
@@ -339,7 +340,7 @@ EXPORT_SYMBOL_GPL(blocking_notifier_call_chain);
  *	Returns 0 on success, %-EEXIST on error.
  */
 int raw_notifier_chain_register(struct raw_notifier_head *nh,
-		struct notifier_block *n)
+				struct notifier_block *n)
 {
 	return notifier_chain_register(&nh->head, n);
 }
@@ -356,14 +357,15 @@ EXPORT_SYMBOL_GPL(raw_notifier_chain_register);
  *	Returns zero on success or %-ENOENT on failure.
  */
 int raw_notifier_chain_unregister(struct raw_notifier_head *nh,
-		struct notifier_block *n)
+				  struct notifier_block *n)
 {
 	return notifier_chain_unregister(&nh->head, n);
 }
 EXPORT_SYMBOL_GPL(raw_notifier_chain_unregister);
 
 int raw_notifier_call_chain_robust(struct raw_notifier_head *nh,
-		unsigned long val_up, unsigned long val_down, void *v)
+				   unsigned long val_up, unsigned long val_down,
+				   void *v)
 {
 	return notifier_call_chain_robust(&nh->head, val_up, val_down, v);
 }
@@ -386,8 +388,8 @@ EXPORT_SYMBOL_GPL(raw_notifier_call_chain_robust);
  *	Otherwise the return value is the return value
  *	of the last notifier function called.
  */
-int raw_notifier_call_chain(struct raw_notifier_head *nh,
-		unsigned long val, void *v)
+int raw_notifier_call_chain(struct raw_notifier_head *nh, unsigned long val,
+			    void *v)
 {
 	return notifier_call_chain(&nh->head, val, v, -1, NULL);
 }
@@ -410,7 +412,7 @@ EXPORT_SYMBOL_GPL(raw_notifier_call_chain);
  *	Returns 0 on success, %-EEXIST on error.
  */
 int srcu_notifier_chain_register(struct srcu_notifier_head *nh,
-		struct notifier_block *n)
+				 struct notifier_block *n)
 {
 	int ret;
 
@@ -440,7 +442,7 @@ EXPORT_SYMBOL_GPL(srcu_notifier_chain_register);
  *	Returns zero on success or %-ENOENT on failure.
  */
 int srcu_notifier_chain_unregister(struct srcu_notifier_head *nh,
-		struct notifier_block *n)
+				   struct notifier_block *n)
 {
 	int ret;
 
@@ -476,8 +478,8 @@ EXPORT_SYMBOL_GPL(srcu_notifier_chain_unregister);
  *	Otherwise the return value is the return value
  *	of the last notifier function called.
  */
-int srcu_notifier_call_chain(struct srcu_notifier_head *nh,
-		unsigned long val, void *v)
+int srcu_notifier_call_chain(struct srcu_notifier_head *nh, unsigned long val,
+			     void *v)
 {
 	int ret;
 	int idx;
@@ -514,19 +516,19 @@ EXPORT_SYMBOL_GPL(srcu_init_notifier_head);
 
 static ATOMIC_NOTIFIER_HEAD(die_chain);
 
-int notrace notify_die(enum die_val val, const char *str,
-	       struct pt_regs *regs, long err, int trap, int sig)
+int notrace notify_die(enum die_val val, const char *str, struct pt_regs *regs,
+		       long err, int trap, int sig)
 {
 	struct die_args args = {
-		.regs	= regs,
-		.str	= str,
-		.err	= err,
-		.trapnr	= trap,
-		.signr	= sig,
+		.regs = regs,
+		.str = str,
+		.err = err,
+		.trapnr = trap,
+		.signr = sig,
 
 	};
 	RCU_LOCKDEP_WARN(!rcu_is_watching(),
-			   "notify_die called but RCU thinks we're quiescent");
+			 "notify_die called but RCU thinks we're quiescent");
 	return atomic_notifier_call_chain(&die_chain, val, &args);
 }
 NOKPROBE_SYMBOL(notify_die);

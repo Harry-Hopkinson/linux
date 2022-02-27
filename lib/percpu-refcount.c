@@ -34,15 +34,15 @@
  * atomic_long_t can't hit 0 before we've added up all the percpu refs.
  */
 
-#define PERCPU_COUNT_BIAS	(1LU << (BITS_PER_LONG - 1))
+#define PERCPU_COUNT_BIAS (1LU << (BITS_PER_LONG - 1))
 
 static DEFINE_SPINLOCK(percpu_ref_switch_lock);
 static DECLARE_WAIT_QUEUE_HEAD(percpu_ref_switch_waitq);
 
 static unsigned long __percpu *percpu_count_ptr(struct percpu_ref *ref)
 {
-	return (unsigned long __percpu *)
-		(ref->percpu_count_ptr & ~__PERCPU_REF_ATOMIC_DEAD);
+	return (unsigned long __percpu *)(ref->percpu_count_ptr &
+					  ~__PERCPU_REF_ATOMIC_DEAD);
 }
 
 /**
@@ -68,8 +68,8 @@ int percpu_ref_init(struct percpu_ref *ref, percpu_ref_func_t *release,
 	unsigned long start_count = 0;
 	struct percpu_ref_data *data;
 
-	ref->percpu_count_ptr = (unsigned long)
-		__alloc_percpu_gfp(sizeof(unsigned long), align, gfp);
+	ref->percpu_count_ptr = (unsigned long)__alloc_percpu_gfp(
+		sizeof(unsigned long), align, gfp);
 	if (!ref->percpu_count_ptr)
 		return -ENOMEM;
 
@@ -137,8 +137,8 @@ void percpu_ref_exit(struct percpu_ref *ref)
 		return;
 
 	spin_lock_irqsave(&percpu_ref_switch_lock, flags);
-	ref->percpu_count_ptr |= atomic_long_read(&ref->data->count) <<
-		__PERCPU_REF_FLAG_BITS;
+	ref->percpu_count_ptr |= atomic_long_read(&ref->data->count)
+				 << __PERCPU_REF_FLAG_BITS;
 	ref->data = NULL;
 	spin_unlock_irqrestore(&percpu_ref_switch_lock, flags);
 
@@ -148,8 +148,8 @@ EXPORT_SYMBOL_GPL(percpu_ref_exit);
 
 static void percpu_ref_call_confirm_rcu(struct rcu_head *rcu)
 {
-	struct percpu_ref_data *data = container_of(rcu,
-			struct percpu_ref_data, rcu);
+	struct percpu_ref_data *data =
+		container_of(rcu, struct percpu_ref_data, rcu);
 	struct percpu_ref *ref = data->ref;
 
 	data->confirm_switch(ref);
@@ -165,19 +165,19 @@ static void percpu_ref_call_confirm_rcu(struct rcu_head *rcu)
 
 static void percpu_ref_switch_to_atomic_rcu(struct rcu_head *rcu)
 {
-	struct percpu_ref_data *data = container_of(rcu,
-			struct percpu_ref_data, rcu);
+	struct percpu_ref_data *data =
+		container_of(rcu, struct percpu_ref_data, rcu);
 	struct percpu_ref *ref = data->ref;
 	unsigned long __percpu *percpu_count = percpu_count_ptr(ref);
 	static atomic_t underflows;
 	unsigned long count = 0;
 	int cpu;
 
-	for_each_possible_cpu(cpu)
+	for_each_possible_cpu (cpu)
 		count += *per_cpu_ptr(percpu_count, cpu);
 
-	pr_debug("global %lu percpu %lu\n",
-		 atomic_long_read(&data->count), count);
+	pr_debug("global %lu percpu %lu\n", atomic_long_read(&data->count),
+		 count);
 
 	/*
 	 * It's crucial that we sum the percpu counters _before_ adding the sum
@@ -225,10 +225,10 @@ static void __percpu_ref_switch_to_atomic(struct percpu_ref *ref,
 	 * Non-NULL ->confirm_switch is used to indicate that switching is
 	 * in progress.  Use noop one if unspecified.
 	 */
-	ref->data->confirm_switch = confirm_switch ?:
-		percpu_ref_noop_confirm_switch;
+	ref->data->confirm_switch =
+		confirm_switch ?: percpu_ref_noop_confirm_switch;
 
-	percpu_ref_get(ref);	/* put after confirmation */
+	percpu_ref_get(ref); /* put after confirmation */
 	call_rcu(&ref->data->rcu, percpu_ref_switch_to_atomic_rcu);
 }
 
@@ -253,7 +253,7 @@ static void __percpu_ref_switch_to_percpu(struct percpu_ref *ref)
 	 * zeroing is visible to all percpu accesses which can see the
 	 * following __PERCPU_REF_ATOMIC clearing.
 	 */
-	for_each_possible_cpu(cpu)
+	for_each_possible_cpu (cpu)
 		*per_cpu_ptr(percpu_count, cpu) = 0;
 
 	smp_store_release(&ref->percpu_count_ptr,
@@ -385,9 +385,8 @@ void percpu_ref_kill_and_confirm(struct percpu_ref *ref,
 
 	spin_lock_irqsave(&percpu_ref_switch_lock, flags);
 
-	WARN_ONCE(percpu_ref_is_dying(ref),
-		  "%s called more than once on %ps!", __func__,
-		  ref->data->release);
+	WARN_ONCE(percpu_ref_is_dying(ref), "%s called more than once on %ps!",
+		  __func__, ref->data->release);
 
 	ref->percpu_count_ptr |= __PERCPU_REF_DEAD;
 	__percpu_ref_switch_mode(ref, confirm_kill);

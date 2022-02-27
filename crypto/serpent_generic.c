@@ -21,203 +21,442 @@
 
 #define PHI 0x9e3779b9UL
 
-#define keyiter(a, b, c, d, i, j) \
-	({ b ^= d; b ^= c; b ^= a; b ^= PHI ^ i; b = rol32(b, 11); k[j] = b; })
-
-#define loadkeys(x0, x1, x2, x3, i) \
-	({ x0 = k[i]; x1 = k[i+1]; x2 = k[i+2]; x3 = k[i+3]; })
-
-#define storekeys(x0, x1, x2, x3, i) \
-	({ k[i] = x0; k[i+1] = x1; k[i+2] = x2; k[i+3] = x3; })
-
-#define store_and_load_keys(x0, x1, x2, x3, s, l) \
-	({ storekeys(x0, x1, x2, x3, s); loadkeys(x0, x1, x2, x3, l); })
-
-#define K(x0, x1, x2, x3, i) ({				\
-	x3 ^= k[4*(i)+3];        x2 ^= k[4*(i)+2];	\
-	x1 ^= k[4*(i)+1];        x0 ^= k[4*(i)+0];	\
+#define keyiter(a, b, c, d, i, j)                                              \
+	({                                                                     \
+		b ^= d;                                                        \
+		b ^= c;                                                        \
+		b ^= a;                                                        \
+		b ^= PHI ^ i;                                                  \
+		b = rol32(b, 11);                                              \
+		k[j] = b;                                                      \
 	})
 
-#define LK(x0, x1, x2, x3, x4, i) ({					   \
-							x0 = rol32(x0, 13);\
-	x2 = rol32(x2, 3);	x1 ^= x0;		x4  = x0 << 3;	   \
-	x3 ^= x2;		x1 ^= x2;				   \
-	x1 = rol32(x1, 1);	x3 ^= x4;				   \
-	x3 = rol32(x3, 7);	x4  = x1;				   \
-	x0 ^= x1;		x4 <<= 7;		x2 ^= x3;	   \
-	x0 ^= x3;		x2 ^= x4;		x3 ^= k[4*i+3];	   \
-	x1 ^= k[4*i+1];		x0 = rol32(x0, 5);	x2 = rol32(x2, 22);\
-	x0 ^= k[4*i+0];		x2 ^= k[4*i+2];				   \
+#define loadkeys(x0, x1, x2, x3, i)                                            \
+	({                                                                     \
+		x0 = k[i];                                                     \
+		x1 = k[i + 1];                                                 \
+		x2 = k[i + 2];                                                 \
+		x3 = k[i + 3];                                                 \
 	})
 
-#define KL(x0, x1, x2, x3, x4, i) ({					   \
-	x0 ^= k[4*i+0];		x1 ^= k[4*i+1];		x2 ^= k[4*i+2];	   \
-	x3 ^= k[4*i+3];		x0 = ror32(x0, 5);	x2 = ror32(x2, 22);\
-	x4 =  x1;		x2 ^= x3;		x0 ^= x3;	   \
-	x4 <<= 7;		x0 ^= x1;		x1 = ror32(x1, 1); \
-	x2 ^= x4;		x3 = ror32(x3, 7);	x4 = x0 << 3;	   \
-	x1 ^= x0;		x3 ^= x4;		x0 = ror32(x0, 13);\
-	x1 ^= x2;		x3 ^= x2;		x2 = ror32(x2, 3); \
+#define storekeys(x0, x1, x2, x3, i)                                           \
+	({                                                                     \
+		k[i] = x0;                                                     \
+		k[i + 1] = x1;                                                 \
+		k[i + 2] = x2;                                                 \
+		k[i + 3] = x3;                                                 \
 	})
 
-#define S0(x0, x1, x2, x3, x4) ({			\
-					x4  = x3;	\
-	x3 |= x0;	x0 ^= x4;	x4 ^= x2;	\
-	x4 = ~x4;	x3 ^= x1;	x1 &= x0;	\
-	x1 ^= x4;	x2 ^= x0;	x0 ^= x3;	\
-	x4 |= x0;	x0 ^= x2;	x2 &= x1;	\
-	x3 ^= x2;	x1 = ~x1;	x2 ^= x4;	\
-	x1 ^= x2;					\
+#define store_and_load_keys(x0, x1, x2, x3, s, l)                              \
+	({                                                                     \
+		storekeys(x0, x1, x2, x3, s);                                  \
+		loadkeys(x0, x1, x2, x3, l);                                   \
 	})
 
-#define S1(x0, x1, x2, x3, x4) ({			\
-					x4  = x1;	\
-	x1 ^= x0;	x0 ^= x3;	x3 = ~x3;	\
-	x4 &= x1;	x0 |= x1;	x3 ^= x2;	\
-	x0 ^= x3;	x1 ^= x3;	x3 ^= x4;	\
-	x1 |= x4;	x4 ^= x2;	x2 &= x0;	\
-	x2 ^= x1;	x1 |= x0;	x0 = ~x0;	\
-	x0 ^= x2;	x4 ^= x1;			\
+#define K(x0, x1, x2, x3, i)                                                   \
+	({                                                                     \
+		x3 ^= k[4 * (i) + 3];                                          \
+		x2 ^= k[4 * (i) + 2];                                          \
+		x1 ^= k[4 * (i) + 1];                                          \
+		x0 ^= k[4 * (i) + 0];                                          \
 	})
 
-#define S2(x0, x1, x2, x3, x4) ({			\
-					x3 = ~x3;	\
-	x1 ^= x0;	x4  = x0;	x0 &= x2;	\
-	x0 ^= x3;	x3 |= x4;	x2 ^= x1;	\
-	x3 ^= x1;	x1 &= x0;	x0 ^= x2;	\
-	x2 &= x3;	x3 |= x1;	x0 = ~x0;	\
-	x3 ^= x0;	x4 ^= x0;	x0 ^= x2;	\
-	x1 |= x2;					\
+#define LK(x0, x1, x2, x3, x4, i)                                              \
+	({                                                                     \
+		x0 = rol32(x0, 13);                                            \
+		x2 = rol32(x2, 3);                                             \
+		x1 ^= x0;                                                      \
+		x4 = x0 << 3;                                                  \
+		x3 ^= x2;                                                      \
+		x1 ^= x2;                                                      \
+		x1 = rol32(x1, 1);                                             \
+		x3 ^= x4;                                                      \
+		x3 = rol32(x3, 7);                                             \
+		x4 = x1;                                                       \
+		x0 ^= x1;                                                      \
+		x4 <<= 7;                                                      \
+		x2 ^= x3;                                                      \
+		x0 ^= x3;                                                      \
+		x2 ^= x4;                                                      \
+		x3 ^= k[4 * i + 3];                                            \
+		x1 ^= k[4 * i + 1];                                            \
+		x0 = rol32(x0, 5);                                             \
+		x2 = rol32(x2, 22);                                            \
+		x0 ^= k[4 * i + 0];                                            \
+		x2 ^= k[4 * i + 2];                                            \
 	})
 
-#define S3(x0, x1, x2, x3, x4) ({			\
-					x4  = x1;	\
-	x1 ^= x3;	x3 |= x0;	x4 &= x0;	\
-	x0 ^= x2;	x2 ^= x1;	x1 &= x3;	\
-	x2 ^= x3;	x0 |= x4;	x4 ^= x3;	\
-	x1 ^= x0;	x0 &= x3;	x3 &= x4;	\
-	x3 ^= x2;	x4 |= x1;	x2 &= x1;	\
-	x4 ^= x3;	x0 ^= x3;	x3 ^= x2;	\
+#define KL(x0, x1, x2, x3, x4, i)                                              \
+	({                                                                     \
+		x0 ^= k[4 * i + 0];                                            \
+		x1 ^= k[4 * i + 1];                                            \
+		x2 ^= k[4 * i + 2];                                            \
+		x3 ^= k[4 * i + 3];                                            \
+		x0 = ror32(x0, 5);                                             \
+		x2 = ror32(x2, 22);                                            \
+		x4 = x1;                                                       \
+		x2 ^= x3;                                                      \
+		x0 ^= x3;                                                      \
+		x4 <<= 7;                                                      \
+		x0 ^= x1;                                                      \
+		x1 = ror32(x1, 1);                                             \
+		x2 ^= x4;                                                      \
+		x3 = ror32(x3, 7);                                             \
+		x4 = x0 << 3;                                                  \
+		x1 ^= x0;                                                      \
+		x3 ^= x4;                                                      \
+		x0 = ror32(x0, 13);                                            \
+		x1 ^= x2;                                                      \
+		x3 ^= x2;                                                      \
+		x2 = ror32(x2, 3);                                             \
 	})
 
-#define S4(x0, x1, x2, x3, x4) ({			\
-					x4  = x3;	\
-	x3 &= x0;	x0 ^= x4;			\
-	x3 ^= x2;	x2 |= x4;	x0 ^= x1;	\
-	x4 ^= x3;	x2 |= x0;			\
-	x2 ^= x1;	x1 &= x0;			\
-	x1 ^= x4;	x4 &= x2;	x2 ^= x3;	\
-	x4 ^= x0;	x3 |= x1;	x1 = ~x1;	\
-	x3 ^= x0;					\
+#define S0(x0, x1, x2, x3, x4)                                                 \
+	({                                                                     \
+		x4 = x3;                                                       \
+		x3 |= x0;                                                      \
+		x0 ^= x4;                                                      \
+		x4 ^= x2;                                                      \
+		x4 = ~x4;                                                      \
+		x3 ^= x1;                                                      \
+		x1 &= x0;                                                      \
+		x1 ^= x4;                                                      \
+		x2 ^= x0;                                                      \
+		x0 ^= x3;                                                      \
+		x4 |= x0;                                                      \
+		x0 ^= x2;                                                      \
+		x2 &= x1;                                                      \
+		x3 ^= x2;                                                      \
+		x1 = ~x1;                                                      \
+		x2 ^= x4;                                                      \
+		x1 ^= x2;                                                      \
 	})
 
-#define S5(x0, x1, x2, x3, x4) ({			\
-	x4  = x1;	x1 |= x0;			\
-	x2 ^= x1;	x3 = ~x3;	x4 ^= x0;	\
-	x0 ^= x2;	x1 &= x4;	x4 |= x3;	\
-	x4 ^= x0;	x0 &= x3;	x1 ^= x3;	\
-	x3 ^= x2;	x0 ^= x1;	x2 &= x4;	\
-	x1 ^= x2;	x2 &= x0;			\
-	x3 ^= x2;					\
+#define S1(x0, x1, x2, x3, x4)                                                 \
+	({                                                                     \
+		x4 = x1;                                                       \
+		x1 ^= x0;                                                      \
+		x0 ^= x3;                                                      \
+		x3 = ~x3;                                                      \
+		x4 &= x1;                                                      \
+		x0 |= x1;                                                      \
+		x3 ^= x2;                                                      \
+		x0 ^= x3;                                                      \
+		x1 ^= x3;                                                      \
+		x3 ^= x4;                                                      \
+		x1 |= x4;                                                      \
+		x4 ^= x2;                                                      \
+		x2 &= x0;                                                      \
+		x2 ^= x1;                                                      \
+		x1 |= x0;                                                      \
+		x0 = ~x0;                                                      \
+		x0 ^= x2;                                                      \
+		x4 ^= x1;                                                      \
 	})
 
-#define S6(x0, x1, x2, x3, x4) ({			\
-					x4  = x1;	\
-	x3 ^= x0;	x1 ^= x2;	x2 ^= x0;	\
-	x0 &= x3;	x1 |= x3;	x4 = ~x4;	\
-	x0 ^= x1;	x1 ^= x2;			\
-	x3 ^= x4;	x4 ^= x0;	x2 &= x0;	\
-	x4 ^= x1;	x2 ^= x3;	x3 &= x1;	\
-	x3 ^= x0;	x1 ^= x2;			\
+#define S2(x0, x1, x2, x3, x4)                                                 \
+	({                                                                     \
+		x3 = ~x3;                                                      \
+		x1 ^= x0;                                                      \
+		x4 = x0;                                                       \
+		x0 &= x2;                                                      \
+		x0 ^= x3;                                                      \
+		x3 |= x4;                                                      \
+		x2 ^= x1;                                                      \
+		x3 ^= x1;                                                      \
+		x1 &= x0;                                                      \
+		x0 ^= x2;                                                      \
+		x2 &= x3;                                                      \
+		x3 |= x1;                                                      \
+		x0 = ~x0;                                                      \
+		x3 ^= x0;                                                      \
+		x4 ^= x0;                                                      \
+		x0 ^= x2;                                                      \
+		x1 |= x2;                                                      \
 	})
 
-#define S7(x0, x1, x2, x3, x4) ({			\
-					x1 = ~x1;	\
-	x4  = x1;	x0 = ~x0;	x1 &= x2;	\
-	x1 ^= x3;	x3 |= x4;	x4 ^= x2;	\
-	x2 ^= x3;	x3 ^= x0;	x0 |= x1;	\
-	x2 &= x0;	x0 ^= x4;	x4 ^= x3;	\
-	x3 &= x0;	x4 ^= x1;			\
-	x2 ^= x4;	x3 ^= x1;	x4 |= x0;	\
-	x4 ^= x1;					\
+#define S3(x0, x1, x2, x3, x4)                                                 \
+	({                                                                     \
+		x4 = x1;                                                       \
+		x1 ^= x3;                                                      \
+		x3 |= x0;                                                      \
+		x4 &= x0;                                                      \
+		x0 ^= x2;                                                      \
+		x2 ^= x1;                                                      \
+		x1 &= x3;                                                      \
+		x2 ^= x3;                                                      \
+		x0 |= x4;                                                      \
+		x4 ^= x3;                                                      \
+		x1 ^= x0;                                                      \
+		x0 &= x3;                                                      \
+		x3 &= x4;                                                      \
+		x3 ^= x2;                                                      \
+		x4 |= x1;                                                      \
+		x2 &= x1;                                                      \
+		x4 ^= x3;                                                      \
+		x0 ^= x3;                                                      \
+		x3 ^= x2;                                                      \
 	})
 
-#define SI0(x0, x1, x2, x3, x4) ({			\
-			x4  = x3;	x1 ^= x0;	\
-	x3 |= x1;	x4 ^= x1;	x0 = ~x0;	\
-	x2 ^= x3;	x3 ^= x0;	x0 &= x1;	\
-	x0 ^= x2;	x2 &= x3;	x3 ^= x4;	\
-	x2 ^= x3;	x1 ^= x3;	x3 &= x0;	\
-	x1 ^= x0;	x0 ^= x2;	x4 ^= x3;	\
+#define S4(x0, x1, x2, x3, x4)                                                 \
+	({                                                                     \
+		x4 = x3;                                                       \
+		x3 &= x0;                                                      \
+		x0 ^= x4;                                                      \
+		x3 ^= x2;                                                      \
+		x2 |= x4;                                                      \
+		x0 ^= x1;                                                      \
+		x4 ^= x3;                                                      \
+		x2 |= x0;                                                      \
+		x2 ^= x1;                                                      \
+		x1 &= x0;                                                      \
+		x1 ^= x4;                                                      \
+		x4 &= x2;                                                      \
+		x2 ^= x3;                                                      \
+		x4 ^= x0;                                                      \
+		x3 |= x1;                                                      \
+		x1 = ~x1;                                                      \
+		x3 ^= x0;                                                      \
 	})
 
-#define SI1(x0, x1, x2, x3, x4) ({			\
-	x1 ^= x3;	x4  = x0;			\
-	x0 ^= x2;	x2 = ~x2;	x4 |= x1;	\
-	x4 ^= x3;	x3 &= x1;	x1 ^= x2;	\
-	x2 &= x4;	x4 ^= x1;	x1 |= x3;	\
-	x3 ^= x0;	x2 ^= x0;	x0 |= x4;	\
-	x2 ^= x4;	x1 ^= x0;			\
-	x4 ^= x1;					\
+#define S5(x0, x1, x2, x3, x4)                                                 \
+	({                                                                     \
+		x4 = x1;                                                       \
+		x1 |= x0;                                                      \
+		x2 ^= x1;                                                      \
+		x3 = ~x3;                                                      \
+		x4 ^= x0;                                                      \
+		x0 ^= x2;                                                      \
+		x1 &= x4;                                                      \
+		x4 |= x3;                                                      \
+		x4 ^= x0;                                                      \
+		x0 &= x3;                                                      \
+		x1 ^= x3;                                                      \
+		x3 ^= x2;                                                      \
+		x0 ^= x1;                                                      \
+		x2 &= x4;                                                      \
+		x1 ^= x2;                                                      \
+		x2 &= x0;                                                      \
+		x3 ^= x2;                                                      \
 	})
 
-#define SI2(x0, x1, x2, x3, x4) ({			\
-	x2 ^= x1;	x4  = x3;	x3 = ~x3;	\
-	x3 |= x2;	x2 ^= x4;	x4 ^= x0;	\
-	x3 ^= x1;	x1 |= x2;	x2 ^= x0;	\
-	x1 ^= x4;	x4 |= x3;	x2 ^= x3;	\
-	x4 ^= x2;	x2 &= x1;			\
-	x2 ^= x3;	x3 ^= x4;	x4 ^= x0;	\
+#define S6(x0, x1, x2, x3, x4)                                                 \
+	({                                                                     \
+		x4 = x1;                                                       \
+		x3 ^= x0;                                                      \
+		x1 ^= x2;                                                      \
+		x2 ^= x0;                                                      \
+		x0 &= x3;                                                      \
+		x1 |= x3;                                                      \
+		x4 = ~x4;                                                      \
+		x0 ^= x1;                                                      \
+		x1 ^= x2;                                                      \
+		x3 ^= x4;                                                      \
+		x4 ^= x0;                                                      \
+		x2 &= x0;                                                      \
+		x4 ^= x1;                                                      \
+		x2 ^= x3;                                                      \
+		x3 &= x1;                                                      \
+		x3 ^= x0;                                                      \
+		x1 ^= x2;                                                      \
 	})
 
-#define SI3(x0, x1, x2, x3, x4) ({			\
-					x2 ^= x1;	\
-	x4  = x1;	x1 &= x2;			\
-	x1 ^= x0;	x0 |= x4;	x4 ^= x3;	\
-	x0 ^= x3;	x3 |= x1;	x1 ^= x2;	\
-	x1 ^= x3;	x0 ^= x2;	x2 ^= x3;	\
-	x3 &= x1;	x1 ^= x0;	x0 &= x2;	\
-	x4 ^= x3;	x3 ^= x0;	x0 ^= x1;	\
+#define S7(x0, x1, x2, x3, x4)                                                 \
+	({                                                                     \
+		x1 = ~x1;                                                      \
+		x4 = x1;                                                       \
+		x0 = ~x0;                                                      \
+		x1 &= x2;                                                      \
+		x1 ^= x3;                                                      \
+		x3 |= x4;                                                      \
+		x4 ^= x2;                                                      \
+		x2 ^= x3;                                                      \
+		x3 ^= x0;                                                      \
+		x0 |= x1;                                                      \
+		x2 &= x0;                                                      \
+		x0 ^= x4;                                                      \
+		x4 ^= x3;                                                      \
+		x3 &= x0;                                                      \
+		x4 ^= x1;                                                      \
+		x2 ^= x4;                                                      \
+		x3 ^= x1;                                                      \
+		x4 |= x0;                                                      \
+		x4 ^= x1;                                                      \
 	})
 
-#define SI4(x0, x1, x2, x3, x4) ({			\
-	x2 ^= x3;	x4  = x0;	x0 &= x1;	\
-	x0 ^= x2;	x2 |= x3;	x4 = ~x4;	\
-	x1 ^= x0;	x0 ^= x2;	x2 &= x4;	\
-	x2 ^= x0;	x0 |= x4;			\
-	x0 ^= x3;	x3 &= x2;			\
-	x4 ^= x3;	x3 ^= x1;	x1 &= x0;	\
-	x4 ^= x1;	x0 ^= x3;			\
+#define SI0(x0, x1, x2, x3, x4)                                                \
+	({                                                                     \
+		x4 = x3;                                                       \
+		x1 ^= x0;                                                      \
+		x3 |= x1;                                                      \
+		x4 ^= x1;                                                      \
+		x0 = ~x0;                                                      \
+		x2 ^= x3;                                                      \
+		x3 ^= x0;                                                      \
+		x0 &= x1;                                                      \
+		x0 ^= x2;                                                      \
+		x2 &= x3;                                                      \
+		x3 ^= x4;                                                      \
+		x2 ^= x3;                                                      \
+		x1 ^= x3;                                                      \
+		x3 &= x0;                                                      \
+		x1 ^= x0;                                                      \
+		x0 ^= x2;                                                      \
+		x4 ^= x3;                                                      \
 	})
 
-#define SI5(x0, x1, x2, x3, x4) ({			\
-			x4  = x1;	x1 |= x2;	\
-	x2 ^= x4;	x1 ^= x3;	x3 &= x4;	\
-	x2 ^= x3;	x3 |= x0;	x0 = ~x0;	\
-	x3 ^= x2;	x2 |= x0;	x4 ^= x1;	\
-	x2 ^= x4;	x4 &= x0;	x0 ^= x1;	\
-	x1 ^= x3;	x0 &= x2;	x2 ^= x3;	\
-	x0 ^= x2;	x2 ^= x4;	x4 ^= x3;	\
+#define SI1(x0, x1, x2, x3, x4)                                                \
+	({                                                                     \
+		x1 ^= x3;                                                      \
+		x4 = x0;                                                       \
+		x0 ^= x2;                                                      \
+		x2 = ~x2;                                                      \
+		x4 |= x1;                                                      \
+		x4 ^= x3;                                                      \
+		x3 &= x1;                                                      \
+		x1 ^= x2;                                                      \
+		x2 &= x4;                                                      \
+		x4 ^= x1;                                                      \
+		x1 |= x3;                                                      \
+		x3 ^= x0;                                                      \
+		x2 ^= x0;                                                      \
+		x0 |= x4;                                                      \
+		x2 ^= x4;                                                      \
+		x1 ^= x0;                                                      \
+		x4 ^= x1;                                                      \
 	})
 
-#define SI6(x0, x1, x2, x3, x4) ({			\
-			x0 ^= x2;			\
-	x4  = x0;	x0 &= x3;	x2 ^= x3;	\
-	x0 ^= x2;	x3 ^= x1;	x2 |= x4;	\
-	x2 ^= x3;	x3 &= x0;	x0 = ~x0;	\
-	x3 ^= x1;	x1 &= x2;	x4 ^= x0;	\
-	x3 ^= x4;	x4 ^= x2;	x0 ^= x1;	\
-	x2 ^= x0;					\
+#define SI2(x0, x1, x2, x3, x4)                                                \
+	({                                                                     \
+		x2 ^= x1;                                                      \
+		x4 = x3;                                                       \
+		x3 = ~x3;                                                      \
+		x3 |= x2;                                                      \
+		x2 ^= x4;                                                      \
+		x4 ^= x0;                                                      \
+		x3 ^= x1;                                                      \
+		x1 |= x2;                                                      \
+		x2 ^= x0;                                                      \
+		x1 ^= x4;                                                      \
+		x4 |= x3;                                                      \
+		x2 ^= x3;                                                      \
+		x4 ^= x2;                                                      \
+		x2 &= x1;                                                      \
+		x2 ^= x3;                                                      \
+		x3 ^= x4;                                                      \
+		x4 ^= x0;                                                      \
 	})
 
-#define SI7(x0, x1, x2, x3, x4) ({			\
-	x4  = x3;	x3 &= x0;	x0 ^= x2;	\
-	x2 |= x4;	x4 ^= x1;	x0 = ~x0;	\
-	x1 |= x3;	x4 ^= x0;	x0 &= x2;	\
-	x0 ^= x1;	x1 &= x2;	x3 ^= x2;	\
-	x4 ^= x3;	x2 &= x3;	x3 |= x0;	\
-	x1 ^= x4;	x3 ^= x4;	x4 &= x0;	\
-	x4 ^= x2;					\
+#define SI3(x0, x1, x2, x3, x4)                                                \
+	({                                                                     \
+		x2 ^= x1;                                                      \
+		x4 = x1;                                                       \
+		x1 &= x2;                                                      \
+		x1 ^= x0;                                                      \
+		x0 |= x4;                                                      \
+		x4 ^= x3;                                                      \
+		x0 ^= x3;                                                      \
+		x3 |= x1;                                                      \
+		x1 ^= x2;                                                      \
+		x1 ^= x3;                                                      \
+		x0 ^= x2;                                                      \
+		x2 ^= x3;                                                      \
+		x3 &= x1;                                                      \
+		x1 ^= x0;                                                      \
+		x0 &= x2;                                                      \
+		x4 ^= x3;                                                      \
+		x3 ^= x0;                                                      \
+		x0 ^= x1;                                                      \
+	})
+
+#define SI4(x0, x1, x2, x3, x4)                                                \
+	({                                                                     \
+		x2 ^= x3;                                                      \
+		x4 = x0;                                                       \
+		x0 &= x1;                                                      \
+		x0 ^= x2;                                                      \
+		x2 |= x3;                                                      \
+		x4 = ~x4;                                                      \
+		x1 ^= x0;                                                      \
+		x0 ^= x2;                                                      \
+		x2 &= x4;                                                      \
+		x2 ^= x0;                                                      \
+		x0 |= x4;                                                      \
+		x0 ^= x3;                                                      \
+		x3 &= x2;                                                      \
+		x4 ^= x3;                                                      \
+		x3 ^= x1;                                                      \
+		x1 &= x0;                                                      \
+		x4 ^= x1;                                                      \
+		x0 ^= x3;                                                      \
+	})
+
+#define SI5(x0, x1, x2, x3, x4)                                                \
+	({                                                                     \
+		x4 = x1;                                                       \
+		x1 |= x2;                                                      \
+		x2 ^= x4;                                                      \
+		x1 ^= x3;                                                      \
+		x3 &= x4;                                                      \
+		x2 ^= x3;                                                      \
+		x3 |= x0;                                                      \
+		x0 = ~x0;                                                      \
+		x3 ^= x2;                                                      \
+		x2 |= x0;                                                      \
+		x4 ^= x1;                                                      \
+		x2 ^= x4;                                                      \
+		x4 &= x0;                                                      \
+		x0 ^= x1;                                                      \
+		x1 ^= x3;                                                      \
+		x0 &= x2;                                                      \
+		x2 ^= x3;                                                      \
+		x0 ^= x2;                                                      \
+		x2 ^= x4;                                                      \
+		x4 ^= x3;                                                      \
+	})
+
+#define SI6(x0, x1, x2, x3, x4)                                                \
+	({                                                                     \
+		x0 ^= x2;                                                      \
+		x4 = x0;                                                       \
+		x0 &= x3;                                                      \
+		x2 ^= x3;                                                      \
+		x0 ^= x2;                                                      \
+		x3 ^= x1;                                                      \
+		x2 |= x4;                                                      \
+		x2 ^= x3;                                                      \
+		x3 &= x0;                                                      \
+		x0 = ~x0;                                                      \
+		x3 ^= x1;                                                      \
+		x1 &= x2;                                                      \
+		x4 ^= x0;                                                      \
+		x3 ^= x4;                                                      \
+		x4 ^= x2;                                                      \
+		x0 ^= x1;                                                      \
+		x2 ^= x0;                                                      \
+	})
+
+#define SI7(x0, x1, x2, x3, x4)                                                \
+	({                                                                     \
+		x4 = x3;                                                       \
+		x3 &= x0;                                                      \
+		x0 ^= x2;                                                      \
+		x2 |= x4;                                                      \
+		x4 ^= x1;                                                      \
+		x0 = ~x0;                                                      \
+		x1 |= x3;                                                      \
+		x4 ^= x0;                                                      \
+		x0 &= x2;                                                      \
+		x0 ^= x1;                                                      \
+		x1 &= x2;                                                      \
+		x3 ^= x2;                                                      \
+		x4 ^= x3;                                                      \
+		x2 &= x3;                                                      \
+		x3 |= x0;                                                      \
+		x1 ^= x4;                                                      \
+		x3 ^= x4;                                                      \
+		x4 &= x0;                                                      \
+		x4 ^= x2;                                                      \
 	})
 
 /*
@@ -225,52 +464,85 @@
  * producing horrible object code from spilling temporary variables
  * on the stack. Forcing this part out of line avoids that.
  */
-static noinline void __serpent_setkey_sbox(u32 r0, u32 r1, u32 r2,
-					   u32 r3, u32 r4, u32 *k)
+static noinline void __serpent_setkey_sbox(u32 r0, u32 r1, u32 r2, u32 r3,
+					   u32 r4, u32 *k)
 {
 	k += 100;
-	S3(r3, r4, r0, r1, r2); store_and_load_keys(r1, r2, r4, r3, 28, 24);
-	S4(r1, r2, r4, r3, r0); store_and_load_keys(r2, r4, r3, r0, 24, 20);
-	S5(r2, r4, r3, r0, r1); store_and_load_keys(r1, r2, r4, r0, 20, 16);
-	S6(r1, r2, r4, r0, r3); store_and_load_keys(r4, r3, r2, r0, 16, 12);
-	S7(r4, r3, r2, r0, r1); store_and_load_keys(r1, r2, r0, r4, 12, 8);
-	S0(r1, r2, r0, r4, r3); store_and_load_keys(r0, r2, r4, r1, 8, 4);
-	S1(r0, r2, r4, r1, r3); store_and_load_keys(r3, r4, r1, r0, 4, 0);
-	S2(r3, r4, r1, r0, r2); store_and_load_keys(r2, r4, r3, r0, 0, -4);
-	S3(r2, r4, r3, r0, r1); store_and_load_keys(r0, r1, r4, r2, -4, -8);
-	S4(r0, r1, r4, r2, r3); store_and_load_keys(r1, r4, r2, r3, -8, -12);
-	S5(r1, r4, r2, r3, r0); store_and_load_keys(r0, r1, r4, r3, -12, -16);
-	S6(r0, r1, r4, r3, r2); store_and_load_keys(r4, r2, r1, r3, -16, -20);
-	S7(r4, r2, r1, r3, r0); store_and_load_keys(r0, r1, r3, r4, -20, -24);
-	S0(r0, r1, r3, r4, r2); store_and_load_keys(r3, r1, r4, r0, -24, -28);
+	S3(r3, r4, r0, r1, r2);
+	store_and_load_keys(r1, r2, r4, r3, 28, 24);
+	S4(r1, r2, r4, r3, r0);
+	store_and_load_keys(r2, r4, r3, r0, 24, 20);
+	S5(r2, r4, r3, r0, r1);
+	store_and_load_keys(r1, r2, r4, r0, 20, 16);
+	S6(r1, r2, r4, r0, r3);
+	store_and_load_keys(r4, r3, r2, r0, 16, 12);
+	S7(r4, r3, r2, r0, r1);
+	store_and_load_keys(r1, r2, r0, r4, 12, 8);
+	S0(r1, r2, r0, r4, r3);
+	store_and_load_keys(r0, r2, r4, r1, 8, 4);
+	S1(r0, r2, r4, r1, r3);
+	store_and_load_keys(r3, r4, r1, r0, 4, 0);
+	S2(r3, r4, r1, r0, r2);
+	store_and_load_keys(r2, r4, r3, r0, 0, -4);
+	S3(r2, r4, r3, r0, r1);
+	store_and_load_keys(r0, r1, r4, r2, -4, -8);
+	S4(r0, r1, r4, r2, r3);
+	store_and_load_keys(r1, r4, r2, r3, -8, -12);
+	S5(r1, r4, r2, r3, r0);
+	store_and_load_keys(r0, r1, r4, r3, -12, -16);
+	S6(r0, r1, r4, r3, r2);
+	store_and_load_keys(r4, r2, r1, r3, -16, -20);
+	S7(r4, r2, r1, r3, r0);
+	store_and_load_keys(r0, r1, r3, r4, -20, -24);
+	S0(r0, r1, r3, r4, r2);
+	store_and_load_keys(r3, r1, r4, r0, -24, -28);
 	k -= 50;
-	S1(r3, r1, r4, r0, r2); store_and_load_keys(r2, r4, r0, r3, 22, 18);
-	S2(r2, r4, r0, r3, r1); store_and_load_keys(r1, r4, r2, r3, 18, 14);
-	S3(r1, r4, r2, r3, r0); store_and_load_keys(r3, r0, r4, r1, 14, 10);
-	S4(r3, r0, r4, r1, r2); store_and_load_keys(r0, r4, r1, r2, 10, 6);
-	S5(r0, r4, r1, r2, r3); store_and_load_keys(r3, r0, r4, r2, 6, 2);
-	S6(r3, r0, r4, r2, r1); store_and_load_keys(r4, r1, r0, r2, 2, -2);
-	S7(r4, r1, r0, r2, r3); store_and_load_keys(r3, r0, r2, r4, -2, -6);
-	S0(r3, r0, r2, r4, r1); store_and_load_keys(r2, r0, r4, r3, -6, -10);
-	S1(r2, r0, r4, r3, r1); store_and_load_keys(r1, r4, r3, r2, -10, -14);
-	S2(r1, r4, r3, r2, r0); store_and_load_keys(r0, r4, r1, r2, -14, -18);
-	S3(r0, r4, r1, r2, r3); store_and_load_keys(r2, r3, r4, r0, -18, -22);
+	S1(r3, r1, r4, r0, r2);
+	store_and_load_keys(r2, r4, r0, r3, 22, 18);
+	S2(r2, r4, r0, r3, r1);
+	store_and_load_keys(r1, r4, r2, r3, 18, 14);
+	S3(r1, r4, r2, r3, r0);
+	store_and_load_keys(r3, r0, r4, r1, 14, 10);
+	S4(r3, r0, r4, r1, r2);
+	store_and_load_keys(r0, r4, r1, r2, 10, 6);
+	S5(r0, r4, r1, r2, r3);
+	store_and_load_keys(r3, r0, r4, r2, 6, 2);
+	S6(r3, r0, r4, r2, r1);
+	store_and_load_keys(r4, r1, r0, r2, 2, -2);
+	S7(r4, r1, r0, r2, r3);
+	store_and_load_keys(r3, r0, r2, r4, -2, -6);
+	S0(r3, r0, r2, r4, r1);
+	store_and_load_keys(r2, r0, r4, r3, -6, -10);
+	S1(r2, r0, r4, r3, r1);
+	store_and_load_keys(r1, r4, r3, r2, -10, -14);
+	S2(r1, r4, r3, r2, r0);
+	store_and_load_keys(r0, r4, r1, r2, -14, -18);
+	S3(r0, r4, r1, r2, r3);
+	store_and_load_keys(r2, r3, r4, r0, -18, -22);
 	k -= 50;
-	S4(r2, r3, r4, r0, r1); store_and_load_keys(r3, r4, r0, r1, 28, 24);
-	S5(r3, r4, r0, r1, r2); store_and_load_keys(r2, r3, r4, r1, 24, 20);
-	S6(r2, r3, r4, r1, r0); store_and_load_keys(r4, r0, r3, r1, 20, 16);
-	S7(r4, r0, r3, r1, r2); store_and_load_keys(r2, r3, r1, r4, 16, 12);
-	S0(r2, r3, r1, r4, r0); store_and_load_keys(r1, r3, r4, r2, 12, 8);
-	S1(r1, r3, r4, r2, r0); store_and_load_keys(r0, r4, r2, r1, 8, 4);
-	S2(r0, r4, r2, r1, r3); store_and_load_keys(r3, r4, r0, r1, 4, 0);
-	S3(r3, r4, r0, r1, r2); storekeys(r1, r2, r4, r3, 0);
+	S4(r2, r3, r4, r0, r1);
+	store_and_load_keys(r3, r4, r0, r1, 28, 24);
+	S5(r3, r4, r0, r1, r2);
+	store_and_load_keys(r2, r3, r4, r1, 24, 20);
+	S6(r2, r3, r4, r1, r0);
+	store_and_load_keys(r4, r0, r3, r1, 20, 16);
+	S7(r4, r0, r3, r1, r2);
+	store_and_load_keys(r2, r3, r1, r4, 16, 12);
+	S0(r2, r3, r1, r4, r0);
+	store_and_load_keys(r1, r3, r4, r2, 12, 8);
+	S1(r1, r3, r4, r2, r0);
+	store_and_load_keys(r0, r4, r2, r1, 8, 4);
+	S2(r0, r4, r2, r1, r3);
+	store_and_load_keys(r3, r4, r0, r1, 4, 0);
+	S3(r3, r4, r0, r1, r2);
+	storekeys(r1, r2, r4, r3, 0);
 }
 
 int __serpent_setkey(struct serpent_ctx *ctx, const u8 *key,
 		     unsigned int keylen)
 {
 	u32 *k = ctx->expkey;
-	u8  *k8 = (u8 *)k;
+	u8 *k8 = (u8 *)k;
 	u32 r0, r1, r2, r3, r4;
 	__le32 *lk;
 	int i;
@@ -459,46 +731,78 @@ void __serpent_encrypt(const void *c, u8 *dst, const u8 *src)
 {
 	const struct serpent_ctx *ctx = c;
 	const u32 *k = ctx->expkey;
-	u32	r0, r1, r2, r3, r4;
+	u32 r0, r1, r2, r3, r4;
 
 	r0 = get_unaligned_le32(src);
 	r1 = get_unaligned_le32(src + 4);
 	r2 = get_unaligned_le32(src + 8);
 	r3 = get_unaligned_le32(src + 12);
 
-					K(r0, r1, r2, r3, 0);
-	S0(r0, r1, r2, r3, r4);		LK(r2, r1, r3, r0, r4, 1);
-	S1(r2, r1, r3, r0, r4);		LK(r4, r3, r0, r2, r1, 2);
-	S2(r4, r3, r0, r2, r1);		LK(r1, r3, r4, r2, r0, 3);
-	S3(r1, r3, r4, r2, r0);		LK(r2, r0, r3, r1, r4, 4);
-	S4(r2, r0, r3, r1, r4);		LK(r0, r3, r1, r4, r2, 5);
-	S5(r0, r3, r1, r4, r2);		LK(r2, r0, r3, r4, r1, 6);
-	S6(r2, r0, r3, r4, r1);		LK(r3, r1, r0, r4, r2, 7);
-	S7(r3, r1, r0, r4, r2);		LK(r2, r0, r4, r3, r1, 8);
-	S0(r2, r0, r4, r3, r1);		LK(r4, r0, r3, r2, r1, 9);
-	S1(r4, r0, r3, r2, r1);		LK(r1, r3, r2, r4, r0, 10);
-	S2(r1, r3, r2, r4, r0);		LK(r0, r3, r1, r4, r2, 11);
-	S3(r0, r3, r1, r4, r2);		LK(r4, r2, r3, r0, r1, 12);
-	S4(r4, r2, r3, r0, r1);		LK(r2, r3, r0, r1, r4, 13);
-	S5(r2, r3, r0, r1, r4);		LK(r4, r2, r3, r1, r0, 14);
-	S6(r4, r2, r3, r1, r0);		LK(r3, r0, r2, r1, r4, 15);
-	S7(r3, r0, r2, r1, r4);		LK(r4, r2, r1, r3, r0, 16);
-	S0(r4, r2, r1, r3, r0);		LK(r1, r2, r3, r4, r0, 17);
-	S1(r1, r2, r3, r4, r0);		LK(r0, r3, r4, r1, r2, 18);
-	S2(r0, r3, r4, r1, r2);		LK(r2, r3, r0, r1, r4, 19);
-	S3(r2, r3, r0, r1, r4);		LK(r1, r4, r3, r2, r0, 20);
-	S4(r1, r4, r3, r2, r0);		LK(r4, r3, r2, r0, r1, 21);
-	S5(r4, r3, r2, r0, r1);		LK(r1, r4, r3, r0, r2, 22);
-	S6(r1, r4, r3, r0, r2);		LK(r3, r2, r4, r0, r1, 23);
-	S7(r3, r2, r4, r0, r1);		LK(r1, r4, r0, r3, r2, 24);
-	S0(r1, r4, r0, r3, r2);		LK(r0, r4, r3, r1, r2, 25);
-	S1(r0, r4, r3, r1, r2);		LK(r2, r3, r1, r0, r4, 26);
-	S2(r2, r3, r1, r0, r4);		LK(r4, r3, r2, r0, r1, 27);
-	S3(r4, r3, r2, r0, r1);		LK(r0, r1, r3, r4, r2, 28);
-	S4(r0, r1, r3, r4, r2);		LK(r1, r3, r4, r2, r0, 29);
-	S5(r1, r3, r4, r2, r0);		LK(r0, r1, r3, r2, r4, 30);
-	S6(r0, r1, r3, r2, r4);		LK(r3, r4, r1, r2, r0, 31);
-	S7(r3, r4, r1, r2, r0);		K(r0, r1, r2, r3, 32);
+	K(r0, r1, r2, r3, 0);
+	S0(r0, r1, r2, r3, r4);
+	LK(r2, r1, r3, r0, r4, 1);
+	S1(r2, r1, r3, r0, r4);
+	LK(r4, r3, r0, r2, r1, 2);
+	S2(r4, r3, r0, r2, r1);
+	LK(r1, r3, r4, r2, r0, 3);
+	S3(r1, r3, r4, r2, r0);
+	LK(r2, r0, r3, r1, r4, 4);
+	S4(r2, r0, r3, r1, r4);
+	LK(r0, r3, r1, r4, r2, 5);
+	S5(r0, r3, r1, r4, r2);
+	LK(r2, r0, r3, r4, r1, 6);
+	S6(r2, r0, r3, r4, r1);
+	LK(r3, r1, r0, r4, r2, 7);
+	S7(r3, r1, r0, r4, r2);
+	LK(r2, r0, r4, r3, r1, 8);
+	S0(r2, r0, r4, r3, r1);
+	LK(r4, r0, r3, r2, r1, 9);
+	S1(r4, r0, r3, r2, r1);
+	LK(r1, r3, r2, r4, r0, 10);
+	S2(r1, r3, r2, r4, r0);
+	LK(r0, r3, r1, r4, r2, 11);
+	S3(r0, r3, r1, r4, r2);
+	LK(r4, r2, r3, r0, r1, 12);
+	S4(r4, r2, r3, r0, r1);
+	LK(r2, r3, r0, r1, r4, 13);
+	S5(r2, r3, r0, r1, r4);
+	LK(r4, r2, r3, r1, r0, 14);
+	S6(r4, r2, r3, r1, r0);
+	LK(r3, r0, r2, r1, r4, 15);
+	S7(r3, r0, r2, r1, r4);
+	LK(r4, r2, r1, r3, r0, 16);
+	S0(r4, r2, r1, r3, r0);
+	LK(r1, r2, r3, r4, r0, 17);
+	S1(r1, r2, r3, r4, r0);
+	LK(r0, r3, r4, r1, r2, 18);
+	S2(r0, r3, r4, r1, r2);
+	LK(r2, r3, r0, r1, r4, 19);
+	S3(r2, r3, r0, r1, r4);
+	LK(r1, r4, r3, r2, r0, 20);
+	S4(r1, r4, r3, r2, r0);
+	LK(r4, r3, r2, r0, r1, 21);
+	S5(r4, r3, r2, r0, r1);
+	LK(r1, r4, r3, r0, r2, 22);
+	S6(r1, r4, r3, r0, r2);
+	LK(r3, r2, r4, r0, r1, 23);
+	S7(r3, r2, r4, r0, r1);
+	LK(r1, r4, r0, r3, r2, 24);
+	S0(r1, r4, r0, r3, r2);
+	LK(r0, r4, r3, r1, r2, 25);
+	S1(r0, r4, r3, r1, r2);
+	LK(r2, r3, r1, r0, r4, 26);
+	S2(r2, r3, r1, r0, r4);
+	LK(r4, r3, r2, r0, r1, 27);
+	S3(r4, r3, r2, r0, r1);
+	LK(r0, r1, r3, r4, r2, 28);
+	S4(r0, r1, r3, r4, r2);
+	LK(r1, r3, r4, r2, r0, 29);
+	S5(r1, r3, r4, r2, r0);
+	LK(r0, r1, r3, r2, r4, 30);
+	S6(r0, r1, r3, r2, r4);
+	LK(r3, r4, r1, r2, r0, 31);
+	S7(r3, r4, r1, r2, r0);
+	K(r0, r1, r2, r3, 32);
 
 	put_unaligned_le32(r0, dst);
 	put_unaligned_le32(r1, dst + 4);
@@ -518,46 +822,78 @@ void __serpent_decrypt(const void *c, u8 *dst, const u8 *src)
 {
 	const struct serpent_ctx *ctx = c;
 	const u32 *k = ctx->expkey;
-	u32	r0, r1, r2, r3, r4;
+	u32 r0, r1, r2, r3, r4;
 
 	r0 = get_unaligned_le32(src);
 	r1 = get_unaligned_le32(src + 4);
 	r2 = get_unaligned_le32(src + 8);
 	r3 = get_unaligned_le32(src + 12);
 
-					K(r0, r1, r2, r3, 32);
-	SI7(r0, r1, r2, r3, r4);	KL(r1, r3, r0, r4, r2, 31);
-	SI6(r1, r3, r0, r4, r2);	KL(r0, r2, r4, r1, r3, 30);
-	SI5(r0, r2, r4, r1, r3);	KL(r2, r3, r0, r4, r1, 29);
-	SI4(r2, r3, r0, r4, r1);	KL(r2, r0, r1, r4, r3, 28);
-	SI3(r2, r0, r1, r4, r3);	KL(r1, r2, r3, r4, r0, 27);
-	SI2(r1, r2, r3, r4, r0);	KL(r2, r0, r4, r3, r1, 26);
-	SI1(r2, r0, r4, r3, r1);	KL(r1, r0, r4, r3, r2, 25);
-	SI0(r1, r0, r4, r3, r2);	KL(r4, r2, r0, r1, r3, 24);
-	SI7(r4, r2, r0, r1, r3);	KL(r2, r1, r4, r3, r0, 23);
-	SI6(r2, r1, r4, r3, r0);	KL(r4, r0, r3, r2, r1, 22);
-	SI5(r4, r0, r3, r2, r1);	KL(r0, r1, r4, r3, r2, 21);
-	SI4(r0, r1, r4, r3, r2);	KL(r0, r4, r2, r3, r1, 20);
-	SI3(r0, r4, r2, r3, r1);	KL(r2, r0, r1, r3, r4, 19);
-	SI2(r2, r0, r1, r3, r4);	KL(r0, r4, r3, r1, r2, 18);
-	SI1(r0, r4, r3, r1, r2);	KL(r2, r4, r3, r1, r0, 17);
-	SI0(r2, r4, r3, r1, r0);	KL(r3, r0, r4, r2, r1, 16);
-	SI7(r3, r0, r4, r2, r1);	KL(r0, r2, r3, r1, r4, 15);
-	SI6(r0, r2, r3, r1, r4);	KL(r3, r4, r1, r0, r2, 14);
-	SI5(r3, r4, r1, r0, r2);	KL(r4, r2, r3, r1, r0, 13);
-	SI4(r4, r2, r3, r1, r0);	KL(r4, r3, r0, r1, r2, 12);
-	SI3(r4, r3, r0, r1, r2);	KL(r0, r4, r2, r1, r3, 11);
-	SI2(r0, r4, r2, r1, r3);	KL(r4, r3, r1, r2, r0, 10);
-	SI1(r4, r3, r1, r2, r0);	KL(r0, r3, r1, r2, r4, 9);
-	SI0(r0, r3, r1, r2, r4);	KL(r1, r4, r3, r0, r2, 8);
-	SI7(r1, r4, r3, r0, r2);	KL(r4, r0, r1, r2, r3, 7);
-	SI6(r4, r0, r1, r2, r3);	KL(r1, r3, r2, r4, r0, 6);
-	SI5(r1, r3, r2, r4, r0);	KL(r3, r0, r1, r2, r4, 5);
-	SI4(r3, r0, r1, r2, r4);	KL(r3, r1, r4, r2, r0, 4);
-	SI3(r3, r1, r4, r2, r0);	KL(r4, r3, r0, r2, r1, 3);
-	SI2(r4, r3, r0, r2, r1);	KL(r3, r1, r2, r0, r4, 2);
-	SI1(r3, r1, r2, r0, r4);	KL(r4, r1, r2, r0, r3, 1);
-	SI0(r4, r1, r2, r0, r3);	K(r2, r3, r1, r4, 0);
+	K(r0, r1, r2, r3, 32);
+	SI7(r0, r1, r2, r3, r4);
+	KL(r1, r3, r0, r4, r2, 31);
+	SI6(r1, r3, r0, r4, r2);
+	KL(r0, r2, r4, r1, r3, 30);
+	SI5(r0, r2, r4, r1, r3);
+	KL(r2, r3, r0, r4, r1, 29);
+	SI4(r2, r3, r0, r4, r1);
+	KL(r2, r0, r1, r4, r3, 28);
+	SI3(r2, r0, r1, r4, r3);
+	KL(r1, r2, r3, r4, r0, 27);
+	SI2(r1, r2, r3, r4, r0);
+	KL(r2, r0, r4, r3, r1, 26);
+	SI1(r2, r0, r4, r3, r1);
+	KL(r1, r0, r4, r3, r2, 25);
+	SI0(r1, r0, r4, r3, r2);
+	KL(r4, r2, r0, r1, r3, 24);
+	SI7(r4, r2, r0, r1, r3);
+	KL(r2, r1, r4, r3, r0, 23);
+	SI6(r2, r1, r4, r3, r0);
+	KL(r4, r0, r3, r2, r1, 22);
+	SI5(r4, r0, r3, r2, r1);
+	KL(r0, r1, r4, r3, r2, 21);
+	SI4(r0, r1, r4, r3, r2);
+	KL(r0, r4, r2, r3, r1, 20);
+	SI3(r0, r4, r2, r3, r1);
+	KL(r2, r0, r1, r3, r4, 19);
+	SI2(r2, r0, r1, r3, r4);
+	KL(r0, r4, r3, r1, r2, 18);
+	SI1(r0, r4, r3, r1, r2);
+	KL(r2, r4, r3, r1, r0, 17);
+	SI0(r2, r4, r3, r1, r0);
+	KL(r3, r0, r4, r2, r1, 16);
+	SI7(r3, r0, r4, r2, r1);
+	KL(r0, r2, r3, r1, r4, 15);
+	SI6(r0, r2, r3, r1, r4);
+	KL(r3, r4, r1, r0, r2, 14);
+	SI5(r3, r4, r1, r0, r2);
+	KL(r4, r2, r3, r1, r0, 13);
+	SI4(r4, r2, r3, r1, r0);
+	KL(r4, r3, r0, r1, r2, 12);
+	SI3(r4, r3, r0, r1, r2);
+	KL(r0, r4, r2, r1, r3, 11);
+	SI2(r0, r4, r2, r1, r3);
+	KL(r4, r3, r1, r2, r0, 10);
+	SI1(r4, r3, r1, r2, r0);
+	KL(r0, r3, r1, r2, r4, 9);
+	SI0(r0, r3, r1, r2, r4);
+	KL(r1, r4, r3, r0, r2, 8);
+	SI7(r1, r4, r3, r0, r2);
+	KL(r4, r0, r1, r2, r3, 7);
+	SI6(r4, r0, r1, r2, r3);
+	KL(r1, r3, r2, r4, r0, 6);
+	SI5(r1, r3, r2, r4, r0);
+	KL(r3, r0, r1, r2, r4, 5);
+	SI4(r3, r0, r1, r2, r4);
+	KL(r3, r1, r4, r2, r0, 4);
+	SI3(r3, r1, r4, r2, r0);
+	KL(r4, r3, r0, r2, r1, 3);
+	SI2(r4, r3, r0, r2, r1);
+	KL(r3, r1, r2, r0, r4, 2);
+	SI1(r3, r1, r2, r0, r4);
+	KL(r4, r1, r2, r0, r3, 1);
+	SI0(r4, r1, r2, r0, r3);
+	K(r2, r3, r1, r4, 0);
 
 	put_unaligned_le32(r2, dst);
 	put_unaligned_le32(r3, dst + 4);
@@ -574,19 +910,18 @@ static void serpent_decrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
 }
 
 static struct crypto_alg srp_alg = {
-	.cra_name		=	"serpent",
-	.cra_driver_name	=	"serpent-generic",
-	.cra_priority		=	100,
-	.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
-	.cra_blocksize		=	SERPENT_BLOCK_SIZE,
-	.cra_ctxsize		=	sizeof(struct serpent_ctx),
-	.cra_module		=	THIS_MODULE,
-	.cra_u			=	{ .cipher = {
-	.cia_min_keysize	=	SERPENT_MIN_KEY_SIZE,
-	.cia_max_keysize	=	SERPENT_MAX_KEY_SIZE,
-	.cia_setkey		=	serpent_setkey,
-	.cia_encrypt		=	serpent_encrypt,
-	.cia_decrypt		=	serpent_decrypt } }
+	.cra_name = "serpent",
+	.cra_driver_name = "serpent-generic",
+	.cra_priority = 100,
+	.cra_flags = CRYPTO_ALG_TYPE_CIPHER,
+	.cra_blocksize = SERPENT_BLOCK_SIZE,
+	.cra_ctxsize = sizeof(struct serpent_ctx),
+	.cra_module = THIS_MODULE,
+	.cra_u = { .cipher = { .cia_min_keysize = SERPENT_MIN_KEY_SIZE,
+			       .cia_max_keysize = SERPENT_MAX_KEY_SIZE,
+			       .cia_setkey = serpent_setkey,
+			       .cia_encrypt = serpent_encrypt,
+			       .cia_decrypt = serpent_decrypt } }
 };
 
 static int __init serpent_mod_init(void)

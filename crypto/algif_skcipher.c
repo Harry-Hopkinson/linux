@@ -69,7 +69,7 @@ static int _skcipher_recvmsg(struct socket *sock, struct msghdr *msg,
 
 	/* Allocate cipher request for current operation. */
 	areq = af_alg_alloc_areq(sk, sizeof(struct af_alg_async_req) +
-				     crypto_skcipher_reqsize(tfm));
+					     crypto_skcipher_reqsize(tfm));
 	if (IS_ERR(areq))
 		return PTR_ERR(areq);
 
@@ -92,9 +92,9 @@ static int _skcipher_recvmsg(struct socket *sock, struct msghdr *msg,
 	areq->tsgl_entries = af_alg_count_tsgl(sk, len, 0);
 	if (!areq->tsgl_entries)
 		areq->tsgl_entries = 1;
-	areq->tsgl = sock_kmalloc(sk, array_size(sizeof(*areq->tsgl),
-						 areq->tsgl_entries),
-				  GFP_KERNEL);
+	areq->tsgl = sock_kmalloc(
+		sk, array_size(sizeof(*areq->tsgl), areq->tsgl_entries),
+		GFP_KERNEL);
 	if (!areq->tsgl) {
 		err = -ENOMEM;
 		goto free;
@@ -118,9 +118,10 @@ static int _skcipher_recvmsg(struct socket *sock, struct msghdr *msg,
 		skcipher_request_set_callback(&areq->cra_u.skcipher_req,
 					      CRYPTO_TFM_REQ_MAY_SLEEP,
 					      af_alg_async_cb, areq);
-		err = ctx->enc ?
-			crypto_skcipher_encrypt(&areq->cra_u.skcipher_req) :
-			crypto_skcipher_decrypt(&areq->cra_u.skcipher_req);
+		err = ctx->enc ? crypto_skcipher_encrypt(
+					 &areq->cra_u.skcipher_req) :
+				 crypto_skcipher_decrypt(
+					 &areq->cra_u.skcipher_req);
 
 		/* AIO operation in progress */
 		if (err == -EINPROGRESS)
@@ -129,16 +130,17 @@ static int _skcipher_recvmsg(struct socket *sock, struct msghdr *msg,
 		sock_put(sk);
 	} else {
 		/* Synchronous operation */
-		skcipher_request_set_callback(&areq->cra_u.skcipher_req,
-					      CRYPTO_TFM_REQ_MAY_SLEEP |
-					      CRYPTO_TFM_REQ_MAY_BACKLOG,
-					      crypto_req_done, &ctx->wait);
-		err = crypto_wait_req(ctx->enc ?
-			crypto_skcipher_encrypt(&areq->cra_u.skcipher_req) :
-			crypto_skcipher_decrypt(&areq->cra_u.skcipher_req),
-						 &ctx->wait);
+		skcipher_request_set_callback(
+			&areq->cra_u.skcipher_req,
+			CRYPTO_TFM_REQ_MAY_SLEEP | CRYPTO_TFM_REQ_MAY_BACKLOG,
+			crypto_req_done, &ctx->wait);
+		err = crypto_wait_req(
+			ctx->enc ? crypto_skcipher_encrypt(
+					   &areq->cra_u.skcipher_req) :
+				   crypto_skcipher_decrypt(
+					   &areq->cra_u.skcipher_req),
+			&ctx->wait);
 	}
-
 
 free:
 	af_alg_free_resources(areq);
@@ -180,23 +182,23 @@ out:
 }
 
 static struct proto_ops algif_skcipher_ops = {
-	.family		=	PF_ALG,
+	.family = PF_ALG,
 
-	.connect	=	sock_no_connect,
-	.socketpair	=	sock_no_socketpair,
-	.getname	=	sock_no_getname,
-	.ioctl		=	sock_no_ioctl,
-	.listen		=	sock_no_listen,
-	.shutdown	=	sock_no_shutdown,
-	.mmap		=	sock_no_mmap,
-	.bind		=	sock_no_bind,
-	.accept		=	sock_no_accept,
+	.connect = sock_no_connect,
+	.socketpair = sock_no_socketpair,
+	.getname = sock_no_getname,
+	.ioctl = sock_no_ioctl,
+	.listen = sock_no_listen,
+	.shutdown = sock_no_shutdown,
+	.mmap = sock_no_mmap,
+	.bind = sock_no_bind,
+	.accept = sock_no_accept,
 
-	.release	=	af_alg_release,
-	.sendmsg	=	skcipher_sendmsg,
-	.sendpage	=	af_alg_sendpage,
-	.recvmsg	=	skcipher_recvmsg,
-	.poll		=	af_alg_poll,
+	.release = af_alg_release,
+	.sendmsg = skcipher_sendmsg,
+	.sendpage = af_alg_sendpage,
+	.recvmsg = skcipher_recvmsg,
+	.poll = af_alg_poll,
 };
 
 static int skcipher_check_key(struct socket *sock)
@@ -271,23 +273,23 @@ static int skcipher_recvmsg_nokey(struct socket *sock, struct msghdr *msg,
 }
 
 static struct proto_ops algif_skcipher_ops_nokey = {
-	.family		=	PF_ALG,
+	.family = PF_ALG,
 
-	.connect	=	sock_no_connect,
-	.socketpair	=	sock_no_socketpair,
-	.getname	=	sock_no_getname,
-	.ioctl		=	sock_no_ioctl,
-	.listen		=	sock_no_listen,
-	.shutdown	=	sock_no_shutdown,
-	.mmap		=	sock_no_mmap,
-	.bind		=	sock_no_bind,
-	.accept		=	sock_no_accept,
+	.connect = sock_no_connect,
+	.socketpair = sock_no_socketpair,
+	.getname = sock_no_getname,
+	.ioctl = sock_no_ioctl,
+	.listen = sock_no_listen,
+	.shutdown = sock_no_shutdown,
+	.mmap = sock_no_mmap,
+	.bind = sock_no_bind,
+	.accept = sock_no_accept,
 
-	.release	=	af_alg_release,
-	.sendmsg	=	skcipher_sendmsg_nokey,
-	.sendpage	=	skcipher_sendpage_nokey,
-	.recvmsg	=	skcipher_recvmsg_nokey,
-	.poll		=	af_alg_poll,
+	.release = af_alg_release,
+	.sendmsg = skcipher_sendmsg_nokey,
+	.sendpage = skcipher_sendpage_nokey,
+	.recvmsg = skcipher_recvmsg_nokey,
+	.poll = af_alg_poll,
 };
 
 static void *skcipher_bind(const char *name, u32 type, u32 mask)
@@ -331,8 +333,7 @@ static int skcipher_accept_parent_nokey(void *private, struct sock *sk)
 		return -ENOMEM;
 	memset(ctx, 0, len);
 
-	ctx->iv = sock_kmalloc(sk, crypto_skcipher_ivsize(tfm),
-			       GFP_KERNEL);
+	ctx->iv = sock_kmalloc(sk, crypto_skcipher_ivsize(tfm), GFP_KERNEL);
 	if (!ctx->iv) {
 		sock_kfree_s(sk, ctx, len);
 		return -ENOMEM;
@@ -361,15 +362,15 @@ static int skcipher_accept_parent(void *private, struct sock *sk)
 }
 
 static const struct af_alg_type algif_type_skcipher = {
-	.bind		=	skcipher_bind,
-	.release	=	skcipher_release,
-	.setkey		=	skcipher_setkey,
-	.accept		=	skcipher_accept_parent,
-	.accept_nokey	=	skcipher_accept_parent_nokey,
-	.ops		=	&algif_skcipher_ops,
-	.ops_nokey	=	&algif_skcipher_ops_nokey,
-	.name		=	"skcipher",
-	.owner		=	THIS_MODULE
+	.bind = skcipher_bind,
+	.release = skcipher_release,
+	.setkey = skcipher_setkey,
+	.accept = skcipher_accept_parent,
+	.accept_nokey = skcipher_accept_parent_nokey,
+	.ops = &algif_skcipher_ops,
+	.ops_nokey = &algif_skcipher_ops_nokey,
+	.name = "skcipher",
+	.owner = THIS_MODULE
 };
 
 static int __init algif_skcipher_init(void)

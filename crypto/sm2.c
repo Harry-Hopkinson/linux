@@ -18,12 +18,12 @@
 #include <crypto/sm2.h>
 #include "sm2signature.asn1.h"
 
-#define MPI_NBYTES(m)   ((mpi_get_nbits(m) + 7) / 8)
+#define MPI_NBYTES(m) ((mpi_get_nbits(m) + 7) / 8)
 
 struct ecc_domain_parms {
-	const char *desc;           /* Description of the curve.  */
-	unsigned int nbits;         /* Number of bits.  */
-	unsigned int fips:1; /* True if this is a FIPS140-2 approved curve */
+	const char *desc; /* Description of the curve.  */
+	unsigned int nbits; /* Number of bits.  */
+	unsigned int fips : 1; /* True if this is a FIPS140-2 approved curve */
 
 	/* The model describing this curve.  This is mainly used to select
 	 * the group equation.
@@ -35,14 +35,14 @@ struct ecc_domain_parms {
 	 */
 	enum ecc_dialects dialect;
 
-	const char *p;              /* The prime defining the field.  */
-	const char *a, *b;          /* The coefficients.  For Twisted Edwards
+	const char *p; /* The prime defining the field.  */
+	const char *a, *b; /* The coefficients.  For Twisted Edwards
 				     * Curves b is used for d.  For Montgomery
 				     * Curves (a,b) has ((A-2)/4,B^-1).
 				     */
-	const char *n;              /* The order of the base point.  */
-	const char *g_x, *g_y;      /* Base point.  */
-	unsigned int h;             /* Cofactor.  */
+	const char *n; /* The order of the base point.  */
+	const char *g_x, *g_y; /* Base point.  */
+	unsigned int h; /* Cofactor.  */
 };
 
 static const struct ecc_domain_parms sm2_ecp = {
@@ -51,10 +51,10 @@ static const struct ecc_domain_parms sm2_ecp = {
 	.fips = 0,
 	.model = MPI_EC_WEIERSTRASS,
 	.dialect = ECC_DIALECT_STANDARD,
-	.p   = "0xfffffffeffffffffffffffffffffffffffffffff00000000ffffffffffffffff",
-	.a   = "0xfffffffeffffffffffffffffffffffffffffffff00000000fffffffffffffffc",
-	.b   = "0x28e9fa9e9d9f5e344d5a9e4bcf6509a7f39789f515ab8f92ddbcbd414d940e93",
-	.n   = "0xfffffffeffffffffffffffffffffffff7203df6b21c6052b53bbf40939d54123",
+	.p = "0xfffffffeffffffffffffffffffffffffffffffff00000000ffffffffffffffff",
+	.a = "0xfffffffeffffffffffffffffffffffffffffffff00000000fffffffffffffffc",
+	.b = "0x28e9fa9e9d9f5e344d5a9e4bcf6509a7f39789f515ab8f92ddbcbd414d940e93",
+	.n = "0xfffffffeffffffffffffffffffffffff7203df6b21c6052b53bbf40939d54123",
 	.g_x = "0x32c4ae2c1f1981195f9904466a39c9948fe30bbff2660be1715a4589334c74c7",
 	.g_y = "0xbc3736a2f4f6779c59bdcee36b692153d0a9877cc62a474002df32e52139f0a0",
 	.h = 1
@@ -184,7 +184,7 @@ struct sm2_signature_ctx {
 };
 
 int sm2_get_signature_r(void *context, size_t hdrlen, unsigned char tag,
-				const void *value, size_t vlen)
+			const void *value, size_t vlen)
 {
 	struct sm2_signature_ctx *sig = context;
 
@@ -199,7 +199,7 @@ int sm2_get_signature_r(void *context, size_t hdrlen, unsigned char tag,
 }
 
 int sm2_get_signature_s(void *context, size_t hdrlen, unsigned char tag,
-				const void *value, size_t vlen)
+			const void *value, size_t vlen)
 {
 	struct sm2_signature_ctx *sig = context;
 
@@ -213,8 +213,8 @@ int sm2_get_signature_s(void *context, size_t hdrlen, unsigned char tag,
 	return 0;
 }
 
-static int sm2_z_digest_update(struct shash_desc *desc,
-			MPI m, unsigned int pbytes)
+static int sm2_z_digest_update(struct shash_desc *desc, MPI m,
+			       unsigned int pbytes)
 {
 	static const unsigned char zero[32];
 	unsigned char *in;
@@ -239,8 +239,8 @@ static int sm2_z_digest_update(struct shash_desc *desc,
 	return 0;
 }
 
-static int sm2_z_digest_update_point(struct shash_desc *desc,
-		MPI_POINT point, struct mpi_ec_ctx *ec, unsigned int pbytes)
+static int sm2_z_digest_update_point(struct shash_desc *desc, MPI_POINT point,
+				     struct mpi_ec_ctx *ec, unsigned int pbytes)
 {
 	MPI x, y;
 	int ret = -EINVAL;
@@ -249,8 +249,8 @@ static int sm2_z_digest_update_point(struct shash_desc *desc,
 	y = mpi_new(0);
 
 	if (!mpi_ec_get_affine(x, y, point, ec) &&
-		!sm2_z_digest_update(desc, x, pbytes) &&
-		!sm2_z_digest_update(desc, y, pbytes))
+	    !sm2_z_digest_update(desc, x, pbytes) &&
+	    !sm2_z_digest_update(desc, y, pbytes))
 		ret = 0;
 
 	mpi_free(x);
@@ -258,9 +258,8 @@ static int sm2_z_digest_update_point(struct shash_desc *desc,
 	return ret;
 }
 
-int sm2_compute_z_digest(struct crypto_akcipher *tfm,
-			const unsigned char *id, size_t id_len,
-			unsigned char dgst[SM3_DIGEST_SIZE])
+int sm2_compute_z_digest(struct crypto_akcipher *tfm, const unsigned char *id,
+			 size_t id_len, unsigned char dgst[SM3_DIGEST_SIZE])
 {
 	struct mpi_ec_ctx *ec = akcipher_tfm_ctx(tfm);
 	uint16_t bits_len;
@@ -283,9 +282,9 @@ int sm2_compute_z_digest(struct crypto_akcipher *tfm,
 	crypto_sm3_update(desc, id, id_len);
 
 	if (sm2_z_digest_update(desc, ec->a, pbytes) ||
-		sm2_z_digest_update(desc, ec->b, pbytes) ||
-		sm2_z_digest_update_point(desc, ec->G, ec, pbytes) ||
-		sm2_z_digest_update_point(desc, ec->Q, ec, pbytes))
+	    sm2_z_digest_update(desc, ec->b, pbytes) ||
+	    sm2_z_digest_update_point(desc, ec->G, ec, pbytes) ||
+	    sm2_z_digest_update_point(desc, ec->Q, ec, pbytes))
 		return -EINVAL;
 
 	crypto_sm3_final(desc, dgst);
@@ -308,7 +307,7 @@ static int _sm2_verify(struct mpi_ec_ctx *ec, MPI hash, MPI sig_r, MPI sig_s)
 
 	/* r, s in [1, n-1] */
 	if (mpi_cmp_ui(sig_r, 1) < 0 || mpi_cmp(sig_r, ec->n) > 0 ||
-		mpi_cmp_ui(sig_s, 1) < 0 || mpi_cmp(sig_s, ec->n) > 0) {
+	    mpi_cmp_ui(sig_s, 1) < 0 || mpi_cmp(sig_s, ec->n) > 0) {
 		goto leave;
 	}
 
@@ -362,13 +361,14 @@ static int sm2_verify(struct akcipher_request *req)
 		return -ENOMEM;
 
 	sg_pcopy_to_buffer(req->src,
-		sg_nents_for_len(req->src, req->src_len + req->dst_len),
-		buffer, req->src_len + req->dst_len, 0);
+			   sg_nents_for_len(req->src,
+					    req->src_len + req->dst_len),
+			   buffer, req->src_len + req->dst_len, 0);
 
 	sig.sig_r = NULL;
 	sig.sig_s = NULL;
-	ret = asn1_ber_decoder(&sm2signature_decoder, &sig,
-				buffer, req->src_len);
+	ret = asn1_ber_decoder(&sm2signature_decoder, &sig, buffer,
+			       req->src_len);
 	if (ret)
 		goto error;
 
@@ -387,8 +387,8 @@ error:
 	return ret;
 }
 
-static int sm2_set_pub_key(struct crypto_akcipher *tfm,
-			const void *key, unsigned int keylen)
+static int sm2_set_pub_key(struct crypto_akcipher *tfm, const void *key,
+			   unsigned int keylen)
 {
 	struct mpi_ec_ctx *ec = akcipher_tfm_ctx(tfm);
 	MPI a;

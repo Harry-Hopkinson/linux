@@ -29,24 +29,17 @@ enum bitops_fun {
 static DECLARE_BITMAP(g_bitmap, BITOPS_LENGTH);
 
 static unsigned int order_comb[][2] = {
-	{0x00000003,  2},
-	{0x00000004,  2},
-	{0x00001fff, 13},
-	{0x00002000, 13},
-	{0x50000000, 31},
-	{0x80000000, 31},
-	{0x80003000, 32},
+	{ 0x00000003, 2 },  { 0x00000004, 2 },	{ 0x00001fff, 13 },
+	{ 0x00002000, 13 }, { 0x50000000, 31 }, { 0x80000000, 31 },
+	{ 0x80003000, 32 },
 };
 
 #ifdef CONFIG_64BIT
 static unsigned long order_comb_long[][2] = {
-	{0x0000000300000000, 34},
-	{0x0000000400000000, 34},
-	{0x00001fff00000000, 45},
-	{0x0000200000000000, 45},
-	{0x5000000000000000, 63},
-	{0x8000000000000000, 63},
-	{0x8000300000000000, 64},
+	{ 0x0000000300000000, 34 }, { 0x0000000400000000, 34 },
+	{ 0x00001fff00000000, 45 }, { 0x0000200000000000, 45 },
+	{ 0x5000000000000000, 63 }, { 0x8000000000000000, 63 },
+	{ 0x8000300000000000, 64 },
 };
 #endif
 
@@ -64,21 +57,21 @@ static int __init test_bitops_startup(void)
 	for (i = 0; i < ARRAY_SIZE(order_comb); i++) {
 		if (order_comb[i][1] != get_count_order(order_comb[i][0]))
 			pr_warn("get_count_order wrong for %x\n",
-				       order_comb[i][0]);
+				order_comb[i][0]);
 	}
 
 	for (i = 0; i < ARRAY_SIZE(order_comb); i++) {
 		if (order_comb[i][1] != get_count_order_long(order_comb[i][0]))
 			pr_warn("get_count_order_long wrong for %x\n",
-				       order_comb[i][0]);
+				order_comb[i][0]);
 	}
 
 #ifdef CONFIG_64BIT
 	for (i = 0; i < ARRAY_SIZE(order_comb_long); i++) {
 		if (order_comb_long[i][1] !=
-			       get_count_order_long(order_comb_long[i][0]))
+		    get_count_order_long(order_comb_long[i][0]))
 			pr_warn("get_count_order_long wrong for %lx\n",
-				       order_comb_long[i][0]);
+				order_comb_long[i][0]);
 	}
 #endif
 
@@ -106,6 +99,7 @@ static void __exit test_bitops_unstartup(void)
 module_init(test_bitops_startup);
 module_exit(test_bitops_unstartup);
 
-MODULE_AUTHOR("Jesse Brandeburg <jesse.brandeburg@intel.com>, Wei Yang <richard.weiyang@gmail.com>");
+MODULE_AUTHOR(
+	"Jesse Brandeburg <jesse.brandeburg@intel.com>, Wei Yang <richard.weiyang@gmail.com>");
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("Bit testing module");

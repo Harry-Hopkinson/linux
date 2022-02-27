@@ -51,8 +51,7 @@ static struct sighand_struct init_sighand = {
 };
 
 #ifdef CONFIG_SHADOW_CALL_STACK
-unsigned long init_shadow_call_stack[SCS_SIZE / sizeof(long)]
-		__init_task_data = {
+unsigned long init_shadow_call_stack[SCS_SIZE / sizeof(long)] __init_task_data = {
 	[(SCS_SIZE / sizeof(long)) - 1] = SCS_END_MAGIC
 };
 #endif
@@ -217,5 +216,6 @@ EXPORT_SYMBOL(init_task);
  * linker map entry.
  */
 #ifndef CONFIG_THREAD_INFO_IN_TASK
-struct thread_info init_thread_info __init_thread_info = INIT_THREAD_INFO(init_task);
+struct thread_info init_thread_info __init_thread_info =
+	INIT_THREAD_INFO(init_task);
 #endif

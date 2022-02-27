@@ -29,7 +29,7 @@
  * Return: 0 on success; -EINVAL on failure (only happens for bad key lengths)
  */
 static int sm4_setkey(struct crypto_tfm *tfm, const u8 *in_key,
-		       unsigned int key_len)
+		      unsigned int key_len)
 {
 	struct sm4_ctx *ctx = crypto_tfm_ctx(tfm);
 
@@ -55,22 +55,18 @@ static void sm4_decrypt(struct crypto_tfm *tfm, u8 *out, const u8 *in)
 }
 
 static struct crypto_alg sm4_alg = {
-	.cra_name		=	"sm4",
-	.cra_driver_name	=	"sm4-generic",
-	.cra_priority		=	100,
-	.cra_flags		=	CRYPTO_ALG_TYPE_CIPHER,
-	.cra_blocksize		=	SM4_BLOCK_SIZE,
-	.cra_ctxsize		=	sizeof(struct sm4_ctx),
-	.cra_module		=	THIS_MODULE,
-	.cra_u			=	{
-		.cipher = {
-			.cia_min_keysize	=	SM4_KEY_SIZE,
-			.cia_max_keysize	=	SM4_KEY_SIZE,
-			.cia_setkey		=	sm4_setkey,
-			.cia_encrypt		=	sm4_encrypt,
-			.cia_decrypt		=	sm4_decrypt
-		}
-	}
+	.cra_name = "sm4",
+	.cra_driver_name = "sm4-generic",
+	.cra_priority = 100,
+	.cra_flags = CRYPTO_ALG_TYPE_CIPHER,
+	.cra_blocksize = SM4_BLOCK_SIZE,
+	.cra_ctxsize = sizeof(struct sm4_ctx),
+	.cra_module = THIS_MODULE,
+	.cra_u = { .cipher = { .cia_min_keysize = SM4_KEY_SIZE,
+			       .cia_max_keysize = SM4_KEY_SIZE,
+			       .cia_setkey = sm4_setkey,
+			       .cia_encrypt = sm4_encrypt,
+			       .cia_decrypt = sm4_decrypt } }
 };
 
 static int __init sm4_init(void)

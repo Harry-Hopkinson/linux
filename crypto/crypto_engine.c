@@ -50,7 +50,8 @@ static void crypto_finalize_request(struct crypto_engine *engine,
 		    enginectx->op.unprepare_request) {
 			ret = enginectx->op.unprepare_request(engine, req);
 			if (ret)
-				dev_err(engine->dev, "failed to unprepare request\n");
+				dev_err(engine->dev,
+					"failed to unprepare request\n");
 		}
 	}
 	req->complete(req, err);
@@ -67,8 +68,7 @@ static void crypto_finalize_request(struct crypto_engine *engine,
  * needs processing and if so call out to the driver to initialize hardware
  * and handle each request.
  */
-static void crypto_pump_requests(struct crypto_engine *engine,
-				 bool in_kthread)
+static void crypto_pump_requests(struct crypto_engine *engine, bool in_kthread)
 {
 	struct crypto_async_request *async_req, *backlog;
 	unsigned long flags;
@@ -106,7 +106,8 @@ static void crypto_pump_requests(struct crypto_engine *engine,
 
 		if (engine->unprepare_crypt_hardware &&
 		    engine->unprepare_crypt_hardware(engine))
-			dev_err(engine->dev, "failed to unprepare crypt hardware\n");
+			dev_err(engine->dev,
+				"failed to unprepare crypt hardware\n");
 
 		spin_lock_irqsave(&engine->queue_lock, flags);
 		engine->idling = false;
@@ -142,7 +143,8 @@ start_request:
 	if (!was_busy && engine->prepare_crypt_hardware) {
 		ret = engine->prepare_crypt_hardware(engine);
 		if (ret) {
-			dev_err(engine->dev, "failed to prepare crypt hardware\n");
+			dev_err(engine->dev,
+				"failed to prepare crypt hardware\n");
 			goto req_err_2;
 		}
 	}
@@ -172,8 +174,7 @@ start_request:
 		 * regardless of backlog flag.
 		 * Otherwise, unprepare and complete the request.
 		 */
-		if (!engine->retry_support ||
-		    (ret != -ENOSPC)) {
+		if (!engine->retry_support || (ret != -ENOSPC)) {
 			dev_err(engine->dev,
 				"Failed to do one request from queue: %d\n",
 				ret);
@@ -233,8 +234,8 @@ out:
 	if (engine->do_batch_requests) {
 		ret = engine->do_batch_requests(engine);
 		if (ret)
-			dev_err(engine->dev, "failed to do batch requests: %d\n",
-				ret);
+			dev_err(engine->dev,
+				"failed to do batch requests: %d\n", ret);
 	}
 
 	return;
@@ -504,10 +505,9 @@ EXPORT_SYMBOL_GPL(crypto_engine_stop);
  * This must be called from context that can sleep.
  * Return: the crypto engine structure on success, else NULL.
  */
-struct crypto_engine *crypto_engine_alloc_init_and_set(struct device *dev,
-						       bool retry_support,
-						       int (*cbk_do_batch)(struct crypto_engine *engine),
-						       bool rt, int qlen)
+struct crypto_engine *crypto_engine_alloc_init_and_set(
+	struct device *dev, bool retry_support,
+	int (*cbk_do_batch)(struct crypto_engine *engine), bool rt, int qlen)
 {
 	struct crypto_engine *engine;
 
@@ -531,8 +531,8 @@ struct crypto_engine *crypto_engine_alloc_init_and_set(struct device *dev,
 	 */
 	engine->do_batch_requests = retry_support ? cbk_do_batch : NULL;
 
-	snprintf(engine->name, sizeof(engine->name),
-		 "%s-engine", dev_name(dev));
+	snprintf(engine->name, sizeof(engine->name), "%s-engine",
+		 dev_name(dev));
 
 	crypto_init_queue(&engine->queue, qlen);
 	spin_lock_init(&engine->queue_lock);
@@ -545,7 +545,8 @@ struct crypto_engine *crypto_engine_alloc_init_and_set(struct device *dev,
 	kthread_init_work(&engine->pump_requests, crypto_pump_work);
 
 	if (engine->rt) {
-		dev_info(dev, "will run requests pump with realtime priority\n");
+		dev_info(dev,
+			 "will run requests pump with realtime priority\n");
 		sched_set_fifo(engine->kworker->task);
 	}
 

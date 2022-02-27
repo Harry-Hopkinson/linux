@@ -100,8 +100,7 @@ struct crypto_kw_block {
  * the walk variable
  */
 static void crypto_kw_scatterlist_ff(struct scatter_walk *walk,
-				     struct scatterlist *sg,
-				     unsigned int end)
+				     struct scatterlist *sg, unsigned int end)
 {
 	unsigned int skip = 0;
 
@@ -287,7 +286,7 @@ static int crypto_kw_create(struct crypto_template *tmpl, struct rtattr **tb)
 
 	err = skcipher_register_instance(tmpl, inst);
 	if (err) {
-out_free_inst:
+	out_free_inst:
 		inst->free(inst);
 	}
 

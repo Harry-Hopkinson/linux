@@ -4,8 +4,7 @@
 #include <linux/regset.h>
 
 static int __regset_get(struct task_struct *target,
-			const struct user_regset *regset,
-			unsigned int size,
+			const struct user_regset *regset, unsigned int size,
 			void **data)
 {
 	void *p = *data, *to_free = NULL;
@@ -21,7 +20,7 @@ static int __regset_get(struct task_struct *target,
 			return -ENOMEM;
 	}
 	res = regset->regset_get(target, regset,
-			   (struct membuf){.p = p, .left = size});
+				 (struct membuf){ .p = p, .left = size });
 	if (res < 0) {
 		kfree(to_free);
 		return res;
@@ -30,18 +29,15 @@ static int __regset_get(struct task_struct *target,
 	return size - res;
 }
 
-int regset_get(struct task_struct *target,
-	       const struct user_regset *regset,
-	       unsigned int size,
-	       void *data)
+int regset_get(struct task_struct *target, const struct user_regset *regset,
+	       unsigned int size, void *data)
 {
 	return __regset_get(target, regset, size, &data);
 }
 EXPORT_SYMBOL(regset_get);
 
 int regset_get_alloc(struct task_struct *target,
-		     const struct user_regset *regset,
-		     unsigned int size,
+		     const struct user_regset *regset, unsigned int size,
 		     void **data)
 {
 	*data = NULL;
@@ -59,8 +55,7 @@ EXPORT_SYMBOL(regset_get_alloc);
  * @data:	user-mode pointer to copy into
  */
 int copy_regset_to_user(struct task_struct *target,
-			const struct user_regset_view *view,
-			unsigned int setno,
+			const struct user_regset_view *view, unsigned int setno,
 			unsigned int offset, unsigned int size,
 			void __user *data)
 {

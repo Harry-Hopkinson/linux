@@ -61,7 +61,7 @@ struct pid init_struct_pid = {
 
 int pid_max = PID_MAX_DEFAULT;
 
-#define RESERVED_PIDS		300
+#define RESERVED_PIDS 300
 
 int pid_max_min = RESERVED_PIDS + 1;
 int pid_max_max = PID_MAX_LIMIT;
@@ -100,7 +100,7 @@ EXPORT_SYMBOL_GPL(init_pid_ns);
  * For now it is easier to be safe than to prove it can't happen.
  */
 
-static  __cacheline_aligned_in_smp DEFINE_SPINLOCK(pidmap_lock);
+static __cacheline_aligned_in_smp DEFINE_SPINLOCK(pidmap_lock);
 
 void put_pid(struct pid *pid)
 {
@@ -209,8 +209,8 @@ struct pid *alloc_pid(struct pid_namespace *ns, pid_t *set_tid,
 		spin_lock_irq(&pidmap_lock);
 
 		if (tid) {
-			nr = idr_alloc(&tmp->idr, NULL, tid,
-				       tid + 1, GFP_ATOMIC);
+			nr = idr_alloc(&tmp->idr, NULL, tid, tid + 1,
+				       GFP_ATOMIC);
 			/*
 			 * If ENOSPC is returned it means that the PID is
 			 * alreay in use. Return EEXIST in that case.
@@ -230,8 +230,8 @@ struct pid *alloc_pid(struct pid_namespace *ns, pid_t *set_tid,
 			 * Store a null pointer so find_pid_ns does not find
 			 * a partially initialized PID (see below).
 			 */
-			nr = idr_alloc_cyclic(&tmp->idr, NULL, pid_min,
-					      pid_max, GFP_ATOMIC);
+			nr = idr_alloc_cyclic(&tmp->idr, NULL, pid_min, pid_max,
+					      GFP_ATOMIC);
 		}
 		spin_unlock_irq(&pidmap_lock);
 		idr_preload_end();
@@ -269,7 +269,7 @@ struct pid *alloc_pid(struct pid_namespace *ns, pid_t *set_tid,
 	spin_lock_irq(&pidmap_lock);
 	if (!(ns->pid_allocated & PIDNS_ADDING))
 		goto out_unlock;
-	for ( ; upid >= pid->numbers; --upid) {
+	for (; upid >= pid->numbers; --upid) {
 		/* Make the PID visible to find_pid_ns. */
 		idr_replace(&upid->ns->idr, pid, upid->nr);
 		upid->ns->pid_allocated++;
@@ -320,9 +320,8 @@ EXPORT_SYMBOL_GPL(find_vpid);
 
 static struct pid **task_pid_ptr(struct task_struct *task, enum pid_type type)
 {
-	return (type == PIDTYPE_PID) ?
-		&task->thread_pid :
-		&task->signal->pids[type];
+	return (type == PIDTYPE_PID) ? &task->thread_pid :
+				       &task->signal->pids[type];
 }
 
 /*
@@ -335,7 +334,7 @@ void attach_pid(struct task_struct *task, enum pid_type type)
 }
 
 static void __change_pid(struct task_struct *task, enum pid_type type,
-			struct pid *new)
+			 struct pid *new)
 {
 	struct pid **pid_ptr = task_pid_ptr(task, type);
 	struct pid *pid;
@@ -346,7 +345,7 @@ static void __change_pid(struct task_struct *task, enum pid_type type,
 	hlist_del_rcu(&task->pid_links[type]);
 	*pid_ptr = new;
 
-	for (tmp = PIDTYPE_MAX; --tmp >= 0; )
+	for (tmp = PIDTYPE_MAX; --tmp >= 0;)
 		if (pid_has_task(pid, tmp))
 			return;
 
@@ -358,8 +357,7 @@ void detach_pid(struct task_struct *task, enum pid_type type)
 	__change_pid(task, type, NULL);
 }
 
-void change_pid(struct task_struct *task, enum pid_type type,
-		struct pid *pid)
+void change_pid(struct task_struct *task, enum pid_type type, struct pid *pid)
 {
 	__change_pid(task, type, pid);
 	attach_pid(task, type);
@@ -386,7 +384,7 @@ void exchange_tids(struct task_struct *left, struct task_struct *right)
 
 /* transfer_pid is an optimization of attach_pid(new), detach_pid(old) */
 void transfer_pid(struct task_struct *old, struct task_struct *new,
-			   enum pid_type type)
+		  enum pid_type type)
 {
 	if (type == PIDTYPE_PID)
 		new->thread_pid = old->thread_pid;
@@ -398,10 +396,12 @@ struct task_struct *pid_task(struct pid *pid, enum pid_type type)
 	struct task_struct *result = NULL;
 	if (pid) {
 		struct hlist_node *first;
-		first = rcu_dereference_check(hlist_first_rcu(&pid->tasks[type]),
-					      lockdep_tasklist_lock_is_held());
+		first = rcu_dereference_check(
+			hlist_first_rcu(&pid->tasks[type]),
+			lockdep_tasklist_lock_is_held());
 		if (first)
-			result = hlist_entry(first, struct task_struct, pid_links[(type)]);
+			result = hlist_entry(first, struct task_struct,
+					     pid_links[(type)]);
 	}
 	return result;
 }
@@ -412,8 +412,9 @@ EXPORT_SYMBOL(pid_task);
  */
 struct task_struct *find_task_by_pid_ns(pid_t nr, struct pid_namespace *ns)
 {
-	RCU_LOCKDEP_WARN(!rcu_read_lock_held(),
-			 "find_task_by_pid_ns() needs rcu_read_lock() protection");
+	RCU_LOCKDEP_WARN(
+		!rcu_read_lock_held(),
+		"find_task_by_pid_ns() needs rcu_read_lock() protection");
 	return pid_task(find_pid_ns(nr, ns), PIDTYPE_PID);
 }
 
@@ -490,7 +491,7 @@ pid_t pid_vnr(struct pid *pid)
 EXPORT_SYMBOL_GPL(pid_vnr);
 
 pid_t __task_pid_nr_ns(struct task_struct *task, enum pid_type type,
-			struct pid_namespace *ns)
+		       struct pid_namespace *ns)
 {
 	pid_t nr = 0;
 
@@ -652,16 +653,17 @@ void __init pid_idr_init(void)
 	BUILD_BUG_ON(PID_MAX_LIMIT >= PIDNS_ADDING);
 
 	/* bump default and minimum pid_max based on number of cpus */
-	pid_max = min(pid_max_max, max_t(int, pid_max,
-				PIDS_PER_CPU_DEFAULT * num_possible_cpus()));
-	pid_max_min = max_t(int, pid_max_min,
-				PIDS_PER_CPU_MIN * num_possible_cpus());
+	pid_max = min(pid_max_max,
+		      max_t(int, pid_max,
+			    PIDS_PER_CPU_DEFAULT *num_possible_cpus()));
+	pid_max_min =
+		max_t(int, pid_max_min, PIDS_PER_CPU_MIN *num_possible_cpus());
 	pr_info("pid_max: default: %u minimum: %u\n", pid_max, pid_max_min);
 
 	idr_init(&init_pid_ns.idr);
 
-	init_pid_ns.pid_cachep = KMEM_CACHE(pid,
-			SLAB_HWCACHE_ALIGN | SLAB_PANIC | SLAB_ACCOUNT);
+	init_pid_ns.pid_cachep =
+		KMEM_CACHE(pid, SLAB_HWCACHE_ALIGN | SLAB_PANIC | SLAB_ACCOUNT);
 }
 
 static struct file *__pidfd_fget(struct task_struct *task, int fd)
@@ -720,8 +722,7 @@ static int pidfd_getfd(struct pid *pid, int fd)
  * Return: On success, a cloexec file descriptor is returned.
  *         On error, a negative errno number will be returned.
  */
-SYSCALL_DEFINE3(pidfd_getfd, int, pidfd, int, fd,
-		unsigned int, flags)
+SYSCALL_DEFINE3(pidfd_getfd, int, pidfd, int, fd, unsigned int, flags)
 {
 	struct pid *pid;
 	struct fd f;

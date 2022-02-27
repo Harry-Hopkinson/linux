@@ -39,8 +39,7 @@ static void once_disable_jump(struct static_key_true *key, struct module *mod)
 
 static DEFINE_SPINLOCK(once_lock);
 
-bool __do_once_start(bool *done, unsigned long *flags)
-	__acquires(once_lock)
+bool __do_once_start(bool *done, unsigned long *flags) __acquires(once_lock)
 {
 	spin_lock_irqsave(&once_lock, *flags);
 	if (*done) {

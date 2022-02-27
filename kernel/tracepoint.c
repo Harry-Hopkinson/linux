@@ -42,7 +42,8 @@ struct tp_transition_snapshot {
 };
 
 /* Protected by tracepoints_mutex */
-static struct tp_transition_snapshot tp_transition_snapshot[_NR_TP_TRANSITION_SYNC];
+static struct tp_transition_snapshot
+	tp_transition_snapshot[_NR_TP_TRANSITION_SYNC];
 
 static void tp_rcu_get_state(enum tp_transition_sync sync)
 {
@@ -106,8 +107,8 @@ static void tp_stub_func(void)
 
 static inline void *allocate_probes(int count)
 {
-	struct tp_probes *p  = kmalloc(struct_size(p, probes, count),
-				       GFP_KERNEL);
+	struct tp_probes *p =
+		kmalloc(struct_size(p, probes, count), GFP_KERNEL);
 	return p == NULL ? NULL : p->probes;
 }
 
@@ -142,8 +143,8 @@ postcore_initcall(release_early_probes);
 static inline void release_probes(struct tracepoint_func *old)
 {
 	if (old) {
-		struct tp_probes *tp_probes = container_of(old,
-			struct tp_probes, probes[0]);
+		struct tp_probes *tp_probes =
+			container_of(old, struct tp_probes, probes[0]);
 
 		/*
 		 * We can't free probes if SRCU is not initialized yet.
@@ -176,14 +177,14 @@ static void debug_print_probes(struct tracepoint_func *funcs)
 		printk(KERN_DEBUG "Probe %d : %p\n", i, funcs[i].func);
 }
 
-static struct tracepoint_func *
-func_add(struct tracepoint_func **funcs, struct tracepoint_func *tp_func,
-	 int prio)
+static struct tracepoint_func *func_add(struct tracepoint_func **funcs,
+					struct tracepoint_func *tp_func,
+					int prio)
 {
 	struct tracepoint_func *old, *new;
-	int iter_probes;	/* Iterate over old probe array. */
-	int nr_probes = 0;	/* Counter for probes */
-	int pos = -1;		/* Insertion position into new array */
+	int iter_probes; /* Iterate over old probe array. */
+	int nr_probes = 0; /* Counter for probes */
+	int pos = -1; /* Insertion position into new array */
 
 	if (WARN_ON(!tp_func->func))
 		return ERR_PTR(-EINVAL);
@@ -194,7 +195,7 @@ func_add(struct tracepoint_func **funcs, struct tracepoint_func *tp_func,
 		/* (N -> N+1), (N != 0, 1) probes */
 		for (iter_probes = 0; old[iter_probes].func; iter_probes++) {
 			if (old[iter_probes].func == tp_stub_func)
-				continue;	/* Skip stub functions. */
+				continue; /* Skip stub functions. */
 			if (old[iter_probes].func == tp_func->func &&
 			    old[iter_probes].data == tp_func->data)
 				return ERR_PTR(-EEXIST);
@@ -230,7 +231,7 @@ func_add(struct tracepoint_func **funcs, struct tracepoint_func *tp_func,
 }
 
 static void *func_remove(struct tracepoint_func **funcs,
-		struct tracepoint_func *tp_func)
+			 struct tracepoint_func *tp_func)
 {
 	int nr_probes = 0, nr_del = 0, i;
 	struct tracepoint_func *old, *new;
@@ -302,10 +303,11 @@ static enum tp_func_state nr_func_state(const struct tracepoint_func *tp_funcs)
 		return TP_FUNC_1;
 	if (!tp_funcs[2].func)
 		return TP_FUNC_2;
-	return TP_FUNC_N;	/* 3 or more */
+	return TP_FUNC_N; /* 3 or more */
 }
 
-static void tracepoint_update_call(struct tracepoint *tp, struct tracepoint_func *tp_funcs)
+static void tracepoint_update_call(struct tracepoint *tp,
+				   struct tracepoint_func *tp_funcs)
 {
 	void *func = tp->iterator;
 
@@ -333,8 +335,8 @@ static int tracepoint_add_func(struct tracepoint *tp,
 			return ret;
 	}
 
-	tp_funcs = rcu_dereference_protected(tp->funcs,
-			lockdep_is_held(&tracepoints_mutex));
+	tp_funcs = rcu_dereference_protected(
+		tp->funcs, lockdep_is_held(&tracepoints_mutex));
 	old = func_add(&tp_funcs, func, prio);
 	if (IS_ERR(old)) {
 		WARN_ON_ONCE(warn && PTR_ERR(old) != -ENOMEM);
@@ -348,7 +350,7 @@ static int tracepoint_add_func(struct tracepoint *tp,
 	 * include/linux/tracepoint.h using rcu_dereference_sched().
 	 */
 	switch (nr_func_state(tp_funcs)) {
-	case TP_FUNC_1:		/* 0->1 */
+	case TP_FUNC_1: /* 0->1 */
 		/*
 		 * Make sure new static func never uses old data after a
 		 * 1->0->1 transition sequence.
@@ -360,7 +362,7 @@ static int tracepoint_add_func(struct tracepoint *tp,
 		rcu_assign_pointer(tp->funcs, tp_funcs);
 		static_key_enable(&tp->key);
 		break;
-	case TP_FUNC_2:		/* 1->2 */
+	case TP_FUNC_2: /* 1->2 */
 		/* Set iterator static call */
 		tracepoint_update_call(tp, tp_funcs);
 		/*
@@ -369,7 +371,7 @@ static int tracepoint_add_func(struct tracepoint *tp,
 		 * static call update/call.
 		 */
 		fallthrough;
-	case TP_FUNC_N:		/* N->N+1 (N>1) */
+	case TP_FUNC_N: /* N->N+1 (N>1) */
 		rcu_assign_pointer(tp->funcs, tp_funcs);
 		/*
 		 * Make sure static func never uses incorrect data after a
@@ -394,12 +396,12 @@ static int tracepoint_add_func(struct tracepoint *tp,
  * by preempt_disable around the call site.
  */
 static int tracepoint_remove_func(struct tracepoint *tp,
-		struct tracepoint_func *func)
+				  struct tracepoint_func *func)
 {
 	struct tracepoint_func *old, *tp_funcs;
 
-	tp_funcs = rcu_dereference_protected(tp->funcs,
-			lockdep_is_held(&tracepoints_mutex));
+	tp_funcs = rcu_dereference_protected(
+		tp->funcs, lockdep_is_held(&tracepoints_mutex));
 	old = func_remove(&tp_funcs, func);
 	if (WARN_ON_ONCE(IS_ERR(old)))
 		return PTR_ERR(old);
@@ -409,7 +411,7 @@ static int tracepoint_remove_func(struct tracepoint *tp,
 		return 0;
 
 	switch (nr_func_state(tp_funcs)) {
-	case TP_FUNC_0:		/* 1->0 */
+	case TP_FUNC_0: /* 1->0 */
 		/* Removed last function */
 		if (tp->unregfunc && static_key_enabled(&tp->key))
 			tp->unregfunc();
@@ -425,7 +427,7 @@ static int tracepoint_remove_func(struct tracepoint *tp,
 		 */
 		tp_rcu_get_state(TP_TRANSITION_SYNC_1_0_1);
 		break;
-	case TP_FUNC_1:		/* 2->1 */
+	case TP_FUNC_1: /* 2->1 */
 		rcu_assign_pointer(tp->funcs, tp_funcs);
 		/*
 		 * Make sure static func never uses incorrect data after a
@@ -440,7 +442,7 @@ static int tracepoint_remove_func(struct tracepoint *tp,
 		/* Set static call to first function */
 		tracepoint_update_call(tp, tp_funcs);
 		break;
-	case TP_FUNC_2:		/* N->N-1 (N>2) */
+	case TP_FUNC_2: /* N->N-1 (N>2) */
 		fallthrough;
 	case TP_FUNC_N:
 		rcu_assign_pointer(tp->funcs, tp_funcs);
@@ -528,7 +530,8 @@ EXPORT_SYMBOL_GPL(tracepoint_probe_register_prio);
  */
 int tracepoint_probe_register(struct tracepoint *tp, void *probe, void *data)
 {
-	return tracepoint_probe_register_prio(tp, probe, data, TRACEPOINT_DEFAULT_PRIO);
+	return tracepoint_probe_register_prio(tp, probe, data,
+					      TRACEPOINT_DEFAULT_PRIO);
 }
 EXPORT_SYMBOL_GPL(tracepoint_probe_register);
 
@@ -554,10 +557,10 @@ int tracepoint_probe_unregister(struct tracepoint *tp, void *probe, void *data)
 }
 EXPORT_SYMBOL_GPL(tracepoint_probe_unregister);
 
-static void for_each_tracepoint_range(
-		tracepoint_ptr_t *begin, tracepoint_ptr_t *end,
-		void (*fct)(struct tracepoint *tp, void *priv),
-		void *priv)
+static void
+for_each_tracepoint_range(tracepoint_ptr_t *begin, tracepoint_ptr_t *end,
+			  void (*fct)(struct tracepoint *tp, void *priv),
+			  void *priv)
 {
 	tracepoint_ptr_t *iter;
 
@@ -594,8 +597,8 @@ int register_tracepoint_module_notifier(struct notifier_block *nb)
 	ret = blocking_notifier_chain_register(&tracepoint_notify_list, nb);
 	if (ret)
 		goto end;
-	list_for_each_entry(tp_mod, &tracepoint_module_list, list)
-		(void) nb->notifier_call(nb, MODULE_STATE_COMING, tp_mod);
+	list_for_each_entry (tp_mod, &tracepoint_module_list, list)
+		(void)nb->notifier_call(nb, MODULE_STATE_COMING, tp_mod);
 end:
 	mutex_unlock(&tracepoint_module_list_mutex);
 	return ret;
@@ -618,12 +621,11 @@ int unregister_tracepoint_module_notifier(struct notifier_block *nb)
 	ret = blocking_notifier_chain_unregister(&tracepoint_notify_list, nb);
 	if (ret)
 		goto end;
-	list_for_each_entry(tp_mod, &tracepoint_module_list, list)
-		(void) nb->notifier_call(nb, MODULE_STATE_GOING, tp_mod);
+	list_for_each_entry (tp_mod, &tracepoint_module_list, list)
+		(void)nb->notifier_call(nb, MODULE_STATE_GOING, tp_mod);
 end:
 	mutex_unlock(&tracepoint_module_list_mutex);
 	return ret;
-
 }
 EXPORT_SYMBOL_GPL(unregister_tracepoint_module_notifier);
 
@@ -660,7 +662,7 @@ static int tracepoint_module_coming(struct module *mod)
 	tp_mod->mod = mod;
 	list_add_tail(&tp_mod->list, &tracepoint_module_list);
 	blocking_notifier_call_chain(&tracepoint_notify_list,
-			MODULE_STATE_COMING, tp_mod);
+				     MODULE_STATE_COMING, tp_mod);
 end:
 	mutex_unlock(&tracepoint_module_list_mutex);
 	return ret;
@@ -674,17 +676,19 @@ static void tracepoint_module_going(struct module *mod)
 		return;
 
 	mutex_lock(&tracepoint_module_list_mutex);
-	list_for_each_entry(tp_mod, &tracepoint_module_list, list) {
+	list_for_each_entry (tp_mod, &tracepoint_module_list, list) {
 		if (tp_mod->mod == mod) {
 			blocking_notifier_call_chain(&tracepoint_notify_list,
-					MODULE_STATE_GOING, tp_mod);
+						     MODULE_STATE_GOING,
+						     tp_mod);
 			list_del(&tp_mod->list);
 			kfree(tp_mod);
 			/*
 			 * Called the going notifier before checking for
 			 * quiescence.
 			 */
-			for_each_tracepoint_range(mod->tracepoints_ptrs,
+			for_each_tracepoint_range(
+				mod->tracepoints_ptrs,
 				mod->tracepoints_ptrs + mod->num_tracepoints,
 				tp_module_going_check_quiescent, NULL);
 			break;
@@ -700,7 +704,7 @@ static void tracepoint_module_going(struct module *mod)
 }
 
 static int tracepoint_module_notify(struct notifier_block *self,
-		unsigned long val, void *data)
+				    unsigned long val, void *data)
 {
 	struct module *mod = data;
 	int ret = 0;
@@ -744,10 +748,10 @@ __initcall(init_tracepoints);
  * @priv: private data
  */
 void for_each_kernel_tracepoint(void (*fct)(struct tracepoint *tp, void *priv),
-		void *priv)
+				void *priv)
 {
 	for_each_tracepoint_range(__start___tracepoints_ptrs,
-		__stop___tracepoints_ptrs, fct, priv);
+				  __stop___tracepoints_ptrs, fct, priv);
 }
 EXPORT_SYMBOL_GPL(for_each_kernel_tracepoint);
 
@@ -762,7 +766,7 @@ int syscall_regfunc(void)
 
 	if (!sys_tracepoint_refcount) {
 		read_lock(&tasklist_lock);
-		for_each_process_thread(p, t) {
+		for_each_process_thread (p, t) {
 			set_task_syscall_work(t, SYSCALL_TRACEPOINT);
 		}
 		read_unlock(&tasklist_lock);
@@ -779,7 +783,7 @@ void syscall_unregfunc(void)
 	sys_tracepoint_refcount--;
 	if (!sys_tracepoint_refcount) {
 		read_lock(&tasklist_lock);
-		for_each_process_thread(p, t) {
+		for_each_process_thread (p, t) {
 			clear_task_syscall_work(t, SYSCALL_TRACEPOINT);
 		}
 		read_unlock(&tasklist_lock);

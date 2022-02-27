@@ -40,8 +40,8 @@ static void irq_work_wake(struct irq_work *entry)
 	wake_irq_workd();
 }
 
-static DEFINE_PER_CPU(struct irq_work, irq_work_wakeup) =
-	IRQ_WORK_INIT_HARD(irq_work_wake);
+static DEFINE_PER_CPU(struct irq_work,
+		      irq_work_wakeup) = IRQ_WORK_INIT_HARD(irq_work_wake);
 #endif
 
 static int irq_workd_should_run(unsigned int cpu)
@@ -56,7 +56,8 @@ static bool irq_work_claim(struct irq_work *work)
 {
 	int oflags;
 
-	oflags = atomic_fetch_or(IRQ_WORK_CLAIMED | CSD_TYPE_IRQ_WORK, &work->node.a_flags);
+	oflags = atomic_fetch_or(IRQ_WORK_CLAIMED | CSD_TYPE_IRQ_WORK,
+				 &work->node.a_flags);
 	/*
 	 * If the work is already pending, no need to raise the IPI.
 	 * The pairing smp_mb() in irq_work_single() makes sure
@@ -151,8 +152,8 @@ bool irq_work_queue_on(struct irq_work *work, int cpu)
 		 */
 		if (IS_ENABLED(CONFIG_PREEMPT_RT) &&
 		    !(atomic_read(&work->node.a_flags) & IRQ_WORK_HARD_IRQ)) {
-
-			if (!llist_add(&work->node.llist, &per_cpu(lazy_list, cpu)))
+			if (!llist_add(&work->node.llist,
+				       &per_cpu(lazy_list, cpu)))
 				goto out;
 
 			work = &per_cpu(irq_work_wakeup, cpu);
@@ -215,7 +216,8 @@ void irq_work_single(void *arg)
 	 * Clear the BUSY bit, if set, and return to the free state if no-one
 	 * else claimed it meanwhile.
 	 */
-	(void)atomic_cmpxchg(&work->node.a_flags, flags, flags & ~IRQ_WORK_BUSY);
+	(void)atomic_cmpxchg(&work->node.a_flags, flags,
+			     flags & ~IRQ_WORK_BUSY);
 
 	if ((IS_ENABLED(CONFIG_PREEMPT_RT) && !irq_work_is_hard(work)) ||
 	    !arch_irq_work_has_interrupt())
@@ -238,7 +240,7 @@ static void irq_work_run_list(struct llist_head *list)
 		return;
 
 	llnode = llist_del_all(list);
-	llist_for_each_entry_safe(work, tmp, llnode, node.llist)
+	llist_for_each_entry_safe (work, tmp, llnode, node.llist)
 		irq_work_single(work);
 }
 
@@ -301,11 +303,11 @@ static void irq_workd_setup(unsigned int cpu)
 }
 
 static struct smp_hotplug_thread irqwork_threads = {
-	.store                  = &irq_workd,
-	.setup			= irq_workd_setup,
-	.thread_should_run      = irq_workd_should_run,
-	.thread_fn              = run_irq_workd,
-	.thread_comm            = "irq_work/%u",
+	.store = &irq_workd,
+	.setup = irq_workd_setup,
+	.thread_should_run = irq_workd_should_run,
+	.thread_fn = run_irq_workd,
+	.thread_comm = "irq_work/%u",
 };
 
 static __init int irq_work_init_threads(void)

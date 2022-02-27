@@ -18,7 +18,7 @@
 #include <linux/umh.h>
 
 static ssize_t __init xwrite(struct file *file, const char *p, size_t count,
-		loff_t *pos)
+			     loff_t *pos)
 {
 	ssize_t out = 0;
 
@@ -67,7 +67,7 @@ static __initdata struct hash {
 	umode_t mode;
 	struct hash *next;
 	char name[N_ALIGN(PATH_MAX)];
-} *head[32];
+} * head[32];
 
 static inline int hash(int major, int minor, int ino)
 {
@@ -76,8 +76,8 @@ static inline int hash(int major, int minor, int ino)
 	return tmp & 31;
 }
 
-static char __init *find_link(int major, int minor, int ino,
-			      umode_t mode, char *name)
+static char __init *find_link(int major, int minor, int ino, umode_t mode,
+			      char *name)
 {
 	struct hash **p, *q;
 	for (p = head + hash(major, minor, ino); *p; p = &(*p)->next) {
@@ -148,7 +148,7 @@ static void __init dir_add(const char *name, time64_t mtime)
 static void __init dir_utime(void)
 {
 	struct dir_entry *de, *tmp;
-	list_for_each_entry_safe(de, tmp, &dir_list, list) {
+	list_for_each_entry_safe (de, tmp, &dir_list, list) {
 		list_del(&de->list);
 		do_utime(de->name, de->mtime);
 		kfree(de->name);
@@ -202,7 +202,8 @@ static __initdata enum state {
 	CopyFile,
 	GotSymlink,
 	Reset
-} state, next_state;
+} state,
+	next_state;
 
 static __initdata char *victim;
 static unsigned long byte_count __initdata;
@@ -257,7 +258,7 @@ static int __init do_collect(void)
 
 static int __init do_header(void)
 {
-	if (memcmp(collected, "070707", 6)==0) {
+	if (memcmp(collected, "070707", 6) == 0) {
 		error("incorrect cpio method used: use -H newc option");
 		return 1;
 	}
@@ -346,7 +347,7 @@ static int __init do_name(void)
 	if (S_ISREG(mode)) {
 		int ml = maybe_link();
 		if (ml >= 0) {
-			int openflags = O_WRONLY|O_CREAT;
+			int openflags = O_WRONLY | O_CREAT;
 			if (ml != 1)
 				openflags |= O_TRUNC;
 			wfile = filp_open(collected, openflags, mode);
@@ -365,8 +366,8 @@ static int __init do_name(void)
 		init_chown(collected, uid, gid, 0);
 		init_chmod(collected, mode);
 		dir_add(collected, mtime);
-	} else if (S_ISBLK(mode) || S_ISCHR(mode) ||
-		   S_ISFIFO(mode) || S_ISSOCK(mode)) {
+	} else if (S_ISBLK(mode) || S_ISCHR(mode) || S_ISFIFO(mode) ||
+		   S_ISSOCK(mode)) {
 		if (maybe_link() == 0) {
 			init_mknod(collected, mode, rdev);
 			init_chown(collected, uid, gid, 0);
@@ -380,7 +381,7 @@ static int __init do_name(void)
 static int __init do_copy(void)
 {
 	if (byte_count >= body_len) {
-		struct timespec64 t[2] = { };
+		struct timespec64 t[2] = {};
 		if (xwrite(wfile, victim, body_len, &wfile_pos) != body_len)
 			error("write error");
 
@@ -414,14 +415,10 @@ static int __init do_symlink(void)
 }
 
 static __initdata int (*actions[])(void) = {
-	[Start]		= do_start,
-	[Collect]	= do_collect,
-	[GotHeader]	= do_header,
-	[SkipIt]	= do_skip,
-	[GotName]	= do_name,
-	[CopyFile]	= do_copy,
-	[GotSymlink]	= do_symlink,
-	[Reset]		= do_reset,
+	[Start] = do_start,	   [Collect] = do_collect,
+	[GotHeader] = do_header,   [SkipIt] = do_skip,
+	[GotName] = do_name,	   [CopyFile] = do_copy,
+	[GotSymlink] = do_symlink, [Reset] = do_reset,
 };
 
 static long __init write_buffer(char *buf, unsigned long len)
@@ -436,7 +433,7 @@ static long __init write_buffer(char *buf, unsigned long len)
 
 static long __init flush_buffer(void *bufv, unsigned long len)
 {
-	char *buf = (char *) bufv;
+	char *buf = (char *)bufv;
 	long written;
 	long origLen = len;
 	if (message)
@@ -461,7 +458,7 @@ static unsigned long my_inptr; /* index of next byte to be processed in inbuf */
 
 #include <linux/decompress/generic.h>
 
-static char * __init unpack_to_rootfs(char *buf, unsigned long len)
+static char *__init unpack_to_rootfs(char *buf, unsigned long len)
 {
 	long written;
 	decompress_fn decompress;
@@ -498,7 +495,7 @@ static char * __init unpack_to_rootfs(char *buf, unsigned long len)
 		pr_debug("Detected %s compressed data\n", compress_name);
 		if (decompress) {
 			int res = decompress(buf, len, NULL, flush_buffer, NULL,
-				   &my_inptr, error);
+					     &my_inptr, error);
 			if (res)
 				error("decompressor failed");
 		} else if (compress_name) {
@@ -611,14 +608,14 @@ void __weak __init free_initrd_mem(unsigned long start, unsigned long end)
 #endif
 
 	free_reserved_area((void *)start, (void *)end, POISON_FREE_INITMEM,
-			"initrd");
+			   "initrd");
 }
 
 #ifdef CONFIG_KEXEC_CORE
 static bool __init kexec_free_initrd(void)
 {
 	unsigned long crashk_start = (unsigned long)__va(crashk_res.start);
-	unsigned long crashk_end   = (unsigned long)__va(crashk_res.end);
+	unsigned long crashk_end = (unsigned long)__va(crashk_res.end);
 
 	/*
 	 * If the initrd region is overlapped with crashkernel reserved region,
@@ -653,14 +650,15 @@ static void __init populate_initrd_image(char *err)
 
 	unpack_to_rootfs(__initramfs_start, __initramfs_size);
 
-	printk(KERN_INFO "rootfs image is not initramfs (%s); looks like an initrd\n",
-			err);
+	printk(KERN_INFO
+	       "rootfs image is not initramfs (%s); looks like an initrd\n",
+	       err);
 	file = filp_open("/initrd.image", O_WRONLY | O_CREAT, 0700);
 	if (IS_ERR(file))
 		return;
 
 	written = xwrite(file, (char *)initrd_start, initrd_end - initrd_start,
-			&pos);
+			 &pos);
 	if (written != initrd_end - initrd_start)
 		pr_err("/initrd.image: incomplete write (%zd != %ld)\n",
 		       written, initrd_end - initrd_start);
@@ -673,13 +671,16 @@ static void __init do_populate_rootfs(void *unused, async_cookie_t cookie)
 	/* Load the built in initramfs */
 	char *err = unpack_to_rootfs(__initramfs_start, __initramfs_size);
 	if (err)
-		panic_show_mem("%s", err); /* Failed to decompress INTERNAL initramfs */
+		panic_show_mem(
+			"%s",
+			err); /* Failed to decompress INTERNAL initramfs */
 
 	if (!initrd_start || IS_ENABLED(CONFIG_INITRAMFS_FORCE))
 		goto done;
 
 	if (IS_ENABLED(CONFIG_BLK_DEV_RAM))
-		printk(KERN_INFO "Trying to unpack rootfs image as initramfs...\n");
+		printk(KERN_INFO
+		       "Trying to unpack rootfs image as initramfs...\n");
 	else
 		printk(KERN_INFO "Unpacking initramfs...\n");
 
@@ -717,10 +718,12 @@ void wait_for_initramfs(void)
 		 * note, avoid deadlocking the machine, and let the
 		 * caller's access fail as it used to.
 		 */
-		pr_warn_once("wait_for_initramfs() called before rootfs_initcalls\n");
+		pr_warn_once(
+			"wait_for_initramfs() called before rootfs_initcalls\n");
 		return;
 	}
-	async_synchronize_cookie_domain(initramfs_cookie + 1, &initramfs_domain);
+	async_synchronize_cookie_domain(initramfs_cookie + 1,
+					&initramfs_domain);
 }
 EXPORT_SYMBOL_GPL(wait_for_initramfs);
 

@@ -16,8 +16,7 @@
 
 #include "percpu-internal.h"
 
-#define P(X, Y) \
-	seq_printf(m, "  %-20s: %12lld\n", X, (long long int)Y)
+#define P(X, Y) seq_printf(m, "  %-20s: %12lld\n", X, (long long int)Y)
 
 struct percpu_stats pcpu_stats;
 struct pcpu_alloc_info pcpu_stats_ai;
@@ -37,7 +36,7 @@ static int find_max_nr_alloc(void)
 
 	max_nr_alloc = 0;
 	for (slot = 0; slot < pcpu_nr_slots; slot++)
-		list_for_each_entry(chunk, &pcpu_chunk_lists[slot], list)
+		list_for_each_entry (chunk, &pcpu_chunk_lists[slot], list)
 			max_nr_alloc = max(max_nr_alloc, chunk->nr_alloc);
 
 	return max_nr_alloc;
@@ -66,11 +65,12 @@ static void chunk_map_stats(struct seq_file *m, struct pcpu_chunk *chunk,
 	 * Therefore, we must determine if it is a failure of find_last_bit
 	 * and set the appropriate value.
 	 */
-	last_alloc = find_last_bit(chunk->alloc_map,
-				   pcpu_chunk_map_bits(chunk) -
-				   chunk->end_offset / PCPU_MIN_ALLOC_SIZE - 1);
-	last_alloc = test_bit(last_alloc, chunk->alloc_map) ?
-		     last_alloc + 1 : 0;
+	last_alloc = find_last_bit(
+		chunk->alloc_map,
+		pcpu_chunk_map_bits(chunk) -
+			chunk->end_offset / PCPU_MIN_ALLOC_SIZE - 1);
+	last_alloc =
+		test_bit(last_alloc, chunk->alloc_map) ? last_alloc + 1 : 0;
 
 	as_len = 0;
 	start = chunk->start_offset / PCPU_MIN_ALLOC_SIZE;
@@ -157,13 +157,12 @@ alloc_buffer:
 		goto alloc_buffer;
 	}
 
-#define PL(X)								\
+#define PL(X)                                                                  \
 	seq_printf(m, "  %-20s: %12lld\n", #X, (long long int)pcpu_stats_ai.X)
 
-	seq_printf(m,
-			"Percpu Memory Statistics\n"
-			"Allocation Info:\n"
-			"----------------------------------------\n");
+	seq_printf(m, "Percpu Memory Statistics\n"
+		      "Allocation Info:\n"
+		      "----------------------------------------\n");
 	PL(unit_size);
 	PL(static_size);
 	PL(reserved_size);
@@ -174,12 +173,11 @@ alloc_buffer:
 
 #undef PL
 
-#define PU(X) \
+#define PU(X)                                                                  \
 	seq_printf(m, "  %-20s: %12llu\n", #X, (unsigned long long)pcpu_stats.X)
 
-	seq_printf(m,
-			"Global Stats:\n"
-			"----------------------------------------\n");
+	seq_printf(m, "Global Stats:\n"
+		      "----------------------------------------\n");
 	PU(nr_alloc);
 	PU(nr_dealloc);
 	PU(nr_cur_alloc);
@@ -193,9 +191,8 @@ alloc_buffer:
 
 #undef PU
 
-	seq_printf(m,
-			"Per Chunk Stats:\n"
-			"----------------------------------------\n");
+	seq_printf(m, "Per Chunk Stats:\n"
+		      "----------------------------------------\n");
 
 	if (pcpu_reserved_chunk) {
 		seq_puts(m, "Chunk: <- Reserved Chunk\n");
@@ -203,7 +200,7 @@ alloc_buffer:
 	}
 
 	for (slot = 0; slot < pcpu_nr_slots; slot++) {
-		list_for_each_entry(chunk, &pcpu_chunk_lists[slot], list) {
+		list_for_each_entry (chunk, &pcpu_chunk_lists[slot], list) {
 			if (chunk == pcpu_first_chunk)
 				seq_puts(m, "Chunk: <- First Chunk\n");
 			else if (slot == pcpu_to_depopulate_slot)
@@ -227,7 +224,7 @@ DEFINE_SHOW_ATTRIBUTE(percpu_stats);
 static int __init init_percpu_stats_debugfs(void)
 {
 	debugfs_create_file("percpu_stats", 0444, NULL, NULL,
-			&percpu_stats_fops);
+			    &percpu_stats_fops);
 
 	return 0;
 }

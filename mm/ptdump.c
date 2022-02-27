@@ -25,14 +25,14 @@ static inline int note_kasan_page_table(struct mm_walk *walk,
 }
 #endif
 
-static int ptdump_pgd_entry(pgd_t *pgd, unsigned long addr,
-			    unsigned long next, struct mm_walk *walk)
+static int ptdump_pgd_entry(pgd_t *pgd, unsigned long addr, unsigned long next,
+			    struct mm_walk *walk)
 {
 	struct ptdump_state *st = walk->private;
 	pgd_t val = READ_ONCE(*pgd);
 
-#if CONFIG_PGTABLE_LEVELS > 4 && \
-		(defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
+#if CONFIG_PGTABLE_LEVELS > 4 &&                                               \
+	(defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
 	if (pgd_page(val) == virt_to_page(lm_alias(kasan_early_shadow_p4d)))
 		return note_kasan_page_table(walk, addr);
 #endif
@@ -46,14 +46,14 @@ static int ptdump_pgd_entry(pgd_t *pgd, unsigned long addr,
 	return 0;
 }
 
-static int ptdump_p4d_entry(p4d_t *p4d, unsigned long addr,
-			    unsigned long next, struct mm_walk *walk)
+static int ptdump_p4d_entry(p4d_t *p4d, unsigned long addr, unsigned long next,
+			    struct mm_walk *walk)
 {
 	struct ptdump_state *st = walk->private;
 	p4d_t val = READ_ONCE(*p4d);
 
-#if CONFIG_PGTABLE_LEVELS > 3 && \
-		(defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
+#if CONFIG_PGTABLE_LEVELS > 3 &&                                               \
+	(defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
 	if (p4d_page(val) == virt_to_page(lm_alias(kasan_early_shadow_pud)))
 		return note_kasan_page_table(walk, addr);
 #endif
@@ -67,14 +67,14 @@ static int ptdump_p4d_entry(p4d_t *p4d, unsigned long addr,
 	return 0;
 }
 
-static int ptdump_pud_entry(pud_t *pud, unsigned long addr,
-			    unsigned long next, struct mm_walk *walk)
+static int ptdump_pud_entry(pud_t *pud, unsigned long addr, unsigned long next,
+			    struct mm_walk *walk)
 {
 	struct ptdump_state *st = walk->private;
 	pud_t val = READ_ONCE(*pud);
 
-#if CONFIG_PGTABLE_LEVELS > 2 && \
-		(defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
+#if CONFIG_PGTABLE_LEVELS > 2 &&                                               \
+	(defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS))
 	if (pud_page(val) == virt_to_page(lm_alias(kasan_early_shadow_pmd)))
 		return note_kasan_page_table(walk, addr);
 #endif
@@ -88,8 +88,8 @@ static int ptdump_pud_entry(pud_t *pud, unsigned long addr,
 	return 0;
 }
 
-static int ptdump_pmd_entry(pmd_t *pmd, unsigned long addr,
-			    unsigned long next, struct mm_walk *walk)
+static int ptdump_pmd_entry(pmd_t *pmd, unsigned long addr, unsigned long next,
+			    struct mm_walk *walk)
 {
 	struct ptdump_state *st = walk->private;
 	pmd_t val = READ_ONCE(*pmd);
@@ -107,8 +107,8 @@ static int ptdump_pmd_entry(pmd_t *pmd, unsigned long addr,
 	return 0;
 }
 
-static int ptdump_pte_entry(pte_t *pte, unsigned long addr,
-			    unsigned long next, struct mm_walk *walk)
+static int ptdump_pte_entry(pte_t *pte, unsigned long addr, unsigned long next,
+			    struct mm_walk *walk)
 {
 	struct ptdump_state *st = walk->private;
 	pte_t val = ptep_get(pte);
@@ -121,8 +121,8 @@ static int ptdump_pte_entry(pte_t *pte, unsigned long addr,
 	return 0;
 }
 
-static int ptdump_hole(unsigned long addr, unsigned long next,
-		       int depth, struct mm_walk *walk)
+static int ptdump_hole(unsigned long addr, unsigned long next, int depth,
+		       struct mm_walk *walk)
 {
 	struct ptdump_state *st = walk->private;
 
@@ -132,12 +132,12 @@ static int ptdump_hole(unsigned long addr, unsigned long next,
 }
 
 static const struct mm_walk_ops ptdump_ops = {
-	.pgd_entry	= ptdump_pgd_entry,
-	.p4d_entry	= ptdump_p4d_entry,
-	.pud_entry	= ptdump_pud_entry,
-	.pmd_entry	= ptdump_pmd_entry,
-	.pte_entry	= ptdump_pte_entry,
-	.pte_hole	= ptdump_hole,
+	.pgd_entry = ptdump_pgd_entry,
+	.p4d_entry = ptdump_p4d_entry,
+	.pud_entry = ptdump_pud_entry,
+	.pmd_entry = ptdump_pmd_entry,
+	.pte_entry = ptdump_pte_entry,
+	.pte_hole = ptdump_hole,
 };
 
 void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm, pgd_t *pgd)
@@ -146,8 +146,8 @@ void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm, pgd_t *pgd)
 
 	mmap_read_lock(mm);
 	while (range->start != range->end) {
-		walk_page_range_novma(mm, range->start, range->end,
-				      &ptdump_ops, pgd, st);
+		walk_page_range_novma(mm, range->start, range->end, &ptdump_ops,
+				      pgd, st);
 		range++;
 	}
 	mmap_read_unlock(mm);

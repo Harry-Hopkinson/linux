@@ -26,9 +26,9 @@ struct alg_type_list {
 };
 
 static struct proto alg_proto = {
-	.name			= "ALG",
-	.owner			= THIS_MODULE,
-	.obj_size		= sizeof(struct alg_sock),
+	.name = "ALG",
+	.owner = THIS_MODULE,
+	.obj_size = sizeof(struct alg_sock),
 };
 
 static LIST_HEAD(alg_types);
@@ -40,7 +40,7 @@ static const struct af_alg_type *alg_get_type(const char *name)
 	struct alg_type_list *node;
 
 	down_read(&alg_types_sem);
-	list_for_each_entry(node, &alg_types, list) {
+	list_for_each_entry (node, &alg_types, list) {
 		if (strcmp(node->type->name, name))
 			continue;
 
@@ -59,7 +59,7 @@ int af_alg_register_type(const struct af_alg_type *type)
 	int err = -EEXIST;
 
 	down_write(&alg_types_sem);
-	list_for_each_entry(node, &alg_types, list) {
+	list_for_each_entry (node, &alg_types, list) {
 		if (!strcmp(node->type->name, type->name))
 			goto unlock;
 	}
@@ -89,7 +89,7 @@ int af_alg_unregister_type(const struct af_alg_type *type)
 	int err = -ENOENT;
 
 	down_write(&alg_types_sem);
-	list_for_each_entry(node, &alg_types, list) {
+	list_for_each_entry (node, &alg_types, list) {
 		if (strcmp(node->type->name, type->name))
 			continue;
 
@@ -339,24 +339,24 @@ static int alg_accept(struct socket *sock, struct socket *newsock, int flags,
 }
 
 static const struct proto_ops alg_proto_ops = {
-	.family		=	PF_ALG,
-	.owner		=	THIS_MODULE,
+	.family = PF_ALG,
+	.owner = THIS_MODULE,
 
-	.connect	=	sock_no_connect,
-	.socketpair	=	sock_no_socketpair,
-	.getname	=	sock_no_getname,
-	.ioctl		=	sock_no_ioctl,
-	.listen		=	sock_no_listen,
-	.shutdown	=	sock_no_shutdown,
-	.mmap		=	sock_no_mmap,
-	.sendpage	=	sock_no_sendpage,
-	.sendmsg	=	sock_no_sendmsg,
-	.recvmsg	=	sock_no_recvmsg,
+	.connect = sock_no_connect,
+	.socketpair = sock_no_socketpair,
+	.getname = sock_no_getname,
+	.ioctl = sock_no_ioctl,
+	.listen = sock_no_listen,
+	.shutdown = sock_no_shutdown,
+	.mmap = sock_no_mmap,
+	.sendpage = sock_no_sendpage,
+	.sendmsg = sock_no_sendmsg,
+	.recvmsg = sock_no_recvmsg,
 
-	.bind		=	alg_bind,
-	.release	=	af_alg_release,
-	.setsockopt	=	alg_setsockopt,
-	.accept		=	alg_accept,
+	.bind = alg_bind,
+	.release = af_alg_release,
+	.setsockopt = alg_setsockopt,
+	.accept = alg_accept,
 };
 
 static void alg_sock_destruct(struct sock *sk)
@@ -393,9 +393,9 @@ out:
 }
 
 static const struct net_proto_family alg_family = {
-	.family	=	PF_ALG,
-	.create	=	alg_create,
-	.owner	=	THIS_MODULE,
+	.family = PF_ALG,
+	.create = alg_create,
+	.owner = THIS_MODULE,
 };
 
 int af_alg_make_sg(struct af_alg_sgl *sgl, struct iov_iter *iter, int len)
@@ -449,7 +449,7 @@ static int af_alg_cmsg_send(struct msghdr *msg, struct af_alg_control *con)
 {
 	struct cmsghdr *cmsg;
 
-	for_each_cmsghdr(cmsg, msg) {
+	for_each_cmsghdr (cmsg, msg) {
 		if (!CMSG_OK(msg, cmsg))
 			return -EINVAL;
 		if (cmsg->cmsg_level != SOL_ALG)
@@ -460,8 +460,8 @@ static int af_alg_cmsg_send(struct msghdr *msg, struct af_alg_control *con)
 			if (cmsg->cmsg_len < CMSG_LEN(sizeof(*con->iv)))
 				return -EINVAL;
 			con->iv = (void *)CMSG_DATA(cmsg);
-			if (cmsg->cmsg_len < CMSG_LEN(con->iv->ivlen +
-						      sizeof(*con->iv)))
+			if (cmsg->cmsg_len <
+			    CMSG_LEN(con->iv->ivlen + sizeof(*con->iv)))
 				return -EINVAL;
 			break;
 
@@ -503,8 +503,7 @@ static int af_alg_alloc_tsgl(struct sock *sk)
 		sg = sgl->sg;
 
 	if (!sg || sgl->cur >= MAX_SGL_ENTS) {
-		sgl = sock_kmalloc(sk,
-				   struct_size(sgl, sg, (MAX_SGL_ENTS + 1)),
+		sgl = sock_kmalloc(sk, struct_size(sgl, sg, (MAX_SGL_ENTS + 1)),
 				   GFP_KERNEL);
 		if (!sgl)
 			return -ENOMEM;
@@ -543,7 +542,7 @@ unsigned int af_alg_count_tsgl(struct sock *sk, size_t bytes, size_t offset)
 	if (!bytes)
 		return 0;
 
-	list_for_each_entry(sgl, &ctx->tsgl_list, list) {
+	list_for_each_entry (sgl, &ctx->tsgl_list, list) {
 		const struct scatterlist *sg = sgl->sg;
 
 		for (i = 0; i < sgl->cur; i++) {
@@ -666,7 +665,7 @@ static void af_alg_free_areq_sgls(struct af_alg_async_req *areq)
 	struct scatterlist *sg;
 	unsigned int i;
 
-	list_for_each_entry_safe(rsgl, tmp, &areq->rsgl_list, list) {
+	list_for_each_entry_safe (rsgl, tmp, &areq->rsgl_list, list) {
 		atomic_sub(rsgl->sg_num_bytes, &ctx->rcvused);
 		af_alg_free_sg(&rsgl->sgl);
 		list_del(&rsgl->list);
@@ -676,7 +675,7 @@ static void af_alg_free_areq_sgls(struct af_alg_async_req *areq)
 
 	tsgl = areq->tsgl;
 	if (tsgl) {
-		for_each_sg(tsgl, sg, areq->tsgl_entries, i) {
+		for_each_sg (tsgl, sg, areq->tsgl_entries, i) {
 			if (!sg_page(sg))
 				continue;
 			put_page(sg_page(sg));
@@ -734,9 +733,8 @@ void af_alg_wmem_wakeup(struct sock *sk)
 	rcu_read_lock();
 	wq = rcu_dereference(sk->sk_wq);
 	if (skwq_has_sleeper(wq))
-		wake_up_interruptible_sync_poll(&wq->wait, EPOLLIN |
-							   EPOLLRDNORM |
-							   EPOLLRDBAND);
+		wake_up_interruptible_sync_poll(
+			&wq->wait, EPOLLIN | EPOLLRDNORM | EPOLLRDBAND);
 	sk_wake_async(sk, SOCK_WAKE_WAITD, POLL_IN);
 	rcu_read_unlock();
 }
@@ -801,9 +799,8 @@ static void af_alg_data_wakeup(struct sock *sk)
 	rcu_read_lock();
 	wq = rcu_dereference(sk->sk_wq);
 	if (skwq_has_sleeper(wq))
-		wake_up_interruptible_sync_poll(&wq->wait, EPOLLOUT |
-							   EPOLLRDNORM |
-							   EPOLLRDBAND);
+		wake_up_interruptible_sync_poll(
+			&wq->wait, EPOLLOUT | EPOLLRDNORM | EPOLLRDBAND);
 	sk_wake_async(sk, SOCK_WAKE_SPACE, POLL_OUT);
 	rcu_read_unlock();
 }
@@ -893,14 +890,14 @@ int af_alg_sendmsg(struct socket *sock, struct msghdr *msg, size_t size,
 				    PAGE_SIZE - sg->offset - sg->length);
 
 			err = memcpy_from_msg(page_address(sg_page(sg)) +
-					      sg->offset + sg->length,
+						      sg->offset + sg->length,
 					      msg, len);
 			if (err)
 				goto unlock;
 
 			sg->length += len;
-			ctx->merge = (sg->offset + sg->length) &
-				     (PAGE_SIZE - 1);
+			ctx->merge =
+				(sg->offset + sg->length) & (PAGE_SIZE - 1);
 
 			ctx->used += len;
 			copied += len;
@@ -921,8 +918,7 @@ int af_alg_sendmsg(struct socket *sock, struct msghdr *msg, size_t size,
 		if (err)
 			goto unlock;
 
-		sgl = list_entry(ctx->tsgl_list.prev, struct af_alg_tsgl,
-				 list);
+		sgl = list_entry(ctx->tsgl_list.prev, struct af_alg_tsgl, list);
 		sg = sgl->sg;
 		if (sgl->cur)
 			sg_unmark_end(sg + sgl->cur - 1);
@@ -985,8 +981,8 @@ EXPORT_SYMBOL_GPL(af_alg_sendmsg);
  *
  * This is a generic implementation of sendpage to fill ctx->tsgl_list.
  */
-ssize_t af_alg_sendpage(struct socket *sock, struct page *page,
-			int offset, size_t size, int flags)
+ssize_t af_alg_sendpage(struct socket *sock, struct page *page, int offset,
+			size_t size, int flags)
 {
 	struct sock *sk = sock->sk;
 	struct alg_sock *ask = alg_sk(sk);
@@ -1086,8 +1082,7 @@ EXPORT_SYMBOL_GPL(af_alg_async_cb);
  * @sock: socket to poll
  * @wait: poll_table
  */
-__poll_t af_alg_poll(struct file *file, struct socket *sock,
-			 poll_table *wait)
+__poll_t af_alg_poll(struct file *file, struct socket *sock, poll_table *wait)
 {
 	struct sock *sk = sock->sk;
 	struct alg_sock *ask = alg_sk(sk);
@@ -1162,8 +1157,7 @@ int af_alg_get_rsgl(struct sock *sk, struct msghdr *msg, int flags,
 		if (!af_alg_readable(sk))
 			break;
 
-		seglen = min_t(size_t, (maxsize - len),
-			       msg_data_left(msg));
+		seglen = min_t(size_t, (maxsize - len), msg_data_left(msg));
 
 		if (list_empty(&areq->rsgl_list)) {
 			rsgl = &areq->first_rsgl;

@@ -12,8 +12,8 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 
-static int crypto_blake2s_update_generic(struct shash_desc *desc,
-					 const u8 *in, unsigned int inlen)
+static int crypto_blake2s_update_generic(struct shash_desc *desc, const u8 *in,
+					 unsigned int inlen)
 {
 	return crypto_blake2s_update(desc, in, inlen, true);
 }
@@ -23,21 +23,18 @@ static int crypto_blake2s_final_generic(struct shash_desc *desc, u8 *out)
 	return crypto_blake2s_final(desc, out, true);
 }
 
-#define BLAKE2S_ALG(name, driver_name, digest_size)			\
-	{								\
-		.base.cra_name		= name,				\
-		.base.cra_driver_name	= driver_name,			\
-		.base.cra_priority	= 100,				\
-		.base.cra_flags		= CRYPTO_ALG_OPTIONAL_KEY,	\
-		.base.cra_blocksize	= BLAKE2S_BLOCK_SIZE,		\
-		.base.cra_ctxsize	= sizeof(struct blake2s_tfm_ctx), \
-		.base.cra_module	= THIS_MODULE,			\
-		.digestsize		= digest_size,			\
-		.setkey			= crypto_blake2s_setkey,	\
-		.init			= crypto_blake2s_init,		\
-		.update			= crypto_blake2s_update_generic, \
-		.final			= crypto_blake2s_final_generic,	\
-		.descsize		= sizeof(struct blake2s_state),	\
+#define BLAKE2S_ALG(name, driver_name, digest_size)                            \
+	{                                                                      \
+		.base.cra_name = name, .base.cra_driver_name = driver_name,    \
+		.base.cra_priority = 100,                                      \
+		.base.cra_flags = CRYPTO_ALG_OPTIONAL_KEY,                     \
+		.base.cra_blocksize = BLAKE2S_BLOCK_SIZE,                      \
+		.base.cra_ctxsize = sizeof(struct blake2s_tfm_ctx),            \
+		.base.cra_module = THIS_MODULE, .digestsize = digest_size,     \
+		.setkey = crypto_blake2s_setkey, .init = crypto_blake2s_init,  \
+		.update = crypto_blake2s_update_generic,                       \
+		.final = crypto_blake2s_final_generic,                         \
+		.descsize = sizeof(struct blake2s_state),                      \
 	}
 
 static struct shash_alg blake2s_algs[] = {

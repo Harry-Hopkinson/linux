@@ -26,8 +26,9 @@
 #ifdef CONFIG_SPARSEMEM_EXTREME
 struct mem_section **mem_section;
 #else
-struct mem_section mem_section[NR_SECTION_ROOTS][SECTIONS_PER_ROOT]
-	____cacheline_internodealigned_in_smp;
+struct mem_section
+	mem_section[NR_SECTION_ROOTS]
+		   [SECTIONS_PER_ROOT] ____cacheline_internodealigned_in_smp;
 #endif
 EXPORT_SYMBOL(mem_section);
 
@@ -63,14 +64,13 @@ static inline void set_section_nid(unsigned long section_nr, int nid)
 static noinline struct mem_section __ref *sparse_index_alloc(int nid)
 {
 	struct mem_section *section = NULL;
-	unsigned long array_size = SECTIONS_PER_ROOT *
-				   sizeof(struct mem_section);
+	unsigned long array_size =
+		SECTIONS_PER_ROOT * sizeof(struct mem_section);
 
 	if (slab_is_available()) {
 		section = kzalloc_node(array_size, GFP_KERNEL, nid);
 	} else {
-		section = memblock_alloc_node(array_size, SMP_CACHE_BYTES,
-					      nid);
+		section = memblock_alloc_node(array_size, SMP_CACHE_BYTES, nid);
 		if (!section)
 			panic("%s: Failed to allocate %lu bytes nid=%d\n",
 			      __func__, array_size, nid);
@@ -127,23 +127,26 @@ static inline int sparse_early_nid(struct mem_section *section)
 
 /* Validate the physical addressing limitations of the model */
 void __meminit mminit_validate_memmodel_limits(unsigned long *start_pfn,
-						unsigned long *end_pfn)
+					       unsigned long *end_pfn)
 {
-	unsigned long max_sparsemem_pfn = 1UL << (MAX_PHYSMEM_BITS-PAGE_SHIFT);
+	unsigned long max_sparsemem_pfn = 1UL
+					  << (MAX_PHYSMEM_BITS - PAGE_SHIFT);
 
 	/*
 	 * Sanity checks - do not allow an architecture to pass
 	 * in larger pfns than the maximum scope of sparsemem:
 	 */
 	if (*start_pfn > max_sparsemem_pfn) {
-		mminit_dprintk(MMINIT_WARNING, "pfnvalidation",
+		mminit_dprintk(
+			MMINIT_WARNING, "pfnvalidation",
 			"Start of range %lu -> %lu exceeds SPARSEMEM max %lu\n",
 			*start_pfn, *end_pfn, max_sparsemem_pfn);
 		WARN_ON_ONCE(1);
 		*start_pfn = max_sparsemem_pfn;
 		*end_pfn = max_sparsemem_pfn;
 	} else if (*end_pfn > max_sparsemem_pfn) {
-		mminit_dprintk(MMINIT_WARNING, "pfnvalidation",
+		mminit_dprintk(
+			MMINIT_WARNING, "pfnvalidation",
 			"End of range %lu -> %lu exceeds SPARSEMEM max %lu\n",
 			*start_pfn, *end_pfn, max_sparsemem_pfn);
 		WARN_ON_ONCE(1);
@@ -162,7 +165,7 @@ void __meminit mminit_validate_memmodel_limits(unsigned long *start_pfn,
  */
 unsigned long __highest_present_section_nr;
 static void __section_mark_present(struct mem_section *ms,
-		unsigned long section_nr)
+				   unsigned long section_nr)
 {
 	if (section_nr > __highest_present_section_nr)
 		__highest_present_section_nr = section_nr;
@@ -170,10 +173,10 @@ static void __section_mark_present(struct mem_section *ms,
 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
 }
 
-#define for_each_present_section_nr(start, section_nr)		\
-	for (section_nr = next_present_section_nr(start-1);	\
-	     ((section_nr != -1) &&				\
-	      (section_nr <= __highest_present_section_nr));	\
+#define for_each_present_section_nr(start, section_nr)                         \
+	for (section_nr = next_present_section_nr(start - 1);                  \
+	     ((section_nr != -1) &&                                            \
+	      (section_nr <= __highest_present_section_nr));                   \
 	     section_nr = next_present_section_nr(section_nr))
 
 static inline unsigned long first_present_section_nr(void)
@@ -183,7 +186,7 @@ static inline unsigned long first_present_section_nr(void)
 
 #ifdef CONFIG_SPARSEMEM_VMEMMAP
 static void subsection_mask_set(unsigned long *map, unsigned long pfn,
-		unsigned long nr_pages)
+				unsigned long nr_pages)
 {
 	int idx = subsection_map_index(pfn);
 	int end = subsection_map_index(pfn + nr_pages - 1);
@@ -203,14 +206,14 @@ void __init subsection_map_init(unsigned long pfn, unsigned long nr_pages)
 		struct mem_section *ms;
 		unsigned long pfns;
 
-		pfns = min(nr_pages, PAGES_PER_SECTION
-				- (pfn & ~PAGE_SECTION_MASK));
+		pfns = min(nr_pages,
+			   PAGES_PER_SECTION - (pfn & ~PAGE_SECTION_MASK));
 		ms = __nr_to_section(nr);
 		subsection_mask_set(ms->usage->subsection_map, pfn, pfns);
 
 		pr_debug("%s: sec: %lu pfns: %lu set(%d, %d)\n", __func__, nr,
-				pfns, subsection_map_index(pfn),
-				subsection_map_index(pfn + pfns - 1));
+			 pfns, subsection_map_index(pfn),
+			 subsection_map_index(pfn + pfns - 1));
 
 		pfn += pfns;
 		nr_pages -= pfns;
@@ -223,7 +226,8 @@ void __init subsection_map_init(unsigned long pfn, unsigned long nr_pages)
 #endif
 
 /* Record a memory area against a node. */
-static void __init memory_present(int nid, unsigned long start, unsigned long end)
+static void __init memory_present(int nid, unsigned long start,
+				  unsigned long end)
 {
 	unsigned long pfn;
 
@@ -252,7 +256,7 @@ static void __init memory_present(int nid, unsigned long start, unsigned long en
 		ms = __nr_to_section(section);
 		if (!ms->section_mem_map) {
 			ms->section_mem_map = sparse_encode_early_nid(nid) |
-							SECTION_IS_ONLINE;
+					      SECTION_IS_ONLINE;
 			__section_mark_present(ms, section);
 		}
 	}
@@ -268,7 +272,7 @@ static void __init memblocks_present(void)
 	unsigned long start, end;
 	int i, nid;
 
-	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, &nid)
+	for_each_mem_pfn_range (i, MAX_NUMNODES, &start, &end, &nid)
 		memory_present(nid, start, end);
 }
 
@@ -277,11 +281,12 @@ static void __init memblocks_present(void)
  * the identity pfn - section_mem_map will return the actual
  * physical page frame number.
  */
-static unsigned long sparse_encode_mem_map(struct page *mem_map, unsigned long pnum)
+static unsigned long sparse_encode_mem_map(struct page *mem_map,
+					   unsigned long pnum)
 {
 	unsigned long coded_mem_map =
 		(unsigned long)(mem_map - (section_nr_to_pfn(pnum)));
-	BUILD_BUG_ON(SECTION_MAP_LAST_BIT > (1UL<<PFN_SECTION_SHIFT));
+	BUILD_BUG_ON(SECTION_MAP_LAST_BIT > (1UL << PFN_SECTION_SHIFT));
 	BUG_ON(coded_mem_map & ~SECTION_MAP_MASK);
 	return coded_mem_map;
 }
@@ -290,7 +295,8 @@ static unsigned long sparse_encode_mem_map(struct page *mem_map, unsigned long p
 /*
  * Decode mem_map from the coded memmap
  */
-struct page *sparse_decode_mem_map(unsigned long coded_mem_map, unsigned long pnum)
+struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
+				   unsigned long pnum)
 {
 	/* mask off the extra low bits of information */
 	coded_mem_map &= SECTION_MAP_MASK;
@@ -299,12 +305,14 @@ struct page *sparse_decode_mem_map(unsigned long coded_mem_map, unsigned long pn
 #endif /* CONFIG_MEMORY_HOTPLUG */
 
 static void __meminit sparse_init_one_section(struct mem_section *ms,
-		unsigned long pnum, struct page *mem_map,
-		struct mem_section_usage *usage, unsigned long flags)
+					      unsigned long pnum,
+					      struct page *mem_map,
+					      struct mem_section_usage *usage,
+					      unsigned long flags)
 {
 	ms->section_mem_map &= ~SECTION_MAP_MASK;
-	ms->section_mem_map |= sparse_encode_mem_map(mem_map, pnum)
-		| SECTION_HAS_MEM_MAP | flags;
+	ms->section_mem_map |= sparse_encode_mem_map(mem_map, pnum) |
+			       SECTION_HAS_MEM_MAP | flags;
 	ms->usage = usage;
 }
 
@@ -329,7 +337,7 @@ static inline phys_addr_t pgdat_to_phys(struct pglist_data *pgdat)
 }
 
 #ifdef CONFIG_MEMORY_HOTREMOVE
-static struct mem_section_usage * __init
+static struct mem_section_usage *__init
 sparse_early_usemaps_alloc_pgdat_section(struct pglist_data *pgdat,
 					 unsigned long size)
 {
@@ -359,7 +367,7 @@ again:
 }
 
 static void __init check_usemap_section_nr(int nid,
-		struct mem_section_usage *usage)
+					   struct mem_section_usage *usage)
 {
 	unsigned long usemap_snr, pgdat_snr;
 	static unsigned long old_usemap_snr;
@@ -401,7 +409,7 @@ static void __init check_usemap_section_nr(int nid,
 		usemap_snr, pgdat_snr, nid);
 }
 #else
-static struct mem_section_usage * __init
+static struct mem_section_usage *__init
 sparse_early_usemaps_alloc_pgdat_section(struct pglist_data *pgdat,
 					 unsigned long size)
 {
@@ -409,7 +417,7 @@ sparse_early_usemaps_alloc_pgdat_section(struct pglist_data *pgdat,
 }
 
 static void __init check_usemap_section_nr(int nid,
-		struct mem_section_usage *usage)
+					   struct mem_section_usage *usage)
 {
 }
 #endif /* CONFIG_MEMORY_HOTREMOVE */
@@ -427,7 +435,8 @@ static unsigned long __init section_map_size(void)
 }
 
 struct page __init *__populate_section_memmap(unsigned long pfn,
-		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
+					      unsigned long nr_pages, int nid,
+					      struct vmem_altmap *altmap)
 {
 	unsigned long size = section_map_size();
 	struct page *map = sparse_buffer_alloc(size);
@@ -457,7 +466,7 @@ static inline void __meminit sparse_buffer_free(unsigned long size)
 static void __init sparse_buffer_init(unsigned long size, int nid)
 {
 	phys_addr_t addr = __pa(MAX_DMA_ADDRESS);
-	WARN_ON(sparsemap_buf);	/* forgot to call sparse_buffer_fini()? */
+	WARN_ON(sparsemap_buf); /* forgot to call sparse_buffer_fini()? */
 	/*
 	 * Pre-allocated buffer is mainly used by __populate_section_memmap
 	 * and we want it to be properly aligned to the section size - this is
@@ -476,18 +485,19 @@ static void __init sparse_buffer_fini(void)
 	sparsemap_buf = NULL;
 }
 
-void * __meminit sparse_buffer_alloc(unsigned long size)
+void *__meminit sparse_buffer_alloc(unsigned long size)
 {
 	void *ptr = NULL;
 
 	if (sparsemap_buf) {
-		ptr = (void *) roundup((unsigned long)sparsemap_buf, size);
+		ptr = (void *)roundup((unsigned long)sparsemap_buf, size);
 		if (ptr + size > sparsemap_buf_end)
 			ptr = NULL;
 		else {
 			/* Free redundant aligned space */
 			if ((unsigned long)(ptr - sparsemap_buf) > 0)
-				sparse_buffer_free((unsigned long)(ptr - sparsemap_buf));
+				sparse_buffer_free(
+					(unsigned long)(ptr - sparsemap_buf));
 			sparsemap_buf = ptr + size;
 		}
 	}
@@ -510,21 +520,22 @@ static void __init sparse_init_nid(int nid, unsigned long pnum_begin,
 	unsigned long pnum;
 	struct page *map;
 
-	usage = sparse_early_usemaps_alloc_pgdat_section(NODE_DATA(nid),
-			mem_section_usage_size() * map_count);
+	usage = sparse_early_usemaps_alloc_pgdat_section(
+		NODE_DATA(nid), mem_section_usage_size() * map_count);
 	if (!usage) {
 		pr_err("%s: node[%d] usemap allocation failed", __func__, nid);
 		goto failed;
 	}
 	sparse_buffer_init(map_count * section_map_size(), nid);
-	for_each_present_section_nr(pnum_begin, pnum) {
+	for_each_present_section_nr(pnum_begin, pnum)
+	{
 		unsigned long pfn = section_nr_to_pfn(pnum);
 
 		if (pnum >= pnum_end)
 			break;
 
-		map = __populate_section_memmap(pfn, PAGES_PER_SECTION,
-				nid, NULL);
+		map = __populate_section_memmap(pfn, PAGES_PER_SECTION, nid,
+						NULL);
 		if (!map) {
 			pr_err("%s: node[%d] memory map backing failed. Some memory will not be available.",
 			       __func__, nid);
@@ -534,14 +545,15 @@ static void __init sparse_init_nid(int nid, unsigned long pnum_begin,
 		}
 		check_usemap_section_nr(nid, usage);
 		sparse_init_one_section(__nr_to_section(pnum), pnum, map, usage,
-				SECTION_IS_EARLY);
-		usage = (void *) usage + mem_section_usage_size();
+					SECTION_IS_EARLY);
+		usage = (void *)usage + mem_section_usage_size();
 	}
 	sparse_buffer_fini();
 	return;
 failed:
 	/* We failed to allocate, mark all the following pnums as not present */
-	for_each_present_section_nr(pnum_begin, pnum) {
+	for_each_present_section_nr(pnum_begin, pnum)
+	{
 		struct mem_section *ms;
 
 		if (pnum >= pnum_end)
@@ -568,7 +580,8 @@ void __init sparse_init(void)
 	/* Setup pageblock_order for HUGETLB_PAGE_SIZE_VARIABLE */
 	set_pageblock_order();
 
-	for_each_present_section_nr(pnum_begin + 1, pnum_end) {
+	for_each_present_section_nr(pnum_begin + 1, pnum_end)
+	{
 		int nid = sparse_early_nid(__nr_to_section(pnum_end));
 
 		if (nid == nid_begin) {
@@ -628,16 +641,17 @@ void offline_mem_sections(unsigned long start_pfn, unsigned long end_pfn)
 }
 
 #ifdef CONFIG_SPARSEMEM_VMEMMAP
-static struct page * __meminit populate_section_memmap(unsigned long pfn,
-		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
+static struct page *__meminit
+populate_section_memmap(unsigned long pfn, unsigned long nr_pages, int nid,
+			struct vmem_altmap *altmap)
 {
 	return __populate_section_memmap(pfn, nr_pages, nid, altmap);
 }
 
 static void depopulate_section_memmap(unsigned long pfn, unsigned long nr_pages,
-		struct vmem_altmap *altmap)
+				      struct vmem_altmap *altmap)
 {
-	unsigned long start = (unsigned long) pfn_to_page(pfn);
+	unsigned long start = (unsigned long)pfn_to_page(pfn);
 	unsigned long end = start + nr_pages * sizeof(struct page);
 
 	vmemmap_free(start, end, altmap);
@@ -655,19 +669,20 @@ static int clear_subsection_map(unsigned long pfn, unsigned long nr_pages)
 	DECLARE_BITMAP(map, SUBSECTIONS_PER_SECTION) = { 0 };
 	DECLARE_BITMAP(tmp, SUBSECTIONS_PER_SECTION) = { 0 };
 	struct mem_section *ms = __pfn_to_section(pfn);
-	unsigned long *subsection_map = ms->usage
-		? &ms->usage->subsection_map[0] : NULL;
+	unsigned long *subsection_map =
+		ms->usage ? &ms->usage->subsection_map[0] : NULL;
 
 	subsection_mask_set(map, pfn, nr_pages);
 	if (subsection_map)
 		bitmap_and(tmp, map, subsection_map, SUBSECTIONS_PER_SECTION);
 
-	if (WARN(!subsection_map || !bitmap_equal(tmp, map, SUBSECTIONS_PER_SECTION),
-				"section already deactivated (%#lx + %ld)\n",
-				pfn, nr_pages))
+	if (WARN(!subsection_map ||
+			 !bitmap_equal(tmp, map, SUBSECTIONS_PER_SECTION),
+		 "section already deactivated (%#lx + %ld)\n", pfn, nr_pages))
 		return -EINVAL;
 
-	bitmap_xor(subsection_map, map, subsection_map, SUBSECTIONS_PER_SECTION);
+	bitmap_xor(subsection_map, map, subsection_map,
+		   SUBSECTIONS_PER_SECTION);
 	return 0;
 }
 
@@ -690,24 +705,26 @@ static int fill_subsection_map(unsigned long pfn, unsigned long nr_pages)
 
 	if (bitmap_empty(map, SUBSECTIONS_PER_SECTION))
 		rc = -EINVAL;
-	else if (bitmap_intersects(map, subsection_map, SUBSECTIONS_PER_SECTION))
+	else if (bitmap_intersects(map, subsection_map,
+				   SUBSECTIONS_PER_SECTION))
 		rc = -EEXIST;
 	else
 		bitmap_or(subsection_map, map, subsection_map,
-				SUBSECTIONS_PER_SECTION);
+			  SUBSECTIONS_PER_SECTION);
 
 	return rc;
 }
 #else
-struct page * __meminit populate_section_memmap(unsigned long pfn,
-		unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
+struct page *__meminit populate_section_memmap(unsigned long pfn,
+					       unsigned long nr_pages, int nid,
+					       struct vmem_altmap *altmap)
 {
-	return kvmalloc_node(array_size(sizeof(struct page),
-					PAGES_PER_SECTION), GFP_KERNEL, nid);
+	return kvmalloc_node(array_size(sizeof(struct page), PAGES_PER_SECTION),
+			     GFP_KERNEL, nid);
 }
 
 static void depopulate_section_memmap(unsigned long pfn, unsigned long nr_pages,
-		struct vmem_altmap *altmap)
+				      struct vmem_altmap *altmap)
 {
 	kvfree(pfn_to_page(pfn));
 }
@@ -718,8 +735,8 @@ static void free_map_bootmem(struct page *memmap)
 	unsigned long magic, nr_pages;
 	struct page *page = virt_to_page(memmap);
 
-	nr_pages = PAGE_ALIGN(PAGES_PER_SECTION * sizeof(struct page))
-		>> PAGE_SHIFT;
+	nr_pages = PAGE_ALIGN(PAGES_PER_SECTION * sizeof(struct page)) >>
+		   PAGE_SHIFT;
 
 	for (i = 0; i < nr_pages; i++, page++) {
 		magic = page->index;
@@ -775,7 +792,7 @@ static int fill_subsection_map(unsigned long pfn, unsigned long nr_pages)
  * For 2 and 3, the SPARSEMEM_VMEMMAP={y,n} cases are unified
  */
 static void section_deactivate(unsigned long pfn, unsigned long nr_pages,
-		struct vmem_altmap *altmap)
+			       struct vmem_altmap *altmap)
 {
 	struct mem_section *ms = __pfn_to_section(pfn);
 	bool section_is_early = early_section(ms);
@@ -822,8 +839,9 @@ static void section_deactivate(unsigned long pfn, unsigned long nr_pages,
 		ms->section_mem_map = (unsigned long)NULL;
 }
 
-static struct page * __meminit section_activate(int nid, unsigned long pfn,
-		unsigned long nr_pages, struct vmem_altmap *altmap)
+static struct page *__meminit section_activate(int nid, unsigned long pfn,
+					       unsigned long nr_pages,
+					       struct vmem_altmap *altmap)
 {
 	struct mem_section *ms = __pfn_to_section(pfn);
 	struct mem_section_usage *usage = NULL;
@@ -883,7 +901,8 @@ static struct page * __meminit section_activate(int nid, unsigned long pfn,
  * * -ENOMEM	- Out of memory.
  */
 int __meminit sparse_add_section(int nid, unsigned long start_pfn,
-		unsigned long nr_pages, struct vmem_altmap *altmap)
+				 unsigned long nr_pages,
+				 struct vmem_altmap *altmap)
 {
 	unsigned long section_nr = pfn_to_section_nr(start_pfn);
 	struct mem_section *ms;
@@ -944,11 +963,11 @@ static inline void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
 #endif
 
 void sparse_remove_section(struct mem_section *ms, unsigned long pfn,
-		unsigned long nr_pages, unsigned long map_offset,
-		struct vmem_altmap *altmap)
+			   unsigned long nr_pages, unsigned long map_offset,
+			   struct vmem_altmap *altmap)
 {
 	clear_hwpoisoned_pages(pfn_to_page(pfn) + map_offset,
-			nr_pages - map_offset);
+			       nr_pages - map_offset);
 	section_deactivate(pfn, nr_pages, altmap);
 }
 #endif /* CONFIG_MEMORY_HOTPLUG */

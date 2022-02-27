@@ -65,12 +65,12 @@
  * 63 which shows the max number of free chunks in zbud page, also there will be
  * 63 freelists per pool.
  */
-#define NCHUNKS_ORDER	6
+#define NCHUNKS_ORDER 6
 
-#define CHUNK_SHIFT	(PAGE_SHIFT - NCHUNKS_ORDER)
-#define CHUNK_SIZE	(1 << CHUNK_SHIFT)
+#define CHUNK_SHIFT (PAGE_SHIFT - NCHUNKS_ORDER)
+#define CHUNK_SIZE (1 << CHUNK_SHIFT)
 #define ZHDR_SIZE_ALIGNED CHUNK_SIZE
-#define NCHUNKS		((PAGE_SIZE - ZHDR_SIZE_ALIGNED) >> CHUNK_SHIFT)
+#define NCHUNKS ((PAGE_SIZE - ZHDR_SIZE_ALIGNED) >> CHUNK_SHIFT)
 
 struct zbud_pool;
 
@@ -135,10 +135,7 @@ struct zbud_header {
  * Helpers
 *****************/
 /* Just to make the code easier to read */
-enum buddy {
-	FIRST,
-	LAST
-};
+enum buddy { FIRST, LAST };
 
 /* Converts an allocation size in bytes to size in zbud chunks */
 static int size_to_chunks(size_t size)
@@ -146,7 +143,7 @@ static int size_to_chunks(size_t size)
 	return (size + CHUNK_SIZE - 1) >> CHUNK_SHIFT;
 }
 
-#define for_each_unbuddied_list(_iter, _begin) \
+#define for_each_unbuddied_list(_iter, _begin)                                 \
 	for ((_iter) = (_begin); (_iter) < NCHUNKS; (_iter)++)
 
 /* Initializes the zbud header of a newly allocated zbud page */
@@ -186,7 +183,7 @@ static unsigned long encode_handle(struct zbud_header *zhdr, enum buddy bud)
 		/* skip over zbud header */
 		handle += ZHDR_SIZE_ALIGNED;
 	else /* bud == LAST */
-		handle += PAGE_SIZE - (zhdr->last_chunks  << CHUNK_SHIFT);
+		handle += PAGE_SIZE - (zhdr->last_chunks << CHUNK_SHIFT);
 	return handle;
 }
 
@@ -226,8 +223,7 @@ static struct zbud_pool *zbud_create_pool(gfp_t gfp, const struct zbud_ops *ops)
 	if (!pool)
 		return NULL;
 	spin_lock_init(&pool->lock);
-	for_each_unbuddied_list(i, 0)
-		INIT_LIST_HEAD(&pool->unbuddied[i]);
+	for_each_unbuddied_list(i, 0) INIT_LIST_HEAD(&pool->unbuddied[i]);
 	INIT_LIST_HEAD(&pool->buddied);
 	INIT_LIST_HEAD(&pool->lru);
 	pool->pages_nr = 0;
@@ -266,7 +262,7 @@ static void zbud_destroy_pool(struct zbud_pool *pool)
  * a new page.
  */
 static int zbud_alloc(struct zbud_pool *pool, size_t size, gfp_t gfp,
-			unsigned long *handle)
+		      unsigned long *handle)
 {
 	int chunks, i, freechunks;
 	struct zbud_header *zhdr = NULL;
@@ -281,10 +277,11 @@ static int zbud_alloc(struct zbud_pool *pool, size_t size, gfp_t gfp,
 	spin_lock(&pool->lock);
 
 	/* First, try to find an unbuddied zbud page. */
-	for_each_unbuddied_list(i, chunks) {
+	for_each_unbuddied_list(i, chunks)
+	{
 		if (!list_empty(&pool->unbuddied[i])) {
 			zhdr = list_first_entry(&pool->unbuddied[i],
-					struct zbud_header, buddy);
+						struct zbud_header, buddy);
 			list_del(&zhdr->buddy);
 			if (zhdr->first_chunks == 0)
 				bud = FIRST;
@@ -420,7 +417,7 @@ static int zbud_reclaim_page(struct zbud_pool *pool, unsigned int retries)
 
 	spin_lock(&pool->lock);
 	if (!pool->ops || !pool->ops->evict || list_empty(&pool->lru) ||
-			retries == 0) {
+	    retries == 0) {
 		spin_unlock(&pool->lock);
 		return -EINVAL;
 	}
@@ -453,7 +450,7 @@ static int zbud_reclaim_page(struct zbud_pool *pool, unsigned int retries)
 			if (ret)
 				goto next;
 		}
-next:
+	next:
 		spin_lock(&pool->lock);
 		zhdr->under_reclaim = false;
 		if (zhdr->first_chunks == 0 && zhdr->last_chunks == 0) {
@@ -465,8 +462,7 @@ next:
 			pool->pages_nr--;
 			spin_unlock(&pool->lock);
 			return 0;
-		} else if (zhdr->first_chunks == 0 ||
-				zhdr->last_chunks == 0) {
+		} else if (zhdr->first_chunks == 0 || zhdr->last_chunks == 0) {
 			/* add to unbuddied list */
 			freechunks = num_free_chunks(zhdr);
 			list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
@@ -532,9 +528,7 @@ static int zbud_zpool_evict(struct zbud_pool *pool, unsigned long handle)
 		return -ENOENT;
 }
 
-static const struct zbud_ops zbud_zpool_ops = {
-	.evict =	zbud_zpool_evict
-};
+static const struct zbud_ops zbud_zpool_ops = { .evict = zbud_zpool_evict };
 
 static void *zbud_zpool_create(const char *name, gfp_t gfp,
 			       const struct zpool_ops *zpool_ops,
@@ -556,7 +550,7 @@ static void zbud_zpool_destroy(void *pool)
 }
 
 static int zbud_zpool_malloc(void *pool, size_t size, gfp_t gfp,
-			unsigned long *handle)
+			     unsigned long *handle)
 {
 	return zbud_alloc(pool, size, gfp, handle);
 }
@@ -566,7 +560,7 @@ static void zbud_zpool_free(void *pool, unsigned long handle)
 }
 
 static int zbud_zpool_shrink(void *pool, unsigned int pages,
-			unsigned int *reclaimed)
+			     unsigned int *reclaimed)
 {
 	unsigned int total = 0;
 	int ret = -EINVAL;
@@ -585,7 +579,7 @@ static int zbud_zpool_shrink(void *pool, unsigned int pages,
 }
 
 static void *zbud_zpool_map(void *pool, unsigned long handle,
-			enum zpool_mapmode mm)
+			    enum zpool_mapmode mm)
 {
 	return zbud_map(pool, handle);
 }
@@ -600,17 +594,17 @@ static u64 zbud_zpool_total_size(void *pool)
 }
 
 static struct zpool_driver zbud_zpool_driver = {
-	.type =		"zbud",
+	.type = "zbud",
 	.sleep_mapped = true,
-	.owner =	THIS_MODULE,
-	.create =	zbud_zpool_create,
-	.destroy =	zbud_zpool_destroy,
-	.malloc =	zbud_zpool_malloc,
-	.free =		zbud_zpool_free,
-	.shrink =	zbud_zpool_shrink,
-	.map =		zbud_zpool_map,
-	.unmap =	zbud_zpool_unmap,
-	.total_size =	zbud_zpool_total_size,
+	.owner = THIS_MODULE,
+	.create = zbud_zpool_create,
+	.destroy = zbud_zpool_destroy,
+	.malloc = zbud_zpool_malloc,
+	.free = zbud_zpool_free,
+	.shrink = zbud_zpool_shrink,
+	.map = zbud_zpool_map,
+	.unmap = zbud_zpool_unmap,
+	.total_size = zbud_zpool_total_size,
 };
 
 MODULE_ALIAS("zpool-zbud");

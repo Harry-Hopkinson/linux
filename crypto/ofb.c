@@ -28,7 +28,7 @@ static int crypto_ofb_crypt(struct skcipher_request *req)
 	while (walk.nbytes >= bsize) {
 		const u8 *src = walk.src.virt.addr;
 		u8 *dst = walk.dst.virt.addr;
-		u8 * const iv = walk.iv;
+		u8 *const iv = walk.iv;
 		unsigned int nbytes = walk.nbytes;
 
 		do {

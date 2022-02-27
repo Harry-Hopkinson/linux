@@ -61,7 +61,7 @@ static void ioc_exit_icqs(struct io_context *ioc)
 	struct io_cq *icq;
 
 	spin_lock_irq(&ioc->lock);
-	hlist_for_each_entry(icq, &ioc->icq_list, ioc_node)
+	hlist_for_each_entry (icq, &ioc->icq_list, ioc_node)
 		ioc_exit_icq(icq);
 	spin_unlock_irq(&ioc->lock);
 }
@@ -107,8 +107,8 @@ static void ioc_destroy_icq(struct io_cq *icq)
  */
 static void ioc_release_fn(struct work_struct *work)
 {
-	struct io_context *ioc = container_of(work, struct io_context,
-					      release_work);
+	struct io_context *ioc =
+		container_of(work, struct io_context, release_work);
 	spin_lock_irq(&ioc->lock);
 
 	while (!hlist_empty(&ioc->icq_list)) {
@@ -257,8 +257,8 @@ int set_task_ioprio(struct task_struct *task, int ioprio)
 
 	rcu_read_lock();
 	tcred = __task_cred(task);
-	if (!uid_eq(tcred->uid, cred->euid) &&
-	    !uid_eq(tcred->uid, cred->uid) && !capable(CAP_SYS_NICE)) {
+	if (!uid_eq(tcred->uid, cred->euid) && !uid_eq(tcred->uid, cred->uid) &&
+	    !capable(CAP_SYS_NICE)) {
 		rcu_read_unlock();
 		return -EPERM;
 	}
@@ -344,7 +344,7 @@ struct io_cq *ioc_lookup_icq(struct request_queue *q)
 
 	icq = radix_tree_lookup(&ioc->icq_tree, q->id);
 	if (icq && icq->q == q)
-		rcu_assign_pointer(ioc->icq_hint, icq);	/* allowed to race */
+		rcu_assign_pointer(ioc->icq_hint, icq); /* allowed to race */
 	else
 		icq = NULL;
 out:
@@ -449,8 +449,8 @@ EXPORT_SYMBOL_GPL(ioc_find_get_icq);
 
 static int __init blk_ioc_init(void)
 {
-	iocontext_cachep = kmem_cache_create("blkdev_ioc",
-			sizeof(struct io_context), 0, SLAB_PANIC, NULL);
+	iocontext_cachep = kmem_cache_create(
+		"blkdev_ioc", sizeof(struct io_context), 0, SLAB_PANIC, NULL);
 	return 0;
 }
 subsys_initcall(blk_ioc_init);

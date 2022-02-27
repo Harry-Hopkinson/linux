@@ -221,13 +221,13 @@ static void list_test_list_bulk_move_tail(struct kunit *test)
 	list_bulk_move_tail(&y, &b, &c);
 	/* after: [list1] -> x -> b -> c -> y, [list2] -> a -> d */
 
-	list_for_each(ptr, &list1) {
+	list_for_each (ptr, &list1) {
 		KUNIT_EXPECT_PTR_EQ(test, ptr, list1_values[i]);
 		i++;
 	}
 	KUNIT_EXPECT_EQ(test, i, 4);
 	i = 0;
-	list_for_each(ptr, &list2) {
+	list_for_each (ptr, &list2) {
 		KUNIT_EXPECT_PTR_EQ(test, ptr, list2_values[i]);
 		i++;
 	}
@@ -317,7 +317,7 @@ static void list_test_list_rotate_to_front(struct kunit *test)
 	list_rotate_to_front(&c, &list);
 	/* after: [list] -> c -> d -> a -> b */
 
-	list_for_each(ptr, &list) {
+	list_for_each (ptr, &list) {
 		KUNIT_EXPECT_PTR_EQ(test, ptr, list_values[i]);
 		i++;
 	}
@@ -358,14 +358,14 @@ static void list_test_list_cut_position(struct kunit *test)
 	list_cut_position(&list2, &list1, &entries[1]);
 	/* after: [list2] -> entries[0] -> entries[1], [list1] -> entries[2] */
 
-	list_for_each(cur, &list2) {
+	list_for_each (cur, &list2) {
 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
 		i++;
 	}
 
 	KUNIT_EXPECT_EQ(test, i, 2);
 
-	list_for_each(cur, &list1) {
+	list_for_each (cur, &list1) {
 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
 		i++;
 	}
@@ -386,14 +386,14 @@ static void list_test_list_cut_before(struct kunit *test)
 	list_cut_before(&list2, &list1, &entries[1]);
 	/* after: [list2] -> entries[0], [list1] -> entries[1] -> entries[2] */
 
-	list_for_each(cur, &list2) {
+	list_for_each (cur, &list2) {
 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
 		i++;
 	}
 
 	KUNIT_EXPECT_EQ(test, i, 1);
 
-	list_for_each(cur, &list1) {
+	list_for_each (cur, &list1) {
 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
 		i++;
 	}
@@ -416,7 +416,7 @@ static void list_test_list_splice(struct kunit *test)
 	list_splice(&list2, &entries[1]);
 	/* after: [list1]->e[0]->e[1]->e[2]->e[3]->e[4], [list2] uninit */
 
-	list_for_each(cur, &list1) {
+	list_for_each (cur, &list1) {
 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
 		i++;
 	}
@@ -441,7 +441,7 @@ static void list_test_list_splice_tail(struct kunit *test)
 	list_splice_tail(&list2, &entries[4]);
 	/* after: [list1]->e[0]->e[1]->e[2]->e[3]->e[4], [list2] uninit */
 
-	list_for_each(cur, &list1) {
+	list_for_each (cur, &list1) {
 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
 		i++;
 	}
@@ -466,7 +466,7 @@ static void list_test_list_splice_init(struct kunit *test)
 	list_splice_init(&list2, &entries[1]);
 	/* after: [list1]->e[0]->e[1]->e[2]->e[3]->e[4], [list2] empty */
 
-	list_for_each(cur, &list1) {
+	list_for_each (cur, &list1) {
 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
 		i++;
 	}
@@ -493,7 +493,7 @@ static void list_test_list_splice_tail_init(struct kunit *test)
 	list_splice_tail_init(&list2, &entries[4]);
 	/* after: [list1]->e[0]->e[1]->e[2]->e[3]->e[4], [list2] empty */
 
-	list_for_each(cur, &list1) {
+	list_for_each (cur, &list1) {
 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
 		i++;
 	}
@@ -507,8 +507,9 @@ static void list_test_list_entry(struct kunit *test)
 {
 	struct list_test_struct test_struct;
 
-	KUNIT_EXPECT_PTR_EQ(test, &test_struct, list_entry(&(test_struct.list),
-				struct list_test_struct, list));
+	KUNIT_EXPECT_PTR_EQ(test, &test_struct,
+			    list_entry(&(test_struct.list),
+				       struct list_test_struct, list));
 }
 
 static void list_test_list_first_entry(struct kunit *test)
@@ -519,9 +520,9 @@ static void list_test_list_first_entry(struct kunit *test)
 	list_add_tail(&test_struct1.list, &list);
 	list_add_tail(&test_struct2.list, &list);
 
-
-	KUNIT_EXPECT_PTR_EQ(test, &test_struct1, list_first_entry(&list,
-				struct list_test_struct, list));
+	KUNIT_EXPECT_PTR_EQ(test, &test_struct1,
+			    list_first_entry(&list, struct list_test_struct,
+					     list));
 }
 
 static void list_test_list_last_entry(struct kunit *test)
@@ -532,9 +533,9 @@ static void list_test_list_last_entry(struct kunit *test)
 	list_add_tail(&test_struct1.list, &list);
 	list_add_tail(&test_struct2.list, &list);
 
-
-	KUNIT_EXPECT_PTR_EQ(test, &test_struct2, list_last_entry(&list,
-				struct list_test_struct, list));
+	KUNIT_EXPECT_PTR_EQ(test, &test_struct2,
+			    list_last_entry(&list, struct list_test_struct,
+					    list));
 }
 
 static void list_test_list_first_entry_or_null(struct kunit *test)
@@ -542,15 +543,15 @@ static void list_test_list_first_entry_or_null(struct kunit *test)
 	struct list_test_struct test_struct1, test_struct2;
 	LIST_HEAD(list);
 
-	KUNIT_EXPECT_FALSE(test, list_first_entry_or_null(&list,
-				struct list_test_struct, list));
+	KUNIT_EXPECT_FALSE(test, list_first_entry_or_null(
+					 &list, struct list_test_struct, list));
 
 	list_add_tail(&test_struct1.list, &list);
 	list_add_tail(&test_struct2.list, &list);
 
-	KUNIT_EXPECT_PTR_EQ(test, &test_struct1,
-			list_first_entry_or_null(&list,
-				struct list_test_struct, list));
+	KUNIT_EXPECT_PTR_EQ(
+		test, &test_struct1,
+		list_first_entry_or_null(&list, struct list_test_struct, list));
 }
 
 static void list_test_list_next_entry(struct kunit *test)
@@ -561,9 +562,8 @@ static void list_test_list_next_entry(struct kunit *test)
 	list_add_tail(&test_struct1.list, &list);
 	list_add_tail(&test_struct2.list, &list);
 
-
-	KUNIT_EXPECT_PTR_EQ(test, &test_struct2, list_next_entry(&test_struct1,
-				list));
+	KUNIT_EXPECT_PTR_EQ(test, &test_struct2,
+			    list_next_entry(&test_struct1, list));
 }
 
 static void list_test_list_prev_entry(struct kunit *test)
@@ -574,9 +574,8 @@ static void list_test_list_prev_entry(struct kunit *test)
 	list_add_tail(&test_struct1.list, &list);
 	list_add_tail(&test_struct2.list, &list);
 
-
-	KUNIT_EXPECT_PTR_EQ(test, &test_struct1, list_prev_entry(&test_struct2,
-				list));
+	KUNIT_EXPECT_PTR_EQ(test, &test_struct1,
+			    list_prev_entry(&test_struct2, list));
 }
 
 static void list_test_list_for_each(struct kunit *test)
@@ -589,7 +588,7 @@ static void list_test_list_for_each(struct kunit *test)
 	list_add_tail(&entries[1], &list);
 	list_add_tail(&entries[2], &list);
 
-	list_for_each(cur, &list) {
+	list_for_each (cur, &list) {
 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
 		i++;
 	}
@@ -607,7 +606,7 @@ static void list_test_list_for_each_prev(struct kunit *test)
 	list_add_tail(&entries[1], &list);
 	list_add_tail(&entries[2], &list);
 
-	list_for_each_prev(cur, &list) {
+	list_for_each_prev (cur, &list) {
 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
 		i--;
 	}
@@ -621,12 +620,11 @@ static void list_test_list_for_each_safe(struct kunit *test)
 	LIST_HEAD(list);
 	int i = 0;
 
-
 	list_add_tail(&entries[0], &list);
 	list_add_tail(&entries[1], &list);
 	list_add_tail(&entries[2], &list);
 
-	list_for_each_safe(cur, n, &list) {
+	list_for_each_safe (cur, n, &list) {
 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
 		list_del(&entries[i]);
 		i++;
@@ -646,7 +644,7 @@ static void list_test_list_for_each_prev_safe(struct kunit *test)
 	list_add_tail(&entries[1], &list);
 	list_add_tail(&entries[2], &list);
 
-	list_for_each_prev_safe(cur, n, &list) {
+	list_for_each_prev_safe (cur, n, &list) {
 		KUNIT_EXPECT_PTR_EQ(test, cur, &entries[i]);
 		list_del(&entries[i]);
 		i--;
@@ -669,7 +667,7 @@ static void list_test_list_for_each_entry(struct kunit *test)
 
 	i = 0;
 
-	list_for_each_entry(cur, &list, list) {
+	list_for_each_entry (cur, &list, list) {
 		KUNIT_EXPECT_EQ(test, cur->data, i);
 		i++;
 	}
@@ -690,7 +688,7 @@ static void list_test_list_for_each_entry_reverse(struct kunit *test)
 
 	i = 4;
 
-	list_for_each_entry_reverse(cur, &list, list) {
+	list_for_each_entry_reverse (cur, &list, list) {
 		KUNIT_EXPECT_EQ(test, cur->data, i);
 		i--;
 	}

@@ -19,10 +19,9 @@
 #include <asm/unaligned.h>
 
 const u8 sm3_zero_message_hash[SM3_DIGEST_SIZE] = {
-	0x1A, 0xB2, 0x1D, 0x83, 0x55, 0xCF, 0xA1, 0x7F,
-	0x8e, 0x61, 0x19, 0x48, 0x31, 0xE8, 0x1A, 0x8F,
-	0x22, 0xBE, 0xC8, 0xC7, 0x28, 0xFE, 0xFB, 0x74,
-	0x7E, 0xD0, 0x35, 0xEB, 0x50, 0x82, 0xAA, 0x2B
+	0x1A, 0xB2, 0x1D, 0x83, 0x55, 0xCF, 0xA1, 0x7F, 0x8e, 0x61, 0x19,
+	0x48, 0x31, 0xE8, 0x1A, 0x8F, 0x22, 0xBE, 0xC8, 0xC7, 0x28, 0xFE,
+	0xFB, 0x74, 0x7E, 0xD0, 0x35, 0xEB, 0x50, 0x82, 0xAA, 0x2B
 };
 EXPORT_SYMBOL_GPL(sm3_zero_message_hash);
 
@@ -88,7 +87,6 @@ static void sm3_compress(u32 *w, u32 *wt, u32 *m)
 	h = m[7];
 
 	for (i = 0; i <= 63; i++) {
-
 		ss1 = rol32((rol32(a, 12) + e + rol32(t(i), i & 31)), 7);
 
 		ss2 = ss1 ^ rol32(a, 12);
@@ -134,7 +132,7 @@ static void sm3_transform(struct sm3_state *sst, u8 const *src)
 }
 
 static void sm3_generic_block_fn(struct sm3_state *sst, u8 const *src,
-				    int blocks)
+				 int blocks)
 {
 	while (blocks--) {
 		sm3_transform(sst, src);
@@ -142,8 +140,7 @@ static void sm3_generic_block_fn(struct sm3_state *sst, u8 const *src,
 	}
 }
 
-int crypto_sm3_update(struct shash_desc *desc, const u8 *data,
-			  unsigned int len)
+int crypto_sm3_update(struct shash_desc *desc, const u8 *data, unsigned int len)
 {
 	return sm3_base_do_update(desc, data, len, sm3_generic_block_fn);
 }
@@ -156,28 +153,26 @@ int crypto_sm3_final(struct shash_desc *desc, u8 *out)
 }
 EXPORT_SYMBOL(crypto_sm3_final);
 
-int crypto_sm3_finup(struct shash_desc *desc, const u8 *data,
-			unsigned int len, u8 *hash)
+int crypto_sm3_finup(struct shash_desc *desc, const u8 *data, unsigned int len,
+		     u8 *hash)
 {
 	sm3_base_do_update(desc, data, len, sm3_generic_block_fn);
 	return crypto_sm3_final(desc, hash);
 }
 EXPORT_SYMBOL(crypto_sm3_finup);
 
-static struct shash_alg sm3_alg = {
-	.digestsize	=	SM3_DIGEST_SIZE,
-	.init		=	sm3_base_init,
-	.update		=	crypto_sm3_update,
-	.final		=	crypto_sm3_final,
-	.finup		=	crypto_sm3_finup,
-	.descsize	=	sizeof(struct sm3_state),
-	.base		=	{
-		.cra_name	 =	"sm3",
-		.cra_driver_name =	"sm3-generic",
-		.cra_blocksize	 =	SM3_BLOCK_SIZE,
-		.cra_module	 =	THIS_MODULE,
-	}
-};
+static struct shash_alg sm3_alg = { .digestsize = SM3_DIGEST_SIZE,
+				    .init = sm3_base_init,
+				    .update = crypto_sm3_update,
+				    .final = crypto_sm3_final,
+				    .finup = crypto_sm3_finup,
+				    .descsize = sizeof(struct sm3_state),
+				    .base = {
+					    .cra_name = "sm3",
+					    .cra_driver_name = "sm3-generic",
+					    .cra_blocksize = SM3_BLOCK_SIZE,
+					    .cra_module = THIS_MODULE,
+				    } };
 
 static int __init sm3_generic_mod_init(void)
 {

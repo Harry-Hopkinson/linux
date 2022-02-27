@@ -179,8 +179,7 @@ static int objagg_obj_parent_assign(struct objagg *objagg,
 	objagg_obj->delta_priv = delta_priv;
 	if (take_parent_ref)
 		objagg_obj_ref_inc(objagg_obj->parent);
-	trace_objagg_obj_parent_assign(objagg, objagg_obj,
-				       parent,
+	trace_objagg_obj_parent_assign(objagg, objagg_obj, parent,
 				       parent->refcount);
 	return 0;
 }
@@ -191,7 +190,7 @@ static int objagg_obj_parent_lookup_assign(struct objagg *objagg,
 	struct objagg_obj *objagg_obj_cur;
 	int err;
 
-	list_for_each_entry(objagg_obj_cur, &objagg->obj_list, list) {
+	list_for_each_entry (objagg_obj_cur, &objagg->obj_list, list) {
 		/* Nesting is not supported. In case the object
 		 * is not root, it cannot be assigned as parent.
 		 */
@@ -211,8 +210,7 @@ static void __objagg_obj_put(struct objagg *objagg,
 static void objagg_obj_parent_unassign(struct objagg *objagg,
 				       struct objagg_obj *objagg_obj)
 {
-	trace_objagg_obj_parent_unassign(objagg, objagg_obj,
-					 objagg_obj->parent,
+	trace_objagg_obj_parent_unassign(objagg, objagg_obj, objagg_obj->parent,
 					 objagg_obj->parent->refcount);
 	objagg->ops->delta_destroy(objagg->priv, objagg_obj->delta_priv);
 	__objagg_obj_put(objagg, objagg_obj->parent);
@@ -267,9 +265,8 @@ static int objagg_obj_root_create(struct objagg *objagg,
 	err = objagg_obj_root_id_alloc(objagg, objagg_obj, hnode);
 	if (err)
 		return err;
-	objagg_obj->root_priv = objagg->ops->root_create(objagg->priv,
-							 objagg_obj->obj,
-							 objagg_obj->root_id);
+	objagg_obj->root_priv = objagg->ops->root_create(
+		objagg->priv, objagg_obj->obj, objagg_obj->root_id);
 	if (IS_ERR(objagg_obj->root_priv)) {
 		err = PTR_ERR(objagg_obj->root_priv);
 		goto err_root_create;
@@ -328,8 +325,7 @@ err_parent_assign:
 	return err;
 }
 
-static int objagg_obj_init(struct objagg *objagg,
-			   struct objagg_obj *objagg_obj)
+static int objagg_obj_init(struct objagg *objagg, struct objagg_obj *objagg_obj)
 {
 	bool hint_found;
 	int err;
@@ -608,17 +604,18 @@ const struct objagg_stats *objagg_stats_get(struct objagg *objagg)
 	int i;
 
 	objagg_stats = kzalloc(struct_size(objagg_stats, stats_info,
-					   objagg->obj_count), GFP_KERNEL);
+					   objagg->obj_count),
+			       GFP_KERNEL);
 	if (!objagg_stats)
 		return ERR_PTR(-ENOMEM);
 
 	i = 0;
-	list_for_each_entry(objagg_obj, &objagg->obj_list, list) {
+	list_for_each_entry (objagg_obj, &objagg->obj_list, list) {
 		memcpy(&objagg_stats->stats_info[i].stats, &objagg_obj->stats,
 		       sizeof(objagg_stats->stats_info[0].stats));
 		objagg_stats->stats_info[i].objagg_obj = objagg_obj;
 		objagg_stats->stats_info[i].is_root =
-					objagg_obj_is_root(objagg_obj);
+			objagg_obj_is_root(objagg_obj);
 		if (objagg_stats->stats_info[i].is_root)
 			objagg_stats->root_count++;
 		i++;
@@ -688,7 +685,7 @@ static void objagg_hints_flush(struct objagg_hints *objagg_hints)
 {
 	struct objagg_hints_node *hnode, *tmp;
 
-	list_for_each_entry_safe(hnode, tmp, &objagg_hints->node_list, list) {
+	list_for_each_entry_safe (hnode, tmp, &objagg_hints->node_list, list) {
 		list_del(&hnode->list);
 		rhashtable_remove_fast(&objagg_hints->node_ht, &hnode->ht_node,
 				       objagg_hints->ht_params);
@@ -716,8 +713,8 @@ static int objagg_tmp_graph_edge_index(struct objagg_tmp_graph *graph,
 static void objagg_tmp_graph_edge_set(struct objagg_tmp_graph *graph,
 				      int parent_index, int index)
 {
-	int edge_index = objagg_tmp_graph_edge_index(graph, index,
-						     parent_index);
+	int edge_index =
+		objagg_tmp_graph_edge_index(graph, index, parent_index);
 
 	__set_bit(edge_index, graph->edges);
 }
@@ -725,8 +722,8 @@ static void objagg_tmp_graph_edge_set(struct objagg_tmp_graph *graph,
 static bool objagg_tmp_graph_is_edge(struct objagg_tmp_graph *graph,
 				     int parent_index, int index)
 {
-	int edge_index = objagg_tmp_graph_edge_index(graph, index,
-						     parent_index);
+	int edge_index =
+		objagg_tmp_graph_edge_index(graph, index, parent_index);
 
 	return test_bit(edge_index, graph->edges);
 }
@@ -797,7 +794,7 @@ static struct objagg_tmp_graph *objagg_tmp_graph_create(struct objagg *objagg)
 		goto err_edges_alloc;
 
 	i = 0;
-	list_for_each_entry(objagg_obj, &objagg->obj_list, list) {
+	list_for_each_entry (objagg_obj, &objagg->obj_list, list) {
 		node = &graph->nodes[i++];
 		node->objagg_obj = objagg_obj;
 	}
@@ -815,7 +812,6 @@ static struct objagg_tmp_graph *objagg_tmp_graph_create(struct objagg *objagg)
 						     pnode->objagg_obj->obj,
 						     node->objagg_obj->obj)) {
 				objagg_tmp_graph_edge_set(graph, i, j);
-
 			}
 		}
 	}
@@ -856,10 +852,8 @@ objagg_opt_simple_greedy_fillup_hints(struct objagg_hints *objagg_hints,
 	while ((index = objagg_tmp_graph_node_max_weight(graph)) != -1) {
 		node = &graph->nodes[index];
 		node->crossed_out = true;
-		hnode = objagg_hints_node_create(objagg_hints,
-						 node->objagg_obj,
-						 objagg->ops->obj_size,
-						 NULL);
+		hnode = objagg_hints_node_create(objagg_hints, node->objagg_obj,
+						 objagg->ops->obj_size, NULL);
 		if (IS_ERR(hnode)) {
 			err = PTR_ERR(hnode);
 			goto out;
@@ -898,7 +892,6 @@ static const struct objagg_opt_algo objagg_opt_simple_greedy = {
 	.fillup_hints = objagg_opt_simple_greedy_fillup_hints,
 };
 
-
 static const struct objagg_opt_algo *objagg_opt_algos[] = {
 	[OBJAGG_OPT_ALGO_SIMPLE_GREEDY] = &objagg_opt_simple_greedy,
 };
@@ -908,7 +901,7 @@ static int objagg_hints_obj_cmp(struct rhashtable_compare_arg *arg,
 {
 	struct rhashtable *ht = arg->ht;
 	struct objagg_hints *objagg_hints =
-			container_of(ht, struct objagg_hints, node_ht);
+		container_of(ht, struct objagg_hints, node_ht);
 	const struct objagg_ops *ops = objagg_hints->ops;
 	const char *ptr = obj;
 
@@ -952,9 +945,9 @@ struct objagg_hints *objagg_hints_get(struct objagg *objagg,
 
 	objagg_hints->ht_params.key_len = objagg->ops->obj_size;
 	objagg_hints->ht_params.key_offset =
-				offsetof(struct objagg_hints_node, obj);
+		offsetof(struct objagg_hints_node, obj);
 	objagg_hints->ht_params.head_offset =
-				offsetof(struct objagg_hints_node, ht_node);
+		offsetof(struct objagg_hints_node, ht_node);
 	objagg_hints->ht_params.obj_cmpfn = objagg_hints_obj_cmp;
 
 	err = rhashtable_init(&objagg_hints->node_ht, &objagg_hints->ht_params);
@@ -1029,7 +1022,7 @@ objagg_hints_stats_get(struct objagg_hints *objagg_hints)
 		return ERR_PTR(-ENOMEM);
 
 	i = 0;
-	list_for_each_entry(hnode, &objagg_hints->node_list, list) {
+	list_for_each_entry (hnode, &objagg_hints->node_list, list) {
 		memcpy(&objagg_stats->stats_info[i], &hnode->stats_info,
 		       sizeof(objagg_stats->stats_info[0]));
 		if (objagg_stats->stats_info[i].is_root)

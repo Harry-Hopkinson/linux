@@ -8,16 +8,16 @@
 #include <linux/kernel.h>
 #include <linux/string.h>
 
-#define R0_START	0x0000
-#define R0_END		0xffff
-#define R1_START	0x1234
-#define R1_END		0x2345
-#define R2_START	0x4567
-#define R2_END		0x5678
-#define R3_START	0x6789
-#define R3_END		0x789a
-#define R4_START	0x2000
-#define R4_END		0x7000
+#define R0_START 0x0000
+#define R0_END 0xffff
+#define R1_START 0x1234
+#define R1_END 0x2345
+#define R2_START 0x4567
+#define R2_END 0x5678
+#define R3_START 0x6789
+#define R3_END 0x789a
+#define R4_START 0x2000
+#define R4_END 0x7000
 
 static struct resource r0 = { .start = R0_START, .end = R0_END };
 static struct resource r1 = { .start = R1_START, .end = R1_END };
@@ -34,49 +34,135 @@ struct result {
 
 static struct result results_for_union[] = {
 	{
-		.r1 = &r1, .r2 = &r0, .r.start = R0_START, .r.end = R0_END, .ret = true,
-	}, {
-		.r1 = &r2, .r2 = &r0, .r.start = R0_START, .r.end = R0_END, .ret = true,
-	}, {
-		.r1 = &r3, .r2 = &r0, .r.start = R0_START, .r.end = R0_END, .ret = true,
-	}, {
-		.r1 = &r4, .r2 = &r0, .r.start = R0_START, .r.end = R0_END, .ret = true,
-	}, {
-		.r1 = &r2, .r2 = &r1, .ret = false,
-	}, {
-		.r1 = &r3, .r2 = &r1, .ret = false,
-	}, {
-		.r1 = &r4, .r2 = &r1, .r.start = R1_START, .r.end = R4_END, .ret = true,
-	}, {
-		.r1 = &r2, .r2 = &r3, .ret = false,
-	}, {
-		.r1 = &r2, .r2 = &r4, .r.start = R4_START, .r.end = R4_END, .ret = true,
-	}, {
-		.r1 = &r3, .r2 = &r4, .r.start = R4_START, .r.end = R3_END, .ret = true,
+		.r1 = &r1,
+		.r2 = &r0,
+		.r.start = R0_START,
+		.r.end = R0_END,
+		.ret = true,
+	},
+	{
+		.r1 = &r2,
+		.r2 = &r0,
+		.r.start = R0_START,
+		.r.end = R0_END,
+		.ret = true,
+	},
+	{
+		.r1 = &r3,
+		.r2 = &r0,
+		.r.start = R0_START,
+		.r.end = R0_END,
+		.ret = true,
+	},
+	{
+		.r1 = &r4,
+		.r2 = &r0,
+		.r.start = R0_START,
+		.r.end = R0_END,
+		.ret = true,
+	},
+	{
+		.r1 = &r2,
+		.r2 = &r1,
+		.ret = false,
+	},
+	{
+		.r1 = &r3,
+		.r2 = &r1,
+		.ret = false,
+	},
+	{
+		.r1 = &r4,
+		.r2 = &r1,
+		.r.start = R1_START,
+		.r.end = R4_END,
+		.ret = true,
+	},
+	{
+		.r1 = &r2,
+		.r2 = &r3,
+		.ret = false,
+	},
+	{
+		.r1 = &r2,
+		.r2 = &r4,
+		.r.start = R4_START,
+		.r.end = R4_END,
+		.ret = true,
+	},
+	{
+		.r1 = &r3,
+		.r2 = &r4,
+		.r.start = R4_START,
+		.r.end = R3_END,
+		.ret = true,
 	},
 };
 
 static struct result results_for_intersection[] = {
 	{
-		.r1 = &r1, .r2 = &r0, .r.start = R1_START, .r.end = R1_END, .ret = true,
-	}, {
-		.r1 = &r2, .r2 = &r0, .r.start = R2_START, .r.end = R2_END, .ret = true,
-	}, {
-		.r1 = &r3, .r2 = &r0, .r.start = R3_START, .r.end = R3_END, .ret = true,
-	}, {
-		.r1 = &r4, .r2 = &r0, .r.start = R4_START, .r.end = R4_END, .ret = true,
-	}, {
-		.r1 = &r2, .r2 = &r1, .ret = false,
-	}, {
-		.r1 = &r3, .r2 = &r1, .ret = false,
-	}, {
-		.r1 = &r4, .r2 = &r1, .r.start = R4_START, .r.end = R1_END, .ret = true,
-	}, {
-		.r1 = &r2, .r2 = &r3, .ret = false,
-	}, {
-		.r1 = &r2, .r2 = &r4, .r.start = R2_START, .r.end = R2_END, .ret = true,
-	}, {
-		.r1 = &r3, .r2 = &r4, .r.start = R3_START, .r.end = R4_END, .ret = true,
+		.r1 = &r1,
+		.r2 = &r0,
+		.r.start = R1_START,
+		.r.end = R1_END,
+		.ret = true,
+	},
+	{
+		.r1 = &r2,
+		.r2 = &r0,
+		.r.start = R2_START,
+		.r.end = R2_END,
+		.ret = true,
+	},
+	{
+		.r1 = &r3,
+		.r2 = &r0,
+		.r.start = R3_START,
+		.r.end = R3_END,
+		.ret = true,
+	},
+	{
+		.r1 = &r4,
+		.r2 = &r0,
+		.r.start = R4_START,
+		.r.end = R4_END,
+		.ret = true,
+	},
+	{
+		.r1 = &r2,
+		.r2 = &r1,
+		.ret = false,
+	},
+	{
+		.r1 = &r3,
+		.r2 = &r1,
+		.ret = false,
+	},
+	{
+		.r1 = &r4,
+		.r2 = &r1,
+		.r.start = R4_START,
+		.r.end = R1_END,
+		.ret = true,
+	},
+	{
+		.r1 = &r2,
+		.r2 = &r3,
+		.ret = false,
+	},
+	{
+		.r1 = &r2,
+		.r2 = &r4,
+		.r.start = R2_START,
+		.r.end = R2_END,
+		.ret = true,
+	},
+	{
+		.r1 = &r3,
+		.r2 = &r4,
+		.r.start = R3_START,
+		.r.end = R4_END,
+		.ret = true,
 	},
 };
 
@@ -85,8 +171,10 @@ static void resource_do_test(struct kunit *test, bool ret, struct resource *r,
 			     struct resource *r1, struct resource *r2)
 {
 	KUNIT_EXPECT_EQ_MSG(test, ret, exp_ret, "Resources %pR %pR", r1, r2);
-	KUNIT_EXPECT_EQ_MSG(test, r->start, exp_r->start, "Start elements are not equal");
-	KUNIT_EXPECT_EQ_MSG(test, r->end, exp_r->end, "End elements are not equal");
+	KUNIT_EXPECT_EQ_MSG(test, r->start, exp_r->start,
+			    "Start elements are not equal");
+	KUNIT_EXPECT_EQ_MSG(test, r->end, exp_r->end,
+			    "End elements are not equal");
 }
 
 static void resource_do_union_test(struct kunit *test, struct result *r)

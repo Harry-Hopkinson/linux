@@ -46,7 +46,8 @@ static bool single_bit_flip(unsigned char a, unsigned char b)
 	return error && !(error & (error - 1));
 }
 
-static void check_poison_mem(struct page *page, unsigned char *mem, size_t bytes)
+static void check_poison_mem(struct page *page, unsigned char *mem,
+			     size_t bytes)
 {
 	static DEFINE_RATELIMIT_STATE(ratelimit, 5 * HZ, 10);
 	unsigned char *start;
@@ -69,7 +70,7 @@ static void check_poison_mem(struct page *page, unsigned char *mem, size_t bytes
 		pr_err("pagealloc: memory corruption\n");
 
 	print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 16, 1, start,
-			end - start + 1, 1);
+		       end - start + 1, 1);
 	dump_stack();
 	dump_page(page, "pagealloc: corrupted page details");
 }

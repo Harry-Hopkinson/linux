@@ -15,7 +15,10 @@
 #include <linux/err.h>
 #include <linux/fs.h>
 
-static inline bool spacetab(char c) { return c == ' ' || c == '\t'; }
+static inline bool spacetab(char c)
+{
+	return c == ' ' || c == '\t';
+}
 static inline const char *next_non_spacetab(const char *first, const char *last)
 {
 	for (; first <= last; first++)
@@ -74,7 +77,7 @@ static int load_script(struct linux_binprm *bprm)
 		i_end--;
 
 	/* Skip over leading spaces/tabs */
-	i_name = next_non_spacetab(bprm->buf+2, i_end);
+	i_name = next_non_spacetab(bprm->buf + 2, i_end);
 	if (!i_name || (i_name == i_end))
 		return -ENOEXEC; /* No interpreter name found */
 
@@ -138,8 +141,8 @@ static int load_script(struct linux_binprm *bprm)
 }
 
 static struct linux_binfmt script_format = {
-	.module		= THIS_MODULE,
-	.load_binary	= load_script,
+	.module = THIS_MODULE,
+	.load_binary = load_script,
 };
 
 static int __init init_script_binfmt(void)

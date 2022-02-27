@@ -11,7 +11,7 @@
 
 #include "cma.h"
 
-#define CMA_ATTR_RO(_name) \
+#define CMA_ATTR_RO(_name)                                                     \
 	static struct kobj_attribute _name##_attr = __ATTR_RO(_name)
 
 void cma_sysfs_account_success_pages(struct cma *cma, unsigned long nr_pages)

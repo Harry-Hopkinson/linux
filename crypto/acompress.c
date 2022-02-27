@@ -41,8 +41,8 @@ static int crypto_acomp_report(struct sk_buff *skb, struct crypto_alg *alg)
 }
 #endif
 
-static void crypto_acomp_show(struct seq_file *m, struct crypto_alg *alg)
-	__maybe_unused;
+static void crypto_acomp_show(struct seq_file *m,
+			      struct crypto_alg *alg) __maybe_unused;
 
 static void crypto_acomp_show(struct seq_file *m, struct crypto_alg *alg)
 {
@@ -110,10 +110,10 @@ struct crypto_acomp *crypto_alloc_acomp(const char *alg_name, u32 type,
 EXPORT_SYMBOL_GPL(crypto_alloc_acomp);
 
 struct crypto_acomp *crypto_alloc_acomp_node(const char *alg_name, u32 type,
-					u32 mask, int node)
+					     u32 mask, int node)
 {
 	return crypto_alloc_tfm_node(alg_name, &crypto_acomp_type, type, mask,
-				node);
+				     node);
 }
 EXPORT_SYMBOL_GPL(crypto_alloc_acomp_node);
 

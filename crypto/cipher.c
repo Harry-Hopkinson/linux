@@ -37,11 +37,10 @@ static int setkey_unaligned(struct crypto_cipher *tfm, const u8 *key,
 	memset(alignbuffer, 0, keylen);
 	kfree(buffer);
 	return ret;
-
 }
 
-int crypto_cipher_setkey(struct crypto_cipher *tfm,
-			 const u8 *key, unsigned int keylen)
+int crypto_cipher_setkey(struct crypto_cipher *tfm, const u8 *key,
+			 unsigned int keylen)
 {
 	struct cipher_alg *cia = crypto_cipher_alg(tfm);
 	unsigned long alignmask = crypto_cipher_alignmask(tfm);
@@ -56,8 +55,8 @@ int crypto_cipher_setkey(struct crypto_cipher *tfm,
 }
 EXPORT_SYMBOL_NS_GPL(crypto_cipher_setkey, CRYPTO_INTERNAL);
 
-static inline void cipher_crypt_one(struct crypto_cipher *tfm,
-				    u8 *dst, const u8 *src, bool enc)
+static inline void cipher_crypt_one(struct crypto_cipher *tfm, u8 *dst,
+				    const u8 *src, bool enc)
 {
 	unsigned long alignmask = crypto_cipher_alignmask(tfm);
 	struct cipher_alg *cia = crypto_cipher_alg(tfm);
@@ -77,15 +76,15 @@ static inline void cipher_crypt_one(struct crypto_cipher *tfm,
 	}
 }
 
-void crypto_cipher_encrypt_one(struct crypto_cipher *tfm,
-			       u8 *dst, const u8 *src)
+void crypto_cipher_encrypt_one(struct crypto_cipher *tfm, u8 *dst,
+			       const u8 *src)
 {
 	cipher_crypt_one(tfm, dst, src, true);
 }
 EXPORT_SYMBOL_NS_GPL(crypto_cipher_encrypt_one, CRYPTO_INTERNAL);
 
-void crypto_cipher_decrypt_one(struct crypto_cipher *tfm,
-			       u8 *dst, const u8 *src)
+void crypto_cipher_decrypt_one(struct crypto_cipher *tfm, u8 *dst,
+			       const u8 *src)
 {
 	cipher_crypt_one(tfm, dst, src, false);
 }

@@ -23,10 +23,10 @@ int setup_fault_attr(struct fault_attr *attr, char *str)
 	int space;
 
 	/* "<interval>,<probability>,<space>,<times>" */
-	if (sscanf(str, "%lu,%lu,%d,%d",
-			&interval, &probability, &space, &times) < 4) {
+	if (sscanf(str, "%lu,%lu,%d,%d", &interval, &probability, &space,
+		   &times) < 4) {
 		printk(KERN_WARNING
-			"FAULT_INJECTION: failed to parse arguments\n");
+		       "FAULT_INJECTION: failed to parse arguments\n");
 		return 0;
 	}
 
@@ -43,17 +43,16 @@ static void fail_dump(struct fault_attr *attr)
 {
 	if (attr->verbose > 0 && __ratelimit(&attr->ratelimit_state)) {
 		printk(KERN_NOTICE "FAULT_INJECTION: forcing a failure.\n"
-		       "name %pd, interval %lu, probability %lu, "
-		       "space %d, times %d\n", attr->dname,
-		       attr->interval, attr->probability,
-		       atomic_read(&attr->space),
-		       atomic_read(&attr->times));
+				   "name %pd, interval %lu, probability %lu, "
+				   "space %d, times %d\n",
+		       attr->dname, attr->interval, attr->probability,
+		       atomic_read(&attr->space), atomic_read(&attr->times));
 		if (attr->verbose > 1)
 			dump_stack();
 	}
 }
 
-#define atomic_dec_not_zero(v)		atomic_add_unless((v), -1, 0)
+#define atomic_dec_not_zero(v) atomic_add_unless((v), -1, 0)
 
 static bool fail_task(struct fault_attr *attr, struct task_struct *task)
 {
@@ -69,7 +68,8 @@ static bool fail_stacktrace(struct fault_attr *attr)
 	int depth = attr->stacktrace_depth;
 	unsigned long entries[MAX_STACK_TRACE_DEPTH];
 	int n, nr_entries;
-	bool found = (attr->require_start == 0 && attr->require_end == ULONG_MAX);
+	bool found =
+		(attr->require_start == 0 && attr->require_end == ULONG_MAX);
 
 	if (depth == 0)
 		return found;
@@ -77,10 +77,10 @@ static bool fail_stacktrace(struct fault_attr *attr)
 	nr_entries = stack_trace_save(entries, depth, 1);
 	for (n = 0; n < nr_entries; n++) {
 		if (attr->reject_start <= entries[n] &&
-			       entries[n] < attr->reject_end)
+		    entries[n] < attr->reject_end)
 			return false;
 		if (attr->require_start <= entries[n] &&
-			       entries[n] < attr->require_end)
+		    entries[n] < attr->require_end)
 			found = true;
 	}
 	return found;
@@ -197,7 +197,8 @@ static void debugfs_create_stacktrace_depth(const char *name, umode_t mode,
 #endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
 
 struct dentry *fault_create_debugfs_attr(const char *name,
-			struct dentry *parent, struct fault_attr *attr)
+					 struct dentry *parent,
+					 struct fault_attr *attr)
 {
 	umode_t mode = S_IFREG | S_IRUSR | S_IWUSR;
 	struct dentry *dir;

@@ -77,7 +77,8 @@ fail:
 }
 
 struct ipc_namespace *copy_ipcs(unsigned long flags,
-	struct user_namespace *user_ns, struct ipc_namespace *ns)
+				struct user_namespace *user_ns,
+				struct ipc_namespace *ns)
 {
 	if (!(flags & CLONE_NEWIPC))
 		return get_ipc_ns(ns);
@@ -137,7 +138,7 @@ static void free_ipc(struct work_struct *unused)
 	struct llist_node *node = llist_del_all(&free_ipc_list);
 	struct ipc_namespace *n, *t;
 
-	llist_for_each_entry_safe(n, t, node, mnt_llist)
+	llist_for_each_entry_safe (n, t, node, mnt_llist)
 		free_ipc_ns(n);
 }
 
@@ -216,10 +217,10 @@ static struct user_namespace *ipcns_owner(struct ns_common *ns)
 }
 
 const struct proc_ns_operations ipcns_operations = {
-	.name		= "ipc",
-	.type		= CLONE_NEWIPC,
-	.get		= ipcns_get,
-	.put		= ipcns_put,
-	.install	= ipcns_install,
-	.owner		= ipcns_owner,
+	.name = "ipc",
+	.type = CLONE_NEWIPC,
+	.get = ipcns_get,
+	.put = ipcns_put,
+	.install = ipcns_install,
+	.owner = ipcns_owner,
 };

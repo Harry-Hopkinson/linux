@@ -74,8 +74,7 @@ EXPORT_SYMBOL(crypto_kdf108_ctr_generate);
 /*
  * The seeding of the KDF
  */
-int crypto_kdf108_setkey(struct crypto_shash *kmd,
-			 const u8 *key, size_t keylen,
+int crypto_kdf108_setkey(struct crypto_shash *kmd, const u8 *key, size_t keylen,
 			 const u8 *ikm, size_t ikmlen)
 {
 	unsigned int ds = crypto_shash_digestsize(kmd);
@@ -98,29 +97,25 @@ EXPORT_SYMBOL(crypto_kdf108_setkey);
  * http://csrc.nist.gov/groups/STM/cavp/documents/KBKDF800-108/CounterMode.zip
  */
 static const struct kdf_testvec kdf_ctr_hmac_sha256_tv_template[] = {
-	{
-		.key = "\xdd\x1d\x91\xb7\xd9\x0b\x2b\xd3"
-		       "\x13\x85\x33\xce\x92\xb2\x72\xfb"
-		       "\xf8\xa3\x69\x31\x6a\xef\xe2\x42"
-		       "\xe6\x59\xcc\x0a\xe2\x38\xaf\xe0",
-		.keylen = 32,
-		.ikm = NULL,
-		.ikmlen = 0,
-		.info = {
-			.iov_base = "\x01\x32\x2b\x96\xb3\x0a\xcd\x19"
-				    "\x79\x79\x44\x4e\x46\x8e\x1c\x5c"
-				    "\x68\x59\xbf\x1b\x1c\xf9\x51\xb7"
-				    "\xe7\x25\x30\x3e\x23\x7e\x46\xb8"
-				    "\x64\xa1\x45\xfa\xb2\x5e\x51\x7b"
-				    "\x08\xf8\x68\x3d\x03\x15\xbb\x29"
-				    "\x11\xd8\x0a\x0e\x8a\xba\x17\xf3"
-				    "\xb4\x13\xfa\xac",
-			.iov_len  = 60
-		},
-		.expected	  = "\x10\x62\x13\x42\xbf\xb0\xfd\x40"
-				    "\x04\x6c\x0e\x29\xf2\xcf\xdb\xf0",
-		.expectedlen	  = 16
-	}
+	{ .key = "\xdd\x1d\x91\xb7\xd9\x0b\x2b\xd3"
+		 "\x13\x85\x33\xce\x92\xb2\x72\xfb"
+		 "\xf8\xa3\x69\x31\x6a\xef\xe2\x42"
+		 "\xe6\x59\xcc\x0a\xe2\x38\xaf\xe0",
+	  .keylen = 32,
+	  .ikm = NULL,
+	  .ikmlen = 0,
+	  .info = { .iov_base = "\x01\x32\x2b\x96\xb3\x0a\xcd\x19"
+				"\x79\x79\x44\x4e\x46\x8e\x1c\x5c"
+				"\x68\x59\xbf\x1b\x1c\xf9\x51\xb7"
+				"\xe7\x25\x30\x3e\x23\x7e\x46\xb8"
+				"\x64\xa1\x45\xfa\xb2\x5e\x51\x7b"
+				"\x08\xf8\x68\x3d\x03\x15\xbb\x29"
+				"\x11\xd8\x0a\x0e\x8a\xba\x17\xf3"
+				"\xb4\x13\xfa\xac",
+		    .iov_len = 60 },
+	  .expected = "\x10\x62\x13\x42\xbf\xb0\xfd\x40"
+		      "\x04\x6c\x0e\x29\xf2\xcf\xdb\xf0",
+	  .expectedlen = 16 }
 };
 
 static int __init crypto_kdf108_init(void)
@@ -143,7 +138,9 @@ static int __init crypto_kdf108_init(void)
 	return ret;
 }
 
-static void __exit crypto_kdf108_exit(void) { }
+static void __exit crypto_kdf108_exit(void)
+{
+}
 
 module_init(crypto_kdf108_init);
 module_exit(crypto_kdf108_exit);

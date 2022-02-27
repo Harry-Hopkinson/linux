@@ -49,11 +49,11 @@ static void lz4hc_exit(struct crypto_tfm *tfm)
 	lz4hc_free_ctx(NULL, ctx->lz4hc_comp_mem);
 }
 
-static int __lz4hc_compress_crypto(const u8 *src, unsigned int slen,
-				   u8 *dst, unsigned int *dlen, void *ctx)
+static int __lz4hc_compress_crypto(const u8 *src, unsigned int slen, u8 *dst,
+				   unsigned int *dlen, void *ctx)
 {
-	int out_len = LZ4_compress_HC(src, dst, slen,
-		*dlen, LZ4HC_DEFAULT_CLEVEL, ctx);
+	int out_len = LZ4_compress_HC(src, dst, slen, *dlen,
+				      LZ4HC_DEFAULT_CLEVEL, ctx);
 
 	if (!out_len)
 		return -EINVAL;
@@ -70,17 +70,16 @@ static int lz4hc_scompress(struct crypto_scomp *tfm, const u8 *src,
 }
 
 static int lz4hc_compress_crypto(struct crypto_tfm *tfm, const u8 *src,
-				 unsigned int slen, u8 *dst,
-				 unsigned int *dlen)
+				 unsigned int slen, u8 *dst, unsigned int *dlen)
 {
 	struct lz4hc_ctx *ctx = crypto_tfm_ctx(tfm);
 
 	return __lz4hc_compress_crypto(src, slen, dst, dlen,
-					ctx->lz4hc_comp_mem);
+				       ctx->lz4hc_comp_mem);
 }
 
-static int __lz4hc_decompress_crypto(const u8 *src, unsigned int slen,
-				     u8 *dst, unsigned int *dlen, void *ctx)
+static int __lz4hc_decompress_crypto(const u8 *src, unsigned int slen, u8 *dst,
+				     unsigned int *dlen, void *ctx)
 {
 	int out_len = LZ4_decompress_safe(src, dst, slen, *dlen);
 
@@ -106,29 +105,26 @@ static int lz4hc_decompress_crypto(struct crypto_tfm *tfm, const u8 *src,
 }
 
 static struct crypto_alg alg_lz4hc = {
-	.cra_name		= "lz4hc",
-	.cra_driver_name	= "lz4hc-generic",
-	.cra_flags		= CRYPTO_ALG_TYPE_COMPRESS,
-	.cra_ctxsize		= sizeof(struct lz4hc_ctx),
-	.cra_module		= THIS_MODULE,
-	.cra_init		= lz4hc_init,
-	.cra_exit		= lz4hc_exit,
-	.cra_u			= { .compress = {
-	.coa_compress		= lz4hc_compress_crypto,
-	.coa_decompress		= lz4hc_decompress_crypto } }
+	.cra_name = "lz4hc",
+	.cra_driver_name = "lz4hc-generic",
+	.cra_flags = CRYPTO_ALG_TYPE_COMPRESS,
+	.cra_ctxsize = sizeof(struct lz4hc_ctx),
+	.cra_module = THIS_MODULE,
+	.cra_init = lz4hc_init,
+	.cra_exit = lz4hc_exit,
+	.cra_u = { .compress = { .coa_compress = lz4hc_compress_crypto,
+				 .coa_decompress = lz4hc_decompress_crypto } }
 };
 
-static struct scomp_alg scomp = {
-	.alloc_ctx		= lz4hc_alloc_ctx,
-	.free_ctx		= lz4hc_free_ctx,
-	.compress		= lz4hc_scompress,
-	.decompress		= lz4hc_sdecompress,
-	.base			= {
-		.cra_name	= "lz4hc",
-		.cra_driver_name = "lz4hc-scomp",
-		.cra_module	 = THIS_MODULE,
-	}
-};
+static struct scomp_alg scomp = { .alloc_ctx = lz4hc_alloc_ctx,
+				  .free_ctx = lz4hc_free_ctx,
+				  .compress = lz4hc_scompress,
+				  .decompress = lz4hc_sdecompress,
+				  .base = {
+					  .cra_name = "lz4hc",
+					  .cra_driver_name = "lz4hc-scomp",
+					  .cra_module = THIS_MODULE,
+				  } };
 
 static int __init lz4hc_mod_init(void)
 {

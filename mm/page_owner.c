@@ -150,8 +150,8 @@ void __reset_page_owner(struct page *page, unsigned short order)
 }
 
 static inline void __set_page_owner_handle(struct page_ext *page_ext,
-					depot_stack_handle_t handle,
-					unsigned short order, gfp_t gfp_mask)
+					   depot_stack_handle_t handle,
+					   unsigned short order, gfp_t gfp_mask)
 {
 	struct page_owner *page_owner;
 	int i;
@@ -172,7 +172,7 @@ static inline void __set_page_owner_handle(struct page_ext *page_ext,
 }
 
 noinline void __set_page_owner(struct page *page, unsigned short order,
-					gfp_t gfp_mask)
+			       gfp_t gfp_mask)
 {
 	struct page_ext *page_ext = lookup_page_ext(page);
 	depot_stack_handle_t handle;
@@ -245,15 +245,17 @@ void __folio_copy_owner(struct folio *newfolio, struct folio *old)
 	__set_bit(PAGE_EXT_OWNER_ALLOCATED, &new_ext->flags);
 }
 
-void pagetypeinfo_showmixedcount_print(struct seq_file *m,
-				       pg_data_t *pgdat, struct zone *zone)
+void pagetypeinfo_showmixedcount_print(struct seq_file *m, pg_data_t *pgdat,
+				       struct zone *zone)
 {
 	struct page *page;
 	struct page_ext *page_ext;
 	struct page_owner *page_owner;
 	unsigned long pfn, block_end_pfn;
 	unsigned long end_pfn = zone_end_pfn(zone);
-	unsigned long count[MIGRATE_TYPES] = { 0, };
+	unsigned long count[MIGRATE_TYPES] = {
+		0,
+	};
 	int pageblock_mt, page_mt;
 	int i;
 
@@ -265,7 +267,7 @@ void pagetypeinfo_showmixedcount_print(struct seq_file *m,
 	 * a zone boundary, it will be double counted between zones. This does
 	 * not matter as the mixed block count will still be correct
 	 */
-	for (; pfn < end_pfn; ) {
+	for (; pfn < end_pfn;) {
 		page = pfn_to_online_page(pfn);
 		if (!page) {
 			pfn = ALIGN(pfn + 1, MAX_ORDER_NR_PAGES);
@@ -300,7 +302,8 @@ void pagetypeinfo_showmixedcount_print(struct seq_file *m,
 			if (unlikely(!page_ext))
 				continue;
 
-			if (!test_bit(PAGE_EXT_OWNER_ALLOCATED, &page_ext->flags))
+			if (!test_bit(PAGE_EXT_OWNER_ALLOCATED,
+				      &page_ext->flags))
 				continue;
 
 			page_owner = get_page_owner(page_ext);
@@ -325,10 +328,10 @@ void pagetypeinfo_showmixedcount_print(struct seq_file *m,
 	seq_putc(m, '\n');
 }
 
-static ssize_t
-print_page_owner(char __user *buf, size_t count, unsigned long pfn,
-		struct page *page, struct page_owner *page_owner,
-		depot_stack_handle_t handle)
+static ssize_t print_page_owner(char __user *buf, size_t count,
+				unsigned long pfn, struct page *page,
+				struct page_owner *page_owner,
+				depot_stack_handle_t handle)
 {
 	int ret, pageblock_mt, page_mt;
 	char *kbuf;
@@ -338,25 +341,22 @@ print_page_owner(char __user *buf, size_t count, unsigned long pfn,
 	if (!kbuf)
 		return -ENOMEM;
 
-	ret = snprintf(kbuf, count,
-			"Page allocated via order %u, mask %#x(%pGg), pid %d, ts %llu ns, free_ts %llu ns\n",
-			page_owner->order, page_owner->gfp_mask,
-			&page_owner->gfp_mask, page_owner->pid,
-			page_owner->ts_nsec, page_owner->free_ts_nsec);
+	ret = snprintf(
+		kbuf, count,
+		"Page allocated via order %u, mask %#x(%pGg), pid %d, ts %llu ns, free_ts %llu ns\n",
+		page_owner->order, page_owner->gfp_mask, &page_owner->gfp_mask,
+		page_owner->pid, page_owner->ts_nsec, page_owner->free_ts_nsec);
 
 	if (ret >= count)
 		goto err;
 
 	/* Print information relevant to grouping pages by mobility */
 	pageblock_mt = get_pageblock_migratetype(page);
-	page_mt  = gfp_migratetype(page_owner->gfp_mask);
+	page_mt = gfp_migratetype(page_owner->gfp_mask);
 	ret += snprintf(kbuf + ret, count - ret,
-			"PFN %lu type %s Block %lu type %s Flags %pGp\n",
-			pfn,
-			migratetype_names[page_mt],
-			pfn >> pageblock_order,
-			migratetype_names[pageblock_mt],
-			&page->flags);
+			"PFN %lu type %s Block %lu type %s Flags %pGp\n", pfn,
+			migratetype_names[page_mt], pfn >> pageblock_order,
+			migratetype_names[pageblock_mt], &page->flags);
 
 	if (ret >= count)
 		goto err;
@@ -366,7 +366,8 @@ print_page_owner(char __user *buf, size_t count, unsigned long pfn,
 		goto err;
 
 	if (page_owner->last_migrate_reason != -1) {
-		ret += snprintf(kbuf + ret, count - ret,
+		ret += snprintf(
+			kbuf + ret, count - ret,
 			"Page has been migrated, last migrate reason: %s\n",
 			migrate_reason_names[page_owner->last_migrate_reason]);
 		if (ret >= count)
@@ -415,9 +416,10 @@ void __dump_page_owner(const struct page *page)
 	else
 		pr_alert("page_owner tracks the page as freed\n");
 
-	pr_alert("page last allocated via order %u, migratetype %s, gfp_mask %#x(%pGg), pid %d, ts %llu, free_ts %llu\n",
-		 page_owner->order, migratetype_names[mt], gfp_mask, &gfp_mask,
-		 page_owner->pid, page_owner->ts_nsec, page_owner->free_ts_nsec);
+	pr_alert(
+		"page last allocated via order %u, migratetype %s, gfp_mask %#x(%pGg), pid %d, ts %llu, free_ts %llu\n",
+		page_owner->order, migratetype_names[mt], gfp_mask, &gfp_mask,
+		page_owner->pid, page_owner->ts_nsec, page_owner->free_ts_nsec);
 
 	handle = READ_ONCE(page_owner->handle);
 	if (!handle)
@@ -435,11 +437,11 @@ void __dump_page_owner(const struct page *page)
 
 	if (page_owner->last_migrate_reason != -1)
 		pr_alert("page has been migrated, last migrate reason: %s\n",
-			migrate_reason_names[page_owner->last_migrate_reason]);
+			 migrate_reason_names[page_owner->last_migrate_reason]);
 }
 
-static ssize_t
-read_page_owner(struct file *file, char __user *buf, size_t count, loff_t *ppos)
+static ssize_t read_page_owner(struct file *file, char __user *buf,
+			       size_t count, loff_t *ppos)
 {
 	unsigned long pfn;
 	struct page *page;
@@ -517,8 +519,8 @@ read_page_owner(struct file *file, char __user *buf, size_t count, loff_t *ppos)
 		/* Record the next PFN to read in the file offset */
 		*ppos = (pfn - min_low_pfn) + 1;
 
-		return print_page_owner(buf, count, pfn, page,
-				page_owner, handle);
+		return print_page_owner(buf, count, pfn, page, page_owner,
+					handle);
 	}
 
 	return 0;
@@ -535,7 +537,7 @@ static void init_pages_in_zone(pg_data_t *pgdat, struct zone *zone)
 	 * a zone boundary, it will be double counted between zones. This does
 	 * not matter as the mixed block count will still be correct
 	 */
-	for (; pfn < end_pfn; ) {
+	for (; pfn < end_pfn;) {
 		unsigned long block_end_pfn;
 
 		if (!pfn_valid(pfn)) {
@@ -580,8 +582,7 @@ static void init_pages_in_zone(pg_data_t *pgdat, struct zone *zone)
 				continue;
 
 			/* Found early allocated page */
-			__set_page_owner_handle(page_ext, early_handle,
-						0, 0);
+			__set_page_owner_handle(page_ext, early_handle, 0, 0);
 			count++;
 		}
 		cond_resched();
@@ -608,12 +609,12 @@ static void init_early_allocated_pages(void)
 {
 	pg_data_t *pgdat;
 
-	for_each_online_pgdat(pgdat)
+	for_each_online_pgdat (pgdat)
 		init_zones_in_node(pgdat);
 }
 
 static const struct file_operations proc_page_owner_operations = {
-	.read		= read_page_owner,
+	.read = read_page_owner,
 };
 
 static int __init pageowner_init(void)

@@ -70,26 +70,26 @@
  * Turned into sysctl-controllable parameters. AV, 12/11/98
  */
 
-int acct_parm[3] = {4, 2, 30};
-#define RESUME		(acct_parm[0])	/* >foo% free space - resume */
-#define SUSPEND		(acct_parm[1])	/* <foo% free space - suspend */
-#define ACCT_TIMEOUT	(acct_parm[2])	/* foo second timeout between checks */
+int acct_parm[3] = { 4, 2, 30 };
+#define RESUME (acct_parm[0]) /* >foo% free space - resume */
+#define SUSPEND (acct_parm[1]) /* <foo% free space - suspend */
+#define ACCT_TIMEOUT (acct_parm[2]) /* foo second timeout between checks */
 
 /*
  * External references and all of the globals.
  */
 
 struct bsd_acct_struct {
-	struct fs_pin		pin;
-	atomic_long_t		count;
-	struct rcu_head		rcu;
-	struct mutex		lock;
-	int			active;
-	unsigned long		needcheck;
-	struct file		*file;
-	struct pid_namespace	*ns;
-	struct work_struct	work;
-	struct completion	done;
+	struct fs_pin pin;
+	atomic_long_t count;
+	struct rcu_head rcu;
+	struct mutex lock;
+	int active;
+	unsigned long needcheck;
+	struct file *file;
+	struct pid_namespace *ns;
+	struct work_struct work;
+	struct completion done;
 };
 
 static void do_acct_process(struct bsd_acct_struct *acct);
@@ -124,7 +124,7 @@ static int check_free_space(struct bsd_acct_struct *acct)
 		}
 	}
 
-	acct->needcheck = jiffies + ACCT_TIMEOUT*HZ;
+	acct->needcheck = jiffies + ACCT_TIMEOUT * HZ;
 out:
 	return acct->active;
 }
@@ -181,7 +181,8 @@ static void acct_pin_kill(struct fs_pin *pin)
 
 static void close_work(struct work_struct *work)
 {
-	struct bsd_acct_struct *acct = container_of(work, struct bsd_acct_struct, work);
+	struct bsd_acct_struct *acct =
+		container_of(work, struct bsd_acct_struct, work);
 	struct file *file = acct->file;
 	if (file->f_op->flush)
 		file->f_op->flush(file, NULL);
@@ -203,7 +204,7 @@ static int acct_on(struct filename *pathname)
 		return -ENOMEM;
 
 	/* Difference from BSD - they don't do O_APPEND */
-	file = file_open_name(pathname, O_WRONLY|O_APPEND|O_LARGEFILE, 0);
+	file = file_open_name(pathname, O_WRONLY | O_APPEND | O_LARGEFILE, 0);
 	if (IS_ERR(file)) {
 		kfree(acct);
 		return PTR_ERR(file);
@@ -244,7 +245,7 @@ static int acct_on(struct filename *pathname)
 	mutex_init(&acct->lock);
 	INIT_WORK(&acct->work, close_work);
 	init_completion(&acct->done);
-	mutex_lock_nested(&acct->lock, 1);	/* nobody has seen it yet */
+	mutex_lock_nested(&acct->lock, 1); /* nobody has seen it yet */
 	pin_insert(&acct->pin, mnt);
 
 	rcu_read_lock();
@@ -307,9 +308,9 @@ void acct_exit_ns(struct pid_namespace *ns)
  *  is a 13-bit fraction with a 3-bit (base 8) exponent.
  */
 
-#define	MANTSIZE	13			/* 13 bit mantissa. */
-#define	EXPSIZE		3			/* Base 8 (3 bit) exponent. */
-#define	MAXFRACT	((1 << MANTSIZE) - 1)	/* Maximum fractional value. */
+#define MANTSIZE 13 /* 13 bit mantissa. */
+#define EXPSIZE 3 /* Base 8 (3 bit) exponent. */
+#define MAXFRACT ((1 << MANTSIZE) - 1) /* Maximum fractional value. */
 
 static comp_t encode_comp_t(unsigned long value)
 {
@@ -317,8 +318,8 @@ static comp_t encode_comp_t(unsigned long value)
 
 	exp = rnd = 0;
 	while (value > MAXFRACT) {
-		rnd = value & (1 << (EXPSIZE - 1));	/* Round up? */
-		value >>= EXPSIZE;	/* Base 8 exponent == 3 bit shift. */
+		rnd = value & (1 << (EXPSIZE - 1)); /* Round up? */
+		value >>= EXPSIZE; /* Base 8 exponent == 3 bit shift. */
 		exp++;
 	}
 
@@ -333,8 +334,8 @@ static comp_t encode_comp_t(unsigned long value)
 	/*
 	 * Clean it up and polish it off.
 	 */
-	exp <<= MANTSIZE;		/* Shift the exponent into place */
-	exp += value;			/* and add on the mantissa. */
+	exp <<= MANTSIZE; /* Shift the exponent into place */
+	exp += value; /* and add on the mantissa. */
 	return exp;
 }
 
@@ -348,16 +349,16 @@ static comp_t encode_comp_t(unsigned long value)
  * Largest encodable value is 50 bits.
  */
 
-#define MANTSIZE2       20                      /* 20 bit mantissa. */
-#define EXPSIZE2        5                       /* 5 bit base 2 exponent. */
-#define MAXFRACT2       ((1ul << MANTSIZE2) - 1) /* Maximum fractional value. */
-#define MAXEXP2         ((1 << EXPSIZE2) - 1)    /* Maximum exponent. */
+#define MANTSIZE2 20 /* 20 bit mantissa. */
+#define EXPSIZE2 5 /* 5 bit base 2 exponent. */
+#define MAXFRACT2 ((1ul << MANTSIZE2) - 1) /* Maximum fractional value. */
+#define MAXEXP2 ((1 << EXPSIZE2) - 1) /* Maximum exponent. */
 
 static comp2_t encode_comp2_t(u64 value)
 {
 	int exp, rnd;
 
-	exp = (value > (MAXFRACT2>>1));
+	exp = (value > (MAXFRACT2 >> 1));
 	rnd = 0;
 	while (value > MAXFRACT2) {
 		rnd = value & 1;
@@ -375,9 +376,9 @@ static comp2_t encode_comp2_t(u64 value)
 
 	if (exp > MAXEXP2) {
 		/* Overflow. Return largest representable number instead. */
-		return (1ul << (MANTSIZE2+EXPSIZE2-1)) - 1;
+		return (1ul << (MANTSIZE2 + EXPSIZE2 - 1)) - 1;
 	} else {
-		return (value & (MAXFRACT2>>1)) | (exp << (MANTSIZE2-1));
+		return (value & (MAXFRACT2 >> 1)) | (exp << (MANTSIZE2 - 1));
 	}
 }
 #elif ACCT_VERSION == 3
@@ -433,8 +434,9 @@ static void fill_ac(acct_t *ac)
 #if ACCT_VERSION == 3
 	ac->ac_etime = encode_float(elapsed);
 #else
-	ac->ac_etime = encode_comp_t(elapsed < (unsigned long) -1l ?
-				(unsigned long) elapsed : (unsigned long) -1l);
+	ac->ac_etime = encode_comp_t(elapsed < (unsigned long)-1l ?
+					     (unsigned long)elapsed :
+					     (unsigned long)-1l);
 #endif
 #if ACCT_VERSION == 1 || ACCT_VERSION == 2
 	{
@@ -442,18 +444,18 @@ static void fill_ac(acct_t *ac)
 		comp2_t etime = encode_comp2_t(elapsed);
 
 		ac->ac_etime_hi = etime >> 16;
-		ac->ac_etime_lo = (u16) etime;
+		ac->ac_etime_lo = (u16)etime;
 	}
 #endif
 	do_div(elapsed, AHZ);
 	btime = ktime_get_real_seconds() - elapsed;
 	ac->ac_btime = clamp_t(time64_t, btime, 0, U32_MAX);
-#if ACCT_VERSION==2
+#if ACCT_VERSION == 2
 	ac->ac_ahz = AHZ;
 #endif
 
 	spin_lock_irq(&current->sighand->siglock);
-	tty = current->signal->tty;	/* Safe as we hold the siglock */
+	tty = current->signal->tty; /* Safe as we hold the siglock */
 	ac->ac_tty = tty ? old_encode_dev(tty_devnum(tty)) : 0;
 	ac->ac_utime = encode_comp_t(nsec_to_AHZ(pacct->ac_utime));
 	ac->ac_stime = encode_comp_t(nsec_to_AHZ(pacct->ac_stime));
@@ -503,8 +505,8 @@ static void do_acct_process(struct bsd_acct_struct *acct)
 
 		ac.ac_pid = task_tgid_nr_ns(current, ns);
 		rcu_read_lock();
-		ac.ac_ppid = task_tgid_nr_ns(rcu_dereference(current->real_parent),
-					     ns);
+		ac.ac_ppid = task_tgid_nr_ns(
+			rcu_dereference(current->real_parent), ns);
 		rcu_read_unlock();
 	}
 #endif
@@ -571,7 +573,7 @@ void acct_collect(long exitcode, int group_dead)
 
 static void slow_acct_process(struct pid_namespace *ns)
 {
-	for ( ; ns; ns = ns->parent) {
+	for (; ns; ns = ns->parent) {
 		struct bsd_acct_struct *acct = acct_get(ns);
 		if (acct) {
 			do_acct_process(acct);

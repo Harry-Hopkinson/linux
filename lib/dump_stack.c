@@ -56,15 +56,14 @@ void dump_stack_print_info(const char *log_lvl)
 {
 	printk("%sCPU: %d PID: %d Comm: %.20s %s%s %s %.*s" BUILD_ID_FMT "\n",
 	       log_lvl, raw_smp_processor_id(), current->pid, current->comm,
-	       kexec_crash_loaded() ? "Kdump: loaded " : "",
-	       print_tainted(),
+	       kexec_crash_loaded() ? "Kdump: loaded " : "", print_tainted(),
 	       init_utsname()->release,
 	       (int)strcspn(init_utsname()->version, " "),
 	       init_utsname()->version, BUILD_ID_VAL);
 
 	if (dump_stack_arch_desc_str[0] != '\0')
-		printk("%sHardware name: %s\n",
-		       log_lvl, dump_stack_arch_desc_str);
+		printk("%sHardware name: %s\n", log_lvl,
+		       dump_stack_arch_desc_str);
 
 	print_worker_info(log_lvl, current);
 	print_stop_info(log_lvl, current);

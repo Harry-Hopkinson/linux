@@ -162,41 +162,41 @@ unlock:
 }
 
 static struct proto_ops algif_rng_ops = {
-	.family		=	PF_ALG,
+	.family = PF_ALG,
 
-	.connect	=	sock_no_connect,
-	.socketpair	=	sock_no_socketpair,
-	.getname	=	sock_no_getname,
-	.ioctl		=	sock_no_ioctl,
-	.listen		=	sock_no_listen,
-	.shutdown	=	sock_no_shutdown,
-	.mmap		=	sock_no_mmap,
-	.bind		=	sock_no_bind,
-	.accept		=	sock_no_accept,
-	.sendmsg	=	sock_no_sendmsg,
-	.sendpage	=	sock_no_sendpage,
+	.connect = sock_no_connect,
+	.socketpair = sock_no_socketpair,
+	.getname = sock_no_getname,
+	.ioctl = sock_no_ioctl,
+	.listen = sock_no_listen,
+	.shutdown = sock_no_shutdown,
+	.mmap = sock_no_mmap,
+	.bind = sock_no_bind,
+	.accept = sock_no_accept,
+	.sendmsg = sock_no_sendmsg,
+	.sendpage = sock_no_sendpage,
 
-	.release	=	af_alg_release,
-	.recvmsg	=	rng_recvmsg,
+	.release = af_alg_release,
+	.recvmsg = rng_recvmsg,
 };
 
 static struct proto_ops __maybe_unused algif_rng_test_ops = {
-	.family		=	PF_ALG,
+	.family = PF_ALG,
 
-	.connect	=	sock_no_connect,
-	.socketpair	=	sock_no_socketpair,
-	.getname	=	sock_no_getname,
-	.ioctl		=	sock_no_ioctl,
-	.listen		=	sock_no_listen,
-	.shutdown	=	sock_no_shutdown,
-	.mmap		=	sock_no_mmap,
-	.bind		=	sock_no_bind,
-	.accept		=	sock_no_accept,
-	.sendpage	=	sock_no_sendpage,
+	.connect = sock_no_connect,
+	.socketpair = sock_no_socketpair,
+	.getname = sock_no_getname,
+	.ioctl = sock_no_ioctl,
+	.listen = sock_no_listen,
+	.shutdown = sock_no_shutdown,
+	.mmap = sock_no_mmap,
+	.bind = sock_no_bind,
+	.accept = sock_no_accept,
+	.sendpage = sock_no_sendpage,
 
-	.release	=	af_alg_release,
-	.recvmsg	=	rng_test_recvmsg,
-	.sendmsg	=	rng_test_sendmsg,
+	.release = af_alg_release,
+	.recvmsg = rng_test_recvmsg,
+	.sendmsg = rng_test_sendmsg,
 };
 
 static void *rng_bind(const char *name, u32 type, u32 mask)
@@ -314,18 +314,16 @@ static int __maybe_unused rng_setentropy(void *private, sockptr_t entropy,
 	return 0;
 }
 
-static const struct af_alg_type algif_type_rng = {
-	.bind		=	rng_bind,
-	.release	=	rng_release,
-	.accept		=	rng_accept_parent,
-	.setkey		=	rng_setkey,
+static const struct af_alg_type algif_type_rng = { .bind = rng_bind,
+						   .release = rng_release,
+						   .accept = rng_accept_parent,
+						   .setkey = rng_setkey,
 #ifdef CONFIG_CRYPTO_USER_API_RNG_CAVP
-	.setentropy	=	rng_setentropy,
+						   .setentropy = rng_setentropy,
 #endif
-	.ops		=	&algif_rng_ops,
-	.name		=	"rng",
-	.owner		=	THIS_MODULE
-};
+						   .ops = &algif_rng_ops,
+						   .name = "rng",
+						   .owner = THIS_MODULE };
 
 static int __init rng_init(void)
 {

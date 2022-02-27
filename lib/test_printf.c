@@ -37,16 +37,15 @@ static char *alloced_buffer __initdata;
 
 extern bool no_hash_pointers;
 
-static int __printf(4, 0) __init
-do_test(int bufsize, const char *expect, int elen,
-	const char *fmt, va_list ap)
+static int __printf(4, 0) __init do_test(int bufsize, const char *expect,
+					 int elen, const char *fmt, va_list ap)
 {
 	va_list aq;
 	int ret, written;
 
 	total_tests++;
 
-	memset(alloced_buffer, FILL_CHAR, BUF_SIZE + 2*PAD_SIZE);
+	memset(alloced_buffer, FILL_CHAR, BUF_SIZE + 2 * PAD_SIZE);
 	va_copy(aq, ap);
 	ret = vsnprintf(test_buffer, bufsize, fmt, aq);
 	va_end(aq);
@@ -58,7 +57,8 @@ do_test(int bufsize, const char *expect, int elen,
 	}
 
 	if (memchr_inv(alloced_buffer, FILL_CHAR, PAD_SIZE)) {
-		pr_warn("vsnprintf(buf, %d, \"%s\", ...) wrote before buffer\n", bufsize, fmt);
+		pr_warn("vsnprintf(buf, %d, \"%s\", ...) wrote before buffer\n",
+			bufsize, fmt);
 		return 1;
 	}
 
@@ -71,14 +71,15 @@ do_test(int bufsize, const char *expect, int elen,
 		return 0;
 	}
 
-	written = min(bufsize-1, elen);
+	written = min(bufsize - 1, elen);
 	if (test_buffer[written]) {
 		pr_warn("vsnprintf(buf, %d, \"%s\", ...) did not nul-terminate buffer\n",
 			bufsize, fmt);
 		return 1;
 	}
 
-	if (memchr_inv(test_buffer + written + 1, FILL_CHAR, BUF_SIZE + PAD_SIZE - (written + 1))) {
+	if (memchr_inv(test_buffer + written + 1, FILL_CHAR,
+		       BUF_SIZE + PAD_SIZE - (written + 1))) {
 		pr_warn("vsnprintf(buf, %d, \"%s\", ...) wrote beyond the nul-terminator\n",
 			bufsize, fmt);
 		return 1;
@@ -93,7 +94,7 @@ do_test(int bufsize, const char *expect, int elen,
 }
 
 static void __printf(3, 4) __init
-__test(const char *expect, int elen, const char *fmt, ...)
+	__test(const char *expect, int elen, const char *fmt, ...)
 {
 	va_list ap;
 	int rand;
@@ -115,7 +116,7 @@ __test(const char *expect, int elen, const char *fmt, ...)
 	 * be able to print it as expected.
 	 */
 	failed_tests += do_test(BUF_SIZE, expect, elen, fmt, ap);
-	rand = 1 + prandom_u32_max(elen+1);
+	rand = 1 + prandom_u32_max(elen + 1);
 	/* Since elen < BUF_SIZE, we have 1 <= rand <= BUF_SIZE. */
 	failed_tests += do_test(rand, expect, elen, fmt, ap);
 	failed_tests += do_test(0, expect, elen, fmt, ap);
@@ -123,7 +124,7 @@ __test(const char *expect, int elen, const char *fmt, ...)
 	p = kvasprintf(GFP_KERNEL, fmt, ap);
 	if (p) {
 		total_tests++;
-		if (memcmp(p, expect, elen+1)) {
+		if (memcmp(p, expect, elen + 1)) {
 			pr_warn("kvasprintf(..., \"%s\", ...) returned '%s', expected '%s'\n",
 				fmt, p, expect);
 			failed_tests++;
@@ -133,11 +134,10 @@ __test(const char *expect, int elen, const char *fmt, ...)
 	va_end(ap);
 }
 
-#define test(expect, fmt, ...)					\
+#define test(expect, fmt, ...)                                                 \
 	__test(expect, strlen(expect), fmt, ##__VA_ARGS__)
 
-static void __init
-test_basic(void)
+static void __init test_basic(void)
 {
 	/* Work around annoying "warning: zero-length gnu_printf format string". */
 	char nul = '\0';
@@ -148,12 +148,12 @@ test_basic(void)
 	__test("xxx\0yyy", 7, "xxx%cyyy", '\0');
 }
 
-static void __init
-test_number(void)
+static void __init test_number(void)
 {
 	test("0x1234abcd  ", "%#-12x", 0x1234abcd);
 	test("  0x1234abcd", "%#12x", 0x1234abcd);
-	test("0|001| 12|+123| 1234|-123|-1234", "%d|%03d|%3d|%+d|% d|%+d|% d", 0, 1, 12, 123, 1234, -123, -1234);
+	test("0|001| 12|+123| 1234|-123|-1234", "%d|%03d|%3d|%+d|% d|%+d|% d",
+	     0, 1, 12, 123, 1234, -123, -1234);
 	test("0|1|1|128|255", "%hhu|%hhu|%hhu|%hhu|%hhu", 0, 1, 257, 128, -1);
 	test("0|1|1|-128|-1", "%hhd|%hhd|%hhd|%hhd|%hhd", 0, 1, 257, 128, -1);
 	test("2015122420151225", "%ho%ho%#ho", 1037, 5282, -11627);
@@ -175,17 +175,18 @@ test_number(void)
 		 * with 0xff or cast to u8.
 		 */
 		char val = -16;
-		test("0xfffffff0|0xf0|0xf0", "%#02x|%#02x|%#02x", val, val & 0xff, (u8)val);
+		test("0xfffffff0|0xf0|0xf0", "%#02x|%#02x|%#02x", val,
+		     val & 0xff, (u8)val);
 	}
 #endif
 }
 
-static void __init
-test_string(void)
+static void __init test_string(void)
 {
 	test("", "%s%.0s", "", "123");
 	test("ABCD|abc|123", "%s|%.3s|%.*s", "ABCD", "abcdef", 3, "123456");
-	test("1  |  2|3  |  4|5  ", "%-3s|%3s|%-*s|%*s|%*s", "1", "2", 3, "3", 3, "4", -3, "5");
+	test("1  |  2|3  |  4|5  ", "%-3s|%3s|%-*s|%*s|%*s", "1", "2", 3, "3",
+	     3, "4", -3, "5");
 	test("1234      ", "%-10.4s", "123456");
 	test("      1234", "%10.4s", "123456");
 	/*
@@ -207,7 +208,7 @@ test_string(void)
 	test("a  |   |   ", "%-3.s|%-3.0s|%-3.*s", "a", "b", 0, "c");
 }
 
-#define PLAIN_BUF_SIZE 64	/* leave some space so we don't oops */
+#define PLAIN_BUF_SIZE 64 /* leave some space so we don't oops */
 
 #if BITS_PER_LONG == 64
 
@@ -215,11 +216,10 @@ test_string(void)
 #define PTR ((void *)0xffff0123456789abUL)
 #define PTR_STR "ffff0123456789ab"
 #define PTR_VAL_NO_CRNG "(____ptrval____)"
-#define ZEROS "00000000"	/* hex 32 zero bits */
-#define ONES "ffffffff"		/* hex 32 one bits */
+#define ZEROS "00000000" /* hex 32 zero bits */
+#define ONES "ffffffff" /* hex 32 one bits */
 
-static int __init
-plain_format(void)
+static int __init plain_format(void)
 {
 	char buf[PLAIN_BUF_SIZE];
 	int nchars;
@@ -250,17 +250,15 @@ plain_format(void)
 #define ZEROS ""
 #define ONES ""
 
-static int __init
-plain_format(void)
+static int __init plain_format(void)
 {
 	/* Format is implicitly tested for 32 bit machines by plain_hash() */
 	return 0;
 }
 
-#endif	/* BITS_PER_LONG == 64 */
+#endif /* BITS_PER_LONG == 64 */
 
-static int __init
-plain_hash_to_buffer(const void *p, char *buf, size_t len)
+static int __init plain_hash_to_buffer(const void *p, char *buf, size_t len)
 {
 	int nchars;
 
@@ -278,8 +276,7 @@ plain_hash_to_buffer(const void *p, char *buf, size_t len)
 	return 0;
 }
 
-static int __init
-plain_hash(void)
+static int __init plain_hash(void)
 {
 	char buf[PLAIN_BUF_SIZE];
 	int ret;
@@ -298,8 +295,7 @@ plain_hash(void)
  * We can't use test() to test %p because we don't know what output to expect
  * after an address is hashed.
  */
-static void __init
-plain(void)
+static void __init plain(void)
 {
 	int err;
 
@@ -323,8 +319,7 @@ plain(void)
 	}
 }
 
-static void __init
-test_hashed(const char *fmt, const void *p)
+static void __init test_hashed(const char *fmt, const void *p)
 {
 	char buf[PLAIN_BUF_SIZE];
 	int ret;
@@ -343,8 +338,7 @@ test_hashed(const char *fmt, const void *p)
 /*
  * NULL pointers aren't hashed.
  */
-static void __init
-null_pointer(void)
+static void __init null_pointer(void)
 {
 	test(ZEROS "00000000", "%p", NULL);
 	test(ZEROS "00000000", "%px", NULL);
@@ -354,8 +348,7 @@ null_pointer(void)
 /*
  * Error pointers aren't hashed.
  */
-static void __init
-error_pointer(void)
+static void __init error_pointer(void)
 {
 	test(ONES "fffffff5", "%p", ERR_PTR(-11));
 	test(ONES "fffffff5", "%px", ERR_PTR(-11));
@@ -364,55 +357,47 @@ error_pointer(void)
 
 #define PTR_INVALID ((void *)0x000000ab)
 
-static void __init
-invalid_pointer(void)
+static void __init invalid_pointer(void)
 {
 	test_hashed("%p", PTR_INVALID);
 	test(ZEROS "000000ab", "%px", PTR_INVALID);
 	test("(efault)", "%pE", PTR_INVALID);
 }
 
-static void __init
-symbol_ptr(void)
+static void __init symbol_ptr(void)
 {
 }
 
-static void __init
-kernel_ptr(void)
+static void __init kernel_ptr(void)
 {
 	/* We can't test this without access to kptr_restrict. */
 }
 
-static void __init
-struct_resource(void)
+static void __init struct_resource(void)
 {
 }
 
-static void __init
-addr(void)
+static void __init addr(void)
 {
 }
 
-static void __init
-escaped_str(void)
+static void __init escaped_str(void)
 {
 }
 
-static void __init
-hex_string(void)
+static void __init hex_string(void)
 {
-	const char buf[3] = {0xc0, 0xff, 0xee};
+	const char buf[3] = { 0xc0, 0xff, 0xee };
 
-	test("c0 ff ee|c0:ff:ee|c0-ff-ee|c0ffee",
-	     "%3ph|%3phC|%3phD|%3phN", buf, buf, buf, buf);
-	test("c0 ff ee|c0:ff:ee|c0-ff-ee|c0ffee",
-	     "%*ph|%*phC|%*phD|%*phN", 3, buf, 3, buf, 3, buf, 3, buf);
+	test("c0 ff ee|c0:ff:ee|c0-ff-ee|c0ffee", "%3ph|%3phC|%3phD|%3phN", buf,
+	     buf, buf, buf);
+	test("c0 ff ee|c0:ff:ee|c0-ff-ee|c0ffee", "%*ph|%*phC|%*phD|%*phN", 3,
+	     buf, 3, buf, 3, buf, 3, buf);
 }
 
-static void __init
-mac(void)
+static void __init mac(void)
 {
-	const u8 addr[6] = {0x2d, 0x48, 0xd6, 0xfc, 0x7a, 0x05};
+	const u8 addr[6] = { 0x2d, 0x48, 0xd6, 0xfc, 0x7a, 0x05 };
 
 	test("2d:48:d6:fc:7a:05", "%pM", addr);
 	test("05:7a:fc:d6:48:2d", "%pMR", addr);
@@ -421,8 +406,7 @@ mac(void)
 	test("057afcd6482d", "%pmR", addr);
 }
 
-static void __init
-ip4(void)
+static void __init ip4(void)
 {
 	struct sockaddr_in sa;
 
@@ -430,29 +414,27 @@ ip4(void)
 	sa.sin_port = cpu_to_be16(12345);
 	sa.sin_addr.s_addr = cpu_to_be32(0x7f000001);
 
-	test("127.000.000.001|127.0.0.1", "%pi4|%pI4", &sa.sin_addr, &sa.sin_addr);
+	test("127.000.000.001|127.0.0.1", "%pi4|%pI4", &sa.sin_addr,
+	     &sa.sin_addr);
 	test("127.000.000.001|127.0.0.1", "%piS|%pIS", &sa, &sa);
 	sa.sin_addr.s_addr = cpu_to_be32(0x01020304);
 	test("001.002.003.004:12345|1.2.3.4:12345", "%piSp|%pISp", &sa, &sa);
 }
 
-static void __init
-ip6(void)
+static void __init ip6(void)
 {
 }
 
-static void __init
-ip(void)
+static void __init ip(void)
 {
 	ip4();
 	ip6();
 }
 
-static void __init
-uuid(void)
+static void __init uuid(void)
 {
-	const char uuid[16] = {0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7,
-			       0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf};
+	const char uuid[16] = { 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7,
+				0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf };
 
 	test("00010203-0405-0607-0809-0a0b0c0d0e0f", "%pUb", uuid);
 	test("00010203-0405-0607-0809-0A0B0C0D0E0F", "%pUB", uuid);
@@ -475,8 +457,7 @@ static struct dentry test_dentry[4] __initdata = {
 	  .d_iname = "romeo" },
 };
 
-static void __init
-dentry(void)
+static void __init dentry(void)
 {
 	test("foo", "%pd", &test_dentry[0]);
 	test("foo", "%pd2", &test_dentry[0]);
@@ -492,17 +473,17 @@ dentry(void)
 	test("/bravo/alfa/romeo", "%pd4", &test_dentry[3]);
 	test("/bravo/alfa", "%pd4", &test_dentry[2]);
 
-	test("bravo/alfa  |bravo/alfa  ", "%-12pd2|%*pd2", &test_dentry[2], -12, &test_dentry[2]);
-	test("  bravo/alfa|  bravo/alfa", "%12pd2|%*pd2", &test_dentry[2], 12, &test_dentry[2]);
+	test("bravo/alfa  |bravo/alfa  ", "%-12pd2|%*pd2", &test_dentry[2], -12,
+	     &test_dentry[2]);
+	test("  bravo/alfa|  bravo/alfa", "%12pd2|%*pd2", &test_dentry[2], 12,
+	     &test_dentry[2]);
 }
 
-static void __init
-struct_va_format(void)
+static void __init struct_va_format(void)
 {
 }
 
-static void __init
-time_and_date(void)
+static void __init time_and_date(void)
 {
 	/* 1543210543 */
 	const struct rtc_time tm = {
@@ -535,13 +516,11 @@ time_and_date(void)
 	test("15:32:23|0119-00-04", "%ptTtrs|%ptTdrs", &t, &t);
 }
 
-static void __init
-struct_clk(void)
+static void __init struct_clk(void)
 {
 }
 
-static void __init
-large_bitmap(void)
+static void __init large_bitmap(void)
 {
 	const int nbits = 1 << 16;
 	unsigned long *bits = bitmap_zalloc(nbits, GFP_KERNEL);
@@ -554,11 +533,10 @@ large_bitmap(void)
 	bitmap_free(bits);
 }
 
-static void __init
-bitmap(void)
+static void __init bitmap(void)
 {
 	DECLARE_BITMAP(bits, 20);
-	const int primes[] = {2,3,5,7,11,13,17,19};
+	const int primes[] = { 2, 3, 5, 7, 11, 13, 17, 19 };
 	int i;
 
 	bitmap_zero(bits, 20);
@@ -568,7 +546,8 @@ bitmap(void)
 	for (i = 0; i < ARRAY_SIZE(primes); ++i)
 		set_bit(primes[i], bits);
 	test("a28ac|a28ac", "%20pb|%*pb", bits, 20, bits);
-	test("2-3,5,7,11,13,17,19|2-3,5,7,11,13,17,19", "%20pbl|%*pbl", bits, 20, bits);
+	test("2-3,5,7,11,13,17,19|2-3,5,7,11,13,17,19", "%20pbl|%*pbl", bits,
+	     20, bits);
 
 	bitmap_fill(bits, 20);
 	test("fffff|fffff", "%20pb|%*pb", bits, 20, bits);
@@ -577,8 +556,7 @@ bitmap(void)
 	large_bitmap();
 }
 
-static void __init
-netdev_features(void)
+static void __init netdev_features(void)
 {
 }
 
@@ -591,24 +569,22 @@ struct page_flags_test {
 };
 
 static const struct page_flags_test pft[] = {
-	{SECTIONS_WIDTH, SECTIONS_PGSHIFT, SECTIONS_MASK,
-	 "%d", "section"},
-	{NODES_WIDTH, NODES_PGSHIFT, NODES_MASK,
-	 "%d", "node"},
-	{ZONES_WIDTH, ZONES_PGSHIFT, ZONES_MASK,
-	 "%d", "zone"},
-	{LAST_CPUPID_WIDTH, LAST_CPUPID_PGSHIFT, LAST_CPUPID_MASK,
-	 "%#x", "lastcpupid"},
-	{KASAN_TAG_WIDTH, KASAN_TAG_PGSHIFT, KASAN_TAG_MASK,
-	 "%#x", "kasantag"},
+	{ SECTIONS_WIDTH, SECTIONS_PGSHIFT, SECTIONS_MASK, "%d", "section" },
+	{ NODES_WIDTH, NODES_PGSHIFT, NODES_MASK, "%d", "node" },
+	{ ZONES_WIDTH, ZONES_PGSHIFT, ZONES_MASK, "%d", "zone" },
+	{ LAST_CPUPID_WIDTH, LAST_CPUPID_PGSHIFT, LAST_CPUPID_MASK, "%#x",
+	  "lastcpupid" },
+	{ KASAN_TAG_WIDTH, KASAN_TAG_PGSHIFT, KASAN_TAG_MASK, "%#x",
+	  "kasantag" },
 };
 
-static void __init
-page_flags_test(int section, int node, int zone, int last_cpupid,
-		int kasan_tag, unsigned long flags, const char *name,
-		char *cmp_buf)
+static void __init page_flags_test(int section, int node, int zone,
+				   int last_cpupid, int kasan_tag,
+				   unsigned long flags, const char *name,
+				   char *cmp_buf)
 {
-	unsigned long values[] = {section, node, zone, last_cpupid, kasan_tag};
+	unsigned long values[] = { section, node, zone, last_cpupid,
+				   kasan_tag };
 	unsigned long size;
 	bool append = false;
 	int i;
@@ -629,10 +605,10 @@ page_flags_test(int section, int node, int zone, int last_cpupid,
 		if (append)
 			size += scnprintf(cmp_buf + size, BUF_SIZE - size, "|");
 
-		size += scnprintf(cmp_buf + size, BUF_SIZE - size, "%s=",
-				pft[i].name);
+		size += scnprintf(cmp_buf + size, BUF_SIZE - size,
+				  "%s=", pft[i].name);
 		size += scnprintf(cmp_buf + size, BUF_SIZE - size, pft[i].fmt,
-				values[i] & pft[i].mask);
+				  values[i] & pft[i].mask);
 		append = true;
 	}
 
@@ -641,8 +617,7 @@ page_flags_test(int section, int node, int zone, int last_cpupid,
 	test(cmp_buf, "%pGp", &flags);
 }
 
-static void __init
-flags(void)
+static void __init flags(void)
 {
 	unsigned long flags;
 	char *cmp_buffer;
@@ -658,11 +633,10 @@ flags(void)
 	flags = 1UL << NR_PAGEFLAGS;
 	page_flags_test(0, 0, 0, 0, 0, flags, "", cmp_buffer);
 
-	flags |= 1UL << PG_uptodate | 1UL << PG_dirty | 1UL << PG_lru
-		| 1UL << PG_active | 1UL << PG_swapbacked;
+	flags |= 1UL << PG_uptodate | 1UL << PG_dirty | 1UL << PG_lru |
+		 1UL << PG_active | 1UL << PG_swapbacked;
 	page_flags_test(1, 1, 1, 0x1fffff, 1, flags,
-			"uptodate|dirty|lru|active|swapbacked",
-			cmp_buffer);
+			"uptodate|dirty|lru|active|swapbacked", cmp_buffer);
 
 	flags = VM_READ | VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC;
 	test("read|exec|mayread|maywrite|mayexec", "%pGv", &flags);
@@ -670,7 +644,7 @@ flags(void)
 	gfp = GFP_TRANSHUGE;
 	test("GFP_TRANSHUGE", "%pGg", &gfp);
 
-	gfp = GFP_ATOMIC|__GFP_DMA;
+	gfp = GFP_ATOMIC | __GFP_DMA;
 	test("GFP_ATOMIC|GFP_DMA", "%pGg", &gfp);
 
 	gfp = __GFP_ATOMIC;
@@ -678,11 +652,10 @@ flags(void)
 
 	/* Any flags not translated by the table should remain numeric */
 	gfp = ~__GFP_BITS_MASK;
-	snprintf(cmp_buffer, BUF_SIZE, "%#lx", (unsigned long) gfp);
+	snprintf(cmp_buffer, BUF_SIZE, "%#lx", (unsigned long)gfp);
 	test(cmp_buffer, "%pGg", &gfp);
 
-	snprintf(cmp_buffer, BUF_SIZE, "__GFP_ATOMIC|%#lx",
-							(unsigned long) gfp);
+	snprintf(cmp_buffer, BUF_SIZE, "__GFP_ATOMIC|%#lx", (unsigned long)gfp);
 	gfp |= __GFP_ATOMIC;
 	test(cmp_buffer, "%pGg", &gfp);
 
@@ -692,15 +665,23 @@ flags(void)
 static void __init fwnode_pointer(void)
 {
 	const struct software_node softnodes[] = {
-		{ .name = "first", },
-		{ .name = "second", .parent = &softnodes[0], },
-		{ .name = "third", .parent = &softnodes[1], },
+		{
+			.name = "first",
+		},
+		{
+			.name = "second",
+			.parent = &softnodes[0],
+		},
+		{
+			.name = "third",
+			.parent = &softnodes[1],
+		},
 		{ NULL /* Guardian */ }
 	};
-	const char * const full_name = "first/second/third";
-	const char * const full_name_second = "first/second";
-	const char * const second_name = "second";
-	const char * const third_name = "third";
+	const char *const full_name = "first/second/third";
+	const char *const full_name_second = "first/second";
+	const char *const second_name = "second";
+	const char *const third_name = "third";
 	int rval;
 
 	rval = software_node_register_nodes(softnodes);
@@ -724,10 +705,22 @@ static void __init fourcc_pointer(void)
 		u32 code;
 		char *str;
 	} const try[] = {
-		{ 0x3231564e, "NV12 little-endian (0x3231564e)", },
-		{ 0xb231564e, "NV12 big-endian (0xb231564e)", },
-		{ 0x10111213, ".... little-endian (0x10111213)", },
-		{ 0x20303159, "Y10  little-endian (0x20303159)", },
+		{
+			0x3231564e,
+			"NV12 little-endian (0x3231564e)",
+		},
+		{
+			0xb231564e,
+			"NV12 big-endian (0xb231564e)",
+		},
+		{
+			0x10111213,
+			".... little-endian (0x10111213)",
+		},
+		{
+			0x20303159,
+			"Y10  little-endian (0x20303159)",
+		},
 	};
 	unsigned int i;
 
@@ -735,8 +728,7 @@ static void __init fourcc_pointer(void)
 		test(try[i].str, "%p4cc", &try[i].code);
 }
 
-static void __init
-errptr(void)
+static void __init errptr(void)
 {
 	test("-1234", "%pe", ERR_PTR(-1234));
 
@@ -755,8 +747,7 @@ errptr(void)
 #endif
 }
 
-static void __init
-test_pointer(void)
+static void __init test_pointer(void)
 {
 	plain();
 	null_pointer();
@@ -785,7 +776,7 @@ test_pointer(void)
 
 static void __init selftest(void)
 {
-	alloced_buffer = kmalloc(BUF_SIZE + 2*PAD_SIZE, GFP_KERNEL);
+	alloced_buffer = kmalloc(BUF_SIZE + 2 * PAD_SIZE, GFP_KERNEL);
 	if (!alloced_buffer)
 		return;
 	test_buffer = alloced_buffer + PAD_SIZE;

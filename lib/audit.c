@@ -6,27 +6,27 @@
 
 static unsigned dir_class[] = {
 #include <asm-generic/audit_dir_write.h>
-~0U
+	~0U
 };
 
 static unsigned read_class[] = {
 #include <asm-generic/audit_read.h>
-~0U
+	~0U
 };
 
 static unsigned write_class[] = {
 #include <asm-generic/audit_write.h>
-~0U
+	~0U
 };
 
 static unsigned chattr_class[] = {
 #include <asm-generic/audit_change_attr.h>
-~0U
+	~0U
 };
 
 static unsigned signal_class[] = {
 #include <asm-generic/audit_signal.h>
-~0U
+	~0U
 };
 
 int audit_classify_arch(int arch)
@@ -42,7 +42,7 @@ int audit_classify_syscall(int abi, unsigned syscall)
 	if (audit_is_compat(abi))
 		return audit_classify_compat_syscall(abi, syscall);
 
-	switch(syscall) {
+	switch (syscall) {
 #ifdef __NR_open
 	case __NR_open:
 		return AUDITSC_OPEN;

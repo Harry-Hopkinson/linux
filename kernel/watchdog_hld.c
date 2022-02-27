@@ -99,11 +99,11 @@ static inline bool watchdog_check_timestamp(void)
 #endif
 
 static struct perf_event_attr wd_hw_attr = {
-	.type		= PERF_TYPE_HARDWARE,
-	.config		= PERF_COUNT_HW_CPU_CYCLES,
-	.size		= sizeof(struct perf_event_attr),
-	.pinned		= 1,
-	.disabled	= 1,
+	.type = PERF_TYPE_HARDWARE,
+	.config = PERF_COUNT_HW_CPU_CYCLES,
+	.size = sizeof(struct perf_event_attr),
+	.pinned = 1,
+	.disabled = 1,
 };
 
 /* Callback function for perf event subsystem */
@@ -135,8 +135,7 @@ static void watchdog_overflow_callback(struct perf_event *event,
 		if (__this_cpu_read(hard_watchdog_warn) == true)
 			return;
 
-		pr_emerg("Watchdog detected hard LOCKUP on cpu %d\n",
-			 this_cpu);
+		pr_emerg("Watchdog detected hard LOCKUP on cpu %d\n", this_cpu);
 		print_modules();
 		print_irqtrace_events(current);
 		if (regs)
@@ -149,7 +148,7 @@ static void watchdog_overflow_callback(struct perf_event *event,
 		 * generating interleaving traces
 		 */
 		if (sysctl_hardlockup_all_cpu_backtrace &&
-				!test_and_set_bit(0, &hardlockup_allcpu_dumped))
+		    !test_and_set_bit(0, &hardlockup_allcpu_dumped))
 			trigger_allbutself_cpu_backtrace();
 
 		if (hardlockup_panic)
@@ -173,8 +172,8 @@ static int hardlockup_detector_event_create(void)
 	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
 
 	/* Try to register using hardware perf events */
-	evt = perf_event_create_kernel_counter(wd_attr, cpu, NULL,
-					       watchdog_overflow_callback, NULL);
+	evt = perf_event_create_kernel_counter(
+		wd_attr, cpu, NULL, watchdog_overflow_callback, NULL);
 	if (IS_ERR(evt)) {
 		pr_debug("Perf event create on CPU %d failed with %ld\n", cpu,
 			 PTR_ERR(evt));
@@ -224,7 +223,7 @@ void hardlockup_detector_perf_cleanup(void)
 {
 	int cpu;
 
-	for_each_cpu(cpu, &dead_events_mask) {
+	for_each_cpu (cpu, &dead_events_mask) {
 		struct perf_event *event = per_cpu(dead_event, cpu);
 
 		/*
@@ -249,7 +248,7 @@ void __init hardlockup_detector_perf_stop(void)
 
 	lockdep_assert_cpus_held();
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu (cpu) {
 		struct perf_event *event = per_cpu(watchdog_ev, cpu);
 
 		if (event)
@@ -271,7 +270,7 @@ void __init hardlockup_detector_perf_restart(void)
 	if (!(watchdog_enabled & NMI_WATCHDOG_ENABLED))
 		return;
 
-	for_each_online_cpu(cpu) {
+	for_each_online_cpu (cpu) {
 		struct perf_event *event = per_cpu(watchdog_ev, cpu);
 
 		if (event)

@@ -12,21 +12,21 @@
 #include <linux/string_helpers.h>
 
 static __init bool test_string_check_buf(const char *name, unsigned int flags,
-					 char *in, size_t p,
-					 char *out_real, size_t q_real,
-					 char *out_test, size_t q_test)
+					 char *in, size_t p, char *out_real,
+					 size_t q_real, char *out_test,
+					 size_t q_test)
 {
 	if (q_real == q_test && !memcmp(out_test, out_real, q_test))
 		return true;
 
 	pr_warn("Test '%s' failed: flags = %#x\n", name, flags);
 
-	print_hex_dump(KERN_WARNING, "Input: ", DUMP_PREFIX_NONE, 16, 1,
-		       in, p, true);
+	print_hex_dump(KERN_WARNING, "Input: ", DUMP_PREFIX_NONE, 16, 1, in, p,
+		       true);
 	print_hex_dump(KERN_WARNING, "Expected: ", DUMP_PREFIX_NONE, 16, 1,
 		       out_test, q_test, true);
-	print_hex_dump(KERN_WARNING, "Got: ", DUMP_PREFIX_NONE, 16, 1,
-		       out_real, q_real, true);
+	print_hex_dump(KERN_WARNING, "Got: ", DUMP_PREFIX_NONE, 16, 1, out_real,
+		       q_real, true);
 
 	return false;
 }
@@ -116,247 +116,304 @@ struct test_string_1 {
 	unsigned int flags;
 };
 
-#define	TEST_STRING_2_MAX_S1		32
+#define TEST_STRING_2_MAX_S1 32
 struct test_string_2 {
 	const char *in;
 	struct test_string_1 s1[TEST_STRING_2_MAX_S1];
 };
 
-#define	TEST_STRING_2_DICT_0		NULL
-static const struct test_string_2 escape0[] __initconst = {{
-	.in = "\f\\ \n\r\t\v",
-	.s1 = {{
-		.out = "\\f\\ \\n\\r\\t\\v",
-		.flags = ESCAPE_SPACE,
-	},{
-		.out = "\\f\\134\\040\\n\\r\\t\\v",
-		.flags = ESCAPE_SPACE | ESCAPE_OCTAL,
-	},{
-		.out = "\\f\\x5c\\x20\\n\\r\\t\\v",
-		.flags = ESCAPE_SPACE | ESCAPE_HEX,
-	},{
+#define TEST_STRING_2_DICT_0 NULL
+static const struct test_string_2 escape0[] __initconst = {
+	{ .in = "\f\\ \n\r\t\v",
+	  .s1 = { {
+			  .out = "\\f\\ \\n\\r\\t\\v",
+			  .flags = ESCAPE_SPACE,
+		  },
+		  {
+			  .out = "\\f\\134\\040\\n\\r\\t\\v",
+			  .flags = ESCAPE_SPACE | ESCAPE_OCTAL,
+		  },
+		  {
+			  .out = "\\f\\x5c\\x20\\n\\r\\t\\v",
+			  .flags = ESCAPE_SPACE | ESCAPE_HEX,
+		  },
+		  {
+			  /* terminator */
+		  } } },
+	{ .in = "\\h\\\"\a\e\\",
+	  .s1 = { {
+			  .out = "\\\\h\\\\\\\"\\a\\e\\\\",
+			  .flags = ESCAPE_SPECIAL,
+		  },
+		  {
+			  .out = "\\\\\\150\\\\\\\"\\a\\e\\\\",
+			  .flags = ESCAPE_SPECIAL | ESCAPE_OCTAL,
+		  },
+		  {
+			  .out = "\\\\\\x68\\\\\\\"\\a\\e\\\\",
+			  .flags = ESCAPE_SPECIAL | ESCAPE_HEX,
+		  },
+		  {
+			  /* terminator */
+		  } } },
+	{ .in = "\eb \\C\007\"\x90\r]",
+	  .s1 = { {
+			  .out = "\eb \\C\007\"\x90\\r]",
+			  .flags = ESCAPE_SPACE,
+		  },
+		  {
+			  .out = "\\eb \\\\C\\a\\\"\x90\r]",
+			  .flags = ESCAPE_SPECIAL,
+		  },
+		  {
+			  .out = "\\eb \\\\C\\a\\\"\x90\\r]",
+			  .flags = ESCAPE_SPACE | ESCAPE_SPECIAL,
+		  },
+		  {
+			  .out = "\\033\\142\\040\\134\\103\\007\\042\\220\\015\\135",
+			  .flags = ESCAPE_OCTAL,
+		  },
+		  {
+			  .out = "\\033\\142\\040\\134\\103\\007\\042\\220\\r\\135",
+			  .flags = ESCAPE_SPACE | ESCAPE_OCTAL,
+		  },
+		  {
+			  .out = "\\e\\142\\040\\\\\\103\\a\\\"\\220\\015\\135",
+			  .flags = ESCAPE_SPECIAL | ESCAPE_OCTAL,
+		  },
+		  {
+			  .out = "\\e\\142\\040\\\\\\103\\a\\\"\\220\\r\\135",
+			  .flags = ESCAPE_SPACE | ESCAPE_SPECIAL | ESCAPE_OCTAL,
+		  },
+		  {
+			  .out = "\eb \\C\007\"\x90\r]",
+			  .flags = ESCAPE_NP,
+		  },
+		  {
+			  .out = "\eb \\C\007\"\x90\\r]",
+			  .flags = ESCAPE_SPACE | ESCAPE_NP,
+		  },
+		  {
+			  .out = "\\eb \\C\\a\"\x90\r]",
+			  .flags = ESCAPE_SPECIAL | ESCAPE_NP,
+		  },
+		  {
+			  .out = "\\eb \\C\\a\"\x90\\r]",
+			  .flags = ESCAPE_SPACE | ESCAPE_SPECIAL | ESCAPE_NP,
+		  },
+		  {
+			  .out = "\\033b \\C\\007\"\\220\\015]",
+			  .flags = ESCAPE_OCTAL | ESCAPE_NP,
+		  },
+		  {
+			  .out = "\\033b \\C\\007\"\\220\\r]",
+			  .flags = ESCAPE_SPACE | ESCAPE_OCTAL | ESCAPE_NP,
+		  },
+		  {
+			  .out = "\\eb \\C\\a\"\\220\\r]",
+			  .flags = ESCAPE_SPECIAL | ESCAPE_SPACE |
+				   ESCAPE_OCTAL | ESCAPE_NP,
+		  },
+		  {
+			  .out = "\\x1bb \\C\\x07\"\\x90\\x0d]",
+			  .flags = ESCAPE_NP | ESCAPE_HEX,
+		  },
+		  {
+			  /* terminator */
+		  } } },
+	{ .in = "\007 \eb\"\x90\xCF\r",
+	  .s1 = { {
+			  .out = "\007 \eb\"\\220\\317\r",
+			  .flags = ESCAPE_OCTAL | ESCAPE_NA,
+		  },
+		  {
+			  .out = "\007 \eb\"\\x90\\xcf\r",
+			  .flags = ESCAPE_HEX | ESCAPE_NA,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\xCF\r",
+			  .flags = ESCAPE_NA,
+		  },
+		  {
+			  /* terminator */
+		  } } },
+	{
 		/* terminator */
-	}}
-},{
-	.in = "\\h\\\"\a\e\\",
-	.s1 = {{
-		.out = "\\\\h\\\\\\\"\\a\\e\\\\",
-		.flags = ESCAPE_SPECIAL,
-	},{
-		.out = "\\\\\\150\\\\\\\"\\a\\e\\\\",
-		.flags = ESCAPE_SPECIAL | ESCAPE_OCTAL,
-	},{
-		.out = "\\\\\\x68\\\\\\\"\\a\\e\\\\",
-		.flags = ESCAPE_SPECIAL | ESCAPE_HEX,
-	},{
-		/* terminator */
-	}}
-},{
-	.in = "\eb \\C\007\"\x90\r]",
-	.s1 = {{
-		.out = "\eb \\C\007\"\x90\\r]",
-		.flags = ESCAPE_SPACE,
-	},{
-		.out = "\\eb \\\\C\\a\\\"\x90\r]",
-		.flags = ESCAPE_SPECIAL,
-	},{
-		.out = "\\eb \\\\C\\a\\\"\x90\\r]",
-		.flags = ESCAPE_SPACE | ESCAPE_SPECIAL,
-	},{
-		.out = "\\033\\142\\040\\134\\103\\007\\042\\220\\015\\135",
-		.flags = ESCAPE_OCTAL,
-	},{
-		.out = "\\033\\142\\040\\134\\103\\007\\042\\220\\r\\135",
-		.flags = ESCAPE_SPACE | ESCAPE_OCTAL,
-	},{
-		.out = "\\e\\142\\040\\\\\\103\\a\\\"\\220\\015\\135",
-		.flags = ESCAPE_SPECIAL | ESCAPE_OCTAL,
-	},{
-		.out = "\\e\\142\\040\\\\\\103\\a\\\"\\220\\r\\135",
-		.flags = ESCAPE_SPACE | ESCAPE_SPECIAL | ESCAPE_OCTAL,
-	},{
-		.out = "\eb \\C\007\"\x90\r]",
-		.flags = ESCAPE_NP,
-	},{
-		.out = "\eb \\C\007\"\x90\\r]",
-		.flags = ESCAPE_SPACE | ESCAPE_NP,
-	},{
-		.out = "\\eb \\C\\a\"\x90\r]",
-		.flags = ESCAPE_SPECIAL | ESCAPE_NP,
-	},{
-		.out = "\\eb \\C\\a\"\x90\\r]",
-		.flags = ESCAPE_SPACE | ESCAPE_SPECIAL | ESCAPE_NP,
-	},{
-		.out = "\\033b \\C\\007\"\\220\\015]",
-		.flags = ESCAPE_OCTAL | ESCAPE_NP,
-	},{
-		.out = "\\033b \\C\\007\"\\220\\r]",
-		.flags = ESCAPE_SPACE | ESCAPE_OCTAL | ESCAPE_NP,
-	},{
-		.out = "\\eb \\C\\a\"\\220\\r]",
-		.flags = ESCAPE_SPECIAL | ESCAPE_SPACE | ESCAPE_OCTAL |
-			 ESCAPE_NP,
-	},{
-		.out = "\\x1bb \\C\\x07\"\\x90\\x0d]",
-		.flags = ESCAPE_NP | ESCAPE_HEX,
-	},{
-		/* terminator */
-	}}
-},{
-	.in = "\007 \eb\"\x90\xCF\r",
-	.s1 = {{
-		.out = "\007 \eb\"\\220\\317\r",
-		.flags = ESCAPE_OCTAL | ESCAPE_NA,
-	},{
-		.out = "\007 \eb\"\\x90\\xcf\r",
-		.flags = ESCAPE_HEX | ESCAPE_NA,
-	},{
-		.out = "\007 \eb\"\x90\xCF\r",
-		.flags = ESCAPE_NA,
-	},{
-		/* terminator */
-	}}
-},{
-	/* terminator */
-}};
+	}
+};
 
-#define	TEST_STRING_2_DICT_1		"b\\ \t\r\xCF"
-static const struct test_string_2 escape1[] __initconst = {{
-	.in = "\f\\ \n\r\t\v",
-	.s1 = {{
-		.out = "\f\\134\\040\n\\015\\011\v",
-		.flags = ESCAPE_OCTAL,
-	},{
-		.out = "\f\\x5c\\x20\n\\x0d\\x09\v",
-		.flags = ESCAPE_HEX,
-	},{
-		.out = "\f\\134\\040\n\\015\\011\v",
-		.flags = ESCAPE_ANY | ESCAPE_APPEND,
-	},{
-		.out = "\\014\\134\\040\\012\\015\\011\\013",
-		.flags = ESCAPE_OCTAL | ESCAPE_APPEND | ESCAPE_NAP,
-	},{
-		.out = "\\x0c\\x5c\\x20\\x0a\\x0d\\x09\\x0b",
-		.flags = ESCAPE_HEX | ESCAPE_APPEND | ESCAPE_NAP,
-	},{
-		.out = "\f\\134\\040\n\\015\\011\v",
-		.flags = ESCAPE_OCTAL | ESCAPE_APPEND | ESCAPE_NA,
-	},{
-		.out = "\f\\x5c\\x20\n\\x0d\\x09\v",
-		.flags = ESCAPE_HEX | ESCAPE_APPEND | ESCAPE_NA,
-	},{
+#define TEST_STRING_2_DICT_1 "b\\ \t\r\xCF"
+static const struct test_string_2 escape1[] __initconst = {
+	{ .in = "\f\\ \n\r\t\v",
+	  .s1 = { {
+			  .out = "\f\\134\\040\n\\015\\011\v",
+			  .flags = ESCAPE_OCTAL,
+		  },
+		  {
+			  .out = "\f\\x5c\\x20\n\\x0d\\x09\v",
+			  .flags = ESCAPE_HEX,
+		  },
+		  {
+			  .out = "\f\\134\\040\n\\015\\011\v",
+			  .flags = ESCAPE_ANY | ESCAPE_APPEND,
+		  },
+		  {
+			  .out = "\\014\\134\\040\\012\\015\\011\\013",
+			  .flags = ESCAPE_OCTAL | ESCAPE_APPEND | ESCAPE_NAP,
+		  },
+		  {
+			  .out = "\\x0c\\x5c\\x20\\x0a\\x0d\\x09\\x0b",
+			  .flags = ESCAPE_HEX | ESCAPE_APPEND | ESCAPE_NAP,
+		  },
+		  {
+			  .out = "\f\\134\\040\n\\015\\011\v",
+			  .flags = ESCAPE_OCTAL | ESCAPE_APPEND | ESCAPE_NA,
+		  },
+		  {
+			  .out = "\f\\x5c\\x20\n\\x0d\\x09\v",
+			  .flags = ESCAPE_HEX | ESCAPE_APPEND | ESCAPE_NA,
+		  },
+		  {
+			  /* terminator */
+		  } } },
+	{ .in = "\\h\\\"\a\xCF\e\\",
+	  .s1 = { {
+			  .out = "\\134h\\134\"\a\\317\e\\134",
+			  .flags = ESCAPE_OCTAL,
+		  },
+		  {
+			  .out = "\\134h\\134\"\a\\317\e\\134",
+			  .flags = ESCAPE_ANY | ESCAPE_APPEND,
+		  },
+		  {
+			  .out = "\\134h\\134\"\\007\\317\\033\\134",
+			  .flags = ESCAPE_OCTAL | ESCAPE_APPEND | ESCAPE_NAP,
+		  },
+		  {
+			  .out = "\\134h\\134\"\a\\317\e\\134",
+			  .flags = ESCAPE_OCTAL | ESCAPE_APPEND | ESCAPE_NA,
+		  },
+		  {
+			  /* terminator */
+		  } } },
+	{ .in = "\eb \\C\007\"\x90\r]",
+	  .s1 = { {
+			  .out = "\e\\142\\040\\134C\007\"\x90\\015]",
+			  .flags = ESCAPE_OCTAL,
+		  },
+		  {
+			  /* terminator */
+		  } } },
+	{ .in = "\007 \eb\"\x90\xCF\r",
+	  .s1 = { {
+			  .out = "\007 \eb\"\x90\xCF\r",
+			  .flags = ESCAPE_NA,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\xCF\r",
+			  .flags = ESCAPE_SPACE | ESCAPE_NA,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\xCF\r",
+			  .flags = ESCAPE_SPECIAL | ESCAPE_NA,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\xCF\r",
+			  .flags = ESCAPE_SPACE | ESCAPE_SPECIAL | ESCAPE_NA,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\\317\r",
+			  .flags = ESCAPE_OCTAL | ESCAPE_NA,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\\317\r",
+			  .flags = ESCAPE_SPACE | ESCAPE_OCTAL | ESCAPE_NA,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\\317\r",
+			  .flags = ESCAPE_SPECIAL | ESCAPE_OCTAL | ESCAPE_NA,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\\317\r",
+			  .flags = ESCAPE_ANY | ESCAPE_NA,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\\xcf\r",
+			  .flags = ESCAPE_HEX | ESCAPE_NA,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\\xcf\r",
+			  .flags = ESCAPE_SPACE | ESCAPE_HEX | ESCAPE_NA,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\\xcf\r",
+			  .flags = ESCAPE_SPECIAL | ESCAPE_HEX | ESCAPE_NA,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\\xcf\r",
+			  .flags = ESCAPE_SPACE | ESCAPE_SPECIAL | ESCAPE_HEX |
+				   ESCAPE_NA,
+		  },
+		  {
+			  /* terminator */
+		  } } },
+	{ .in = "\007 \eb\"\x90\xCF\r",
+	  .s1 = { {
+			  .out = "\007 \eb\"\x90\xCF\r",
+			  .flags = ESCAPE_NAP,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\xCF\\r",
+			  .flags = ESCAPE_SPACE | ESCAPE_NAP,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\xCF\r",
+			  .flags = ESCAPE_SPECIAL | ESCAPE_NAP,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\xCF\\r",
+			  .flags = ESCAPE_SPACE | ESCAPE_SPECIAL | ESCAPE_NAP,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\\317\\015",
+			  .flags = ESCAPE_OCTAL | ESCAPE_NAP,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\\317\\r",
+			  .flags = ESCAPE_SPACE | ESCAPE_OCTAL | ESCAPE_NAP,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\\317\\015",
+			  .flags = ESCAPE_SPECIAL | ESCAPE_OCTAL | ESCAPE_NAP,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\\317\r",
+			  .flags = ESCAPE_ANY | ESCAPE_NAP,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\\xcf\\x0d",
+			  .flags = ESCAPE_HEX | ESCAPE_NAP,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\\xcf\\r",
+			  .flags = ESCAPE_SPACE | ESCAPE_HEX | ESCAPE_NAP,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\\xcf\\x0d",
+			  .flags = ESCAPE_SPECIAL | ESCAPE_HEX | ESCAPE_NAP,
+		  },
+		  {
+			  .out = "\007 \eb\"\x90\\xcf\\r",
+			  .flags = ESCAPE_SPACE | ESCAPE_SPECIAL | ESCAPE_HEX |
+				   ESCAPE_NAP,
+		  },
+		  {
+			  /* terminator */
+		  } } },
+	{
 		/* terminator */
-	}}
-},{
-	.in = "\\h\\\"\a\xCF\e\\",
-	.s1 = {{
-		.out = "\\134h\\134\"\a\\317\e\\134",
-		.flags = ESCAPE_OCTAL,
-	},{
-		.out = "\\134h\\134\"\a\\317\e\\134",
-		.flags = ESCAPE_ANY | ESCAPE_APPEND,
-	},{
-		.out = "\\134h\\134\"\\007\\317\\033\\134",
-		.flags = ESCAPE_OCTAL | ESCAPE_APPEND | ESCAPE_NAP,
-	},{
-		.out = "\\134h\\134\"\a\\317\e\\134",
-		.flags = ESCAPE_OCTAL | ESCAPE_APPEND | ESCAPE_NA,
-	},{
-		/* terminator */
-	}}
-},{
-	.in = "\eb \\C\007\"\x90\r]",
-	.s1 = {{
-		.out = "\e\\142\\040\\134C\007\"\x90\\015]",
-		.flags = ESCAPE_OCTAL,
-	},{
-		/* terminator */
-	}}
-},{
-	.in = "\007 \eb\"\x90\xCF\r",
-	.s1 = {{
-		.out = "\007 \eb\"\x90\xCF\r",
-		.flags = ESCAPE_NA,
-	},{
-		.out = "\007 \eb\"\x90\xCF\r",
-		.flags = ESCAPE_SPACE | ESCAPE_NA,
-	},{
-		.out = "\007 \eb\"\x90\xCF\r",
-		.flags = ESCAPE_SPECIAL | ESCAPE_NA,
-	},{
-		.out = "\007 \eb\"\x90\xCF\r",
-		.flags = ESCAPE_SPACE | ESCAPE_SPECIAL | ESCAPE_NA,
-	},{
-		.out = "\007 \eb\"\x90\\317\r",
-		.flags = ESCAPE_OCTAL | ESCAPE_NA,
-	},{
-		.out = "\007 \eb\"\x90\\317\r",
-		.flags = ESCAPE_SPACE | ESCAPE_OCTAL | ESCAPE_NA,
-	},{
-		.out = "\007 \eb\"\x90\\317\r",
-		.flags = ESCAPE_SPECIAL | ESCAPE_OCTAL | ESCAPE_NA,
-	},{
-		.out = "\007 \eb\"\x90\\317\r",
-		.flags = ESCAPE_ANY | ESCAPE_NA,
-	},{
-		.out = "\007 \eb\"\x90\\xcf\r",
-		.flags = ESCAPE_HEX | ESCAPE_NA,
-	},{
-		.out = "\007 \eb\"\x90\\xcf\r",
-		.flags = ESCAPE_SPACE | ESCAPE_HEX | ESCAPE_NA,
-	},{
-		.out = "\007 \eb\"\x90\\xcf\r",
-		.flags = ESCAPE_SPECIAL | ESCAPE_HEX | ESCAPE_NA,
-	},{
-		.out = "\007 \eb\"\x90\\xcf\r",
-		.flags = ESCAPE_SPACE | ESCAPE_SPECIAL | ESCAPE_HEX | ESCAPE_NA,
-	},{
-		/* terminator */
-	}}
-},{
-	.in = "\007 \eb\"\x90\xCF\r",
-	.s1 = {{
-		.out = "\007 \eb\"\x90\xCF\r",
-		.flags = ESCAPE_NAP,
-	},{
-		.out = "\007 \eb\"\x90\xCF\\r",
-		.flags = ESCAPE_SPACE | ESCAPE_NAP,
-	},{
-		.out = "\007 \eb\"\x90\xCF\r",
-		.flags = ESCAPE_SPECIAL | ESCAPE_NAP,
-	},{
-		.out = "\007 \eb\"\x90\xCF\\r",
-		.flags = ESCAPE_SPACE | ESCAPE_SPECIAL | ESCAPE_NAP,
-	},{
-		.out = "\007 \eb\"\x90\\317\\015",
-		.flags = ESCAPE_OCTAL | ESCAPE_NAP,
-	},{
-		.out = "\007 \eb\"\x90\\317\\r",
-		.flags = ESCAPE_SPACE | ESCAPE_OCTAL | ESCAPE_NAP,
-	},{
-		.out = "\007 \eb\"\x90\\317\\015",
-		.flags = ESCAPE_SPECIAL | ESCAPE_OCTAL | ESCAPE_NAP,
-	},{
-		.out = "\007 \eb\"\x90\\317\r",
-		.flags = ESCAPE_ANY | ESCAPE_NAP,
-	},{
-		.out = "\007 \eb\"\x90\\xcf\\x0d",
-		.flags = ESCAPE_HEX | ESCAPE_NAP,
-	},{
-		.out = "\007 \eb\"\x90\\xcf\\r",
-		.flags = ESCAPE_SPACE | ESCAPE_HEX | ESCAPE_NAP,
-	},{
-		.out = "\007 \eb\"\x90\\xcf\\x0d",
-		.flags = ESCAPE_SPECIAL | ESCAPE_HEX | ESCAPE_NAP,
-	},{
-		.out = "\007 \eb\"\x90\\xcf\\r",
-		.flags = ESCAPE_SPACE | ESCAPE_SPECIAL | ESCAPE_HEX | ESCAPE_NAP,
-	},{
-		/* terminator */
-	}}
-},{
-	/* terminator */
-}};
+	}
+};
 
 static const struct test_string strings_upper[] __initconst = {
 	{
@@ -402,9 +459,10 @@ static __init const char *test_string_find_match(const struct test_string_2 *s2,
 	return NULL;
 }
 
-static __init void
-test_string_escape_overflow(const char *in, int p, unsigned int flags, const char *esc,
-			    int q_test, const char *name)
+static __init void test_string_escape_overflow(const char *in, int p,
+					       unsigned int flags,
+					       const char *esc, int q_test,
+					       const char *name)
 {
 	int q_real;
 
@@ -436,7 +494,8 @@ static __init void test_string_escape(const char *name,
 		if (flags & ESCAPE_NULL) {
 			in[p++] = '\0';
 			/* '\0' passes isascii() test */
-			if (flags & ESCAPE_NA && !(flags & ESCAPE_APPEND && esc)) {
+			if (flags & ESCAPE_NA &&
+			    !(flags & ESCAPE_APPEND && esc)) {
 				out_test[q_test++] = '\0';
 			} else {
 				out_test[q_test++] = '\\';
@@ -482,10 +541,8 @@ out:
 				       (exp_result2));                         \
 	} while (0)
 
-
 static __init void test_string_get_size_check(const char *units,
-					      const char *exp,
-					      char *res,
+					      const char *exp, char *res,
 					      const u64 size,
 					      const u64 blk_size)
 {
@@ -510,11 +567,11 @@ static __init void __test_string_get_size(const u64 size, const u64 blk_size,
 	string_get_size(size, blk_size, STRING_UNITS_10, buf10, sizeof(buf10));
 	string_get_size(size, blk_size, STRING_UNITS_2, buf2, sizeof(buf2));
 
-	test_string_get_size_check("STRING_UNITS_10", exp_result10, buf10,
-				   size, blk_size);
+	test_string_get_size_check("STRING_UNITS_10", exp_result10, buf10, size,
+				   blk_size);
 
-	test_string_get_size_check("STRING_UNITS_2", exp_result2, buf2,
-				   size, blk_size);
+	test_string_get_size_check("STRING_UNITS_2", exp_result2, buf2, size,
+				   blk_size);
 }
 
 static __init void test_string_get_size(void)
@@ -591,11 +648,13 @@ static int __init test_string_helpers_init(void)
 
 	/* Without dictionary */
 	for (i = 0; i < ESCAPE_ALL_MASK + 1; i++)
-		test_string_escape("escape 0", escape0, i, TEST_STRING_2_DICT_0);
+		test_string_escape("escape 0", escape0, i,
+				   TEST_STRING_2_DICT_0);
 
 	/* With dictionary */
 	for (i = 0; i < ESCAPE_ALL_MASK + 1; i++)
-		test_string_escape("escape 1", escape1, i, TEST_STRING_2_DICT_1);
+		test_string_escape("escape 1", escape1, i,
+				   TEST_STRING_2_DICT_1);
 
 	/* Test string_get_size() */
 	test_string_get_size();

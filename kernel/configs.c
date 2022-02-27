@@ -20,36 +20,32 @@
  * "IKCFG_ST" and "IKCFG_ED" are used to extract the config data from
  * a binary kernel image or a module. See scripts/extract-ikconfig.
  */
-asm (
-"	.pushsection .rodata, \"a\"		\n"
-"	.ascii \"IKCFG_ST\"			\n"
-"	.global kernel_config_data		\n"
-"kernel_config_data:				\n"
-"	.incbin \"kernel/config_data.gz\"	\n"
-"	.global kernel_config_data_end		\n"
-"kernel_config_data_end:			\n"
-"	.ascii \"IKCFG_ED\"			\n"
-"	.popsection				\n"
-);
+asm("	.pushsection .rodata, \"a\"		\n"
+    "	.ascii \"IKCFG_ST\"			\n"
+    "	.global kernel_config_data		\n"
+    "kernel_config_data:				\n"
+    "	.incbin \"kernel/config_data.gz\"	\n"
+    "	.global kernel_config_data_end		\n"
+    "kernel_config_data_end:			\n"
+    "	.ascii \"IKCFG_ED\"			\n"
+    "	.popsection				\n");
 
 #ifdef CONFIG_IKCONFIG_PROC
 
 extern char kernel_config_data;
 extern char kernel_config_data_end;
 
-static ssize_t
-ikconfig_read_current(struct file *file, char __user *buf,
-		      size_t len, loff_t * offset)
+static ssize_t ikconfig_read_current(struct file *file, char __user *buf,
+				     size_t len, loff_t *offset)
 {
-	return simple_read_from_buffer(buf, len, offset,
-				       &kernel_config_data,
+	return simple_read_from_buffer(buf, len, offset, &kernel_config_data,
 				       &kernel_config_data_end -
-				       &kernel_config_data);
+					       &kernel_config_data);
 }
 
 static const struct proc_ops config_gz_proc_ops = {
-	.proc_read	= ikconfig_read_current,
-	.proc_lseek	= default_llseek,
+	.proc_read = ikconfig_read_current,
+	.proc_lseek = default_llseek,
 };
 
 static int __init ikconfig_init(void)

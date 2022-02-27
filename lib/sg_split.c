@@ -32,7 +32,7 @@ static int sg_calculate_split(struct scatterlist *in, int nents, int nb_splits,
 		splitters[i].nents = 0;
 	}
 
-	for_each_sg(in, sg, nents, i) {
+	for_each_sg (in, sg, nents, i) {
 		sglen = mapped ? sg_dma_len(sg) : sg->length;
 		if (skip > sglen) {
 			skip -= sglen;
@@ -146,10 +146,8 @@ static void sg_split_mapped(struct sg_splitter *splitters, const int nb_splits)
  * Returns 0 upon success, or error code
  */
 int sg_split(struct scatterlist *in, const int in_mapped_nents,
-	     const off_t skip, const int nb_splits,
-	     const size_t *split_sizes,
-	     struct scatterlist **out, int *out_mapped_nents,
-	     gfp_t gfp_mask)
+	     const off_t skip, const int nb_splits, const size_t *split_sizes,
+	     struct scatterlist **out, int *out_mapped_nents, gfp_t gfp_mask)
 {
 	int i, ret;
 	struct sg_splitter *splitters;
@@ -159,15 +157,15 @@ int sg_split(struct scatterlist *in, const int in_mapped_nents,
 		return -ENOMEM;
 
 	ret = sg_calculate_split(in, sg_nents(in), nb_splits, skip, split_sizes,
-			   splitters, false);
+				 splitters, false);
 	if (ret < 0)
 		goto err;
 
 	ret = -ENOMEM;
 	for (i = 0; i < nb_splits; i++) {
-		splitters[i].out_sg = kmalloc_array(splitters[i].nents,
-						    sizeof(struct scatterlist),
-						    gfp_mask);
+		splitters[i].out_sg =
+			kmalloc_array(splitters[i].nents,
+				      sizeof(struct scatterlist), gfp_mask);
 		if (!splitters[i].out_sg)
 			goto err;
 	}

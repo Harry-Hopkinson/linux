@@ -37,27 +37,27 @@
 #include <tools/le_byteshift.h>
 
 #ifndef EM_ARCOMPACT
-#define EM_ARCOMPACT	93
+#define EM_ARCOMPACT 93
 #endif
 
 #ifndef EM_XTENSA
-#define EM_XTENSA	94
+#define EM_XTENSA 94
 #endif
 
 #ifndef EM_AARCH64
-#define EM_AARCH64	183
+#define EM_AARCH64 183
 #endif
 
 #ifndef EM_MICROBLAZE
-#define EM_MICROBLAZE	189
+#define EM_MICROBLAZE 189
 #endif
 
 #ifndef EM_ARCV2
-#define EM_ARCV2	195
+#define EM_ARCV2 195
 #endif
 
 #ifndef EM_RISCV
-#define EM_RISCV	243
+#define EM_RISCV 243
 #endif
 
 static uint32_t (*r)(const uint32_t *);
@@ -94,7 +94,7 @@ static void *mmap_file(char const *fname, size_t *size)
 		goto out;
 	}
 
-	addr = mmap(0, sb.st_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	addr = mmap(0, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 	if (addr == MAP_FAILED) {
 		fprintf(stderr, "Could not mmap file: %s\n", fname);
 		goto out;
@@ -308,20 +308,20 @@ static int do_file(char const *const fname, void *addr)
 
 	switch (ehdr->e_ident[EI_DATA]) {
 	case ELFDATA2LSB:
-		r	= rle;
-		r2	= r2le;
-		r8	= r8le;
-		w	= wle;
-		w2	= w2le;
-		w8	= w8le;
+		r = rle;
+		r2 = r2le;
+		r8 = r8le;
+		w = wle;
+		w2 = w2le;
+		w8 = w8le;
 		break;
 	case ELFDATA2MSB:
-		r	= rbe;
-		r2	= r2be;
-		r8	= r8be;
-		w	= wbe;
-		w2	= w2be;
-		w8	= w8be;
+		r = rbe;
+		r2 = r2be;
+		r8 = r8be;
+		w = wbe;
+		w2 = w2be;
+		w8 = w8be;
 		break;
 	default:
 		fprintf(stderr, "unrecognized ELF data encoding %d: %s\n",
@@ -369,13 +369,13 @@ static int do_file(char const *const fname, void *addr)
 		if (r2(&ehdr->e_ehsize) != sizeof(Elf32_Ehdr) ||
 		    r2(&ehdr->e_shentsize) != sizeof(Elf32_Shdr)) {
 			fprintf(stderr,
-				"unrecognized ET_EXEC/ET_DYN file: %s\n", fname);
+				"unrecognized ET_EXEC/ET_DYN file: %s\n",
+				fname);
 			break;
 		}
 		rc = do_sort_32(ehdr, fname, custom_sort);
 		break;
-	case ELFCLASS64:
-		{
+	case ELFCLASS64: {
 		Elf64_Ehdr *const ghdr = (Elf64_Ehdr *)ehdr;
 		if (r2(&ghdr->e_ehsize) != sizeof(Elf64_Ehdr) ||
 		    r2(&ghdr->e_shentsize) != sizeof(Elf64_Shdr)) {
@@ -385,8 +385,7 @@ static int do_file(char const *const fname, void *addr)
 			break;
 		}
 		rc = do_sort_64(ghdr, fname, custom_sort);
-		}
-		break;
+	} break;
 	default:
 		fprintf(stderr, "unrecognized ELF class %d %s\n",
 			ehdr->e_ident[EI_CLASS], fname);
@@ -398,7 +397,7 @@ static int do_file(char const *const fname, void *addr)
 
 int main(int argc, char *argv[])
 {
-	int i, n_error = 0;  /* gcc-4.3.0 false positive complaint */
+	int i, n_error = 0; /* gcc-4.3.0 false positive complaint */
 	size_t size = 0;
 	void *addr = NULL;
 

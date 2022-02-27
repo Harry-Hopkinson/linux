@@ -29,10 +29,9 @@
 #define ARCHIVE_MAGICNUMBER 0x184C2102
 
 STATIC inline int INIT unlz4(u8 *input, long in_len,
-				long (*fill)(void *, unsigned long),
-				long (*flush)(void *, unsigned long),
-				u8 *output, long *posp,
-				void (*error) (char *x))
+			     long (*fill)(void *, unsigned long),
+			     long (*flush)(void *, unsigned long), u8 *output,
+			     long *posp, void (*error)(char *x))
 {
 	int ret = -1;
 	size_t chunksize = 0;
@@ -45,7 +44,6 @@ STATIC inline int INIT unlz4(u8 *input, long in_len,
 	size_t out_len = get_unaligned_le32(input + in_len);
 #endif
 	size_t dest_len;
-
 
 	if (output) {
 		outp = output;
@@ -103,7 +101,6 @@ STATIC inline int INIT unlz4(u8 *input, long in_len,
 		*posp += 4;
 
 	for (;;) {
-
 		if (fill) {
 			size = fill(inp, 4);
 			if (size == 0)
@@ -205,12 +202,10 @@ exit_0:
 
 #ifdef PREBOOT
 STATIC int INIT __decompress(unsigned char *buf, long in_len,
-			      long (*fill)(void*, unsigned long),
-			      long (*flush)(void*, unsigned long),
-			      unsigned char *output, long out_len,
-			      long *posp,
-			      void (*error)(char *x)
-	)
+			     long (*fill)(void *, unsigned long),
+			     long (*flush)(void *, unsigned long),
+			     unsigned char *output, long out_len, long *posp,
+			     void (*error)(char *x))
 {
 	return unlz4(buf, in_len - 4, fill, flush, output, posp, error);
 }

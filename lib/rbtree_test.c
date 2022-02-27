@@ -6,14 +6,15 @@
 #include <linux/slab.h>
 #include <asm/timex.h>
 
-#define __param(type, name, init, msg)		\
-	static type name = init;		\
-	module_param(name, type, 0444);		\
+#define __param(type, name, init, msg)                                         \
+	static type name = init;                                               \
+	module_param(name, type, 0444);                                        \
 	MODULE_PARM_DESC(name, msg);
 
 __param(int, nnodes, 100, "Number of nodes in the rb-tree");
 __param(int, perf_loops, 1000, "Number of iterations modifying the rb-tree");
-__param(int, check_loops, 100, "Number of iterations modifying and verifying the rb-tree");
+__param(int, check_loops, 100,
+	"Number of iterations modifying and verifying the rb-tree");
 
 struct test_node {
 	u32 key;
@@ -71,16 +72,16 @@ static inline void erase(struct test_node *node, struct rb_root_cached *root)
 	rb_erase(&node->rb, &root->rb_root);
 }
 
-static inline void erase_cached(struct test_node *node, struct rb_root_cached *root)
+static inline void erase_cached(struct test_node *node,
+				struct rb_root_cached *root)
 {
 	rb_erase_cached(&node->rb, root);
 }
 
-
 #define NODE_VAL(node) ((node)->val)
 
-RB_DECLARE_CALLBACKS_MAX(static, augment_callbacks,
-			 struct test_node, rb, u32, augmented, NODE_VAL)
+RB_DECLARE_CALLBACKS_MAX(static, augment_callbacks, struct test_node, rb, u32,
+			 augmented, NODE_VAL)
 
 static void insert_augmented(struct test_node *node,
 			     struct rb_root_cached *root)
@@ -130,10 +131,9 @@ static void insert_augmented_cached(struct test_node *node,
 
 	node->augmented = val;
 	rb_link_node(&node->rb, rb_parent, new);
-	rb_insert_augmented_cached(&node->rb, root,
-				   leftmost, &augment_callbacks);
+	rb_insert_augmented_cached(&node->rb, root, leftmost,
+				   &augment_callbacks);
 }
-
 
 static void erase_augmented(struct test_node *node, struct rb_root_cached *root)
 {
@@ -172,7 +172,7 @@ static void check_postorder_foreach(int nr_nodes)
 {
 	struct test_node *cur, *n;
 	int count = 0;
-	rbtree_postorder_for_each_entry_safe(cur, n, &root.rb_root, rb)
+	rbtree_postorder_for_each_entry_safe (cur, n, &root.rb_root, rb)
 		count++;
 
 	WARN_ON_ONCE(count != nr_nodes);
@@ -182,7 +182,8 @@ static void check_postorder(int nr_nodes)
 {
 	struct rb_node *rb;
 	int count = 0;
-	for (rb = rb_first_postorder(&root.rb_root); rb; rb = rb_next_postorder(rb))
+	for (rb = rb_first_postorder(&root.rb_root); rb;
+	     rb = rb_next_postorder(rb))
 		count++;
 
 	WARN_ON_ONCE(count != nr_nodes);
@@ -209,7 +210,8 @@ static void check(int nr_nodes)
 	}
 
 	WARN_ON_ONCE(count != nr_nodes);
-	WARN_ON_ONCE(count < (1 << black_path_count(rb_last(&root.rb_root))) - 1);
+	WARN_ON_ONCE(count <
+		     (1 << black_path_count(rb_last(&root.rb_root))) - 1);
 
 	check_postorder(nr_nodes);
 	check_postorder_foreach(nr_nodes);
@@ -224,14 +226,16 @@ static void check_augmented(int nr_nodes)
 		struct test_node *node = rb_entry(rb, struct test_node, rb);
 		u32 subtree, max = node->val;
 		if (node->rb.rb_left) {
-			subtree = rb_entry(node->rb.rb_left, struct test_node,
-					   rb)->augmented;
+			subtree =
+				rb_entry(node->rb.rb_left, struct test_node, rb)
+					->augmented;
 			if (max < subtree)
 				max = subtree;
 		}
 		if (node->rb.rb_right) {
 			subtree = rb_entry(node->rb.rb_right, struct test_node,
-					   rb)->augmented;
+					   rb)
+					  ->augmented;
 			if (max < subtree)
 				max = subtree;
 		}
@@ -360,7 +364,8 @@ static int __init rbtree_test_init(void)
 	time = time2 - time1;
 
 	time = div_u64(time, perf_loops);
-	printk(" -> test 1 (latency of nnodes insert+delete): %llu cycles\n", (unsigned long long)time);
+	printk(" -> test 1 (latency of nnodes insert+delete): %llu cycles\n",
+	       (unsigned long long)time);
 
 	time1 = get_cycles();
 
@@ -375,7 +380,8 @@ static int __init rbtree_test_init(void)
 	time = time2 - time1;
 
 	time = div_u64(time, perf_loops);
-	printk(" -> test 2 (latency of nnodes cached insert+delete): %llu cycles\n", (unsigned long long)time);
+	printk(" -> test 2 (latency of nnodes cached insert+delete): %llu cycles\n",
+	       (unsigned long long)time);
 
 	for (i = 0; i < check_loops; i++) {
 		init();
@@ -400,9 +406,8 @@ static void __exit rbtree_test_exit(void)
 	printk(KERN_ALERT "test exit\n");
 }
 
-module_init(rbtree_test_init)
-module_exit(rbtree_test_exit)
+module_init(rbtree_test_init) module_exit(rbtree_test_exit)
 
-MODULE_LICENSE("GPL");
+	MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Michel Lespinasse");
 MODULE_DESCRIPTION("Red Black Tree test");

@@ -81,8 +81,8 @@ static int clear_bits_ll(unsigned long *addr, unsigned long mask_to_clear)
  * users set the same bit, one user will return remain bits, otherwise
  * return 0.
  */
-static unsigned long
-bitmap_set_ll(unsigned long *map, unsigned long start, unsigned long nr)
+static unsigned long bitmap_set_ll(unsigned long *map, unsigned long start,
+				   unsigned long nr)
 {
 	unsigned long *p = map + BIT_WORD(start);
 	const unsigned long size = start + nr;
@@ -117,8 +117,8 @@ bitmap_set_ll(unsigned long *map, unsigned long start, unsigned long nr)
  * users clear the same bit, one user will return remain bits,
  * otherwise return 0.
  */
-static unsigned long
-bitmap_clear_ll(unsigned long *map, unsigned long start, unsigned long nr)
+static unsigned long bitmap_clear_ll(unsigned long *map, unsigned long start,
+				     unsigned long nr)
 {
 	unsigned long *p = map + BIT_WORD(start);
 	const unsigned long size = start + nr;
@@ -181,13 +181,13 @@ EXPORT_SYMBOL(gen_pool_create);
  *
  * Returns 0 on success or a -ve errno on failure.
  */
-int gen_pool_add_owner(struct gen_pool *pool, unsigned long virt, phys_addr_t phys,
-		 size_t size, int nid, void *owner)
+int gen_pool_add_owner(struct gen_pool *pool, unsigned long virt,
+		       phys_addr_t phys, size_t size, int nid, void *owner)
 {
 	struct gen_pool_chunk *chunk;
 	unsigned long nbits = size >> pool->min_alloc_order;
 	unsigned long nbytes = sizeof(struct gen_pool_chunk) +
-				BITS_TO_LONGS(nbits) * sizeof(long);
+			       BITS_TO_LONGS(nbits) * sizeof(long);
 
 	chunk = vzalloc_node(nbytes, nid);
 	if (unlikely(chunk == NULL))
@@ -220,7 +220,7 @@ phys_addr_t gen_pool_virt_to_phys(struct gen_pool *pool, unsigned long addr)
 	phys_addr_t paddr = -1;
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(chunk, &pool->chunks, next_chunk) {
+	list_for_each_entry_rcu (chunk, &pool->chunks, next_chunk) {
 		if (addr >= chunk->start_addr && addr <= chunk->end_addr) {
 			paddr = chunk->phys_addr + (addr - chunk->start_addr);
 			break;
@@ -246,7 +246,7 @@ void gen_pool_destroy(struct gen_pool *pool)
 	int order = pool->min_alloc_order;
 	unsigned long bit, end_bit;
 
-	list_for_each_safe(_chunk, _next_chunk, &pool->chunks) {
+	list_for_each_safe (_chunk, _next_chunk, &pool->chunks) {
 		chunk = list_entry(_chunk, struct gen_pool_chunk, next_chunk);
 		list_del(&chunk->next_chunk);
 
@@ -275,7 +275,8 @@ EXPORT_SYMBOL(gen_pool_destroy);
  * NMI-safe cmpxchg implementation.
  */
 unsigned long gen_pool_alloc_algo_owner(struct gen_pool *pool, size_t size,
-		genpool_algo_t algo, void *data, void **owner)
+					genpool_algo_t algo, void *data,
+					void **owner)
 {
 	struct gen_pool_chunk *chunk;
 	unsigned long addr = 0;
@@ -294,15 +295,15 @@ unsigned long gen_pool_alloc_algo_owner(struct gen_pool *pool, size_t size,
 
 	nbits = (size + (1UL << order) - 1) >> order;
 	rcu_read_lock();
-	list_for_each_entry_rcu(chunk, &pool->chunks, next_chunk) {
+	list_for_each_entry_rcu (chunk, &pool->chunks, next_chunk) {
 		if (size > atomic_long_read(&chunk->avail))
 			continue;
 
 		start_bit = 0;
 		end_bit = chunk_size(chunk) >> order;
-retry:
-		start_bit = algo(chunk->bits, end_bit, start_bit,
-				 nbits, data, pool, chunk->start_addr);
+	retry:
+		start_bit = algo(chunk->bits, end_bit, start_bit, nbits, data,
+				 pool, chunk->start_addr);
 		if (start_bit >= end_bit)
 			continue;
 		remain = bitmap_set_ll(chunk->bits, start_bit, nbits);
@@ -360,7 +361,7 @@ EXPORT_SYMBOL(gen_pool_dma_alloc);
  * Return: virtual address of the allocated memory, or %NULL on failure
  */
 void *gen_pool_dma_alloc_algo(struct gen_pool *pool, size_t size,
-		dma_addr_t *dma, genpool_algo_t algo, void *data)
+			      dma_addr_t *dma, genpool_algo_t algo, void *data)
 {
 	unsigned long vaddr;
 
@@ -393,12 +394,12 @@ EXPORT_SYMBOL(gen_pool_dma_alloc_algo);
  * Return: virtual address of the allocated memory, or %NULL on failure
  */
 void *gen_pool_dma_alloc_align(struct gen_pool *pool, size_t size,
-		dma_addr_t *dma, int align)
+			       dma_addr_t *dma, int align)
 {
 	struct genpool_data_align data = { .align = align };
 
 	return gen_pool_dma_alloc_algo(pool, size, dma,
-			gen_pool_first_fit_align, &data);
+				       gen_pool_first_fit_align, &data);
 }
 EXPORT_SYMBOL(gen_pool_dma_alloc_align);
 
@@ -418,7 +419,8 @@ EXPORT_SYMBOL(gen_pool_dma_alloc_align);
  */
 void *gen_pool_dma_zalloc(struct gen_pool *pool, size_t size, dma_addr_t *dma)
 {
-	return gen_pool_dma_zalloc_algo(pool, size, dma, pool->algo, pool->data);
+	return gen_pool_dma_zalloc_algo(pool, size, dma, pool->algo,
+					pool->data);
 }
 EXPORT_SYMBOL(gen_pool_dma_zalloc);
 
@@ -438,7 +440,7 @@ EXPORT_SYMBOL(gen_pool_dma_zalloc);
  * Return: virtual address of the allocated zeroed memory, or %NULL on failure
  */
 void *gen_pool_dma_zalloc_algo(struct gen_pool *pool, size_t size,
-		dma_addr_t *dma, genpool_algo_t algo, void *data)
+			       dma_addr_t *dma, genpool_algo_t algo, void *data)
 {
 	void *vaddr = gen_pool_dma_alloc_algo(pool, size, dma, algo, data);
 
@@ -464,12 +466,12 @@ EXPORT_SYMBOL(gen_pool_dma_zalloc_algo);
  * Return: virtual address of the allocated zeroed memory, or %NULL on failure
  */
 void *gen_pool_dma_zalloc_align(struct gen_pool *pool, size_t size,
-		dma_addr_t *dma, int align)
+				dma_addr_t *dma, int align)
 {
 	struct genpool_data_align data = { .align = align };
 
 	return gen_pool_dma_zalloc_algo(pool, size, dma,
-			gen_pool_first_fit_align, &data);
+					gen_pool_first_fit_align, &data);
 }
 EXPORT_SYMBOL(gen_pool_dma_zalloc_align);
 
@@ -485,7 +487,7 @@ EXPORT_SYMBOL(gen_pool_dma_zalloc_align);
  * NMI-safe cmpxchg implementation.
  */
 void gen_pool_free_owner(struct gen_pool *pool, unsigned long addr, size_t size,
-		void **owner)
+			 void **owner)
 {
 	struct gen_pool_chunk *chunk;
 	int order = pool->min_alloc_order;
@@ -500,7 +502,7 @@ void gen_pool_free_owner(struct gen_pool *pool, unsigned long addr, size_t size,
 
 	nbits = (size + (1UL << order) - 1) >> order;
 	rcu_read_lock();
-	list_for_each_entry_rcu(chunk, &pool->chunks, next_chunk) {
+	list_for_each_entry_rcu (chunk, &pool->chunks, next_chunk) {
 		if (addr >= chunk->start_addr && addr <= chunk->end_addr) {
 			BUG_ON(addr + size - 1 > chunk->end_addr);
 			start_bit = (addr - chunk->start_addr) >> order;
@@ -529,13 +531,15 @@ EXPORT_SYMBOL(gen_pool_free_owner);
  * called with rcu_read_lock held.
  */
 void gen_pool_for_each_chunk(struct gen_pool *pool,
-	void (*func)(struct gen_pool *pool, struct gen_pool_chunk *chunk, void *data),
-	void *data)
+			     void (*func)(struct gen_pool *pool,
+					  struct gen_pool_chunk *chunk,
+					  void *data),
+			     void *data)
 {
 	struct gen_pool_chunk *chunk;
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(chunk, &(pool)->chunks, next_chunk)
+	list_for_each_entry_rcu (chunk, &(pool)->chunks, next_chunk)
 		func(pool, chunk, data);
 	rcu_read_unlock();
 }
@@ -550,15 +554,14 @@ EXPORT_SYMBOL(gen_pool_for_each_chunk);
  * Check if the range of addresses falls within the specified pool. Returns
  * true if the entire range is contained in the pool and false otherwise.
  */
-bool gen_pool_has_addr(struct gen_pool *pool, unsigned long start,
-			size_t size)
+bool gen_pool_has_addr(struct gen_pool *pool, unsigned long start, size_t size)
 {
 	bool found = false;
 	unsigned long end = start + size - 1;
 	struct gen_pool_chunk *chunk;
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(chunk, &(pool)->chunks, next_chunk) {
+	list_for_each_entry_rcu (chunk, &(pool)->chunks, next_chunk) {
 		if (start >= chunk->start_addr && start <= chunk->end_addr) {
 			if (end <= chunk->end_addr) {
 				found = true;
@@ -583,7 +586,7 @@ size_t gen_pool_avail(struct gen_pool *pool)
 	size_t avail = 0;
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(chunk, &pool->chunks, next_chunk)
+	list_for_each_entry_rcu (chunk, &pool->chunks, next_chunk)
 		avail += atomic_long_read(&chunk->avail);
 	rcu_read_unlock();
 	return avail;
@@ -602,7 +605,7 @@ size_t gen_pool_size(struct gen_pool *pool)
 	size_t size = 0;
 
 	rcu_read_lock();
-	list_for_each_entry_rcu(chunk, &pool->chunks, next_chunk)
+	list_for_each_entry_rcu (chunk, &pool->chunks, next_chunk)
 		size += chunk_size(chunk);
 	rcu_read_unlock();
 	return size;
@@ -645,8 +648,9 @@ EXPORT_SYMBOL(gen_pool_set_algo);
  * @start_addr: not used in this function
  */
 unsigned long gen_pool_first_fit(unsigned long *map, unsigned long size,
-		unsigned long start, unsigned int nr, void *data,
-		struct gen_pool *pool, unsigned long start_addr)
+				 unsigned long start, unsigned int nr,
+				 void *data, struct gen_pool *pool,
+				 unsigned long start_addr)
 {
 	return bitmap_find_next_zero_area(map, size, start, nr, 0);
 }
@@ -664,8 +668,9 @@ EXPORT_SYMBOL(gen_pool_first_fit);
  * @start_addr: start addr of alloction chunk
  */
 unsigned long gen_pool_first_fit_align(unsigned long *map, unsigned long size,
-		unsigned long start, unsigned int nr, void *data,
-		struct gen_pool *pool, unsigned long start_addr)
+				       unsigned long start, unsigned int nr,
+				       void *data, struct gen_pool *pool,
+				       unsigned long start_addr)
 {
 	struct genpool_data_align *alignment;
 	unsigned long align_mask, align_off;
@@ -676,8 +681,8 @@ unsigned long gen_pool_first_fit_align(unsigned long *map, unsigned long size,
 	align_mask = ((alignment->align + (1UL << order) - 1) >> order) - 1;
 	align_off = (start_addr & (alignment->align - 1)) >> order;
 
-	return bitmap_find_next_zero_area_off(map, size, start, nr,
-					      align_mask, align_off);
+	return bitmap_find_next_zero_area_off(map, size, start, nr, align_mask,
+					      align_off);
 }
 EXPORT_SYMBOL(gen_pool_first_fit_align);
 
@@ -692,8 +697,9 @@ EXPORT_SYMBOL(gen_pool_first_fit_align);
  * @start_addr: not used in this function
  */
 unsigned long gen_pool_fixed_alloc(unsigned long *map, unsigned long size,
-		unsigned long start, unsigned int nr, void *data,
-		struct gen_pool *pool, unsigned long start_addr)
+				   unsigned long start, unsigned int nr,
+				   void *data, struct gen_pool *pool,
+				   unsigned long start_addr)
 {
 	struct genpool_data_fixed *fixed_data;
 	int order;
@@ -706,8 +712,8 @@ unsigned long gen_pool_fixed_alloc(unsigned long *map, unsigned long size,
 	if (WARN_ON(fixed_data->offset & ((1UL << order) - 1)))
 		return size;
 
-	start_bit = bitmap_find_next_zero_area(map, size,
-			start + offset_bit, nr, 0);
+	start_bit = bitmap_find_next_zero_area(map, size, start + offset_bit,
+					       nr, 0);
 	if (start_bit != offset_bit)
 		start_bit = size;
 	return start_bit;
@@ -726,10 +732,10 @@ EXPORT_SYMBOL(gen_pool_fixed_alloc);
  * @pool: pool to find the fit region memory from
  * @start_addr: not used in this function
  */
-unsigned long gen_pool_first_fit_order_align(unsigned long *map,
-		unsigned long size, unsigned long start,
-		unsigned int nr, void *data, struct gen_pool *pool,
-		unsigned long start_addr)
+unsigned long
+gen_pool_first_fit_order_align(unsigned long *map, unsigned long size,
+			       unsigned long start, unsigned int nr, void *data,
+			       struct gen_pool *pool, unsigned long start_addr)
 {
 	unsigned long align_mask = roundup_pow_of_two(nr) - 1;
 
@@ -752,8 +758,9 @@ EXPORT_SYMBOL(gen_pool_first_fit_order_align);
  * which we can allocate the memory.
  */
 unsigned long gen_pool_best_fit(unsigned long *map, unsigned long size,
-		unsigned long start, unsigned int nr, void *data,
-		struct gen_pool *pool, unsigned long start_addr)
+				unsigned long start, unsigned int nr,
+				void *data, struct gen_pool *pool,
+				unsigned long start_addr)
 {
 	unsigned long start_bit = size;
 	unsigned long len = size + 1;
@@ -769,8 +776,8 @@ unsigned long gen_pool_best_fit(unsigned long *map, unsigned long size,
 			if (len == nr)
 				return start_bit;
 		}
-		index = bitmap_find_next_zero_area(map, size,
-						   next_bit + 1, nr, 0);
+		index = bitmap_find_next_zero_area(map, size, next_bit + 1, nr,
+						   0);
 	}
 
 	return start_bit;
@@ -876,8 +883,8 @@ EXPORT_SYMBOL(devm_gen_pool_create);
  * address of the device tree node pointed at by the phandle property,
  * or NULL if not found.
  */
-struct gen_pool *of_gen_pool_get(struct device_node *np,
-	const char *propname, int index)
+struct gen_pool *of_gen_pool_get(struct device_node *np, const char *propname,
+				 int index)
 {
 	struct platform_device *pdev;
 	struct device_node *np_pool, *parent;

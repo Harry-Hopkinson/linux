@@ -19,47 +19,47 @@
 #include <linux/sched.h>
 
 /* General test specific settings */
-#define MAX_SUBTESTS	3
-#define MAX_TESTRUNS	1000
-#define MAX_DATA	128
-#define MAX_INSNS	512
-#define MAX_K		0xffffFFFF
+#define MAX_SUBTESTS 3
+#define MAX_TESTRUNS 1000
+#define MAX_DATA 128
+#define MAX_INSNS 512
+#define MAX_K 0xffffFFFF
 
 /* Few constants used to init test 'skb' */
-#define SKB_TYPE	3
-#define SKB_MARK	0x1234aaaa
-#define SKB_HASH	0x1234aaab
-#define SKB_QUEUE_MAP	123
-#define SKB_VLAN_TCI	0xffff
-#define SKB_VLAN_PRESENT	1
-#define SKB_DEV_IFINDEX	577
-#define SKB_DEV_TYPE	588
+#define SKB_TYPE 3
+#define SKB_MARK 0x1234aaaa
+#define SKB_HASH 0x1234aaab
+#define SKB_QUEUE_MAP 123
+#define SKB_VLAN_TCI 0xffff
+#define SKB_VLAN_PRESENT 1
+#define SKB_DEV_IFINDEX 577
+#define SKB_DEV_TYPE 588
 
 /* Redefine REGs to make tests less verbose */
-#define R0		BPF_REG_0
-#define R1		BPF_REG_1
-#define R2		BPF_REG_2
-#define R3		BPF_REG_3
-#define R4		BPF_REG_4
-#define R5		BPF_REG_5
-#define R6		BPF_REG_6
-#define R7		BPF_REG_7
-#define R8		BPF_REG_8
-#define R9		BPF_REG_9
-#define R10		BPF_REG_10
+#define R0 BPF_REG_0
+#define R1 BPF_REG_1
+#define R2 BPF_REG_2
+#define R3 BPF_REG_3
+#define R4 BPF_REG_4
+#define R5 BPF_REG_5
+#define R6 BPF_REG_6
+#define R7 BPF_REG_7
+#define R8 BPF_REG_8
+#define R9 BPF_REG_9
+#define R10 BPF_REG_10
 
 /* Flags that can be passed to test cases */
-#define FLAG_NO_DATA		BIT(0)
-#define FLAG_EXPECTED_FAIL	BIT(1)
-#define FLAG_SKB_FRAG		BIT(2)
-#define FLAG_VERIFIER_ZEXT	BIT(3)
+#define FLAG_NO_DATA BIT(0)
+#define FLAG_EXPECTED_FAIL BIT(1)
+#define FLAG_SKB_FRAG BIT(2)
+#define FLAG_VERIFIER_ZEXT BIT(3)
 
 enum {
-	CLASSIC  = BIT(6),	/* Old BPF instructions only. */
-	INTERNAL = BIT(7),	/* Extended instruction set.  */
+	CLASSIC = BIT(6), /* Old BPF instructions only. */
+	INTERNAL = BIT(7), /* Extended instruction set.  */
 };
 
-#define TEST_TYPE_MASK		(CLASSIC | INTERNAL)
+#define TEST_TYPE_MASK (CLASSIC | INTERNAL)
 
 struct bpf_test {
 	const char *descr;
@@ -205,8 +205,8 @@ static int bpf_fill_maxinsns6(struct bpf_test *self)
 		return -ENOMEM;
 
 	for (i = 0; i < len - 1; i++)
-		insn[i] = __BPF_STMT(BPF_LD | BPF_W | BPF_ABS, SKF_AD_OFF +
-				     SKF_AD_VLAN_TAG_PRESENT);
+		insn[i] = __BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+				     SKF_AD_OFF + SKF_AD_VLAN_TAG_PRESENT);
 
 	insn[len - 1] = __BPF_STMT(BPF_RET | BPF_A, 0);
 
@@ -227,12 +227,12 @@ static int bpf_fill_maxinsns7(struct bpf_test *self)
 		return -ENOMEM;
 
 	for (i = 0; i < len - 4; i++)
-		insn[i] = __BPF_STMT(BPF_LD | BPF_W | BPF_ABS, SKF_AD_OFF +
-				     SKF_AD_CPU);
+		insn[i] = __BPF_STMT(BPF_LD | BPF_W | BPF_ABS,
+				     SKF_AD_OFF + SKF_AD_CPU);
 
 	insn[len - 4] = __BPF_STMT(BPF_MISC | BPF_TAX, 0);
-	insn[len - 3] = __BPF_STMT(BPF_LD | BPF_W | BPF_ABS, SKF_AD_OFF +
-				   SKF_AD_CPU);
+	insn[len - 3] =
+		__BPF_STMT(BPF_LD | BPF_W | BPF_ABS, SKF_AD_OFF + SKF_AD_CPU);
 	insn[len - 2] = __BPF_STMT(BPF_ALU | BPF_SUB | BPF_X, 0);
 	insn[len - 1] = __BPF_STMT(BPF_RET | BPF_A, 0);
 
@@ -255,7 +255,8 @@ static int bpf_fill_maxinsns8(struct bpf_test *self)
 	insn[0] = __BPF_STMT(BPF_LD | BPF_IMM, 0xffffffff);
 
 	for (i = 1; i < len - 1; i++)
-		insn[i] = __BPF_JUMP(BPF_JMP | BPF_JGT, 0xffffffff, jmp_off--, 0);
+		insn[i] =
+			__BPF_JUMP(BPF_JMP | BPF_JGT, 0xffffffff, jmp_off--, 0);
 
 	insn[len - 1] = __BPF_STMT(BPF_RET | BPF_A, 0);
 
@@ -307,7 +308,7 @@ static int bpf_fill_maxinsns10(struct bpf_test *self)
 		insn[i] = BPF_JMP_IMM(BPF_JA, 0, 0, hlen - 1 - 2 * i);
 
 	insn[hlen / 2] = BPF_JMP_IMM(BPF_JA, 0, 0, hlen / 2 - 1);
-	insn[hlen]     = BPF_ALU32_IMM(BPF_MOV, R0, 0xabababac);
+	insn[hlen] = BPF_ALU32_IMM(BPF_MOV, R0, 0xabababac);
 	insn[hlen + 1] = BPF_EXIT_INSN();
 
 	self->u.ptr.insns = insn;
@@ -331,11 +332,10 @@ static int __bpf_fill_ja(struct bpf_test *self, unsigned int len,
 
 	for (i = 0; i + plen < len; i += plen)
 		for (j = 0; j < plen; j++)
-			insn[i + j] = __BPF_JUMP(BPF_JMP | BPF_JA,
-						 plen - 1 - j, 0, 0);
+			insn[i + j] = __BPF_JUMP(BPF_JMP | BPF_JA, plen - 1 - j,
+						 0, 0);
 	for (j = 0; j < rlen; j++)
-		insn[i + j] = __BPF_JUMP(BPF_JMP | BPF_JA, rlen - 1 - j,
-					 0, 0);
+		insn[i + j] = __BPF_JUMP(BPF_JMP | BPF_JA, rlen - 1 - j, 0, 0);
 
 	insn[len - 1] = __BPF_STMT(BPF_RET | BPF_K, 0xababcbac);
 
@@ -465,7 +465,7 @@ static int bpf_fill_stxdw(struct bpf_test *self)
 
 static int __bpf_ld_imm64(struct bpf_insn insns[2], u8 reg, s64 imm64)
 {
-	struct bpf_insn tmp[] = {BPF_LD_IMM64(reg, imm64)};
+	struct bpf_insn tmp[] = { BPF_LD_IMM64(reg, imm64) };
 
 	memcpy(insns, tmp, sizeof(tmp));
 	return 2;
@@ -496,7 +496,7 @@ static int __bpf_fill_max_jmp(struct bpf_test *self, int jmp, int imm)
 	while (i < len - 1) {
 		static const int ops[] = {
 			BPF_LSH, BPF_RSH, BPF_ARSH, BPF_ADD,
-			BPF_SUB, BPF_MUL, BPF_DIV, BPF_MOD,
+			BPF_SUB, BPF_MUL, BPF_DIV,  BPF_MOD,
 		};
 		int op = ops[(i >> 1) % ARRAY_SIZE(ops)];
 
@@ -590,8 +590,8 @@ static bool __bpf_alu_result(u64 *res, u64 v1, u64 v2, u8 op)
 }
 
 /* Test an ALU shift operation for all valid shift values */
-static int __bpf_fill_alu_shift(struct bpf_test *self, u8 op,
-				u8 mode, bool alu32)
+static int __bpf_fill_alu_shift(struct bpf_test *self, u8 op, u8 mode,
+				bool alu32)
 {
 	static const s64 regs[] = {
 		0x0123456789abcdefLL, /* dword > 0, word < 0 */
@@ -817,12 +817,14 @@ static inline s64 value(int msb, int delta, int sign)
 	return sign * (1LL << msb) + delta;
 }
 
-static int __bpf_fill_pattern(struct bpf_test *self, void *arg,
-			      int dbits, int sbits, int block1, int block2,
-			      int (*emit)(struct bpf_test*, void*,
-					  struct bpf_insn*, s64, s64))
+static int __bpf_fill_pattern(struct bpf_test *self, void *arg, int dbits,
+			      int sbits, int block1, int block2,
+			      int (*emit)(struct bpf_test *, void *,
+					  struct bpf_insn *, s64, s64))
 {
-	static const int sgn[][2] = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+	static const int sgn[][2] = {
+		{ 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 }
+	};
 	struct bpf_insn *insns;
 	int di, si, bt, db, sb;
 	int count, len, k;
@@ -846,11 +848,11 @@ static int __bpf_fill_pattern(struct bpf_test *self, void *arg,
 	 * Pattern 1: all combinations of power-of-two magnitudes and sign,
 	 * and with a block of contiguous values around each magnitude.
 	 */
-	for (di = 0; di < dbits - 1; di++)                 /* Dst magnitudes */
-		for (si = 0; si < sbits - 1; si++)         /* Src magnitudes */
+	for (di = 0; di < dbits - 1; di++) /* Dst magnitudes */
+		for (si = 0; si < sbits - 1; si++) /* Src magnitudes */
 			for (k = 0; k < ARRAY_SIZE(sgn); k++) /* Sign combos */
-				for (db = -(block1 / 2);
-				     db < (block1 + 1) / 2; db++)
+				for (db = -(block1 / 2); db < (block1 + 1) / 2;
+				     db++)
 					for (sb = -(block1 / 2);
 					     sb < (block1 + 1) / 2; sb++) {
 						s64 dst, src;
@@ -858,25 +860,25 @@ static int __bpf_fill_pattern(struct bpf_test *self, void *arg,
 						dst = value(di, db, sgn[k][0]);
 						src = value(si, sb, sgn[k][1]);
 						i += (*emit)(self, arg,
-							     &insns[i],
-							     dst, src);
+							     &insns[i], dst,
+							     src);
 					}
 	/*
 	 * Pattern 2: all combinations for a larger block of values
 	 * for each power-of-two magnitude and sign, where the magnitude is
 	 * the same for both operands.
 	 */
-	for (bt = 0; bt < max(dbits, sbits) - 1; bt++)        /* Magnitude   */
-		for (k = 0; k < ARRAY_SIZE(sgn); k++)         /* Sign combos */
+	for (bt = 0; bt < max(dbits, sbits) - 1; bt++) /* Magnitude   */
+		for (k = 0; k < ARRAY_SIZE(sgn); k++) /* Sign combos */
 			for (db = -(block2 / 2); db < (block2 + 1) / 2; db++)
-				for (sb = -(block2 / 2);
-				     sb < (block2 + 1) / 2; sb++) {
+				for (sb = -(block2 / 2); sb < (block2 + 1) / 2;
+				     sb++) {
 					s64 dst, src;
 
 					dst = value(bt % dbits, db, sgn[k][0]);
 					src = value(bt % sbits, sb, sgn[k][1]);
-					i += (*emit)(self, arg, &insns[i],
-						     dst, src);
+					i += (*emit)(self, arg, &insns[i], dst,
+						     src);
 				}
 
 	/* Append tail instructions */
@@ -1000,30 +1002,26 @@ static int __bpf_emit_alu32_reg(struct bpf_test *self, void *arg,
 
 static int __bpf_fill_alu64_imm(struct bpf_test *self, int op)
 {
-	return __bpf_fill_pattern(self, &op, 64, 32,
-				  PATTERN_BLOCK1, PATTERN_BLOCK2,
-				  &__bpf_emit_alu64_imm);
+	return __bpf_fill_pattern(self, &op, 64, 32, PATTERN_BLOCK1,
+				  PATTERN_BLOCK2, &__bpf_emit_alu64_imm);
 }
 
 static int __bpf_fill_alu32_imm(struct bpf_test *self, int op)
 {
-	return __bpf_fill_pattern(self, &op, 64, 32,
-				  PATTERN_BLOCK1, PATTERN_BLOCK2,
-				  &__bpf_emit_alu32_imm);
+	return __bpf_fill_pattern(self, &op, 64, 32, PATTERN_BLOCK1,
+				  PATTERN_BLOCK2, &__bpf_emit_alu32_imm);
 }
 
 static int __bpf_fill_alu64_reg(struct bpf_test *self, int op)
 {
-	return __bpf_fill_pattern(self, &op, 64, 64,
-				  PATTERN_BLOCK1, PATTERN_BLOCK2,
-				  &__bpf_emit_alu64_reg);
+	return __bpf_fill_pattern(self, &op, 64, 64, PATTERN_BLOCK1,
+				  PATTERN_BLOCK2, &__bpf_emit_alu64_reg);
 }
 
 static int __bpf_fill_alu32_reg(struct bpf_test *self, int op)
 {
-	return __bpf_fill_pattern(self, &op, 64, 64,
-				  PATTERN_BLOCK1, PATTERN_BLOCK2,
-				  &__bpf_emit_alu32_reg);
+	return __bpf_fill_pattern(self, &op, 64, 64, PATTERN_BLOCK1,
+				  PATTERN_BLOCK2, &__bpf_emit_alu32_reg);
 }
 
 /* ALU64 immediate operations */
@@ -1740,7 +1738,7 @@ static int __bpf_emit_cmpxchg32(struct bpf_test *self, void *arg,
 	insns[i++] = BPF_STX_MEM(BPF_W, R10, R1, -4);
 	insns[i++] = BPF_ATOMIC_OP(BPF_W, BPF_CMPXCHG, R10, R2, -4);
 	insns[i++] = BPF_ZEXT_REG(R0), /* Zext always inserted by verifier */
-	insns[i++] = BPF_LDX_MEM(BPF_W, R3, R10, -4);
+		insns[i++] = BPF_LDX_MEM(BPF_W, R3, R10, -4);
 
 	insns[i++] = BPF_JMP32_REG(BPF_JEQ, R1, R3, 2);
 	insns[i++] = BPF_MOV32_IMM(R0, __LINE__);
@@ -1754,7 +1752,7 @@ static int __bpf_emit_cmpxchg32(struct bpf_test *self, void *arg,
 	i += __bpf_ld_imm64(&insns[i], R0, dst);
 	insns[i++] = BPF_ATOMIC_OP(BPF_W, BPF_CMPXCHG, R10, R2, -4);
 	insns[i++] = BPF_ZEXT_REG(R0), /* Zext always inserted by verifier */
-	insns[i++] = BPF_LDX_MEM(BPF_W, R3, R10, -4);
+		insns[i++] = BPF_LDX_MEM(BPF_W, R3, R10, -4);
 
 	insns[i++] = BPF_JMP32_REG(BPF_JEQ, R2, R3, 2);
 	insns[i++] = BPF_MOV32_IMM(R0, __LINE__);
@@ -1769,15 +1767,13 @@ static int __bpf_emit_cmpxchg32(struct bpf_test *self, void *arg,
 
 static int __bpf_fill_atomic64(struct bpf_test *self, int op)
 {
-	return __bpf_fill_pattern(self, &op, 64, 64,
-				  0, PATTERN_BLOCK2,
+	return __bpf_fill_pattern(self, &op, 64, 64, 0, PATTERN_BLOCK2,
 				  &__bpf_emit_atomic64);
 }
 
 static int __bpf_fill_atomic32(struct bpf_test *self, int op)
 {
-	return __bpf_fill_pattern(self, &op, 64, 64,
-				  0, PATTERN_BLOCK2,
+	return __bpf_fill_pattern(self, &op, 64, 64, 0, PATTERN_BLOCK2,
 				  &__bpf_emit_atomic32);
 }
 
@@ -1942,29 +1938,29 @@ static int __bpf_fill_atomic_reg_pairs(struct bpf_test *self, u8 width, u8 op)
 
 			/* Check R0 register value */
 			if (op == BPF_CMPXCHG)
-				cmp = mem;  /* Expect value from memory */
+				cmp = mem; /* Expect value from memory */
 			else if (R0 == rd || R0 == rs)
-				cmp = 0;    /* Aliased, checked below */
+				cmp = 0; /* Aliased, checked below */
 			else
 				cmp = ~mem; /* Expect value to be preserved */
 			if (cmp) {
-				insn[i++] = BPF_JMP32_IMM(BPF_JEQ, R0,
-							   (u32)cmp, 2);
+				insn[i++] =
+					BPF_JMP32_IMM(BPF_JEQ, R0, (u32)cmp, 2);
 				insn[i++] = BPF_MOV32_IMM(R0, __LINE__);
 				insn[i++] = BPF_EXIT_INSN();
 				insn[i++] = BPF_ALU64_IMM(BPF_RSH, R0, 32);
 				insn[i++] = BPF_JMP32_IMM(BPF_JEQ, R0,
-							   cmp >> 32, 2);
+							  cmp >> 32, 2);
 				insn[i++] = BPF_MOV32_IMM(R0, __LINE__);
 				insn[i++] = BPF_EXIT_INSN();
 			}
 
 			/* Check source register value */
 			if (rs == R0 && op == BPF_CMPXCHG)
-				src = 0;   /* Aliased with R0, checked above */
-			else if (rs == rd && (op == BPF_CMPXCHG ||
-					      !(op & BPF_FETCH)))
-				src = 0;   /* Aliased with rd, checked below */
+				src = 0; /* Aliased with R0, checked above */
+			else if (rs == rd &&
+				 (op == BPF_CMPXCHG || !(op & BPF_FETCH)))
+				src = 0; /* Aliased with rd, checked below */
 			else if (op == BPF_CMPXCHG)
 				src = upd; /* Expect value to be preserved */
 			else if (op & BPF_FETCH)
@@ -1972,13 +1968,13 @@ static int __bpf_fill_atomic_reg_pairs(struct bpf_test *self, u8 width, u8 op)
 			else /* no fetch */
 				src = upd; /* Expect value to be preserved */
 			if (src) {
-				insn[i++] = BPF_JMP32_IMM(BPF_JEQ, rs,
-							   (u32)src, 2);
+				insn[i++] =
+					BPF_JMP32_IMM(BPF_JEQ, rs, (u32)src, 2);
 				insn[i++] = BPF_MOV32_IMM(R0, __LINE__);
 				insn[i++] = BPF_EXIT_INSN();
 				insn[i++] = BPF_ALU64_IMM(BPF_RSH, rs, 32);
 				insn[i++] = BPF_JMP32_IMM(BPF_JEQ, rs,
-							   src >> 32, 2);
+							  src >> 32, 2);
 				insn[i++] = BPF_MOV32_IMM(R0, __LINE__);
 				insn[i++] = BPF_EXIT_INSN();
 			}
@@ -1992,13 +1988,13 @@ static int __bpf_fill_atomic_reg_pairs(struct bpf_test *self, u8 width, u8 op)
 			}
 
 			/* Check value in memory */
-			if (rs != rd) {                  /* No aliasing */
+			if (rs != rd) { /* No aliasing */
 				i += __bpf_ld_imm64(&insn[i], R1, res);
-			} else if (op == BPF_XCHG) {     /* Aliased, XCHG */
+			} else if (op == BPF_XCHG) { /* Aliased, XCHG */
 				insn[i++] = BPF_MOV64_REG(R1, R10);
-			} else if (op == BPF_CMPXCHG) {  /* Aliased, CMPXCHG */
+			} else if (op == BPF_CMPXCHG) { /* Aliased, CMPXCHG */
 				i += __bpf_ld_imm64(&insn[i], R1, mem);
-			} else {                        /* Aliased, ALU oper */
+			} else { /* Aliased, ALU oper */
 				i += __bpf_ld_imm64(&insn[i], R1, mem);
 				insn[i++] = BPF_ALU64_REG(BPF_OP(op), R1, R10);
 			}
@@ -2186,8 +2182,7 @@ static int bpf_fill_ld_imm64_magn(struct bpf_test *self)
  * (base & mask) | (rand() & ~mask), where rand() is a deterministic LCG.
  * All patterns (base1, mask1) and (base2, mask2) bytes are tested.
  */
-static int __bpf_fill_ld_imm64_bytes(struct bpf_test *self,
-				     u8 base1, u8 mask1,
+static int __bpf_fill_ld_imm64_bytes(struct bpf_test *self, u8 base1, u8 mask1,
 				     u8 base2, u8 mask2)
 {
 	struct bpf_insn *insn;
@@ -2388,30 +2383,26 @@ static int __bpf_emit_jmp32_reg(struct bpf_test *self, void *arg,
 
 static int __bpf_fill_jmp_imm(struct bpf_test *self, int op)
 {
-	return __bpf_fill_pattern(self, &op, 64, 32,
-				  PATTERN_BLOCK1, PATTERN_BLOCK2,
-				  &__bpf_emit_jmp_imm);
+	return __bpf_fill_pattern(self, &op, 64, 32, PATTERN_BLOCK1,
+				  PATTERN_BLOCK2, &__bpf_emit_jmp_imm);
 }
 
 static int __bpf_fill_jmp32_imm(struct bpf_test *self, int op)
 {
-	return __bpf_fill_pattern(self, &op, 64, 32,
-				  PATTERN_BLOCK1, PATTERN_BLOCK2,
-				  &__bpf_emit_jmp32_imm);
+	return __bpf_fill_pattern(self, &op, 64, 32, PATTERN_BLOCK1,
+				  PATTERN_BLOCK2, &__bpf_emit_jmp32_imm);
 }
 
 static int __bpf_fill_jmp_reg(struct bpf_test *self, int op)
 {
-	return __bpf_fill_pattern(self, &op, 64, 64,
-				  PATTERN_BLOCK1, PATTERN_BLOCK2,
-				  &__bpf_emit_jmp_reg);
+	return __bpf_fill_pattern(self, &op, 64, 64, PATTERN_BLOCK1,
+				  PATTERN_BLOCK2, &__bpf_emit_jmp_reg);
 }
 
 static int __bpf_fill_jmp32_reg(struct bpf_test *self, int op)
 {
-	return __bpf_fill_pattern(self, &op, 64, 64,
-				  PATTERN_BLOCK1, PATTERN_BLOCK2,
-				  &__bpf_emit_jmp32_reg);
+	return __bpf_fill_pattern(self, &op, 64, 64, PATTERN_BLOCK1,
+				  PATTERN_BLOCK2, &__bpf_emit_jmp32_reg);
 }
 
 /* JMP immediate tests */
@@ -2695,8 +2686,8 @@ static int bpf_fill_jmp32_jsle_reg(struct bpf_test *self)
 #define NR_STAGGERED_JMP_RUNS 10
 
 static int __bpf_fill_staggered_jumps(struct bpf_test *self,
-				      const struct bpf_insn *jmp,
-				      u64 r1, u64 r2)
+				      const struct bpf_insn *jmp, u64 r1,
+				      u64 r2)
 {
 	int size = self->test[0].result - 1;
 	int len = 4 + 3 * (size + 1);
@@ -2722,8 +2713,8 @@ static int __bpf_fill_staggered_jumps(struct bpf_test *self,
 			off--;
 
 		loc = abs(off);
-		ins[0] = BPF_JMP_IMM(BPF_JNE, R0, loc - 1,
-				     3 * (size - ind) + 1);
+		ins[0] =
+			BPF_JMP_IMM(BPF_JNE, R0, loc - 1, 3 * (size - ind) + 1);
 		ins[1] = BPF_ALU64_IMM(BPF_MOV, R0, loc);
 		ins[2] = *jmp;
 		ins[2].off = 3 * (off - 1);
@@ -3057,7 +3048,6 @@ static int bpf_fill_staggered_jsle32_reg(struct bpf_test *self)
 
 	return __bpf_fill_staggered_jumps(self, &jmp, -1, -1);
 }
-
 
 static struct bpf_test tests[] = {
 	{
@@ -8322,16 +8312,16 @@ static struct bpf_test tests[] = {
 		{ { 0, 4134 } },
 		.fill_helper = bpf_fill_stxdw,
 	},
-	/*
+/*
 	 * Exhaustive tests of atomic operation variants.
 	 * Individual tests are expanded from template macros for all
 	 * combinations of ALU operation, word size and fetching.
 	 */
 #define BPF_ATOMIC_POISON(width) ((width) == BPF_W ? (0xbaadf00dULL << 32) : 0)
 
-#define BPF_ATOMIC_OP_TEST1(width, op, logic, old, update, result)	\
-{									\
-	"BPF_ATOMIC | " #width ", " #op ": Test: "			\
+#define BPF_ATOMIC_OP_TEST1(width, op, logic, old, update, result)             \
+	{                                                                      \
+		"BPF_ATOMIC | " #width ", " #op ": Test: "			\
 		#old " " #logic " " #update " = " #result,		\
 	.u.insns_int = {						\
 		BPF_LD_IMM64(R5, (update) | BPF_ATOMIC_POISON(width)),	\
@@ -8346,11 +8336,11 @@ static struct bpf_test tests[] = {
 	INTERNAL,							\
 	{ },								\
 	{ { 0, result } },						\
-	.stack_depth = 40,						\
-}
-#define BPF_ATOMIC_OP_TEST2(width, op, logic, old, update, result)	\
-{									\
-	"BPF_ATOMIC | " #width ", " #op ": Test side effects, r10: "	\
+	.stack_depth = 40,                 \
+	}
+#define BPF_ATOMIC_OP_TEST2(width, op, logic, old, update, result)             \
+	{                                                                      \
+		"BPF_ATOMIC | " #width ", " #op ": Test side effects, r10: "	\
 		#old " " #logic " " #update " = " #result,		\
 	.u.insns_int = {						\
 		BPF_ALU64_REG(BPF_MOV, R1, R10),			\
@@ -8367,11 +8357,11 @@ static struct bpf_test tests[] = {
 	INTERNAL,							\
 	{ },								\
 	{ { 0, 0 } },							\
-	.stack_depth = 40,						\
-}
-#define BPF_ATOMIC_OP_TEST3(width, op, logic, old, update, result)	\
-{									\
-	"BPF_ATOMIC | " #width ", " #op ": Test side effects, r0: "	\
+	.stack_depth = 40, \
+	}
+#define BPF_ATOMIC_OP_TEST3(width, op, logic, old, update, result)             \
+	{                                                                      \
+		"BPF_ATOMIC | " #width ", " #op ": Test side effects, r0: "	\
 		#old " " #logic " " #update " = " #result,		\
 	.u.insns_int = {						\
 		BPF_ALU64_REG(BPF_MOV, R0, R10),			\
@@ -8387,11 +8377,11 @@ static struct bpf_test tests[] = {
 	INTERNAL,                                                       \
 	{ },                                                            \
 	{ { 0, 0 } },                                                   \
-	.stack_depth = 40,                                              \
-}
-#define BPF_ATOMIC_OP_TEST4(width, op, logic, old, update, result)	\
-{									\
-	"BPF_ATOMIC | " #width ", " #op ": Test fetch: "		\
+	.stack_depth = 40,  \
+	}
+#define BPF_ATOMIC_OP_TEST4(width, op, logic, old, update, result)             \
+	{                                                                      \
+		"BPF_ATOMIC | " #width ", " #op ": Test fetch: "		\
 		#old " " #logic " " #update " = " #result,		\
 	.u.insns_int = {						\
 		BPF_LD_IMM64(R3, (update) | BPF_ATOMIC_POISON(width)),	\
@@ -8403,8 +8393,8 @@ static struct bpf_test tests[] = {
 	INTERNAL,                                                       \
 	{ },                                                            \
 	{ { 0, (op) & BPF_FETCH ? old : update } },			\
-	.stack_depth = 40,                                              \
-}
+	.stack_depth = 40,            \
+	}
 	/* BPF_ATOMIC | BPF_W: BPF_ADD */
 	BPF_ATOMIC_OP_TEST1(BPF_W, BPF_ADD, +, 0x12, 0xab, 0xbd),
 	BPF_ATOMIC_OP_TEST2(BPF_W, BPF_ADD, +, 0x12, 0xab, 0xbd),
@@ -11273,7 +11263,7 @@ static struct bpf_test tests[] = {
 		{ { 0, 0 } },
 		.stack_depth = 8,
 	},
-	/*
+/*
 	 * Register (non-)clobbering tests for the case where a JIT implements
 	 * complex ALU or ATOMIC operations via function calls. If so, the
 	 * function call must be transparent to the eBPF registers. The JIT
@@ -11285,38 +11275,38 @@ static struct bpf_test tests[] = {
 	 * Note that each operations should be tested twice with different
 	 * destinations, to check preservation for all registers.
 	 */
-#define BPF_TEST_CLOBBER_ALU(alu, op, dst, src)			\
-	{							\
-		#alu "_" #op " to " #dst ": no clobbering",	\
-		.u.insns_int = {				\
-			BPF_ALU64_IMM(BPF_MOV, R0, R0),		\
-			BPF_ALU64_IMM(BPF_MOV, R1, R1),		\
-			BPF_ALU64_IMM(BPF_MOV, R2, R2),		\
-			BPF_ALU64_IMM(BPF_MOV, R3, R3),		\
-			BPF_ALU64_IMM(BPF_MOV, R4, R4),		\
-			BPF_ALU64_IMM(BPF_MOV, R5, R5),		\
-			BPF_ALU64_IMM(BPF_MOV, R6, R6),		\
-			BPF_ALU64_IMM(BPF_MOV, R7, R7),		\
-			BPF_ALU64_IMM(BPF_MOV, R8, R8),		\
-			BPF_ALU64_IMM(BPF_MOV, R9, R9),		\
-			BPF_##alu(BPF_ ##op, dst, src),		\
-			BPF_ALU32_IMM(BPF_MOV, dst, dst),	\
-			BPF_JMP_IMM(BPF_JNE, R0, R0, 10),	\
-			BPF_JMP_IMM(BPF_JNE, R1, R1, 9),	\
-			BPF_JMP_IMM(BPF_JNE, R2, R2, 8),	\
-			BPF_JMP_IMM(BPF_JNE, R3, R3, 7),	\
-			BPF_JMP_IMM(BPF_JNE, R4, R4, 6),	\
-			BPF_JMP_IMM(BPF_JNE, R5, R5, 5),	\
-			BPF_JMP_IMM(BPF_JNE, R6, R6, 4),	\
-			BPF_JMP_IMM(BPF_JNE, R7, R7, 3),	\
-			BPF_JMP_IMM(BPF_JNE, R8, R8, 2),	\
-			BPF_JMP_IMM(BPF_JNE, R9, R9, 1),	\
-			BPF_ALU64_IMM(BPF_MOV, R0, 1),		\
-			BPF_EXIT_INSN(),			\
-		},						\
-		INTERNAL,					\
-		{ },						\
-		{ { 0, 1 } }					\
+#define BPF_TEST_CLOBBER_ALU(alu, op, dst, src)                                \
+	{                                                                      \
+#alu "_" #op " to " #dst ": no clobbering", .u.insns_int = {   \
+			BPF_ALU64_IMM(BPF_MOV, R0, R0),                        \
+			BPF_ALU64_IMM(BPF_MOV, R1, R1),                        \
+			BPF_ALU64_IMM(BPF_MOV, R2, R2),                        \
+			BPF_ALU64_IMM(BPF_MOV, R3, R3),                        \
+			BPF_ALU64_IMM(BPF_MOV, R4, R4),                        \
+			BPF_ALU64_IMM(BPF_MOV, R5, R5),                        \
+			BPF_ALU64_IMM(BPF_MOV, R6, R6),                        \
+			BPF_ALU64_IMM(BPF_MOV, R7, R7),                        \
+			BPF_ALU64_IMM(BPF_MOV, R8, R8),                        \
+			BPF_ALU64_IMM(BPF_MOV, R9, R9),                        \
+			BPF_##alu(BPF_##op, dst, src),                         \
+			BPF_ALU32_IMM(BPF_MOV, dst, dst),                      \
+			BPF_JMP_IMM(BPF_JNE, R0, R0, 10),                      \
+			BPF_JMP_IMM(BPF_JNE, R1, R1, 9),                       \
+			BPF_JMP_IMM(BPF_JNE, R2, R2, 8),                       \
+			BPF_JMP_IMM(BPF_JNE, R3, R3, 7),                       \
+			BPF_JMP_IMM(BPF_JNE, R4, R4, 6),                       \
+			BPF_JMP_IMM(BPF_JNE, R5, R5, 5),                       \
+			BPF_JMP_IMM(BPF_JNE, R6, R6, 4),                       \
+			BPF_JMP_IMM(BPF_JNE, R7, R7, 3),                       \
+			BPF_JMP_IMM(BPF_JNE, R8, R8, 2),                       \
+			BPF_JMP_IMM(BPF_JNE, R9, R9, 1),                       \
+			BPF_ALU64_IMM(BPF_MOV, R0, 1), BPF_EXIT_INSN(), },     \
+			INTERNAL, {},                                          \
+		{                                                              \
+			{                                                      \
+				0, 1                                           \
+			}                                                      \
+		}                                                              \
 	}
 	/* ALU64 operations, register clobbering */
 	BPF_TEST_CLOBBER_ALU(ALU64_IMM, AND, R8, 123456789),
@@ -11411,8 +11401,8 @@ static struct bpf_test tests[] = {
 	BPF_TEST_CLOBBER_ALU(ALU32_REG, MOD, R8, R1),
 	BPF_TEST_CLOBBER_ALU(ALU32_REG, MOD, R9, R1),
 #undef BPF_TEST_CLOBBER_ALU
-#define BPF_TEST_CLOBBER_ATOMIC(width, op)			\
-	{							\
+#define BPF_TEST_CLOBBER_ATOMIC(width, op)                                     \
+	{                                                                      \
 		"Atomic_" #width " " #op ": no clobbering",	\
 		.u.insns_int = {				\
 			BPF_ALU64_IMM(BPF_MOV, R0, 0),		\
@@ -11445,7 +11435,7 @@ static struct bpf_test tests[] = {
 		INTERNAL,					\
 		{ },						\
 		{ { 0, 1 } },					\
-		.stack_depth = 8,				\
+		.stack_depth = 8,                  \
 	}
 	/* 64-bit atomic operations, register clobbering */
 	BPF_TEST_CLOBBER_ATOMIC(BPF_DW, BPF_ADD),
@@ -11470,9 +11460,9 @@ static struct bpf_test tests[] = {
 	BPF_TEST_CLOBBER_ATOMIC(BPF_W, BPF_XCHG),
 	BPF_TEST_CLOBBER_ATOMIC(BPF_W, BPF_CMPXCHG),
 #undef BPF_TEST_CLOBBER_ATOMIC
-	/* Checking that ALU32 src is not zero extended in place */
-#define BPF_ALU32_SRC_ZEXT(op)					\
-	{							\
+/* Checking that ALU32 src is not zero extended in place */
+#define BPF_ALU32_SRC_ZEXT(op)                                                 \
+	{                                                                      \
 		"ALU32_" #op "_X: src preserved in zext",	\
 		.u.insns_int = {				\
 			BPF_LD_IMM64(R1, 0x0123456789acbdefULL),\
@@ -11487,7 +11477,7 @@ static struct bpf_test tests[] = {
 		},						\
 		INTERNAL,					\
 		{ },						\
-		{ { 0, 0 } },					\
+		{ { 0, 0 } },                    \
 	}
 	BPF_ALU32_SRC_ZEXT(MOV),
 	BPF_ALU32_SRC_ZEXT(AND),
@@ -11499,9 +11489,9 @@ static struct bpf_test tests[] = {
 	BPF_ALU32_SRC_ZEXT(DIV),
 	BPF_ALU32_SRC_ZEXT(MOD),
 #undef BPF_ALU32_SRC_ZEXT
-	/* Checking that ATOMIC32 src is not zero extended in place */
-#define BPF_ATOMIC32_SRC_ZEXT(op)					\
-	{								\
+/* Checking that ATOMIC32 src is not zero extended in place */
+#define BPF_ATOMIC32_SRC_ZEXT(op)                                              \
+	{                                                                      \
 		"ATOMIC_W_" #op ": src preserved in zext",		\
 		.u.insns_int = {					\
 			BPF_LD_IMM64(R0, 0x0123456789acbdefULL),	\
@@ -11517,7 +11507,7 @@ static struct bpf_test tests[] = {
 		INTERNAL,						\
 		{ },							\
 		{ { 0, 0 } },						\
-		.stack_depth = 8,					\
+		.stack_depth = 8,                  \
 	}
 	BPF_ATOMIC32_SRC_ZEXT(ADD),
 	BPF_ATOMIC32_SRC_ZEXT(AND),
@@ -11545,9 +11535,9 @@ static struct bpf_test tests[] = {
 		{ { 0, 0 } },
 		.stack_depth = 8,
 	},
-	/* Checking that JMP32 immediate src is not zero extended in place */
-#define BPF_JMP32_IMM_ZEXT(op)					\
-	{							\
+/* Checking that JMP32 immediate src is not zero extended in place */
+#define BPF_JMP32_IMM_ZEXT(op)                                                 \
+	{                                                                      \
 		"JMP32_" #op "_K: operand preserved in zext",	\
 		.u.insns_int = {				\
 			BPF_LD_IMM64(R0, 0x0123456789acbdefULL),\
@@ -11562,7 +11552,7 @@ static struct bpf_test tests[] = {
 		},						\
 		INTERNAL,					\
 		{ },						\
-		{ { 0, 0 } },					\
+		{ { 0, 0 } },                \
 	}
 	BPF_JMP32_IMM_ZEXT(JEQ),
 	BPF_JMP32_IMM_ZEXT(JNE),
@@ -11577,9 +11567,9 @@ static struct bpf_test tests[] = {
 	BPF_JMP32_IMM_ZEXT(JSLT),
 	BPF_JMP32_IMM_ZEXT(JSLE),
 #undef BPF_JMP2_IMM_ZEXT
-	/* Checking that JMP32 dst & src are not zero extended in place */
-#define BPF_JMP32_REG_ZEXT(op)					\
-	{							\
+/* Checking that JMP32 dst & src are not zero extended in place */
+#define BPF_JMP32_REG_ZEXT(op)                                                 \
+	{                                                                      \
 		"JMP32_" #op "_X: operands preserved in zext",	\
 		.u.insns_int = {				\
 			BPF_LD_IMM64(R0, 0x0123456789acbdefULL),\
@@ -11598,7 +11588,7 @@ static struct bpf_test tests[] = {
 		},						\
 		INTERNAL,					\
 		{ },						\
-		{ { 0, 0 } },					\
+		{ { 0, 0 } },               \
 	}
 	BPF_JMP32_REG_ZEXT(JEQ),
 	BPF_JMP32_REG_ZEXT(JNE),
@@ -14194,8 +14184,8 @@ static struct bpf_prog *generate_filter(int which, int *err)
 			}
 		}
 		if (*err) {
-			pr_cont("FAIL to prog_create err=%d len=%d\n",
-				*err, fprog.len);
+			pr_cont("FAIL to prog_create err=%d len=%d\n", *err,
+				fprog.len);
 			return NULL;
 		}
 		break;
@@ -14213,8 +14203,8 @@ static struct bpf_prog *generate_filter(int which, int *err)
 		fp->type = BPF_PROG_TYPE_SOCKET_FILTER;
 		memcpy(fp->insnsi, fptr, fp->len * sizeof(struct bpf_insn));
 		fp->aux->stack_depth = tests[which].stack_depth;
-		fp->aux->verifier_zext = !!(tests[which].aux &
-					    FLAG_VERIFIER_ZEXT);
+		fp->aux->verifier_zext =
+			!!(tests[which].aux & FLAG_VERIFIER_ZEXT);
 
 		/* We cannot error here as we don't need type compatibility
 		 * checks.
@@ -14245,8 +14235,8 @@ static void release_filter(struct bpf_prog *fp, int which)
 	}
 }
 
-static int __run_one(const struct bpf_prog *fp, const void *data,
-		     int runs, u64 *duration)
+static int __run_one(const struct bpf_prog *fp, const void *data, int runs,
+		     u64 *duration)
 {
 	u64 start, finish;
 	int ret = 0, i;
@@ -14284,8 +14274,7 @@ static int run_one(const struct bpf_prog *fp, struct bpf_test *test)
 		 * the sub-test array. The first test is always run,
 		 * even if both data_size and result happen to be zero.
 		 */
-		if (i > 0 &&
-		    test->test[i].data_size == 0 &&
+		if (i > 0 && test->test[i].data_size == 0 &&
 		    test->test[i].result == 0)
 			break;
 
@@ -14301,8 +14290,7 @@ static int run_one(const struct bpf_prog *fp, struct bpf_test *test)
 		if (ret == test->test[i].result) {
 			pr_cont("%lld ", duration);
 		} else {
-			pr_cont("ret %d != %d ", ret,
-				test->test[i].result);
+			pr_cont("ret %d != %d ", ret, test->test[i].result);
 			err_cnt++;
 		}
 	}
@@ -14445,21 +14433,16 @@ struct skb_segment_test {
 };
 
 static struct skb_segment_test skb_segment_tests[] __initconst = {
-	{
-		.descr = "gso_with_rx_frags",
-		.build_skb = build_test_skb,
-		.features = NETIF_F_SG | NETIF_F_GSO_PARTIAL | NETIF_F_IP_CSUM |
-			    NETIF_F_IPV6_CSUM | NETIF_F_RXCSUM
-	},
-	{
-		.descr = "gso_linear_no_head_frag",
-		.build_skb = build_test_skb_linear_no_head_frag,
-		.features = NETIF_F_SG | NETIF_F_FRAGLIST |
-			    NETIF_F_HW_VLAN_CTAG_TX | NETIF_F_GSO |
-			    NETIF_F_LLTX_BIT | NETIF_F_GRO |
-			    NETIF_F_IPV6_CSUM | NETIF_F_RXCSUM |
-			    NETIF_F_HW_VLAN_STAG_TX_BIT
-	}
+	{ .descr = "gso_with_rx_frags",
+	  .build_skb = build_test_skb,
+	  .features = NETIF_F_SG | NETIF_F_GSO_PARTIAL | NETIF_F_IP_CSUM |
+		      NETIF_F_IPV6_CSUM | NETIF_F_RXCSUM },
+	{ .descr = "gso_linear_no_head_frag",
+	  .build_skb = build_test_skb_linear_no_head_frag,
+	  .features = NETIF_F_SG | NETIF_F_FRAGLIST | NETIF_F_HW_VLAN_CTAG_TX |
+		      NETIF_F_GSO | NETIF_F_LLTX_BIT | NETIF_F_GRO |
+		      NETIF_F_IPV6_CSUM | NETIF_F_RXCSUM |
+		      NETIF_F_HW_VLAN_STAG_TX_BIT }
 };
 
 static __init int test_skb_segment_single(const struct skb_segment_test *test)
@@ -14505,8 +14488,8 @@ static __init int test_skb_segment(void)
 		}
 	}
 
-	pr_info("%s: Summary: %d PASSED, %d FAILED\n", __func__,
-		pass_cnt, err_cnt);
+	pr_info("%s: Summary: %d PASSED, %d FAILED\n", __func__, pass_cnt,
+		err_cnt);
 	return err_cnt ? -EINVAL : 0;
 }
 
@@ -14565,8 +14548,8 @@ static __init int test_bpf(void)
 		}
 	}
 
-	pr_info("Summary: %d PASSED, %d FAILED, [%d/%d JIT'ed]\n",
-		pass_cnt, err_cnt, jit_cnt, run_cnt);
+	pr_info("Summary: %d PASSED, %d FAILED, [%d/%d JIT'ed]\n", pass_cnt,
+		err_cnt, jit_cnt, run_cnt);
 
 	return err_cnt ? -EINVAL : 0;
 }
@@ -14580,8 +14563,8 @@ struct tail_call_test {
 };
 
 /* Flags that can be passed to tail call test cases */
-#define FLAG_NEED_STATE		BIT(0)
-#define FLAG_RESULT_IN_STATE	BIT(1)
+#define FLAG_NEED_STATE BIT(0)
+#define FLAG_RESULT_IN_STATE BIT(1)
 
 /*
  * Magic marker used in test snippets for tail calls below.
@@ -14596,11 +14579,11 @@ struct tail_call_test {
 /* Special offset to indicate an out-of-range index */
 #define TAIL_CALL_INVALID 0x7ffe
 
-#define TAIL_CALL(offset)			       \
-	BPF_LD_IMM64(R2, TAIL_CALL_MARKER),	       \
-	BPF_RAW_INSN(BPF_ALU | BPF_MOV | BPF_K, R3, 0, \
-		     offset, TAIL_CALL_MARKER),	       \
-	BPF_JMP_IMM(BPF_TAIL_CALL, 0, 0, 0)
+#define TAIL_CALL(offset)                                                      \
+	BPF_LD_IMM64(R2, TAIL_CALL_MARKER),                                    \
+		BPF_RAW_INSN(BPF_ALU | BPF_MOV | BPF_K, R3, 0, offset,         \
+			     TAIL_CALL_MARKER),                                \
+		BPF_JMP_IMM(BPF_TAIL_CALL, 0, 0, 0)
 
 /*
  * A test function to be called from a BPF program, clobbering a lot of
@@ -14620,8 +14603,7 @@ BPF_CALL_1(bpf_test_func, u64, arg)
 	long g = 6;
 	long h = 7;
 
-	return snprintf(buf, sizeof(buf),
-			"%ld %lu %lx %ld %lu %lx %ld %lu %x",
+	return snprintf(buf, sizeof(buf), "%ld %lu %lx %ld %lu %lx %ld %lu %x",
 			a, b, c, d, e, f, g, h, (int)arg);
 }
 #define BPF_FUNC_test_func __BPF_FUNC_MAX_ID
@@ -14903,8 +14885,8 @@ static __init int test_tail_calls(struct bpf_array *progs)
 		}
 	}
 
-	pr_info("%s: Summary: %d PASSED, %d FAILED, [%d/%d JIT'ed]\n",
-		__func__, pass_cnt, err_cnt, jit_cnt, run_cnt);
+	pr_info("%s: Summary: %d PASSED, %d FAILED, [%d/%d JIT'ed]\n", __func__,
+		pass_cnt, err_cnt, jit_cnt, run_cnt);
 
 	return err_cnt ? -EINVAL : 0;
 }
@@ -15004,11 +14986,11 @@ static int __init test_bpf_init(void)
 	struct bpf_array *progs = NULL;
 	int ret;
 
-	if (strlen(test_suite) &&
-	    strcmp(test_suite, "test_bpf") &&
+	if (strlen(test_suite) && strcmp(test_suite, "test_bpf") &&
 	    strcmp(test_suite, "test_tail_calls") &&
 	    strcmp(test_suite, "test_skb_segment")) {
-		pr_err("test_bpf: invalid test_suite '%s' specified.\n", test_suite);
+		pr_err("test_bpf: invalid test_suite '%s' specified.\n",
+		       test_suite);
 		return -EINVAL;
 	}
 
@@ -15018,7 +15000,7 @@ static int __init test_bpf_init(void)
 	 */
 	if (!strlen(test_suite) &&
 	    (test_id != -1 || strlen(test_name) ||
-	    (test_range[0] != 0 || test_range[1] != INT_MAX))) {
+	     (test_range[0] != 0 || test_range[1] != INT_MAX))) {
 		pr_info("test_bpf: set 'test_bpf' as the default test_suite.\n");
 		strscpy(test_suite, "test_bpf", sizeof(test_suite));
 	}

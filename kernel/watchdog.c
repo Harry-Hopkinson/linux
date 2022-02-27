@@ -30,11 +30,11 @@
 static DEFINE_MUTEX(watchdog_mutex);
 
 #if defined(CONFIG_HARDLOCKUP_DETECTOR) || defined(CONFIG_HAVE_NMI_WATCHDOG)
-# define WATCHDOG_DEFAULT	(SOFT_WATCHDOG_ENABLED | NMI_WATCHDOG_ENABLED)
-# define NMI_WATCHDOG_DEFAULT	1
+#define WATCHDOG_DEFAULT (SOFT_WATCHDOG_ENABLED | NMI_WATCHDOG_ENABLED)
+#define NMI_WATCHDOG_DEFAULT 1
 #else
-# define WATCHDOG_DEFAULT	(SOFT_WATCHDOG_ENABLED)
-# define NMI_WATCHDOG_DEFAULT	0
+#define WATCHDOG_DEFAULT (SOFT_WATCHDOG_ENABLED)
+#define NMI_WATCHDOG_DEFAULT 0
 #endif
 
 unsigned long __read_mostly watchdog_enabled;
@@ -49,15 +49,15 @@ unsigned long *watchdog_cpumask_bits = cpumask_bits(&watchdog_cpumask);
 
 #ifdef CONFIG_HARDLOCKUP_DETECTOR
 
-# ifdef CONFIG_SMP
+#ifdef CONFIG_SMP
 int __read_mostly sysctl_hardlockup_all_cpu_backtrace;
-# endif /* CONFIG_SMP */
+#endif /* CONFIG_SMP */
 
 /*
  * Should we panic when a soft-lockup or hard-lockup occurs:
  */
 unsigned int __read_mostly hardlockup_panic =
-			CONFIG_BOOTPARAM_HARDLOCKUP_PANIC_VALUE;
+	CONFIG_BOOTPARAM_HARDLOCKUP_PANIC_VALUE;
 /*
  * We may not want to enable hard lockup detection by default in all cases,
  * for example when running the kernel as a guest on a hypervisor. In these
@@ -120,7 +120,9 @@ int __weak __init watchdog_nmi_probe(void)
  * update_variables();
  * watchdog_nmi_start();
  */
-void __weak watchdog_nmi_stop(void) { }
+void __weak watchdog_nmi_stop(void)
+{
+}
 
 /**
  * watchdog_nmi_start - Start the watchdog after reconfiguration
@@ -133,7 +135,9 @@ void __weak watchdog_nmi_stop(void) { }
  * - watchdog_thresh
  * - watchdog_cpumask
  */
-void __weak watchdog_nmi_start(void) { }
+void __weak watchdog_nmi_start(void)
+{
+}
 
 /**
  * lockup_detector_update_enable - Update the sysctl enable bit
@@ -158,7 +162,7 @@ static void lockup_detector_update_enable(void)
  * Delay the soflockup report when running a known slow code.
  * It does _not_ affect the timestamp of the last successdul reschedule.
  */
-#define SOFTLOCKUP_DELAY_REPORT	ULONG_MAX
+#define SOFTLOCKUP_DELAY_REPORT ULONG_MAX
 
 #ifdef CONFIG_SMP
 int __read_mostly sysctl_softlockup_all_cpu_backtrace;
@@ -168,7 +172,7 @@ static struct cpumask watchdog_allowed_mask __read_mostly;
 
 /* Global variables, exported for sysctl */
 unsigned int __read_mostly softlockup_panic =
-			CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE;
+	CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE;
 
 static bool softlockup_initialized __read_mostly;
 static u64 __read_mostly sample_period;
@@ -225,7 +229,7 @@ static int get_softlockup_thresh(void)
  */
 static unsigned long get_timestamp(void)
 {
-	return running_clock() >> 30LL;  /* 2^30 ~= 10^9 */
+	return running_clock() >> 30LL; /* 2^30 ~= 10^9 */
 }
 
 static void set_sample_period(void)
@@ -290,7 +294,7 @@ void touch_all_softlockup_watchdogs(void)
 	 * update as well, the only side effect might be a cycle delay for
 	 * the softlockup check.
 	 */
-	for_each_cpu(cpu, &watchdog_allowed_mask) {
+	for_each_cpu (cpu, &watchdog_allowed_mask) {
 		per_cpu(watchdog_report_ts, cpu) = SOFTLOCKUP_DELAY_REPORT;
 		wq_watchdog_touch(cpu);
 	}
@@ -302,11 +306,10 @@ void touch_softlockup_watchdog_sync(void)
 	__this_cpu_write(watchdog_report_ts, SOFTLOCKUP_DELAY_REPORT);
 }
 
-static int is_softlockup(unsigned long touch_ts,
-			 unsigned long period_ts,
+static int is_softlockup(unsigned long touch_ts, unsigned long period_ts,
 			 unsigned long now)
 {
-	if ((watchdog_enabled & SOFT_WATCHDOG_ENABLED) && watchdog_thresh){
+	if ((watchdog_enabled & SOFT_WATCHDOG_ENABLED) && watchdog_thresh) {
 		/* Warn about unreasonable delays. */
 		if (time_after(now, period_ts + get_softlockup_thresh()))
 			return now - touch_ts;
@@ -367,9 +370,8 @@ static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
 	/* kick the softlockup detector */
 	if (completion_done(this_cpu_ptr(&softlockup_completion))) {
 		reinit_completion(this_cpu_ptr(&softlockup_completion));
-		stop_one_cpu_nowait(smp_processor_id(),
-				softlockup_fn, NULL,
-				this_cpu_ptr(&softlockup_stop_work));
+		stop_one_cpu_nowait(smp_processor_id(), softlockup_fn, NULL,
+				    this_cpu_ptr(&softlockup_stop_work));
 	}
 
 	/* .. and repeat */
@@ -425,8 +427,8 @@ static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
 		update_report_ts();
 
 		pr_emerg("BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
-			smp_processor_id(), duration,
-			current->comm, task_pid_nr(current));
+			 smp_processor_id(), duration, current->comm,
+			 task_pid_nr(current));
 		print_modules();
 		print_irqtrace_events(current);
 		if (regs)
@@ -502,7 +504,7 @@ static void softlockup_stop_all(void)
 	if (!softlockup_initialized)
 		return;
 
-	for_each_cpu(cpu, &watchdog_allowed_mask)
+	for_each_cpu (cpu, &watchdog_allowed_mask)
 		smp_call_on_cpu(cpu, softlockup_stop_fn, NULL, false);
 
 	cpumask_clear(&watchdog_allowed_mask);
@@ -519,7 +521,7 @@ static void softlockup_start_all(void)
 	int cpu;
 
 	cpumask_copy(&watchdog_allowed_mask, &watchdog_cpumask);
-	for_each_cpu(cpu, &watchdog_allowed_mask)
+	for_each_cpu (cpu, &watchdog_allowed_mask)
 		smp_call_on_cpu(cpu, softlockup_start_fn, NULL, false);
 }
 
@@ -671,40 +673,41 @@ static int proc_watchdog_common(int which, struct ctl_table *table, int write,
 /*
  * /proc/sys/kernel/watchdog
  */
-int proc_watchdog(struct ctl_table *table, int write,
-		  void *buffer, size_t *lenp, loff_t *ppos)
+int proc_watchdog(struct ctl_table *table, int write, void *buffer,
+		  size_t *lenp, loff_t *ppos)
 {
-	return proc_watchdog_common(NMI_WATCHDOG_ENABLED|SOFT_WATCHDOG_ENABLED,
+	return proc_watchdog_common(NMI_WATCHDOG_ENABLED |
+					    SOFT_WATCHDOG_ENABLED,
 				    table, write, buffer, lenp, ppos);
 }
 
 /*
  * /proc/sys/kernel/nmi_watchdog
  */
-int proc_nmi_watchdog(struct ctl_table *table, int write,
-		      void *buffer, size_t *lenp, loff_t *ppos)
+int proc_nmi_watchdog(struct ctl_table *table, int write, void *buffer,
+		      size_t *lenp, loff_t *ppos)
 {
 	if (!nmi_watchdog_available && write)
 		return -ENOTSUPP;
-	return proc_watchdog_common(NMI_WATCHDOG_ENABLED,
-				    table, write, buffer, lenp, ppos);
+	return proc_watchdog_common(NMI_WATCHDOG_ENABLED, table, write, buffer,
+				    lenp, ppos);
 }
 
 /*
  * /proc/sys/kernel/soft_watchdog
  */
-int proc_soft_watchdog(struct ctl_table *table, int write,
-			void *buffer, size_t *lenp, loff_t *ppos)
+int proc_soft_watchdog(struct ctl_table *table, int write, void *buffer,
+		       size_t *lenp, loff_t *ppos)
 {
-	return proc_watchdog_common(SOFT_WATCHDOG_ENABLED,
-				    table, write, buffer, lenp, ppos);
+	return proc_watchdog_common(SOFT_WATCHDOG_ENABLED, table, write, buffer,
+				    lenp, ppos);
 }
 
 /*
  * /proc/sys/kernel/watchdog_thresh
  */
-int proc_watchdog_thresh(struct ctl_table *table, int write,
-			 void *buffer, size_t *lenp, loff_t *ppos)
+int proc_watchdog_thresh(struct ctl_table *table, int write, void *buffer,
+			 size_t *lenp, loff_t *ppos)
 {
 	int err, old;
 
@@ -726,8 +729,8 @@ int proc_watchdog_thresh(struct ctl_table *table, int write,
  * user to specify a mask that will include cpus that have not yet
  * been brought online, if desired.
  */
-int proc_watchdog_cpumask(struct ctl_table *table, int write,
-			  void *buffer, size_t *lenp, loff_t *ppos)
+int proc_watchdog_cpumask(struct ctl_table *table, int write, void *buffer,
+			  size_t *lenp, loff_t *ppos)
 {
 	int err;
 
@@ -745,89 +748,89 @@ static const int sixty = 60;
 
 static struct ctl_table watchdog_sysctls[] = {
 	{
-		.procname       = "watchdog",
-		.data		= &watchdog_user_enabled,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler   = proc_watchdog,
-		.extra1		= SYSCTL_ZERO,
-		.extra2		= SYSCTL_ONE,
+		.procname = "watchdog",
+		.data = &watchdog_user_enabled,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_watchdog,
+		.extra1 = SYSCTL_ZERO,
+		.extra2 = SYSCTL_ONE,
 	},
 	{
-		.procname	= "watchdog_thresh",
-		.data		= &watchdog_thresh,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler	= proc_watchdog_thresh,
-		.extra1		= SYSCTL_ZERO,
-		.extra2		= (void *)&sixty,
+		.procname = "watchdog_thresh",
+		.data = &watchdog_thresh,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_watchdog_thresh,
+		.extra1 = SYSCTL_ZERO,
+		.extra2 = (void *)&sixty,
 	},
 	{
-		.procname       = "nmi_watchdog",
-		.data		= &nmi_watchdog_user_enabled,
-		.maxlen		= sizeof(int),
-		.mode		= NMI_WATCHDOG_SYSCTL_PERM,
-		.proc_handler   = proc_nmi_watchdog,
-		.extra1		= SYSCTL_ZERO,
-		.extra2		= SYSCTL_ONE,
+		.procname = "nmi_watchdog",
+		.data = &nmi_watchdog_user_enabled,
+		.maxlen = sizeof(int),
+		.mode = NMI_WATCHDOG_SYSCTL_PERM,
+		.proc_handler = proc_nmi_watchdog,
+		.extra1 = SYSCTL_ZERO,
+		.extra2 = SYSCTL_ONE,
 	},
 	{
-		.procname	= "watchdog_cpumask",
-		.data		= &watchdog_cpumask_bits,
-		.maxlen		= NR_CPUS,
-		.mode		= 0644,
-		.proc_handler	= proc_watchdog_cpumask,
+		.procname = "watchdog_cpumask",
+		.data = &watchdog_cpumask_bits,
+		.maxlen = NR_CPUS,
+		.mode = 0644,
+		.proc_handler = proc_watchdog_cpumask,
 	},
 #ifdef CONFIG_SOFTLOCKUP_DETECTOR
 	{
-		.procname       = "soft_watchdog",
-		.data		= &soft_watchdog_user_enabled,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler   = proc_soft_watchdog,
-		.extra1		= SYSCTL_ZERO,
-		.extra2		= SYSCTL_ONE,
+		.procname = "soft_watchdog",
+		.data = &soft_watchdog_user_enabled,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_soft_watchdog,
+		.extra1 = SYSCTL_ZERO,
+		.extra2 = SYSCTL_ONE,
 	},
 	{
-		.procname	= "softlockup_panic",
-		.data		= &softlockup_panic,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= SYSCTL_ZERO,
-		.extra2		= SYSCTL_ONE,
+		.procname = "softlockup_panic",
+		.data = &softlockup_panic,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_dointvec_minmax,
+		.extra1 = SYSCTL_ZERO,
+		.extra2 = SYSCTL_ONE,
 	},
 #ifdef CONFIG_SMP
 	{
-		.procname	= "softlockup_all_cpu_backtrace",
-		.data		= &sysctl_softlockup_all_cpu_backtrace,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= SYSCTL_ZERO,
-		.extra2		= SYSCTL_ONE,
+		.procname = "softlockup_all_cpu_backtrace",
+		.data = &sysctl_softlockup_all_cpu_backtrace,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_dointvec_minmax,
+		.extra1 = SYSCTL_ZERO,
+		.extra2 = SYSCTL_ONE,
 	},
 #endif /* CONFIG_SMP */
 #endif
 #ifdef CONFIG_HARDLOCKUP_DETECTOR
 	{
-		.procname	= "hardlockup_panic",
-		.data		= &hardlockup_panic,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= SYSCTL_ZERO,
-		.extra2		= SYSCTL_ONE,
+		.procname = "hardlockup_panic",
+		.data = &hardlockup_panic,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_dointvec_minmax,
+		.extra1 = SYSCTL_ZERO,
+		.extra2 = SYSCTL_ONE,
 	},
 #ifdef CONFIG_SMP
 	{
-		.procname	= "hardlockup_all_cpu_backtrace",
-		.data		= &sysctl_hardlockup_all_cpu_backtrace,
-		.maxlen		= sizeof(int),
-		.mode		= 0644,
-		.proc_handler	= proc_dointvec_minmax,
-		.extra1		= SYSCTL_ZERO,
-		.extra2		= SYSCTL_ONE,
+		.procname = "hardlockup_all_cpu_backtrace",
+		.data = &sysctl_hardlockup_all_cpu_backtrace,
+		.maxlen = sizeof(int),
+		.mode = 0644,
+		.proc_handler = proc_dointvec_minmax,
+		.extra1 = SYSCTL_ZERO,
+		.extra2 = SYSCTL_ONE,
 	},
 #endif /* CONFIG_SMP */
 #endif
@@ -839,7 +842,9 @@ static void __init watchdog_sysctl_init(void)
 	register_sysctl_init("kernel", watchdog_sysctls);
 }
 #else
-#define watchdog_sysctl_init() do { } while (0)
+#define watchdog_sysctl_init()                                                 \
+	do {                                                                   \
+	} while (0)
 #endif /* CONFIG_SYSCTL */
 
 void __init lockup_detector_init(void)
@@ -847,8 +852,7 @@ void __init lockup_detector_init(void)
 	if (tick_nohz_full_enabled())
 		pr_info("Disabling watchdog on nohz_full cores by default\n");
 
-	cpumask_copy(&watchdog_cpumask,
-		     housekeeping_cpumask(HK_FLAG_TIMER));
+	cpumask_copy(&watchdog_cpumask, housekeeping_cpumask(HK_FLAG_TIMER));
 
 	if (!watchdog_nmi_probe())
 		nmi_watchdog_available = true;

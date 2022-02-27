@@ -288,11 +288,11 @@ static int mounts_open_common(struct inode *inode, struct file *file,
 
 	return 0;
 
- err_put_path:
+err_put_path:
 	path_put(&root);
- err_put_ns:
+err_put_ns:
 	put_mnt_ns(ns);
- err:
+err:
 	return ret;
 }
 
@@ -322,27 +322,27 @@ static int mountstats_open(struct inode *inode, struct file *file)
 }
 
 const struct file_operations proc_mounts_operations = {
-	.open		= mounts_open,
-	.read_iter	= seq_read_iter,
-	.splice_read	= generic_file_splice_read,
-	.llseek		= seq_lseek,
-	.release	= mounts_release,
-	.poll		= mounts_poll,
+	.open = mounts_open,
+	.read_iter = seq_read_iter,
+	.splice_read = generic_file_splice_read,
+	.llseek = seq_lseek,
+	.release = mounts_release,
+	.poll = mounts_poll,
 };
 
 const struct file_operations proc_mountinfo_operations = {
-	.open		= mountinfo_open,
-	.read_iter	= seq_read_iter,
-	.splice_read	= generic_file_splice_read,
-	.llseek		= seq_lseek,
-	.release	= mounts_release,
-	.poll		= mounts_poll,
+	.open = mountinfo_open,
+	.read_iter = seq_read_iter,
+	.splice_read = generic_file_splice_read,
+	.llseek = seq_lseek,
+	.release = mounts_release,
+	.poll = mounts_poll,
 };
 
 const struct file_operations proc_mountstats_operations = {
-	.open		= mountstats_open,
-	.read_iter	= seq_read_iter,
-	.splice_read	= generic_file_splice_read,
-	.llseek		= seq_lseek,
-	.release	= mounts_release,
+	.open = mountstats_open,
+	.read_iter = seq_read_iter,
+	.splice_read = generic_file_splice_read,
+	.llseek = seq_lseek,
+	.release = mounts_release,
 };

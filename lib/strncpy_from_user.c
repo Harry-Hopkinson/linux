@@ -13,10 +13,9 @@
 #include <asm/word-at-a-time.h>
 
 #ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
-#define IS_UNALIGNED(src, dst)	0
+#define IS_UNALIGNED(src, dst) 0
 #else
-#define IS_UNALIGNED(src, dst)	\
-	(((long) dst | (long) src) & (sizeof(long) - 1))
+#define IS_UNALIGNED(src, dst) (((long)dst | (long)src) & (sizeof(long) - 1))
 #endif
 
 /*
@@ -38,7 +37,8 @@ static inline long do_strncpy_from_user(char *dst, const char __user *src,
 		unsigned long c, data, mask;
 
 		/* Fall back to byte-at-a-time if we get a page fault */
-		unsafe_get_user(c, (unsigned long __user *)(src+res), byte_at_a_time);
+		unsafe_get_user(c, (unsigned long __user *)(src + res),
+				byte_at_a_time);
 
 		/*
 		 * Note that we mask out the bytes following the NUL. This is
@@ -55,11 +55,11 @@ static inline long do_strncpy_from_user(char *dst, const char __user *src,
 			data = prep_zero_mask(c, data, &constants);
 			data = create_zero_mask(data);
 			mask = zero_bytemask(data);
-			*(unsigned long *)(dst+res) = c & mask;
+			*(unsigned long *)(dst + res) = c & mask;
 			return res + find_zero(data);
 		}
 
-		*(unsigned long *)(dst+res) = c;
+		*(unsigned long *)(dst + res) = c;
 
 		res += sizeof(unsigned long);
 		max -= sizeof(unsigned long);
@@ -69,7 +69,7 @@ byte_at_a_time:
 	while (max) {
 		char c;
 
-		unsafe_get_user(c,src+res, efault);
+		unsafe_get_user(c, src + res, efault);
 		dst[res] = c;
 		if (!c)
 			return res;

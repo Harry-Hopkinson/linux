@@ -77,12 +77,12 @@ struct crypto_gcm_req_priv_ctx {
 static struct {
 	u8 buf[16];
 	struct scatterlist sg;
-} *gcm_zeroes;
+} * gcm_zeroes;
 
 static int crypto_rfc4543_copy_src_to_dst(struct aead_request *req, bool enc);
 
-static inline struct crypto_gcm_req_priv_ctx *crypto_gcm_reqctx(
-	struct aead_request *req)
+static inline struct crypto_gcm_req_priv_ctx *
+crypto_gcm_reqctx(struct aead_request *req)
 {
 	unsigned long align = crypto_aead_alignmask(crypto_aead_reqtfm(req));
 
@@ -103,12 +103,12 @@ static int crypto_gcm_setkey(struct crypto_aead *aead, const u8 *key,
 
 		struct scatterlist sg[1];
 		struct skcipher_request req;
-	} *data;
+	} * data;
 	int err;
 
 	crypto_skcipher_clear_flags(ctr, CRYPTO_TFM_REQ_MASK);
 	crypto_skcipher_set_flags(ctr, crypto_aead_get_flags(aead) &
-				       CRYPTO_TFM_REQ_MASK);
+					       CRYPTO_TFM_REQ_MASK);
 	err = crypto_skcipher_setkey(ctr, key, keylen);
 	if (err)
 		return err;
@@ -121,22 +121,21 @@ static int crypto_gcm_setkey(struct crypto_aead *aead, const u8 *key,
 	crypto_init_wait(&data->wait);
 	sg_init_one(data->sg, &data->hash, sizeof(data->hash));
 	skcipher_request_set_tfm(&data->req, ctr);
-	skcipher_request_set_callback(&data->req, CRYPTO_TFM_REQ_MAY_SLEEP |
-						  CRYPTO_TFM_REQ_MAY_BACKLOG,
-				      crypto_req_done,
-				      &data->wait);
+	skcipher_request_set_callback(&data->req,
+				      CRYPTO_TFM_REQ_MAY_SLEEP |
+					      CRYPTO_TFM_REQ_MAY_BACKLOG,
+				      crypto_req_done, &data->wait);
 	skcipher_request_set_crypt(&data->req, data->sg, data->sg,
 				   sizeof(data->hash), data->iv);
 
-	err = crypto_wait_req(crypto_skcipher_encrypt(&data->req),
-							&data->wait);
+	err = crypto_wait_req(crypto_skcipher_encrypt(&data->req), &data->wait);
 
 	if (err)
 		goto out;
 
 	crypto_ahash_clear_flags(ghash, CRYPTO_TFM_REQ_MASK);
 	crypto_ahash_set_flags(ghash, crypto_aead_get_flags(aead) &
-			       CRYPTO_TFM_REQ_MASK);
+					      CRYPTO_TFM_REQ_MASK);
 	err = crypto_ahash_setkey(ghash, (u8 *)&data->hash, sizeof(be128));
 out:
 	kfree_sensitive(data);
@@ -187,8 +186,7 @@ static void crypto_gcm_init_crypt(struct aead_request *req,
 
 	skcipher_request_set_tfm(skreq, ctx->ctr);
 	skcipher_request_set_crypt(skreq, pctx->src, dst,
-				     cryptlen + sizeof(pctx->auth_tag),
-				     pctx->iv);
+				   cryptlen + sizeof(pctx->auth_tag), pctx->iv);
 }
 
 static inline unsigned int gcm_remain(unsigned int len)
@@ -199,10 +197,8 @@ static inline unsigned int gcm_remain(unsigned int len)
 
 static void gcm_hash_len_done(struct crypto_async_request *areq, int err);
 
-static int gcm_hash_update(struct aead_request *req,
-			   crypto_completion_t compl,
-			   struct scatterlist *src,
-			   unsigned int len, u32 flags)
+static int gcm_hash_update(struct aead_request *req, crypto_completion_t compl,
+			   struct scatterlist *src, unsigned int len, u32 flags)
 {
 	struct crypto_gcm_req_priv_ctx *pctx = crypto_gcm_reqctx(req);
 	struct ahash_request *ahreq = &pctx->u.ahreq;
@@ -213,8 +209,7 @@ static int gcm_hash_update(struct aead_request *req,
 	return crypto_ahash_update(ahreq);
 }
 
-static int gcm_hash_remain(struct aead_request *req,
-			   unsigned int remain,
+static int gcm_hash_remain(struct aead_request *req, unsigned int remain,
 			   crypto_completion_t compl, u32 flags)
 {
 	return gcm_hash_update(req, compl, &gcm_zeroes->sg, remain, flags);
@@ -232,8 +227,8 @@ static int gcm_hash_len(struct aead_request *req, u32 flags)
 	memcpy(pctx->iauth_tag, &lengths, 16);
 	sg_init_one(&pctx->sg, pctx->iauth_tag, 16);
 	ahash_request_set_callback(ahreq, flags, gcm_hash_len_done, req);
-	ahash_request_set_crypt(ahreq, &pctx->sg,
-				pctx->iauth_tag, sizeof(lengths));
+	ahash_request_set_crypt(ahreq, &pctx->sg, pctx->iauth_tag,
+				sizeof(lengths));
 
 	return crypto_ahash_finup(ahreq);
 }
@@ -263,8 +258,7 @@ out:
 
 static int gcm_hash_crypt_remain_continue(struct aead_request *req, u32 flags)
 {
-	return gcm_hash_len(req, flags) ?:
-	       gcm_hash_len_continue(req, flags);
+	return gcm_hash_len(req, flags) ?: gcm_hash_len_continue(req, flags);
 }
 
 static void gcm_hash_crypt_remain_done(struct crypto_async_request *areq,
@@ -291,9 +285,8 @@ static int gcm_hash_crypt_continue(struct aead_request *req, u32 flags)
 
 	remain = gcm_remain(gctx->cryptlen);
 	if (remain)
-		return gcm_hash_remain(req, remain,
-				       gcm_hash_crypt_remain_done, flags) ?:
-		       gcm_hash_crypt_remain_continue(req, flags);
+		return gcm_hash_remain(req, remain, gcm_hash_crypt_remain_done, flags) ?:
+			       gcm_hash_crypt_remain_continue(req, flags);
 
 	return gcm_hash_crypt_remain_continue(req, flags);
 }
@@ -319,9 +312,8 @@ static int gcm_hash_assoc_remain_continue(struct aead_request *req, u32 flags)
 	struct crypto_gcm_ghash_ctx *gctx = &pctx->ghash_ctx;
 
 	if (gctx->cryptlen)
-		return gcm_hash_update(req, gcm_hash_crypt_done,
-				       gctx->src, gctx->cryptlen, flags) ?:
-		       gcm_hash_crypt_continue(req, flags);
+		return gcm_hash_update(req, gcm_hash_crypt_done, gctx->src, gctx->cryptlen, flags) ?:
+			       gcm_hash_crypt_continue(req, flags);
 
 	return gcm_hash_crypt_remain_continue(req, flags);
 }
@@ -348,9 +340,8 @@ static int gcm_hash_assoc_continue(struct aead_request *req, u32 flags)
 
 	remain = gcm_remain(req->assoclen);
 	if (remain)
-		return gcm_hash_remain(req, remain,
-				       gcm_hash_assoc_remain_done, flags) ?:
-		       gcm_hash_assoc_remain_continue(req, flags);
+		return gcm_hash_remain(req, remain, gcm_hash_assoc_remain_done, flags) ?:
+			       gcm_hash_assoc_remain_continue(req, flags);
 
 	return gcm_hash_assoc_remain_continue(req, flags);
 }
@@ -373,9 +364,8 @@ out:
 static int gcm_hash_init_continue(struct aead_request *req, u32 flags)
 {
 	if (req->assoclen)
-		return gcm_hash_update(req, gcm_hash_assoc_done,
-				       req->src, req->assoclen, flags) ?:
-		       gcm_hash_assoc_continue(req, flags);
+		return gcm_hash_update(req, gcm_hash_assoc_done, req->src, req->assoclen, flags) ?:
+			       gcm_hash_assoc_continue(req, flags);
 
 	return gcm_hash_assoc_remain_continue(req, flags);
 }
@@ -404,8 +394,7 @@ static int gcm_hash(struct aead_request *req, u32 flags)
 	ahash_request_set_tfm(ahreq, ctx->ghash);
 
 	ahash_request_set_callback(ahreq, flags, gcm_hash_init_done, req);
-	return crypto_ahash_init(ahreq) ?:
-	       gcm_hash_init_continue(req, flags);
+	return crypto_ahash_init(ahreq) ?: gcm_hash_init_continue(req, flags);
 }
 
 static int gcm_enc_copy_hash(struct aead_request *req, u32 flags)
@@ -459,7 +448,7 @@ static int crypto_gcm_encrypt(struct aead_request *req)
 	skcipher_request_set_callback(skreq, flags, gcm_encrypt_done, req);
 
 	return crypto_skcipher_encrypt(skreq) ?:
-	       gcm_encrypt_continue(req, flags);
+						gcm_encrypt_continue(req, flags);
 }
 
 static int crypto_gcm_verify(struct aead_request *req)
@@ -472,8 +461,8 @@ static int crypto_gcm_verify(struct aead_request *req)
 	unsigned int cryptlen = req->cryptlen - authsize;
 
 	crypto_xor(auth_tag, iauth_tag, 16);
-	scatterwalk_map_and_copy(iauth_tag, req->src,
-				 req->assoclen + cryptlen, authsize, 0);
+	scatterwalk_map_and_copy(iauth_tag, req->src, req->assoclen + cryptlen,
+				 authsize, 0);
 	return crypto_memneq(iauth_tag, auth_tag, authsize) ? -EBADMSG : 0;
 }
 
@@ -542,12 +531,12 @@ static int crypto_gcm_init_tfm(struct crypto_aead *tfm)
 
 	align = crypto_aead_alignmask(tfm);
 	align &= ~(crypto_tfm_ctx_alignment() - 1);
-	crypto_aead_set_reqsize(tfm,
-		align + offsetof(struct crypto_gcm_req_priv_ctx, u) +
-		max(sizeof(struct skcipher_request) +
-		    crypto_skcipher_reqsize(ctr),
-		    sizeof(struct ahash_request) +
-		    crypto_ahash_reqsize(ghash)));
+	crypto_aead_set_reqsize(
+		tfm, align + offsetof(struct crypto_gcm_req_priv_ctx, u) +
+			     max(sizeof(struct skcipher_request) +
+					 crypto_skcipher_reqsize(ctr),
+				 sizeof(struct ahash_request) +
+					 crypto_ahash_reqsize(ghash)));
 
 	return 0;
 
@@ -574,8 +563,7 @@ static void crypto_gcm_free(struct aead_instance *inst)
 }
 
 static int crypto_gcm_create_common(struct crypto_template *tmpl,
-				    struct rtattr **tb,
-				    const char *ctr_name,
+				    struct rtattr **tb, const char *ctr_name,
 				    const char *ghash_name)
 {
 	u32 mask;
@@ -619,21 +607,20 @@ static int crypto_gcm_create_common(struct crypto_template *tmpl,
 		goto err_free_inst;
 
 	err = -ENAMETOOLONG;
-	if (snprintf(inst->alg.base.cra_name, CRYPTO_MAX_ALG_NAME,
-		     "gcm(%s", ctr->base.cra_name + 4) >= CRYPTO_MAX_ALG_NAME)
+	if (snprintf(inst->alg.base.cra_name, CRYPTO_MAX_ALG_NAME, "gcm(%s",
+		     ctr->base.cra_name + 4) >= CRYPTO_MAX_ALG_NAME)
 		goto err_free_inst;
 
 	if (snprintf(inst->alg.base.cra_driver_name, CRYPTO_MAX_ALG_NAME,
 		     "gcm_base(%s,%s)", ctr->base.cra_driver_name,
-		     ghash->base.cra_driver_name) >=
-	    CRYPTO_MAX_ALG_NAME)
+		     ghash->base.cra_driver_name) >= CRYPTO_MAX_ALG_NAME)
 		goto err_free_inst;
 
-	inst->alg.base.cra_priority = (ghash->base.cra_priority +
-				       ctr->base.cra_priority) / 2;
+	inst->alg.base.cra_priority =
+		(ghash->base.cra_priority + ctr->base.cra_priority) / 2;
 	inst->alg.base.cra_blocksize = 1;
-	inst->alg.base.cra_alignmask = ghash->base.cra_alignmask |
-				       ctr->base.cra_alignmask;
+	inst->alg.base.cra_alignmask =
+		ghash->base.cra_alignmask | ctr->base.cra_alignmask;
 	inst->alg.base.cra_ctxsize = sizeof(struct crypto_gcm_ctx);
 	inst->alg.ivsize = GCM_AES_IV_SIZE;
 	inst->alg.chunksize = crypto_skcipher_alg_chunksize(ctr);
@@ -649,7 +636,7 @@ static int crypto_gcm_create_common(struct crypto_template *tmpl,
 
 	err = aead_register_instance(tmpl, inst);
 	if (err) {
-err_free_inst:
+	err_free_inst:
 		crypto_gcm_free(inst);
 	}
 	return err;
@@ -702,7 +689,7 @@ static int crypto_rfc4106_setkey(struct crypto_aead *parent, const u8 *key,
 
 	crypto_aead_clear_flags(child, CRYPTO_TFM_REQ_MASK);
 	crypto_aead_set_flags(child, crypto_aead_get_flags(parent) &
-				     CRYPTO_TFM_REQ_MASK);
+					     CRYPTO_TFM_REQ_MASK);
 	return crypto_aead_setkey(child, key, keylen);
 }
 
@@ -730,7 +717,8 @@ static struct aead_request *crypto_rfc4106_crypt(struct aead_request *req)
 	u8 *iv = PTR_ALIGN((u8 *)(subreq + 1) + crypto_aead_reqsize(child),
 			   crypto_aead_alignmask(child) + 1);
 
-	scatterwalk_map_and_copy(iv + GCM_AES_IV_SIZE, req->src, 0, req->assoclen - 8, 0);
+	scatterwalk_map_and_copy(iv + GCM_AES_IV_SIZE, req->src, 0,
+				 req->assoclen - 8, 0);
 
 	memcpy(iv, ctx->nonce, 4);
 	memcpy(iv + 4, req->iv, 8);
@@ -802,11 +790,10 @@ static int crypto_rfc4106_init_tfm(struct crypto_aead *tfm)
 
 	align = crypto_aead_alignmask(aead);
 	align &= ~(crypto_tfm_ctx_alignment() - 1);
-	crypto_aead_set_reqsize(
-		tfm,
-		sizeof(struct crypto_rfc4106_req_ctx) +
-		ALIGN(crypto_aead_reqsize(aead), crypto_tfm_ctx_alignment()) +
-		align + 24);
+	crypto_aead_set_reqsize(tfm, sizeof(struct crypto_rfc4106_req_ctx) +
+					     ALIGN(crypto_aead_reqsize(aead),
+						   crypto_tfm_ctx_alignment()) +
+					     align + 24);
 
 	return 0;
 }
@@ -861,11 +848,11 @@ static int crypto_rfc4106_create(struct crypto_template *tmpl,
 
 	err = -ENAMETOOLONG;
 	if (snprintf(inst->alg.base.cra_name, CRYPTO_MAX_ALG_NAME,
-		     "rfc4106(%s)", alg->base.cra_name) >=
-	    CRYPTO_MAX_ALG_NAME ||
+		     "rfc4106(%s)",
+		     alg->base.cra_name) >= CRYPTO_MAX_ALG_NAME ||
 	    snprintf(inst->alg.base.cra_driver_name, CRYPTO_MAX_ALG_NAME,
-		     "rfc4106(%s)", alg->base.cra_driver_name) >=
-	    CRYPTO_MAX_ALG_NAME)
+		     "rfc4106(%s)",
+		     alg->base.cra_driver_name) >= CRYPTO_MAX_ALG_NAME)
 		goto err_free_inst;
 
 	inst->alg.base.cra_priority = alg->base.cra_priority;
@@ -890,7 +877,7 @@ static int crypto_rfc4106_create(struct crypto_template *tmpl,
 
 	err = aead_register_instance(tmpl, inst);
 	if (err) {
-err_free_inst:
+	err_free_inst:
 		crypto_rfc4106_free(inst);
 	}
 	return err;
@@ -910,7 +897,7 @@ static int crypto_rfc4543_setkey(struct crypto_aead *parent, const u8 *key,
 
 	crypto_aead_clear_flags(child, CRYPTO_TFM_REQ_MASK);
 	crypto_aead_set_flags(child, crypto_aead_get_flags(parent) &
-				     CRYPTO_TFM_REQ_MASK);
+					     CRYPTO_TFM_REQ_MASK);
 	return crypto_aead_setkey(child, key, keylen);
 }
 
@@ -946,12 +933,12 @@ static int crypto_rfc4543_crypt(struct aead_request *req, bool enc)
 	memcpy(iv + 4, req->iv, 8);
 
 	aead_request_set_tfm(subreq, ctx->child);
-	aead_request_set_callback(subreq, req->base.flags,
-				  req->base.complete, req->base.data);
-	aead_request_set_crypt(subreq, req->src, req->dst,
-			       enc ? 0 : authsize, iv);
-	aead_request_set_ad(subreq, req->assoclen + req->cryptlen -
-				    subreq->cryptlen);
+	aead_request_set_callback(subreq, req->base.flags, req->base.complete,
+				  req->base.data);
+	aead_request_set_crypt(subreq, req->src, req->dst, enc ? 0 : authsize,
+			       iv);
+	aead_request_set_ad(subreq,
+			    req->assoclen + req->cryptlen - subreq->cryptlen);
 
 	return enc ? crypto_aead_encrypt(subreq) : crypto_aead_decrypt(subreq);
 }
@@ -961,8 +948,8 @@ static int crypto_rfc4543_copy_src_to_dst(struct aead_request *req, bool enc)
 	struct crypto_aead *aead = crypto_aead_reqtfm(req);
 	struct crypto_rfc4543_ctx *ctx = crypto_aead_ctx(aead);
 	unsigned int authsize = crypto_aead_authsize(aead);
-	unsigned int nbytes = req->assoclen + req->cryptlen -
-			      (enc ? 0 : authsize);
+	unsigned int nbytes =
+		req->assoclen + req->cryptlen - (enc ? 0 : authsize);
 	SYNC_SKCIPHER_REQUEST_ON_STACK(nreq, ctx->null);
 
 	skcipher_request_set_sync_tfm(nreq, ctx->null);
@@ -975,13 +962,13 @@ static int crypto_rfc4543_copy_src_to_dst(struct aead_request *req, bool enc)
 static int crypto_rfc4543_encrypt(struct aead_request *req)
 {
 	return crypto_ipsec_check_assoclen(req->assoclen) ?:
-	       crypto_rfc4543_crypt(req, true);
+		       crypto_rfc4543_crypt(req, true);
 }
 
 static int crypto_rfc4543_decrypt(struct aead_request *req)
 {
 	return crypto_ipsec_check_assoclen(req->assoclen) ?:
-	       crypto_rfc4543_crypt(req, false);
+		       crypto_rfc4543_crypt(req, false);
 }
 
 static int crypto_rfc4543_init_tfm(struct crypto_aead *tfm)
@@ -1009,11 +996,10 @@ static int crypto_rfc4543_init_tfm(struct crypto_aead *tfm)
 
 	align = crypto_aead_alignmask(aead);
 	align &= ~(crypto_tfm_ctx_alignment() - 1);
-	crypto_aead_set_reqsize(
-		tfm,
-		sizeof(struct crypto_rfc4543_req_ctx) +
-		ALIGN(crypto_aead_reqsize(aead), crypto_tfm_ctx_alignment()) +
-		align + GCM_AES_IV_SIZE);
+	crypto_aead_set_reqsize(tfm, sizeof(struct crypto_rfc4543_req_ctx) +
+					     ALIGN(crypto_aead_reqsize(aead),
+						   crypto_tfm_ctx_alignment()) +
+					     align + GCM_AES_IV_SIZE);
 
 	return 0;
 
@@ -1040,7 +1026,7 @@ static void crypto_rfc4543_free(struct aead_instance *inst)
 }
 
 static int crypto_rfc4543_create(struct crypto_template *tmpl,
-				struct rtattr **tb)
+				 struct rtattr **tb)
 {
 	u32 mask;
 	struct aead_instance *inst;
@@ -1076,11 +1062,11 @@ static int crypto_rfc4543_create(struct crypto_template *tmpl,
 
 	err = -ENAMETOOLONG;
 	if (snprintf(inst->alg.base.cra_name, CRYPTO_MAX_ALG_NAME,
-		     "rfc4543(%s)", alg->base.cra_name) >=
-	    CRYPTO_MAX_ALG_NAME ||
+		     "rfc4543(%s)",
+		     alg->base.cra_name) >= CRYPTO_MAX_ALG_NAME ||
 	    snprintf(inst->alg.base.cra_driver_name, CRYPTO_MAX_ALG_NAME,
-		     "rfc4543(%s)", alg->base.cra_driver_name) >=
-	    CRYPTO_MAX_ALG_NAME)
+		     "rfc4543(%s)",
+		     alg->base.cra_driver_name) >= CRYPTO_MAX_ALG_NAME)
 		goto err_free_inst;
 
 	inst->alg.base.cra_priority = alg->base.cra_priority;
@@ -1105,7 +1091,7 @@ static int crypto_rfc4543_create(struct crypto_template *tmpl,
 
 	err = aead_register_instance(tmpl, inst);
 	if (err) {
-err_free_inst:
+	err_free_inst:
 		crypto_rfc4543_free(inst);
 	}
 	return err;
@@ -1116,15 +1102,18 @@ static struct crypto_template crypto_gcm_tmpls[] = {
 		.name = "gcm_base",
 		.create = crypto_gcm_base_create,
 		.module = THIS_MODULE,
-	}, {
+	},
+	{
 		.name = "gcm",
 		.create = crypto_gcm_create,
 		.module = THIS_MODULE,
-	}, {
+	},
+	{
 		.name = "rfc4106",
 		.create = crypto_rfc4106_create,
 		.module = THIS_MODULE,
-	}, {
+	},
+	{
 		.name = "rfc4543",
 		.create = crypto_rfc4543_create,
 		.module = THIS_MODULE,

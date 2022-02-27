@@ -26,24 +26,24 @@
 #include <unistd.h>
 #include <elf.h>
 
-#define CERT_SYM  "system_extra_cert"
-#define USED_SYM  "system_extra_cert_used"
+#define CERT_SYM "system_extra_cert"
+#define USED_SYM "system_extra_cert_used"
 #define LSIZE_SYM "system_certificate_list_size"
 
-#define info(format, args...) fprintf(stderr, "INFO:    " format, ## args)
-#define warn(format, args...) fprintf(stdout, "WARNING: " format, ## args)
-#define  err(format, args...) fprintf(stderr, "ERROR:   " format, ## args)
+#define info(format, args...) fprintf(stderr, "INFO:    " format, ##args)
+#define warn(format, args...) fprintf(stdout, "WARNING: " format, ##args)
+#define err(format, args...) fprintf(stderr, "ERROR:   " format, ##args)
 
 #if UINTPTR_MAX == 0xffffffff
 #define CURRENT_ELFCLASS ELFCLASS32
-#define Elf_Ehdr	Elf32_Ehdr
-#define Elf_Shdr	Elf32_Shdr
-#define Elf_Sym		Elf32_Sym
+#define Elf_Ehdr Elf32_Ehdr
+#define Elf_Shdr Elf32_Shdr
+#define Elf_Sym Elf32_Sym
 #else
 #define CURRENT_ELFCLASS ELFCLASS64
-#define Elf_Ehdr	Elf64_Ehdr
-#define Elf_Shdr	Elf64_Shdr
-#define Elf_Sym		Elf64_Sym
+#define Elf_Ehdr Elf64_Ehdr
+#define Elf_Shdr Elf64_Shdr
+#define Elf_Sym Elf64_Sym
 #endif
 
 static unsigned char endianness(void)
@@ -86,7 +86,6 @@ static unsigned long get_offset_from_address(Elf_Ehdr *hdr, unsigned long addr)
 	}
 	return 0;
 }
-
 
 #define LINE_SIZE 100
 
@@ -154,8 +153,8 @@ static Elf_Sym *find_elf_symbol(Elf_Ehdr *hdr, Elf_Shdr *symtab, char *name)
 	return NULL;
 }
 
-static void get_symbol_from_table(Elf_Ehdr *hdr, Elf_Shdr *symtab,
-				  char *name, struct sym *s)
+static void get_symbol_from_table(Elf_Ehdr *hdr, Elf_Shdr *symtab, char *name,
+				  struct sym *s)
 {
 	Elf_Shdr *sec;
 	int secndx;
@@ -175,8 +174,7 @@ static void get_symbol_from_table(Elf_Ehdr *hdr, Elf_Shdr *symtab,
 	sec = &x[secndx];
 	s->size = elf_sym->st_size;
 	s->address = elf_sym->st_value;
-	s->offset = s->address - sec->sh_addr
-			       + sec->sh_offset;
+	s->offset = s->address - sec->sh_addr + sec->sh_offset;
 	s->name = name;
 	s->content = (void *)hdr + s->offset;
 }
@@ -215,7 +213,7 @@ static void *map_file(char *file_name, int *size)
 		return NULL;
 	}
 	*size = st.st_size;
-	map = mmap(NULL, *size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	map = mmap(NULL, *size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 	if (map == MAP_FAILED) {
 		perror("Mapping to memory failed");
 		close(fd);
@@ -397,14 +395,13 @@ int main(int argc, char **argv)
 
 	memcpy(cert_sym.content, cert, cert_size);
 	if (cert_size < cert_sym.size)
-		memset(cert_sym.content + cert_size,
-			0, cert_sym.size - cert_size);
+		memset(cert_sym.content + cert_size, 0,
+		       cert_sym.size - cert_size);
 
 	*lsize = *lsize + cert_size - *used;
 	*used = cert_size;
 	info("Inserted the contents of %s into %lx.\n", cert_file,
-						cert_sym.address);
-	info("Used %d bytes out of %d bytes reserved.\n", *used,
-						 cert_sym.size);
+	     cert_sym.address);
+	info("Used %d bytes out of %d bytes reserved.\n", *used, cert_sym.size);
 	exit(EXIT_SUCCESS);
 }

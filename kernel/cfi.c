@@ -18,9 +18,9 @@
 
 /* Compiler-defined handler names */
 #ifdef CONFIG_CFI_PERMISSIVE
-#define cfi_failure_handler	__ubsan_handle_cfi_check_fail
+#define cfi_failure_handler __ubsan_handle_cfi_check_fail
 #else
-#define cfi_failure_handler	__ubsan_handle_cfi_check_fail_abort
+#define cfi_failure_handler __ubsan_handle_cfi_check_fail_abort
 #endif
 
 static inline void handle_cfi_failure(void *ptr)
@@ -38,7 +38,7 @@ static inline void handle_cfi_failure(void *ptr)
  * into account SHADOW_INVALID), i.e. ~256M with 4k pages.
  */
 typedef u16 shadow_t;
-#define SHADOW_INVALID		((shadow_t)~0UL)
+#define SHADOW_INVALID ((shadow_t)~0UL)
 
 struct cfi_shadow {
 	/* Page index for the beginning of the shadow */
@@ -51,16 +51,16 @@ struct cfi_shadow {
  * The shadow covers ~128M from the beginning of the module region. If
  * the region is larger, we fall back to __module_address for the rest.
  */
-#define __SHADOW_RANGE		(_UL(SZ_128M) >> PAGE_SHIFT)
+#define __SHADOW_RANGE (_UL(SZ_128M) >> PAGE_SHIFT)
 
 /* The in-memory size of struct cfi_shadow, always at least one page */
-#define __SHADOW_PAGES		((__SHADOW_RANGE * sizeof(shadow_t)) >> PAGE_SHIFT)
-#define SHADOW_PAGES		max(1UL, __SHADOW_PAGES)
-#define SHADOW_SIZE		(SHADOW_PAGES << PAGE_SHIFT)
+#define __SHADOW_PAGES ((__SHADOW_RANGE * sizeof(shadow_t)) >> PAGE_SHIFT)
+#define SHADOW_PAGES max(1UL, __SHADOW_PAGES)
+#define SHADOW_SIZE (SHADOW_PAGES << PAGE_SHIFT)
 
 /* The actual size of the shadow array, minus metadata */
-#define SHADOW_ARR_SIZE		(SHADOW_SIZE - offsetof(struct cfi_shadow, shadow))
-#define SHADOW_ARR_SLOTS	(SHADOW_ARR_SIZE / sizeof(shadow_t))
+#define SHADOW_ARR_SIZE (SHADOW_SIZE - offsetof(struct cfi_shadow, shadow))
+#define SHADOW_ARR_SLOTS (SHADOW_ARR_SIZE / sizeof(shadow_t))
 
 static DEFINE_MUTEX(shadow_update_lock);
 static struct cfi_shadow __rcu *cfi_shadow __read_mostly;
@@ -83,8 +83,7 @@ static inline int ptr_to_shadow(const struct cfi_shadow *s, unsigned long ptr)
 }
 
 /* Returns the page address for an index in the shadow */
-static inline unsigned long shadow_to_ptr(const struct cfi_shadow *s,
-	int index)
+static inline unsigned long shadow_to_ptr(const struct cfi_shadow *s, int index)
 {
 	if (unlikely(index < 0 || index >= SHADOW_ARR_SLOTS))
 		return 0;
@@ -94,7 +93,7 @@ static inline unsigned long shadow_to_ptr(const struct cfi_shadow *s,
 
 /* Returns the __cfi_check function address for the given shadow location */
 static inline unsigned long shadow_to_check_fn(const struct cfi_shadow *s,
-	int index)
+					       int index)
 {
 	if (unlikely(index < 0 || index >= SHADOW_ARR_SLOTS))
 		return 0;
@@ -107,7 +106,7 @@ static inline unsigned long shadow_to_check_fn(const struct cfi_shadow *s,
 }
 
 static void prepare_next_shadow(const struct cfi_shadow __rcu *prev,
-		struct cfi_shadow *next)
+				struct cfi_shadow *next)
 {
 	int i, index, check;
 
@@ -132,8 +131,8 @@ static void prepare_next_shadow(const struct cfi_shadow __rcu *prev,
 		if (index < 0)
 			continue;
 
-		check = ptr_to_shadow(next,
-				shadow_to_check_fn(prev, prev->shadow[i]));
+		check = ptr_to_shadow(
+			next, shadow_to_check_fn(prev, prev->shadow[i]));
 		if (check < 0)
 			continue;
 
@@ -142,7 +141,7 @@ static void prepare_next_shadow(const struct cfi_shadow __rcu *prev,
 }
 
 static void add_module_to_shadow(struct cfi_shadow *s, struct module *mod,
-			unsigned long min_addr, unsigned long max_addr)
+				 unsigned long min_addr, unsigned long max_addr)
 {
 	int check_index;
 	unsigned long check = (unsigned long)mod->cfi_check;
@@ -170,7 +169,8 @@ static void add_module_to_shadow(struct cfi_shadow *s, struct module *mod,
 }
 
 static void remove_module_from_shadow(struct cfi_shadow *s, struct module *mod,
-		unsigned long min_addr, unsigned long max_addr)
+				      unsigned long min_addr,
+				      unsigned long max_addr)
 {
 	unsigned long ptr;
 
@@ -183,10 +183,11 @@ static void remove_module_from_shadow(struct cfi_shadow *s, struct module *mod,
 }
 
 typedef void (*update_shadow_fn)(struct cfi_shadow *, struct module *,
-			unsigned long min_addr, unsigned long max_addr);
+				 unsigned long min_addr,
+				 unsigned long max_addr);
 
 static void update_shadow(struct module *mod, unsigned long base_addr,
-		update_shadow_fn fn)
+			  update_shadow_fn fn)
 {
 	struct cfi_shadow *prev;
 	struct cfi_shadow *next;
@@ -230,7 +231,7 @@ void cfi_module_remove(struct module *mod, unsigned long base_addr)
 }
 
 static inline cfi_check_fn ptr_to_check_fn(const struct cfi_shadow __rcu *s,
-	unsigned long ptr)
+					   unsigned long ptr)
 {
 	int index;
 

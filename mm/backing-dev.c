@@ -59,13 +59,13 @@ static int bdi_debug_stats_show(struct seq_file *m, void *v)
 
 	nr_dirty = nr_io = nr_more_io = nr_dirty_time = 0;
 	spin_lock(&wb->list_lock);
-	list_for_each_entry(inode, &wb->b_dirty, i_io_list)
+	list_for_each_entry (inode, &wb->b_dirty, i_io_list)
 		nr_dirty++;
-	list_for_each_entry(inode, &wb->b_io, i_io_list)
+	list_for_each_entry (inode, &wb->b_io, i_io_list)
 		nr_io++;
-	list_for_each_entry(inode, &wb->b_more_io, i_io_list)
+	list_for_each_entry (inode, &wb->b_more_io, i_io_list)
 		nr_more_io++;
-	list_for_each_entry(inode, &wb->b_dirty_time, i_io_list)
+	list_for_each_entry (inode, &wb->b_dirty_time, i_io_list)
 		if (inode->i_state & I_DIRTY_TIME)
 			nr_dirty_time++;
 	spin_unlock(&wb->list_lock);
@@ -88,19 +88,14 @@ static int bdi_debug_stats_show(struct seq_file *m, void *v)
 		   "b_dirty_time:       %10lu\n"
 		   "bdi_list:           %10u\n"
 		   "state:              %10lx\n",
-		   (unsigned long) K(wb_stat(wb, WB_WRITEBACK)),
-		   (unsigned long) K(wb_stat(wb, WB_RECLAIMABLE)),
-		   K(wb_thresh),
-		   K(dirty_thresh),
-		   K(background_thresh),
-		   (unsigned long) K(wb_stat(wb, WB_DIRTIED)),
-		   (unsigned long) K(wb_stat(wb, WB_WRITTEN)),
-		   (unsigned long) K(wb->write_bandwidth),
-		   nr_dirty,
-		   nr_io,
-		   nr_more_io,
-		   nr_dirty_time,
-		   !list_empty(&bdi->bdi_list), bdi->wb.state);
+		   (unsigned long)K(wb_stat(wb, WB_WRITEBACK)),
+		   (unsigned long)K(wb_stat(wb, WB_RECLAIMABLE)), K(wb_thresh),
+		   K(dirty_thresh), K(background_thresh),
+		   (unsigned long)K(wb_stat(wb, WB_DIRTIED)),
+		   (unsigned long)K(wb_stat(wb, WB_WRITTEN)),
+		   (unsigned long)K(wb->write_bandwidth), nr_dirty, nr_io,
+		   nr_more_io, nr_dirty_time, !list_empty(&bdi->bdi_list),
+		   bdi->wb.state);
 
 	return 0;
 }
@@ -132,8 +127,8 @@ static inline void bdi_debug_unregister(struct backing_dev_info *bdi)
 #endif
 
 static ssize_t read_ahead_kb_store(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t count)
+				   struct device_attribute *attr,
+				   const char *buf, size_t count)
 {
 	struct backing_dev_info *bdi = dev_get_drvdata(dev);
 	unsigned long read_ahead_kb;
@@ -148,20 +143,21 @@ static ssize_t read_ahead_kb_store(struct device *dev,
 	return count;
 }
 
-#define BDI_SHOW(name, expr)						\
-static ssize_t name##_show(struct device *dev,				\
-			   struct device_attribute *attr, char *buf)	\
-{									\
-	struct backing_dev_info *bdi = dev_get_drvdata(dev);		\
-									\
-	return sysfs_emit(buf, "%lld\n", (long long)expr);		\
-}									\
-static DEVICE_ATTR_RW(name);
+#define BDI_SHOW(name, expr)                                                   \
+	static ssize_t name##_show(struct device *dev,                         \
+				   struct device_attribute *attr, char *buf)   \
+	{                                                                      \
+		struct backing_dev_info *bdi = dev_get_drvdata(dev);           \
+                                                                               \
+		return sysfs_emit(buf, "%lld\n", (long long)expr);             \
+	}                                                                      \
+	static DEVICE_ATTR_RW(name);
 
 BDI_SHOW(read_ahead_kb, K(bdi->ra_pages))
 
 static ssize_t min_ratio_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
+			       struct device_attribute *attr, const char *buf,
+			       size_t count)
 {
 	struct backing_dev_info *bdi = dev_get_drvdata(dev);
 	unsigned int ratio;
@@ -180,7 +176,8 @@ static ssize_t min_ratio_store(struct device *dev,
 BDI_SHOW(min_ratio, bdi->min_ratio)
 
 static ssize_t max_ratio_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
+			       struct device_attribute *attr, const char *buf,
+			       size_t count)
 {
 	struct backing_dev_info *bdi = dev_get_drvdata(dev);
 	unsigned int ratio;
@@ -202,7 +199,8 @@ static ssize_t stable_pages_required_show(struct device *dev,
 					  struct device_attribute *attr,
 					  char *buf)
 {
-	dev_warn_once(dev,
+	dev_warn_once(
+		dev,
 		"the stable_pages_required attribute has been removed. Use the stable_writes queue attribute instead.\n");
 	return sysfs_emit(buf, "%d\n", 0);
 }
@@ -236,8 +234,8 @@ static int __init default_bdi_init(void)
 {
 	int err;
 
-	bdi_wq = alloc_workqueue("writeback", WQ_MEM_RECLAIM | WQ_UNBOUND |
-				 WQ_SYSFS, 0);
+	bdi_wq = alloc_workqueue("writeback",
+				 WQ_MEM_RECLAIM | WQ_UNBOUND | WQ_SYSFS, 0);
 	if (!bdi_wq)
 		return -ENOMEM;
 
@@ -283,7 +281,7 @@ static void wb_update_bandwidth_workfn(struct work_struct *work)
 /*
  * Initial write bandwidth: 100 MB/s
  */
-#define INIT_BW		(100 << (20 - PAGE_SHIFT))
+#define INIT_BW (100 << (20 - PAGE_SHIFT))
 
 static int wb_init(struct bdi_writeback *wb, struct backing_dev_info *bdi,
 		   gfp_t gfp)
@@ -388,8 +386,8 @@ static DECLARE_WORK(cleanup_offline_cgwbs_work, cleanup_offline_cgwbs_workfn);
 
 static void cgwb_release_workfn(struct work_struct *work)
 {
-	struct bdi_writeback *wb = container_of(work, struct bdi_writeback,
-						release_work);
+	struct bdi_writeback *wb =
+		container_of(work, struct bdi_writeback, release_work);
 	struct blkcg *blkcg = css_to_blkcg(wb->blkcg_css);
 	struct backing_dev_info *bdi = wb->bdi;
 
@@ -418,8 +416,8 @@ static void cgwb_release_workfn(struct work_struct *work)
 
 static void cgwb_release(struct percpu_ref *refcnt)
 {
-	struct bdi_writeback *wb = container_of(refcnt, struct bdi_writeback,
-						refcnt);
+	struct bdi_writeback *wb =
+		container_of(refcnt, struct bdi_writeback, refcnt);
 	queue_work(cgwb_release_wq, &wb->release_work);
 }
 
@@ -503,8 +501,8 @@ static int cgwb_create(struct backing_dev_info *bdi,
 	 */
 	ret = -ENODEV;
 	spin_lock_irqsave(&cgwb_lock, flags);
-	if (test_bit(WB_registered, &bdi->wb.state) &&
-	    blkcg_cgwb_list->next && memcg_cgwb_list->next) {
+	if (test_bit(WB_registered, &bdi->wb.state) && blkcg_cgwb_list->next &&
+	    memcg_cgwb_list->next) {
 		/* we might have raced another instance of this function */
 		ret = radix_tree_insert(&bdi->cgwb_tree, memcg_css->id, wb);
 		if (!ret) {
@@ -575,7 +573,8 @@ struct bdi_writeback *wb_get_lookup(struct backing_dev_info *bdi,
 		struct cgroup_subsys_state *blkcg_css;
 
 		/* see whether the blkcg association has changed */
-		blkcg_css = cgroup_get_e_css(memcg_css->cgroup, &io_cgrp_subsys);
+		blkcg_css =
+			cgroup_get_e_css(memcg_css->cgroup, &io_cgrp_subsys);
 		if (unlikely(wb->blkcg_css != blkcg_css || !wb_tryget(wb)))
 			wb = NULL;
 		css_put(blkcg_css);
@@ -637,7 +636,7 @@ static void cgwb_bdi_unregister(struct backing_dev_info *bdi)
 	WARN_ON(test_bit(WB_registered, &bdi->wb.state));
 
 	spin_lock_irq(&cgwb_lock);
-	radix_tree_for_each_slot(slot, &bdi->cgwb_tree, &iter, 0)
+	radix_tree_for_each_slot (slot, &bdi->cgwb_tree, &iter, 0)
 		cgwb_kill(*slot);
 	spin_unlock_irq(&cgwb_lock);
 
@@ -714,9 +713,9 @@ void wb_memcg_offline(struct mem_cgroup *memcg)
 	struct bdi_writeback *wb, *next;
 
 	spin_lock_irq(&cgwb_lock);
-	list_for_each_entry_safe(wb, next, memcg_cgwb_list, memcg_node)
+	list_for_each_entry_safe (wb, next, memcg_cgwb_list, memcg_node)
 		cgwb_kill(wb);
-	memcg_cgwb_list->next = NULL;	/* prevent new wb's */
+	memcg_cgwb_list->next = NULL; /* prevent new wb's */
 	spin_unlock_irq(&cgwb_lock);
 
 	queue_work(system_unbound_wq, &cleanup_offline_cgwbs_work);
@@ -733,9 +732,9 @@ void wb_blkcg_offline(struct blkcg *blkcg)
 	struct bdi_writeback *wb, *next;
 
 	spin_lock_irq(&cgwb_lock);
-	list_for_each_entry_safe(wb, next, &blkcg->cgwb_list, blkcg_node)
+	list_for_each_entry_safe (wb, next, &blkcg->cgwb_list, blkcg_node)
 		cgwb_kill(wb);
-	blkcg->cgwb_list.next = NULL;	/* prevent new wb's */
+	blkcg->cgwb_list.next = NULL; /* prevent new wb's */
 	spin_unlock_irq(&cgwb_lock);
 }
 
@@ -761,14 +760,16 @@ static int __init cgwb_init(void)
 }
 subsys_initcall(cgwb_init);
 
-#else	/* CONFIG_CGROUP_WRITEBACK */
+#else /* CONFIG_CGROUP_WRITEBACK */
 
 static int cgwb_bdi_init(struct backing_dev_info *bdi)
 {
 	return wb_init(&bdi->wb, bdi, GFP_KERNEL);
 }
 
-static void cgwb_bdi_unregister(struct backing_dev_info *bdi) { }
+static void cgwb_bdi_unregister(struct backing_dev_info *bdi)
+{
+}
 
 static void cgwb_bdi_register(struct backing_dev_info *bdi)
 {
@@ -780,7 +781,7 @@ static void cgwb_remove_from_bdi_list(struct bdi_writeback *wb)
 	list_del_rcu(&wb->bdi_node);
 }
 
-#endif	/* CONFIG_CGROUP_WRITEBACK */
+#endif /* CONFIG_CGROUP_WRITEBACK */
 
 static int bdi_init(struct backing_dev_info *bdi)
 {
@@ -874,7 +875,7 @@ int bdi_register_va(struct backing_dev_info *bdi, const char *fmt, va_list args)
 	struct device *dev;
 	struct rb_node *parent, **p;
 
-	if (bdi->dev)	/* The driver needs to use separate queues per device */
+	if (bdi->dev) /* The driver needs to use separate queues per device */
 		return 0;
 
 	vsnprintf(bdi->dev_name, sizeof(bdi->dev_name), fmt, args);
@@ -968,7 +969,7 @@ EXPORT_SYMBOL(bdi_unregister);
 static void release_bdi(struct kref *ref)
 {
 	struct backing_dev_info *bdi =
-			container_of(ref, struct backing_dev_info, refcnt);
+		container_of(ref, struct backing_dev_info, refcnt);
 
 	WARN_ON_ONCE(test_bit(WB_registered, &bdi->wb.state));
 	WARN_ON_ONCE(bdi->dev);
@@ -1007,9 +1008,9 @@ const char *bdi_dev_name(struct backing_dev_info *bdi)
 EXPORT_SYMBOL_GPL(bdi_dev_name);
 
 static wait_queue_head_t congestion_wqh[2] = {
-		__WAIT_QUEUE_HEAD_INITIALIZER(congestion_wqh[0]),
-		__WAIT_QUEUE_HEAD_INITIALIZER(congestion_wqh[1])
-	};
+	__WAIT_QUEUE_HEAD_INITIALIZER(congestion_wqh[0]),
+	__WAIT_QUEUE_HEAD_INITIALIZER(congestion_wqh[1])
+};
 static atomic_t nr_wb_congested[2];
 
 void clear_bdi_congested(struct backing_dev_info *bdi, int sync)

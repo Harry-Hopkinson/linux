@@ -70,16 +70,17 @@ static void *try_ram_remap(resource_size_t offset, size_t size,
  */
 void *memremap(resource_size_t offset, size_t size, unsigned long flags)
 {
-	int is_ram = region_intersects(offset, size,
-				       IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
+	int is_ram = region_intersects(offset, size, IORESOURCE_SYSTEM_RAM,
+				       IORES_DESC_NONE);
 	void *addr = NULL;
 
 	if (!flags)
 		return NULL;
 
 	if (is_ram == REGION_MIXED) {
-		WARN_ONCE(1, "memremap attempted on mixed range %pa size: %#lx\n",
-				&offset, (unsigned long) size);
+		WARN_ONCE(1,
+			  "memremap attempted on mixed range %pa size: %#lx\n",
+			  &offset, (unsigned long)size);
 		return NULL;
 	}
 
@@ -105,7 +106,7 @@ void *memremap(resource_size_t offset, size_t size, unsigned long flags)
 	 */
 	if (!addr && is_ram == REGION_INTERSECTS && flags != MEMREMAP_WB) {
 		WARN_ONCE(1, "memremap attempted on ram %pa size: %#lx\n",
-				&offset, (unsigned long) size);
+			  &offset, (unsigned long)size);
 		return NULL;
 	}
 
@@ -122,7 +123,7 @@ EXPORT_SYMBOL(memremap);
 void memunmap(void *addr)
 {
 	if (is_ioremap_addr(addr))
-		iounmap((void __iomem *) addr);
+		iounmap((void __iomem *)addr);
 }
 EXPORT_SYMBOL(memunmap);
 
@@ -136,13 +137,13 @@ static int devm_memremap_match(struct device *dev, void *res, void *match_data)
 	return *(void **)res == match_data;
 }
 
-void *devm_memremap(struct device *dev, resource_size_t offset,
-		size_t size, unsigned long flags)
+void *devm_memremap(struct device *dev, resource_size_t offset, size_t size,
+		    unsigned long flags)
 {
 	void **ptr, *addr;
 
 	ptr = devres_alloc_node(devm_memremap_release, sizeof(*ptr), GFP_KERNEL,
-			dev_to_node(dev));
+				dev_to_node(dev));
 	if (!ptr)
 		return ERR_PTR(-ENOMEM);
 
@@ -161,7 +162,7 @@ EXPORT_SYMBOL(devm_memremap);
 
 void devm_memunmap(struct device *dev, void *addr)
 {
-	WARN_ON(devres_release(dev, devm_memremap_release,
-				devm_memremap_match, addr));
+	WARN_ON(devres_release(dev, devm_memremap_release, devm_memremap_match,
+			       addr));
 }
 EXPORT_SYMBOL(devm_memunmap);

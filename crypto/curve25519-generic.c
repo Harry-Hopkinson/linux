@@ -31,10 +31,10 @@ static int curve25519_compute_value(struct kpp_request *req)
 	u8 const *bp;
 
 	if (req->src) {
-		copied = sg_copy_to_buffer(req->src,
-					   sg_nents_for_len(req->src,
-							    CURVE25519_KEY_SIZE),
-					   public_key, CURVE25519_KEY_SIZE);
+		copied = sg_copy_to_buffer(
+			req->src,
+			sg_nents_for_len(req->src, CURVE25519_KEY_SIZE),
+			public_key, CURVE25519_KEY_SIZE);
 		if (copied != CURVE25519_KEY_SIZE)
 			return -EINVAL;
 		bp = public_key;
@@ -46,9 +46,8 @@ static int curve25519_compute_value(struct kpp_request *req)
 
 	/* might want less than we've got */
 	nbytes = min_t(size_t, CURVE25519_KEY_SIZE, req->dst_len);
-	copied = sg_copy_from_buffer(req->dst, sg_nents_for_len(req->dst,
-								nbytes),
-				     buf, nbytes);
+	copied = sg_copy_from_buffer(
+		req->dst, sg_nents_for_len(req->dst, nbytes), buf, nbytes);
 	if (copied != nbytes)
 		return -EINVAL;
 	return 0;
@@ -60,16 +59,16 @@ static unsigned int curve25519_max_size(struct crypto_kpp *tfm)
 }
 
 static struct kpp_alg curve25519_alg = {
-	.base.cra_name		= "curve25519",
-	.base.cra_driver_name	= "curve25519-generic",
-	.base.cra_priority	= 100,
-	.base.cra_module	= THIS_MODULE,
-	.base.cra_ctxsize	= CURVE25519_KEY_SIZE,
+	.base.cra_name = "curve25519",
+	.base.cra_driver_name = "curve25519-generic",
+	.base.cra_priority = 100,
+	.base.cra_module = THIS_MODULE,
+	.base.cra_ctxsize = CURVE25519_KEY_SIZE,
 
-	.set_secret		= curve25519_set_secret,
-	.generate_public_key	= curve25519_compute_value,
-	.compute_shared_secret	= curve25519_compute_value,
-	.max_size		= curve25519_max_size,
+	.set_secret = curve25519_set_secret,
+	.generate_public_key = curve25519_compute_value,
+	.compute_shared_secret = curve25519_compute_value,
+	.max_size = curve25519_max_size,
 };
 
 static int curve25519_init(void)

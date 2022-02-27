@@ -51,7 +51,7 @@ static LIST_HEAD(elv_list);
 /*
  * Merge hash stuff.
  */
-#define rq_hash_key(rq)		(blk_rq_pos(rq) + blk_rq_sectors(rq))
+#define rq_hash_key(rq) (blk_rq_pos(rq) + blk_rq_sectors(rq))
 
 /*
  * Query io scheduler to see if the current process issuing bio may be
@@ -124,7 +124,7 @@ static struct elevator_type *elevator_find(const char *name,
 {
 	struct elevator_type *e;
 
-	list_for_each_entry(e, &elv_list, list) {
+	list_for_each_entry (e, &elv_list, list) {
 		if (elevator_match(e, name, required_features))
 			return e;
 	}
@@ -162,7 +162,7 @@ static struct elevator_type *elevator_get(struct request_queue *q,
 static struct kobj_type elv_ktype;
 
 struct elevator_queue *elevator_alloc(struct request_queue *q,
-				  struct elevator_type *e)
+				      struct elevator_type *e)
 {
 	struct elevator_queue *eq;
 
@@ -234,7 +234,7 @@ struct request *elv_rqhash_find(struct request_queue *q, sector_t offset)
 	struct hlist_node *next;
 	struct request *rq;
 
-	hash_for_each_possible_safe(e->hash, rq, next, hash, offset) {
+	hash_for_each_possible_safe (e->hash, rq, next, hash, offset) {
 		BUG_ON(!ELV_ON_HASH(rq));
 
 		if (unlikely(!rq_mergeable(rq))) {
@@ -303,7 +303,7 @@ struct request *elv_rb_find(struct rb_root *root, sector_t sector)
 EXPORT_SYMBOL(elv_rb_find);
 
 enum elv_merge elv_merge(struct request_queue *q, struct request **req,
-		struct bio *bio)
+			 struct bio *bio)
 {
 	struct elevator_queue *e = q->elevator;
 	struct request *__rq;
@@ -397,7 +397,7 @@ bool elv_attempt_insert_merge(struct request_queue *q, struct request *rq,
 }
 
 void elv_merged_request(struct request_queue *q, struct request *rq,
-		enum elv_merge type)
+			enum elv_merge type)
 {
 	struct elevator_queue *e = q->elevator;
 
@@ -411,7 +411,7 @@ void elv_merged_request(struct request_queue *q, struct request *rq,
 }
 
 void elv_merge_requests(struct request_queue *q, struct request *rq,
-			     struct request *next)
+			struct request *next)
 {
 	struct elevator_queue *e = q->elevator;
 
@@ -444,8 +444,8 @@ struct request *elv_former_request(struct request_queue *q, struct request *rq)
 
 #define to_elv(atr) container_of((atr), struct elv_fs_entry, attr)
 
-static ssize_t
-elv_attr_show(struct kobject *kobj, struct attribute *attr, char *page)
+static ssize_t elv_attr_show(struct kobject *kobj, struct attribute *attr,
+			     char *page)
 {
 	struct elv_fs_entry *entry = to_elv(attr);
 	struct elevator_queue *e;
@@ -461,9 +461,8 @@ elv_attr_show(struct kobject *kobj, struct attribute *attr, char *page)
 	return error;
 }
 
-static ssize_t
-elv_attr_store(struct kobject *kobj, struct attribute *attr,
-	       const char *page, size_t length)
+static ssize_t elv_attr_store(struct kobject *kobj, struct attribute *attr,
+			      const char *page, size_t length)
 {
 	struct elv_fs_entry *entry = to_elv(attr);
 	struct elevator_queue *e;
@@ -480,13 +479,13 @@ elv_attr_store(struct kobject *kobj, struct attribute *attr,
 }
 
 static const struct sysfs_ops elv_sysfs_ops = {
-	.show	= elv_attr_show,
-	.store	= elv_attr_store,
+	.show = elv_attr_show,
+	.store = elv_attr_store,
 };
 
 static struct kobj_type elv_ktype = {
-	.sysfs_ops	= &elv_sysfs_ops,
-	.release	= elevator_release,
+	.sysfs_ops = &elv_sysfs_ops,
+	.release = elevator_release,
 };
 
 int elv_register_queue(struct request_queue *q, bool uevent)
@@ -583,8 +582,7 @@ void elv_unregister(struct elevator_type *e)
 }
 EXPORT_SYMBOL_GPL(elv_unregister);
 
-int elevator_switch_mq(struct request_queue *q,
-			      struct elevator_type *new_e)
+int elevator_switch_mq(struct request_queue *q, struct elevator_type *new_e)
 {
 	int ret;
 
@@ -638,8 +636,7 @@ static struct elevator_type *elevator_get_default(struct request_queue *q)
 	if (q->tag_set && q->tag_set->flags & BLK_MQ_F_NO_SCHED_BY_DEFAULT)
 		return NULL;
 
-	if (q->nr_hw_queues != 1 &&
-	    !blk_mq_is_shared_tags(q->tag_set->flags))
+	if (q->nr_hw_queues != 1 && !blk_mq_is_shared_tags(q->tag_set->flags))
 		return NULL;
 
 	return elevator_get(q, "mq-deadline", false);
@@ -655,7 +652,7 @@ static struct elevator_type *elevator_get_by_features(struct request_queue *q)
 
 	spin_lock(&elv_list_lock);
 
-	list_for_each_entry(e, &elv_list, list) {
+	list_for_each_entry (e, &elv_list, list) {
 		if (elv_support_features(e->elevator_features,
 					 q->required_elevator_features)) {
 			found = e;
@@ -712,7 +709,8 @@ void elevator_init_mq(struct request_queue *q)
 
 	if (err) {
 		pr_warn("\"%s\" elevator initialization failed, "
-			"falling back to \"none\"\n", e->elevator_name);
+			"falling back to \"none\"\n",
+			e->elevator_name);
 		elevator_put(e);
 	}
 }
@@ -801,27 +799,27 @@ ssize_t elv_iosched_show(struct request_queue *q, char *name)
 		return sprintf(name, "none\n");
 
 	if (!q->elevator)
-		len += sprintf(name+len, "[none] ");
+		len += sprintf(name + len, "[none] ");
 	else
 		elv = e->type;
 
 	spin_lock(&elv_list_lock);
-	list_for_each_entry(__e, &elv_list, list) {
+	list_for_each_entry (__e, &elv_list, list) {
 		if (elv && elevator_match(elv, __e->elevator_name, 0)) {
-			len += sprintf(name+len, "[%s] ", elv->elevator_name);
+			len += sprintf(name + len, "[%s] ", elv->elevator_name);
 			continue;
 		}
 		if (elv_support_iosched(q) &&
 		    elevator_match(__e, __e->elevator_name,
 				   q->required_elevator_features))
-			len += sprintf(name+len, "%s ", __e->elevator_name);
+			len += sprintf(name + len, "%s ", __e->elevator_name);
 	}
 	spin_unlock(&elv_list_lock);
 
 	if (q->elevator)
-		len += sprintf(name+len, "none");
+		len += sprintf(name + len, "none");
 
-	len += sprintf(len+name, "\n");
+	len += sprintf(len + name, "\n");
 	return len;
 }
 

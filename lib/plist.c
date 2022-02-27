@@ -33,12 +33,10 @@ static void plist_check_prev_next(struct list_head *t, struct list_head *p,
 				  struct list_head *n)
 {
 	WARN(n->prev != p || p->next != n,
-			"top: %p, n: %p, p: %p\n"
-			"prev: %p, n: %p, p: %p\n"
-			"next: %p, n: %p, p: %p\n",
-			 t, t->next, t->prev,
-			p, p->next, p->prev,
-			n, n->next, n->prev);
+	     "top: %p, n: %p, p: %p\n"
+	     "prev: %p, n: %p, p: %p\n"
+	     "next: %p, n: %p, p: %p\n",
+	     t, t->next, t->prev, p, p->next, p->prev, n, n->next, n->prev);
 }
 
 static void plist_check_list(struct list_head *top)
@@ -61,7 +59,9 @@ static void plist_check_head(struct plist_head *head)
 }
 
 #else
-# define plist_check_head(h)	do { } while (0)
+#define plist_check_head(h)                                                    \
+	do {                                                                   \
+	} while (0)
 #endif
 
 /**
@@ -91,8 +91,8 @@ void plist_add(struct plist_node *node, struct plist_head *head)
 		}
 
 		prev = iter;
-		iter = list_entry(iter->prio_list.next,
-				struct plist_node, prio_list);
+		iter = list_entry(iter->prio_list.next, struct plist_node,
+				  prio_list);
 	} while (iter != first);
 
 	if (!prev || prev->prio != node->prio)
@@ -118,7 +118,7 @@ void plist_del(struct plist_node *node, struct plist_head *head)
 			struct plist_node *next;
 
 			next = list_entry(node->node_list.next,
-					struct plist_node, node_list);
+					  struct plist_node, node_list);
 
 			/* add the next plist_node into prio_list */
 			if (list_empty(&next->prio_list))
@@ -161,7 +161,7 @@ void plist_requeue(struct plist_node *node, struct plist_head *head)
 
 	plist_del(node, head);
 
-	plist_for_each_continue(iter, head) {
+	plist_for_each_continue (iter, head) {
 		if (node->prio != iter->prio) {
 			node_next = &iter->node_list;
 			break;
@@ -190,7 +190,7 @@ static void __init plist_test_check(int nr_expect)
 	}
 
 	prio_pos = first = plist_first(&test_head);
-	plist_for_each(node_pos, &test_head) {
+	plist_for_each (node_pos, &test_head) {
 		if (nr_expect-- < 0)
 			break;
 		if (node_pos == first)
@@ -217,7 +217,7 @@ static void __init plist_test_requeue(struct plist_node *node)
 		BUG_ON(node->prio == plist_next(node)->prio);
 }
 
-static int  __init plist_test(void)
+static int __init plist_test(void)
 {
 	int nr_expect = 0, i, loop;
 	unsigned int r = local_clock();

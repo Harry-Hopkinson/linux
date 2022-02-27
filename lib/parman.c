@@ -58,8 +58,8 @@ struct parman {
 
 static int parman_enlarge(struct parman *parman)
 {
-	unsigned long new_count = parman->limit_count +
-				  parman->ops->resize_step;
+	unsigned long new_count =
+		parman->limit_count + parman->ops->resize_step;
 	int err;
 
 	err = parman->ops->resize(parman->priv, new_count);
@@ -71,8 +71,8 @@ static int parman_enlarge(struct parman *parman)
 
 static int parman_shrink(struct parman *parman)
 {
-	unsigned long new_count = parman->limit_count -
-				  parman->ops->resize_step;
+	unsigned long new_count =
+		parman->limit_count - parman->ops->resize_step;
 	int err;
 
 	if (new_count < parman->ops->base_count)
@@ -91,8 +91,8 @@ static bool parman_prio_used(struct parman_prio *prio)
 
 static struct parman_item *parman_prio_first_item(struct parman_prio *prio)
 {
-	return list_first_entry(&prio->item_list,
-				typeof(struct parman_item), list);
+	return list_first_entry(&prio->item_list, typeof(struct parman_item),
+				list);
 }
 
 static unsigned long parman_prio_first_index(struct parman_prio *prio)
@@ -102,8 +102,8 @@ static unsigned long parman_prio_first_index(struct parman_prio *prio)
 
 static struct parman_item *parman_prio_last_item(struct parman_prio *prio)
 {
-	return list_last_entry(&prio->item_list,
-			       typeof(struct parman_item), list);
+	return list_last_entry(&prio->item_list, typeof(struct parman_item),
+			       list);
 }
 
 static unsigned long parman_prio_last_index(struct parman_prio *prio)
@@ -114,7 +114,7 @@ static unsigned long parman_prio_last_index(struct parman_prio *prio)
 static unsigned long parman_lsort_new_index_find(struct parman *parman,
 						 struct parman_prio *prio)
 {
-	list_for_each_entry_from_reverse(prio, &parman->prio_list, list) {
+	list_for_each_entry_from_reverse (prio, &parman->prio_list, list) {
 		if (!parman_prio_used(prio))
 			continue;
 		return parman_prio_last_index(prio) + 1;
@@ -193,7 +193,7 @@ static int parman_lsort_item_add(struct parman *parman,
 	}
 
 	new_index = parman_lsort_new_index_find(parman, prio);
-	list_for_each_entry_reverse(prio2, &parman->prio_list, list) {
+	list_for_each_entry_reverse (prio2, &parman->prio_list, list) {
 		if (prio2 == prio)
 			break;
 		parman_prio_shift_down(parman, prio2);
@@ -209,7 +209,7 @@ static void parman_lsort_item_remove(struct parman *parman,
 				     struct parman_item *item)
 {
 	parman_prio_item_remove(parman, prio, item);
-	list_for_each_entry_continue(prio, &parman->prio_list, list)
+	list_for_each_entry_continue (prio, &parman->prio_list, list)
 		parman_prio_shift_up(parman, prio);
 	parman->count--;
 	if (parman->limit_count - parman->count >= parman->ops->resize_step)
@@ -217,8 +217,8 @@ static void parman_lsort_item_remove(struct parman *parman,
 }
 
 static const struct parman_algo parman_lsort = {
-	.item_add	= parman_lsort_item_add,
-	.item_remove	= parman_lsort_item_remove,
+	.item_add = parman_lsort_item_add,
+	.item_remove = parman_lsort_item_remove,
 };
 
 static const struct parman_algo *parman_algos[] = {
@@ -314,7 +314,7 @@ void parman_prio_init(struct parman *parman, struct parman_prio *prio,
 	prio->priority = priority;
 
 	/* Position inside the list according to priority */
-	list_for_each(pos, &parman->prio_list) {
+	list_for_each (pos, &parman->prio_list) {
 		prio2 = list_entry(pos, typeof(*prio2), list);
 		if (prio2->priority > prio->priority)
 			break;

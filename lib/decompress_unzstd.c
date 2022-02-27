@@ -66,9 +66,9 @@
  * from xxhash and zstd from being exported by the EXPORT_SYMBOL macro.
  */
 #ifdef STATIC
-# define UNZSTD_PREBOOT
-# include "xxhash.c"
-# include "zstd/decompress_sources.h"
+#define UNZSTD_PREBOOT
+#include "xxhash.c"
+#include "zstd/decompress_sources.h"
 #endif
 
 #include <linux/decompress/mm.h>
@@ -76,14 +76,14 @@
 #include <linux/zstd.h>
 
 /* 128MB is the maximum window size supported by zstd. */
-#define ZSTD_WINDOWSIZE_MAX	(1 << ZSTD_WINDOWLOG_MAX)
+#define ZSTD_WINDOWSIZE_MAX (1 << ZSTD_WINDOWLOG_MAX)
 /*
  * Size of the input and output buffers in multi-call mode.
  * Pick a larger size because it isn't used during kernel decompression,
  * since that is single pass, and we have to allocate a large buffer for
  * zstd's window anyway. The larger size speeds up initramfs decompression.
  */
-#define ZSTD_IOBUF_SIZE		(1 << 17)
+#define ZSTD_IOBUF_SIZE (1 << 17)
 
 static int INIT handle_zstd_error(size_t ret, void (*error)(char *x))
 {
@@ -161,10 +161,9 @@ out:
 }
 
 static int INIT __unzstd(unsigned char *in_buf, long in_len,
-			 long (*fill)(void*, unsigned long),
-			 long (*flush)(void*, unsigned long),
-			 unsigned char *out_buf, long out_len,
-			 long *in_pos,
+			 long (*fill)(void *, unsigned long),
+			 long (*flush)(void *, unsigned long),
+			 unsigned char *out_buf, long out_len, long *in_pos,
 			 void (*error)(char *x))
 {
 	zstd_in_buffer in;
@@ -329,20 +328,18 @@ out:
 
 #ifndef UNZSTD_PREBOOT
 STATIC int INIT unzstd(unsigned char *buf, long len,
-		       long (*fill)(void*, unsigned long),
-		       long (*flush)(void*, unsigned long),
-		       unsigned char *out_buf,
-		       long *pos,
+		       long (*fill)(void *, unsigned long),
+		       long (*flush)(void *, unsigned long),
+		       unsigned char *out_buf, long *pos,
 		       void (*error)(char *x))
 {
 	return __unzstd(buf, len, fill, flush, out_buf, 0, pos, error);
 }
 #else
 STATIC int INIT __decompress(unsigned char *buf, long len,
-			     long (*fill)(void*, unsigned long),
-			     long (*flush)(void*, unsigned long),
-			     unsigned char *out_buf, long out_len,
-			     long *pos,
+			     long (*fill)(void *, unsigned long),
+			     long (*flush)(void *, unsigned long),
+			     unsigned char *out_buf, long out_len, long *pos,
 			     void (*error)(char *x))
 {
 	return __unzstd(buf, len, fill, flush, out_buf, out_len, pos, error);

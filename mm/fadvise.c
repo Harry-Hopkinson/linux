@@ -34,7 +34,7 @@ int generic_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
 	struct inode *inode;
 	struct address_space *mapping;
 	struct backing_dev_info *bdi;
-	loff_t endbyte;			/* inclusive */
+	loff_t endbyte; /* inclusive */
 	pgoff_t start_index;
 	pgoff_t end_index;
 	unsigned long nrpages;
@@ -74,7 +74,7 @@ int generic_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
 	if (!len || endbyte < len)
 		endbyte = -1;
 	else
-		endbyte--;		/* inclusive */
+		endbyte--; /* inclusive */
 
 	switch (advice) {
 	case POSIX_FADV_NORMAL:
@@ -118,7 +118,7 @@ int generic_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
 		 * preserved on the expectation that it is better to preserve
 		 * needed memory than to discard unneeded memory.
 		 */
-		start_index = (offset+(PAGE_SIZE-1)) >> PAGE_SHIFT;
+		start_index = (offset + (PAGE_SIZE - 1)) >> PAGE_SHIFT;
 		end_index = (endbyte >> PAGE_SHIFT);
 		/*
 		 * The page at end_index will be inclusively discarded according
@@ -128,7 +128,7 @@ int generic_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
 		 * that page - discarding the last page is safe enough.
 		 */
 		if ((endbyte & ~PAGE_MASK) != ~PAGE_MASK &&
-				endbyte != inode->i_size - 1) {
+		    endbyte != inode->i_size - 1) {
 			/* First page is tricky as 0 - 1 = -1, but pgoff_t
 			 * is unsigned, so the end_index >= start_index
 			 * check below would be true and we'll discard the whole
@@ -154,9 +154,8 @@ int generic_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
 			 */
 			lru_add_drain();
 
-			invalidate_mapping_pagevec(mapping,
-						start_index, end_index,
-						&nr_pagevec);
+			invalidate_mapping_pagevec(mapping, start_index,
+						   end_index, &nr_pagevec);
 
 			/*
 			 * If fewer pages were invalidated than expected then
@@ -167,7 +166,7 @@ int generic_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
 			if (nr_pagevec) {
 				lru_add_drain_all();
 				invalidate_mapping_pages(mapping, start_index,
-						end_index);
+							 end_index);
 			}
 		}
 		break;

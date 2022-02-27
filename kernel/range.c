@@ -26,8 +26,8 @@ int add_range(struct range *range, int az, int nr_range, u64 start, u64 end)
 	return nr_range;
 }
 
-int add_range_with_merge(struct range *range, int az, int nr_range,
-		     u64 start, u64 end)
+int add_range_with_merge(struct range *range, int az, int nr_range, u64 start,
+			 u64 end)
 {
 	int i;
 
@@ -53,7 +53,7 @@ int add_range_with_merge(struct range *range, int az, int nr_range,
 		memmove(&range[i], &range[i + 1],
 			(nr_range - (i + 1)) * sizeof(range[i]));
 		range[nr_range - 1].start = 0;
-		range[nr_range - 1].end   = 0;
+		range[nr_range - 1].end = 0;
 		nr_range--;
 		i--;
 	}
@@ -85,7 +85,6 @@ void subtract_range(struct range *range, int az, u64 start, u64 end)
 			continue;
 		}
 
-
 		if (start > range[j].start && end >= range[j].end &&
 		    range[j].end > start) {
 			range[j].end = start;
@@ -103,7 +102,7 @@ void subtract_range(struct range *range, int az, u64 start, u64 end)
 				range[i].start = end;
 			} else {
 				pr_err("%s: run out of slot in ranges\n",
-					__func__);
+				       __func__);
 			}
 			range[j].end = start;
 			continue;
@@ -139,9 +138,9 @@ int clean_sort_range(struct range *range, int az)
 		if (j == i)
 			break;
 		range[i].start = range[k].start;
-		range[i].end   = range[k].end;
+		range[i].end = range[k].end;
 		range[k].start = 0;
-		range[k].end   = 0;
+		range[k].end = 0;
 		k--;
 	}
 	/* count it */

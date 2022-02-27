@@ -32,11 +32,10 @@
 #include <linux/ctype.h>
 #include <linux/textsearch.h>
 
-struct ts_kmp
-{
-	u8 *		pattern;
-	unsigned int	pattern_len;
-	unsigned int	prefix_tbl[];
+struct ts_kmp {
+	u8 *pattern;
+	unsigned int pattern_len;
+	unsigned int prefix_tbl[];
 };
 
 static unsigned int kmp_find(struct ts_config *conf, struct ts_state *state)
@@ -53,11 +52,12 @@ static unsigned int kmp_find(struct ts_config *conf, struct ts_state *state)
 			break;
 
 		for (i = 0; i < text_len; i++) {
-			while (q > 0 && kmp->pattern[q]
-			    != (icase ? toupper(text[i]) : text[i]))
+			while (q > 0 &&
+			       kmp->pattern[q] !=
+				       (icase ? toupper(text[i]) : text[i]))
 				q = kmp->prefix_tbl[q - 1];
-			if (kmp->pattern[q]
-			    == (icase ? toupper(text[i]) : text[i]))
+			if (kmp->pattern[q] ==
+			    (icase ? toupper(text[i]) : text[i]))
 				q++;
 			if (unlikely(q == kmp->pattern_len)) {
 				state->offset = consumed + i + 1;
@@ -78,11 +78,12 @@ static inline void compute_prefix_tbl(const u8 *pattern, unsigned int len,
 	const u8 icase = flags & TS_IGNORECASE;
 
 	for (k = 0, q = 1; q < len; q++) {
-		while (k > 0 && (icase ? toupper(pattern[k]) : pattern[k])
-		    != (icase ? toupper(pattern[q]) : pattern[q]))
-			k = prefix_tbl[k-1];
-		if ((icase ? toupper(pattern[k]) : pattern[k])
-		    == (icase ? toupper(pattern[q]) : pattern[q]))
+		while (k > 0 &&
+		       (icase ? toupper(pattern[k]) : pattern[k]) !=
+			       (icase ? toupper(pattern[q]) : pattern[q]))
+			k = prefix_tbl[k - 1];
+		if ((icase ? toupper(pattern[k]) : pattern[k]) ==
+		    (icase ? toupper(pattern[q]) : pattern[q]))
 			k++;
 		prefix_tbl[q] = k;
 	}
@@ -105,7 +106,7 @@ static struct ts_config *kmp_init(const void *pattern, unsigned int len,
 	kmp = ts_config_priv(conf);
 	kmp->pattern_len = len;
 	compute_prefix_tbl(pattern, len, kmp->prefix_tbl, flags);
-	kmp->pattern = (u8 *) kmp->prefix_tbl + prefix_tbl_len;
+	kmp->pattern = (u8 *)kmp->prefix_tbl + prefix_tbl_len;
 	if (flags & TS_IGNORECASE)
 		for (i = 0; i < len; i++)
 			kmp->pattern[i] = toupper(((u8 *)pattern)[i]);
@@ -127,15 +128,13 @@ static unsigned int kmp_get_pattern_len(struct ts_config *conf)
 	return kmp->pattern_len;
 }
 
-static struct ts_ops kmp_ops = {
-	.name		  = "kmp",
-	.find		  = kmp_find,
-	.init		  = kmp_init,
-	.get_pattern	  = kmp_get_pattern,
-	.get_pattern_len  = kmp_get_pattern_len,
-	.owner		  = THIS_MODULE,
-	.list		  = LIST_HEAD_INIT(kmp_ops.list)
-};
+static struct ts_ops kmp_ops = { .name = "kmp",
+				 .find = kmp_find,
+				 .init = kmp_init,
+				 .get_pattern = kmp_get_pattern,
+				 .get_pattern_len = kmp_get_pattern_len,
+				 .owner = THIS_MODULE,
+				 .list = LIST_HEAD_INIT(kmp_ops.list) };
 
 static int __init init_kmp(void)
 {
